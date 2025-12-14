@@ -270,4 +270,81 @@ function applyDelistedFromStyles(ws){
   const headerR = r.s.r;
   let titleC = null;
   for (let c = r.s.c; c <= r.e.c; c++){
-    const cell =
+    const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
+    const h = cell && cell.v != null ? String(cell.v).trim() : "";
+    if (["Spieletitel","Titel","Name"].includes(h)) { titleC = c; break; }
+  }
+  if (titleC == null) return;
+
+  for (let i = 0; i < allRows.length; i++){
+    const rr = headerR + 1 + i;
+    const cell = ws[XLSX.utils.encode_cell({ r: rr, c: titleC })];
+    const strike = !!(cell && cell.s && cell.s.font && (cell.s.font.strike || cell.s.font.strikethrough));
+    if (strike) allRows[i].__delisted = true;
+  }
+}
+
+/* ---------- Event-Wiring ---------- */
+els.file.addEventListener("change", async (e) => {
+  const f = e.target.files?.[0]; if (!f) return;
+  els.status.textContent = "Lese Datei…";
+  const buf = await f.arrayBuffer();
+  // Styles mit einlesen, damit wir strike erkennen
+  workbook = XLSX.read(buf, { type: "array", cellStyles: true });
+
+  // Sheet-Auswahl befüllen
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  workbook.SheetNames.forEach(n => {
+    const o = document.createElement("option"); o.value = n; o.textContent = n;
+    els.sheet.appendChild(o);
+  });
+  els.sheet.disabled = false;
+  els.search.disabled = true;
+  els.more.disabled = true;
+  els.top.disabled = false;
+  els.grid.innerHTML = "";
+  els.count.textContent = "";
+  els.status.textContent = "Sheet wählen…";
+});
+
+els.sheet.addEventListener("change", () => {
+  const name = els.sheet.value;
+  if (!name || name === "Sheet auswählen…") return;
+
+  const ws = workbook.Sheets[name];
+  // Daten robust und schnell
+  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  allRows = json;
+  columns = json.length ? orderColumns(Object.keys(json[0])) : [];
+
+  // Links + Delisted (Format) aufbauen
+  buildLinks(ws);
+  applyDelistedFromStyles(ws);
+
+  els.search.disabled = true;         // erst initialisieren, dann frei geben
+  els.more.disabled = true;
+  els.grid.innerHTML = "";
+  els.count.textContent = "";
+
+  els.status.textContent = `Geladen: ${allRows.length} Zeilen · Suche starten oder "Mehr laden" drücken`;
+  // leeres Suchfeld → zeigt trotzdem die erste Seite (komfortabel)
+  startSearch("");
+  els.search.disabled = false;
+  els.more.disabled = shown >= Math.min(matches.length, MAX_RESULTS);
+});
+
+els.search.addEventListener("input", (e) => {
+  startSearch(e.target.value);
+  els.more.disabled = shown >= Math.min(matches.length, MAX_RESULTS);
+});
+
+els.more.addEventListener("click", () => {
+  renderMore();
+});
+
+els.top.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+</script>
+</body>
+</html>
