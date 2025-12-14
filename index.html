@@ -3,30 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Excel → Karten (Large-Sheet Modus)</title>
+  <title>Excel → Karten</title>
 
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #f6f7f9; color: #111; }
+
     header{
       position: sticky; top: 0; z-index: 10;
       background:#fff; border-bottom:1px solid #e7e7e7;
       padding:12px 14px; display:grid; gap:10px;
     }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
     input[type="file"]{ max-width:100%; }
     input[type="search"], select, button{
-      flex:1; min-width:180px;
+      flex:1; min-width:170px;
       padding:10px 12px; border:1px solid #ddd; border-radius:12px;
       background:#fff; font-size:14px;
     }
     button{ cursor:pointer; }
     button:disabled{ opacity:.6; cursor:not-allowed; }
+
     main{ padding:14px; }
     .hint{ color:#666; font-size:13px; line-height:1.4; }
     .grid{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap:12px;
     }
     .card{
@@ -38,11 +41,24 @@
     .meta{ font-size:12px; color:#555; display:flex; gap:8px; flex-wrap:wrap; }
     .pill{ background:#eef2ff; color:#2536a4; padding:4px 8px; border-radius:999px; }
     .kv{ display:grid; gap:6px; }
-    .kv .line{ display:grid; grid-template-columns:120px 1fr; gap:10px; }
+    .kv .line{ display:grid; grid-template-columns:120px 1fr; gap:10px; align-items:start; }
     .k{ color:#666; font-size:12px; }
     .v{ font-size:13px; word-break:break-word; }
+
     details{ border-top:1px solid #eee; padding-top:8px; }
     summary{ cursor:pointer; color:#2536a4; font-size:13px; user-select:none; }
+
+    a{ color:#2536a4; text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+
+    .urlhint{
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+      color:#777;
+      word-break: break-all;
+    }
+
     .footer{ padding:0 14px 14px; color:#666; font-size:12px; }
   </style>
 </head>
@@ -51,7 +67,7 @@
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">Optimiert für große Sheets (Such-first, Trefferlimit, Details).</span>
+    <span class="hint">XLSX + Hyperlinks (Store Link klickbar, URL als Tooltip)</span>
   </div>
 
   <div class="row">
@@ -62,13 +78,13 @@
   </div>
 
   <div class="row">
-    <input id="search" type="search" placeholder="Suche… (z.B. 'Yakuza', 'Capcom', 'ID 643')" disabled>
+    <input id="search" type="search" placeholder="Suche… (z.B. 'Yakuza', 'Capcom', '643')" disabled>
     <button id="moreBtn" disabled>Mehr laden</button>
     <button id="topBtn" disabled>↑ Top</button>
   </div>
 
   <div class="row">
-    <span class="hint" id="status">Datei wählen → Sheet wählen → dann suchen.</span>
+    <span class="hint" id="status">Datei wählen → (XLSX: Sheet wählen) → suchen.</span>
   </div>
 </header>
 
@@ -78,7 +94,7 @@
 
 <div id="footer" class="footer"></div>
 
-<!-- локales SheetJS -->
+<!-- SheetJS lokal im Repo -->
 <script src="xlsx.full.min.js"></script>
 
 <script>
@@ -93,263 +109,7 @@
     footer: document.getElementById("footer"),
   };
 
-  // Tuning für große Dateien
-  const INITIAL_RENDER = 0;       // 0 = erst nach Suche rendern (empfohlen)
-  const PAGE_SIZE = 60;           // wie viele Karten pro "Mehr laden"
-  const MAX_RESULTS = 240;        // Sicherheitslimit fürs DOM (Android freundlich)
-  const LIGHT_FIELDS = 8;         // oben: wenige Felder schnell anzeigen
-
-  // Diese Felder sind oft "schwer" (viel Text) -> nur in Details anzeigen
-  const HEAVY_KEYS = new Set(["Kurzbeschreibung", "Beschreibung", "Notes", "Notizen"]);
-
-  let workbook = null;
-  let allRows = [];
-  let columns = [];
-
-  let currentMatches = [];
-  let shown = 0;
-
-  function s(v){ return v == null ? "" : String(v).trim(); }
-
-  function pickTitle(row){
-    for (const k of ["Spieletitel","Spiel","Titel","Name"]) {
-      const v = s(row[k]);
-      if (v) return v;
-    }
-    return "(ohne Titel)";
-  }
-
-  function pickSubtitle(row){
-    for (const k of ["Entwickler","Developer","Studio"]) {
-      const v = s(row[k]);
-      if (v) return v;
-    }
-    return "";
-  }
-
-  function pillsOf(row){
-    const out = [];
-    for (const k of ["ID","Subgenre / Stimmung","Subgenre","Genre"]) {
-      const v = s(row[k]);
-      if (v) out.push(k + ": " + v);
-      if (out.length >= 3) break;
-    }
-    return out;
-  }
-
-  function rowMatches(row, q){
-    if (!q) return true;
-    const needle = q.toLowerCase();
-    // schneller: nur eine reduzierte "Haystack"-Zeichenkette bauen
-    // (Titel + Entwickler + ID + Subgenre + rest)
-    const parts = [];
-    for (const k of ["ID","Spieletitel","Spiel","Titel","Name","Entwickler","Developer","Studio","Subgenre / Stimmung","Subgenre","Genre"]) {
-      if (row[k] !== undefined) parts.push(s(row[k]));
-    }
-    // fallback: wenn wenig Treffer, auch alle Spalten berücksichtigen
-    const base = parts.join(" | ").toLowerCase();
-    if (base.includes(needle)) return true;
-
-    // optionaler Vollscan (kostet, aber nur wenn nötig)
-    const full = columns.map(c => s(row[c])).join(" | ").toLowerCase();
-    return full.includes(needle);
-  }
-
-  function makeLine(k, v){
-    const line = document.createElement("div");
-    line.className = "line";
-    const kk = document.createElement("div");
-    kk.className = "k";
-    kk.textContent = k;
-    const vv = document.createElement("div");
-    vv.className = "v";
-    vv.textContent = v;
-    line.appendChild(kk);
-    line.appendChild(vv);
-    return line;
-  }
-
-  function createCard(row){
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = pickTitle(row);
-
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    const sub = pickSubtitle(row);
-    if (sub) meta.textContent = sub;
-
-    const pillsWrap = document.createElement("div");
-    pillsWrap.className = "meta";
-    for (const p of pillsOf(row)) {
-      const pill = document.createElement("span");
-      pill.className = "pill";
-      pill.textContent = p;
-      pillsWrap.appendChild(pill);
-    }
-
-    const kv = document.createElement("div");
-    kv.className = "kv";
-
-    // leichte Felder zuerst: nur wenige Spalten
-    let used = 0;
-    for (const k of columns) {
-      if (used >= LIGHT_FIELDS) break;
-      const v = s(row[k]);
-      if (!v) continue;
-      if (HEAVY_KEYS.has(k)) continue;
-      kv.appendChild(makeLine(k, v));
-      used++;
-    }
-
-    // Details: alle restlichen, inkl. "schwer"
-    const details = document.createElement("details");
-    const summary = document.createElement("summary");
-    summary.textContent = "Details anzeigen";
-    details.appendChild(summary);
-
-    const detailsKv = document.createElement("div");
-    detailsKv.className = "kv";
-
-    for (const k of columns) {
-      const v = s(row[k]);
-      if (!v) continue;
-      // doppelte Anzeige vermeiden: wenn bereits in LIGHT-Teil enthalten und nicht "heavy"
-      // (einfacher: heavy immer in details, light evtl. auch — hier aber minimal)
-      if (!HEAVY_KEYS.has(k)) {
-        // wenn es bereits oben angezeigt wurde, sparen wir es hier
-        // (wir checken grob, ob es eines der ersten LIGHT_FIELDS war)
-        // Das ist nicht perfekt, aber schnell.
-      }
-      detailsKv.appendChild(makeLine(k, v));
-    }
-
-    details.appendChild(detailsKv);
-
-    card.appendChild(title);
-    if (sub) card.appendChild(meta);
-    if (pillsWrap.childNodes.length) card.appendChild(pillsWrap);
-    if (kv.childNodes.length) card.appendChild(kv);
-    card.appendChild(details);
-
-    return card;
-  }
-
-  function updateUI(){
-    const total = currentMatches.length;
-    els.footer.textContent =
-      `Zeilen im Sheet: ${allRows.length} | Treffer: ${total} | Angezeigt: ${shown}/${Math.min(total, MAX_RESULTS)} | Spalten: ${columns.length}`;
-
-    els.moreBtn.disabled = !(shown < Math.min(total, MAX_RESULTS));
-  }
-
-  function renderMore(){
-    const total = currentMatches.length;
-    const limit = Math.min(total, MAX_RESULTS);
-    if (shown >= limit) return;
-
-    const end = Math.min(shown + PAGE_SIZE, limit);
-    const frag = document.createDocumentFragment();
-
-    for (let i = shown; i < end; i++){
-      frag.appendChild(createCard(currentMatches[i]));
-    }
-    els.grid.appendChild(frag);
-    shown = end;
-
-    els.status.textContent =
-      total === 0 ? "Keine Treffer. Tippfehler? Anderes Wort probieren."
-      : (shown < limit
-          ? `Treffer: ${total}. Angezeigt: ${shown}/${limit}. (Mehr laden für weitere)`
-          : `Treffer: ${total}. Angezeigt: ${shown}/${limit}.`);
-
-    updateUI();
-  }
-
-  function startSearch(q){
-    els.grid.innerHTML = "";
-    shown = 0;
-
-    const query = (q || "").trim();
-    if (!query && INITIAL_RENDER === 0){
-      currentMatches = [];
-      els.status.textContent = "Großes Sheet erkannt → bitte erst suchen (damit Android nicht stirbt).";
-      updateUI();
-      return;
-    }
-
-    els.status.textContent = "Suche läuft…";
-    // Suche kann bei 10k Zeilen kurz dauern; UI vorher aktualisieren
-    setTimeout(() => {
-      currentMatches = allRows.filter(r => rowMatches(r, query));
-      renderMore();
-    }, 0);
-  }
-
-  function loadSheet(name){
-    const ws = workbook.Sheets[name];
-    allRows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: true });
-    columns = allRows.length ? Object.keys(allRows[0]) : [];
-
-    els.search.disabled = false;
-    els.topBtn.disabled = false;
-    els.moreBtn.disabled = false;
-
-    els.status.textContent = `Geladen: ${name}. Zeilen: ${allRows.length}.`;
-    updateUI();
-
-    // bei kleineren Sheets könnte man direkt was zeigen; bei deinem: lieber Such-first
-    startSearch("");
-  }
-
-  els.topBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  els.moreBtn.onclick = () => renderMore();
-
-  let searchTimer = null;
-  els.search.oninput = (e) => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => startSearch(e.target.value), 200);
-  };
-
-  els.sheetSelect.onchange = (e) => {
-    const name = e.target.value;
-    if (!name || name === "Sheet auswählen…") return;
-    loadSheet(name);
-  };
-
-  els.file.onchange = async (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-
-    els.status.textContent = "Lese Datei…";
-    els.grid.innerHTML = "";
-    els.footer.textContent = "";
-    els.sheetSelect.innerHTML = "<option>Sheet auswählen…</option>";
-    els.sheetSelect.disabled = true;
-    els.search.disabled = true;
-    els.moreBtn.disabled = true;
-    els.topBtn.disabled = true;
-
-    const buf = await f.arrayBuffer();
-    workbook = XLSX.read(buf, { type: "array" });
-
-    (workbook.SheetNames || []).forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = n;
-      opt.textContent = n;
-      els.sheetSelect.appendChild(opt);
-    });
-
-    if (workbook.SheetNames.length === 1) {
-      loadSheet(workbook.SheetNames[0]);
-    } else {
-      els.sheetSelect.disabled = false;
-      els.status.textContent = "Sheet auswählen…";
-    }
-  };
-</script>
-</body>
-</html>
+  // === Performance-Tuning für große Listen ===
+  const INITIAL_RENDER = 0;     // 0 = erst nach Suche rendern (Android-freundlich)
+  const PAGE_SIZE = 70;         // Karten pro "Mehr laden"
+  const MAX
