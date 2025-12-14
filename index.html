@@ -1,63 +1,65 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Excel → Karten</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background: #f6f7f9; color: #111; }
-    header{
-      position: sticky; top: 0; z-index: 10;
-      background:#fff; border-bottom:1px solid #e7e7e7;
-      padding:12px 14px; display:grid; gap:10px;
-    }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    input[type="file"]{ max-width:100%; }
-    input[type="search"], select, button{
-      flex:1; min-width:170px;
-      padding:10px 12px; border:1px solid #ddd; border-radius:12px;
-      background:#fff; font-size:14px;
-    }
-    button{ cursor:pointer; }
-    button:disabled{ opacity:.6; cursor:not-allowed; }
-    main{ padding:14px; }
-    .hint{ color:#666; font-size:13px; line-height:1.4; }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap:12px;
-    }
-    .card{
-      background:#fff; border:1px solid #e9e9e9; border-radius:16px;
-      padding:12px; box-shadow:0 1px 2px rgba(0,0,0,.04);
-      display:grid; gap:10px;
-    }
-    .title{ font-weight:700; font-size:16px; line-height:1.2; }
-    .meta{ font-size:12px; color:#555; display:flex; gap:8px; flex-wrap:wrap; }
-    .pill{ background:#eef2ff; color:#2536a4; padding:4px 8px; border-radius:999px; }
-    .kv{ display:grid; gap:6px; }
-    .kv .line{ display:grid; grid-template-columns:120px 1fr; gap:10px; align-items:start; }
-    .k{ color:#666; font-size:12px; }
-    .v{ font-size:13px; word-break:break-word; }
-    details{ border-top:1px solid #eee; padding-top:8px; }
-    summary{ cursor:pointer; color:#2536a4; font-size:13px; user-select:none; }
-    a{ color:#2536a4; text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-    .urlhint{ display:block; margin-top:4px; font-size:11px; color:#777; word-break:break-all; }
-    .footer{ padding:0 14px 14px; color:#666; font-size:12px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel → Karten</title>
+
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{margin:0;background:#f6f7f9;color:#111}
+header{
+  position:sticky;top:0;z-index:10;
+  background:#fff;border-bottom:1px solid #e7e7e7;
+  padding:12px 14px;display:grid;gap:10px
+}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input,select,button{
+  flex:1;min-width:170px;
+  padding:10px 12px;border:1px solid #ddd;border-radius:12px;
+  background:#fff;font-size:14px
+}
+button{cursor:pointer}
+button:disabled{opacity:.6}
+main{padding:14px}
+.hint{color:#666;font-size:13px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+  gap:12px
+}
+.card{
+  background:#fff;border:1px solid #e9e9e9;border-radius:16px;
+  padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);
+  display:grid;gap:10px
+}
+.title{font-weight:700;font-size:16px;line-height:1.2}
+.delistedTitle{text-decoration:line-through;color:#b00020}
+.meta{font-size:12px;color:#555;display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:#eef2ff;color:#2536a4;padding:4px 8px;border-radius:999px}
+.badgeDelisted{background:#ffe7ea;color:#b00020;padding:4px 8px;border-radius:999px;font-weight:600}
+.kv{display:grid;gap:6px}
+.line{display:grid;grid-template-columns:120px 1fr;gap:10px}
+.k{color:#666;font-size:12px}
+.v{font-size:13px;word-break:break-word}
+details{border-top:1px solid #eee;padding-top:8px}
+summary{cursor:pointer;color:#2536a4;font-size:13px}
+a{color:#2536a4;text-decoration:none}
+a:hover{text-decoration:underline}
+.footer{padding:0 14px 14px;color:#666;font-size:12px}
+</style>
 </head>
 
 <body>
+
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">XLSX lädt stabil, Hyperlinks werden als Tooltip ergänzt</span>
+    <span class="hint">XLSX · Links · Delisted-Status</span>
   </div>
 
   <div class="row">
-    <input id="file" type="file" accept=".xlsx,.xls,.csv">
+    <input id="file" type="file" accept=".xlsx,.xls">
     <select id="sheetSelect" disabled>
       <option>Sheet auswählen…</option>
     </select>
@@ -70,3 +72,158 @@
   </div>
 
   <div class="row">
+    <span id="status" class="hint">Datei wählen → Sheet wählen → suchen</span>
+  </div>
+</header>
+
+<main>
+  <div id="grid" class="grid"></div>
+</main>
+
+<div id="footer" class="footer"></div>
+
+<script src="xlsx.full.min.js"></script>
+<script>
+const els={
+  file:file,sheetSelect:sheetSelect,search:search,
+  moreBtn:moreBtn,topBtn:topBtn,status:status,
+  grid:grid,footer:footer
+};
+
+const PAGE_SIZE=70, MAX_RESULTS=300;
+let workbook, allRows=[], columns=[];
+let matches=[], shown=0;
+let linkMap=new Map();
+
+function s(v){return v==null?"":String(v).trim()}
+
+function renderValue(val){
+  if(val&&typeof val==="object"&&val.href){
+    const a=document.createElement("a");
+    a.href=val.href;
+    a.textContent=val.text||"Link";
+    a.title=val.href;
+    a.target="_blank";
+    return a;
+  }
+  return document.createTextNode(s(val));
+}
+
+function makeLine(k,v){
+  const d=document.createElement("div");d.className="line";
+  const kk=document.createElement("div");kk.className="k";kk.textContent=k;
+  const vv=document.createElement("div");vv.className="v";vv.appendChild(renderValue(v));
+  d.append(kk,vv);return d;
+}
+
+function createCard(row,rowIdx){
+  const c=document.createElement("div");c.className="card";
+  const t=document.createElement("div");t.className="title";t.textContent=s(row.Spieletitel||row.Titel||row.Name);
+  if(row.__delisted)t.classList.add("delistedTitle");
+
+  const meta=document.createElement("div");meta.className="meta";
+  if(row.__delisted){
+    const b=document.createElement("span");
+    b.className="badgeDelisted";b.textContent="Delisted";
+    meta.appendChild(b);
+  }
+
+  const kv=document.createElement("div");kv.className="kv";
+  columns.forEach(col=>{
+    if(!s(row[col]))return;
+    let v=row[col];
+    const href=linkMap.get(`${rowIdx}:${col}`);
+    if(href)v={text:s(row[col]),href};
+    kv.appendChild(makeLine(col,v));
+  });
+
+  c.append(t,meta,kv);
+  return c;
+}
+
+function renderMore(){
+  const end=Math.min(shown+PAGE_SIZE,matches.length,MAX_RESULTS);
+  const frag=document.createDocumentFragment();
+  for(let i=shown;i<end;i++){
+    const {row,idx}=matches[i];
+    frag.appendChild(createCard(row,idx));
+  }
+  shown=end;els.grid.appendChild(frag);
+  els.moreBtn.disabled=shown>=Math.min(matches.length,MAX_RESULTS);
+  els.footer.textContent=`Treffer: ${matches.length} · Angezeigt: ${shown}`;
+}
+
+function startSearch(q){
+  els.grid.innerHTML="";shown=0;
+  const term=q.toLowerCase();
+  matches=allRows
+    .map((r,i)=>({row:r,idx:i+2}))
+    .filter(o=>!term||Object.values(o.row).join(" ").toLowerCase().includes(term));
+  renderMore();
+}
+
+function applyDelisted(ws){
+  const ref=ws["!ref"];if(!ref)return;
+  const r=XLSX.utils.decode_range(ref);
+  let titleC=null;
+  for(let c=r.s.c;c<=r.e.c;c++){
+    const h=ws[XLSX.utils.encode_cell({r:r.s.r,c})];
+    if(h&&String(h.v).trim()==="Spieletitel"){titleC=c;break;}
+  }
+  if(titleC==null)return;
+  for(let i=0;i<allRows.length;i++){
+    const cell=ws[XLSX.utils.encode_cell({r:r.s.r+1+i,c:titleC})];
+    if(cell&&cell.s&&cell.s.font&&cell.s.font.strike){
+      allRows[i].__delisted=true;
+    }
+  }
+}
+
+function buildLinks(ws){
+  linkMap.clear();
+  const ref=ws["!ref"];if(!ref)return;
+  const r=XLSX.utils.decode_range(ref);
+  const headers=[];
+  for(let c=r.s.c;c<=r.e.c;c++){
+    const h=ws[XLSX.utils.encode_cell({r:r.s.r,c})];
+    headers[c]=h?String(h.v).trim():"";
+  }
+  for(let rr=r.s.r+1;rr<=r.e.r;rr++){
+    for(let c=r.s.c;c<=r.e.c;c++){
+      const cell=ws[XLSX.utils.encode_cell({r:rr,c})];
+      if(cell&&cell.l&&cell.l.Target){
+        linkMap.set(`${rr+1}:${headers[c]}`,cell.l.Target);
+      }
+    }
+  }
+}
+
+els.file.onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  els.status.textContent="Lese Datei…";
+  const buf=await f.arrayBuffer();
+  workbook=XLSX.read(buf,{type:"array",cellStyles:true});
+  sheetSelect.innerHTML="<option>Sheet auswählen…</option>";
+  workbook.SheetNames.forEach(n=>{
+    const o=document.createElement("option");o.value=o.textContent=n;
+    sheetSelect.appendChild(o);
+  });
+  sheetSelect.disabled=false;
+};
+
+sheetSelect.onchange=()=>{
+  const ws=workbook.Sheets[sheetSelect.value];
+  allRows=XLSX.utils.sheet_to_json(ws,{defval:""});
+  columns=allRows.length?Object.keys(allRows[0]):[];
+  buildLinks(ws);applyDelisted(ws);
+  els.search.disabled=false;els.moreBtn.disabled=false;
+  els.status.textContent=`Geladen: ${allRows.length} Zeilen`;
+  startSearch("");
+};
+
+search.oninput=e=>startSearch(e.target.value);
+moreBtn.onclick=renderMore;
+topBtn.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+</script>
+</body>
+</html>
