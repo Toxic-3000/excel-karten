@@ -100,9 +100,15 @@ details[open] .summaryBtn::after{content:"▴"}
   text-transform:uppercase;
 }
 
+/* Beschreibung-Toggle (innerhalb Details) */
 .subdetails summary{color:#374151;font-size:13px}
 .subdetails .summaryBtn{color:#374151}
 .subdetails .summaryBtn::after{color:#6b7280}
+/* Abstand zwischen "Kurzbeschreibung anzeigen" und Text */
+.subdetails .descText{ margin-top: 8px; }
+
+/* Mehrzeilige Darstellung (Trophäen/Platin) */
+.preline{ white-space: pre-line; }
 
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
@@ -142,35 +148,41 @@ const PAGE_SIZE = 50;
 const MAX_RESULTS = 600;
 const PLACEHOLDER = "—";
 
-// Jetzt wie gewünscht: leere Felder anzeigen (Key Facts + Details)
+// wie gewünscht: leere Felder anzeigen
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
 
-// Spaltennamen (müssen exakt passen; du nutzt diese bereits so)
-const COL = {
-  id: "ID",
-  title: "Spieletitel",
-  fav: "Favorit",
-  system: "System",
-  availability: "Verfügbarkeit",
-  store: "Store Link",
-  source: "Quelle",
-  genre: "Genre",
-  subgenre: "Subgenre / Stimmung",
-  dev: "Entwickler",
-  desc: "Kurzbeschreibung",
-  easter: "Eastereggs",
-  special: "Besonderheiten",
-  main: "Spielzeit (Main)",
-  hundred: "Spielzeit (100%)",
-  meta: "Metascore",
-  user: "Userwertung",
-  trophies: "Trophäen Fortschritt",
-  platinum: "Platin",
-  hours: "Gesamtstunden (Humorstatistik)",
-  life: "% Lebenszeit (Humorstatistik)",
-  years: "Jahre (Humorstatistik)",
+/* ================== Spalten-Aliases ==================
+   Wichtig: Deine Tabelle hat die Spalte "Subgenre"
+   Wir zeigen sie aber als "Subgenre / Stimmung" an (Label), das kommt unten im UI. */
+const COL_ALIASES = {
+  id: ["ID"],
+  title: ["Spieletitel","Spiel","Titel","Name"],
+  fav: ["Favorit","Favorite"],
+  system: ["System","Plattform","Platform"],
+  availability: ["Verfügbarkeit","Verfuegbarkeit","Availability"],
+  store: ["Store Link","Store-Link","StoreLink","Store"],
+  source: ["Quelle","Source"],
+  genre: ["Genre"],
+  // <-- Hier ist dein entscheidender Punkt:
+  subgenre: ["Subgenre", "Subgenre / Stimmung","Subgenre/Stimmung"],
+  dev: ["Entwickler","Developer","Studio"],
+  desc: ["Kurzbeschreibung","Beschreibung","Description"],
+  easter: ["Eastereggs","Easter Eggs"],
+  special: ["Besonderheiten","Highlights"],
+  main: ["Spielzeit (Main)","Spielzeit Main","Main Story (Std.)","Main Story"],
+  hundred: ["Spielzeit (100%)","Spielzeit 100%","100 % (Std.)","100% (Std.)","100%"],
+  meta: ["Metascore","Pressemeinung (Ø)"],
+  user: ["Userwertung","Userwertung (Ø)"],
+  trophies: ["Trophäen Fortschritt","Trophäen-Fortschritt","Trophäenfortschritt","Trophies Progress"],
+  platinum: ["Platin","Platinum"],
+  hours: ["Gesamtstunden (Humorstatistik)","Humorstatistik – Gesamtstunden"],
+  life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit"],
+  years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre"],
 };
+
+// wird nach dem Sheet-Load gefüllt: key -> echte Spalte in deiner Datei
+let COL = {};
 
 /* ================== State ================== */
 const els = {
@@ -194,8 +206,35 @@ let linkMap = new Map();     // `${row1based}:${colName}` -> href
 let headerRowIndex = 1;      // 1-basiert
 
 const s = v => (v == null ? "" : String(v).trim());
-const has = (row, col) => col && row && row[col] !== undefined;
-const val = (row, col) => has(row, col) ? s(row[col]) : "";
+
+/* ================== Resolver ================== */
+function normHeader(x){
+  return String(x ?? "")
+    .replace(/\u00A0/g, " ")     // NBSP -> Space
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function resolveColumns(columns){
+  const byNorm = new Map(columns.map(c => [normHeader(c), c]));
+  const resolved = {};
+  for (const [key, aliases] of Object.entries(COL_ALIASES)) {
+    let found = "";
+    for (const a of aliases) {
+      const hit = byNorm.get(normHeader(a));
+      if (hit) { found = hit; break; }
+    }
+    resolved[key] = found; // kann leer sein, falls Spalte nicht existiert
+  }
+  return resolved;
+}
+
+function val(row, colName){
+  if (!colName) return "";
+  const v = row[colName];
+  return v == null ? "" : String(v).trim();
+}
 
 /* ================== Hyperlinks & Delisted ================== */
 function buildLinks(ws){
@@ -228,12 +267,16 @@ function applyDelistedFromStyles(ws){
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
+  // Wir suchen die echte Titelspalte aus dem Resolver (COL.title)
+  const titleCol = COL.title;
+  if (!titleCol) return;
+
   const headerR = r.s.r;
   let titleC = null;
   for (let c = r.s.c; c <= r.e.c; c++){
     const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
     const h = cell && cell.v != null ? String(cell.v).trim() : "";
-    if (h === COL.title) { titleC = c; break; }
+    if (h === titleCol) { titleC = c; break; }
   }
   if (titleC == null) return;
 
@@ -251,9 +294,9 @@ function isDelistedRow(row){
   return v === "delisted" || v === "removed" || v.includes("store entfernt");
 }
 
-function getValueWithLink(row, col, rowIndex1Based){
-  const text = val(row, col);
-  const href = linkMap.get(`${rowIndex1Based}:${col}`);
+function getValueWithLink(row, colName, rowIndex1Based){
+  const text = val(row, colName);
+  const href = linkMap.get(`${rowIndex1Based}:${colName}`);
   if (href) return { text: text || "Store Link", href };
   return text;
 }
@@ -319,6 +362,15 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
+// Plattformen untereinander
+function formatPlatformsMultiline(text){
+  const t = String(text ?? "").trim();
+  if (!t) return "";
+  return t
+    .replace(/\s+(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g, "\n$1")
+    .trim();
+}
+
 /* ================== Card ================== */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
@@ -352,7 +404,7 @@ function createCard(row, rowIndex1Based){
 
   top.append(titleRow, metaRow);
 
-  // --- Key facts (mit leeren Feldern als —) ---
+  // --- Key facts ---
   const key = document.createElement("div");
   key.className = "keyFacts";
 
@@ -362,16 +414,16 @@ function createCard(row, rowIndex1Based){
   const metaScore = val(row, COL.meta);
   const userScore = val(row, COL.user);
 
-  // Genre / Subgenre / Spielzeit
   if (genre || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Genre", renderValue(genre)));
-  if (subg  || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Subgenre", renderValue(subg)));
+  // Anzeige-Label ausdrücklich wie gewünscht:
+  if (subg  || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Subgenre / Stimmung", renderValue(subg)));
   if (pt    || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Spielzeit", renderValue(pt)));
 
-  // Wertungen getrennt (wie gewünscht)
+  // Wertungen getrennt
   if (metaScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Metascore", renderValue(metaScore)));
   if (userScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Userwertung", renderValue(userScore)));
 
-  // --- Details: ein Accordion ---
+  // --- Details ---
   const detailsWrap = document.createElement("div");
   detailsWrap.className = "detailsWrap";
 
@@ -384,7 +436,6 @@ function createCard(row, rowIndex1Based){
   details.appendChild(summary);
 
   function addSection(titleText, lines){
-    // Bei SHOW_EMPTY_IN_DETAILS können Sektionen auch nur Platzhalter enthalten
     const exists = lines.some(x => x != null);
     if (!exists) return;
 
@@ -400,8 +451,8 @@ function createCard(row, rowIndex1Based){
     details.appendChild(sec);
   }
 
-  // Beschreibung: ausklappbar (wie gewünscht)
-  const desc = val(row, COL.desc);
+  // Beschreibung: ausklappbar + Abstand
+  const descText = val(row, COL.desc);
   {
     const d = document.createElement("details");
     d.className = "subdetails";
@@ -413,8 +464,8 @@ function createCard(row, rowIndex1Based){
     d.appendChild(ssum);
 
     const p = document.createElement("div");
-    p.className = "v";
-    p.textContent = desc || PLACEHOLDER;
+    p.className = "v descText";
+    p.textContent = descText || PLACEHOLDER;
     d.appendChild(p);
 
     addSection("Beschreibung", [d]);
@@ -446,18 +497,28 @@ function createCard(row, rowIndex1Based){
     (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
   ]);
 
-  // Trophäen
+  // Trophäen: Plattformen untereinander
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
+
+  const trophNode = document.createElement("div");
+  trophNode.className = "v preline";
+  trophNode.textContent = formatPlatformsMultiline(trophies) || PLACEHOLDER;
+
+  const platNode = document.createElement("div");
+  platNode.className = "v preline";
+  platNode.textContent = formatPlatformsMultiline(platinum) || PLACEHOLDER;
+
   addSection("Trophäen", [
-    (trophies || SHOW_EMPTY_IN_DETAILS) ? kvLine("Fortschritt", renderValue(trophies)) : null,
-    (platinum || SHOW_EMPTY_IN_DETAILS) ? kvLine("Platin", renderValue(platinum)) : null,
+    kvLine("Fortschritt", trophNode),
+    kvLine("Platin", platNode),
   ]);
 
   // Humorstatistik
   const hours = val(row, COL.hours);
   const life  = val(row, COL.life);
   const years = val(row, COL.years);
+
   addSection("Humorstatistik", [
     (hours || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(hours)) : null,
     (life  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(life)) : null,
@@ -560,6 +621,9 @@ els.sheet.addEventListener("change", () => {
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
   allRows = json;
   columns = json.length ? Object.keys(json[0]) : [];
+
+  // Resolver füllt COL.* mit den echten Spaltennamen
+  COL = resolveColumns(columns);
 
   buildLinks(ws);
   applyDelistedFromStyles(ws);
