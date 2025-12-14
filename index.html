@@ -45,9 +45,7 @@ main{padding:14px}
 }
 .cardTop{display:grid;gap:6px}
 .titleRow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
-.title{
-  font-weight:800;font-size:16px;line-height:1.15;
-}
+.title{font-weight:800;font-size:16px;line-height:1.15}
 .title.delisted{ text-decoration:line-through; color:var(--danger); }
 .badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
 .badge{
@@ -78,9 +76,21 @@ main{padding:14px}
 .k{color:var(--muted);font-size:12px}
 .v{font-size:13px;word-break:break-word}
 
+.detailsWrap{border-top:1px solid var(--line);padding-top:10px}
+details{border:0}
+summary{
+  cursor:pointer;color:var(--accent);
+  font-size:13px;user-select:none
+}
+summary::-webkit-details-marker{display:none}
+.summaryBtn{display:inline-flex;align-items:center;gap:8px}
+.summaryBtn::after{content:"▾";font-size:12px;transform:translateY(-1px)}
+details[open] .summaryBtn::after{content:"▴"}
+
 .section{
   border-top:1px solid var(--line);
   padding-top:10px;
+  margin-top:10px;
   display:grid;gap:8px
 }
 .sectionTitle{
@@ -89,38 +99,13 @@ main{padding:14px}
   color:var(--muted);
   text-transform:uppercase;
 }
-.details{
-  border-top:1px solid var(--line);
-  padding-top:10px;
-}
-details{border:0}
-summary{
-  cursor:pointer;
-  color:var(--accent);
-  font-size:13px;
-  user-select:none;
-}
-summary::-webkit-details-marker{display:none}
-.summaryBtn{
-  display:inline-flex;align-items:center;gap:8px
-}
-.summaryBtn::after{
-  content:"▾";
-  font-size:12px;
-  transform:translateY(-1px);
-}
-details[open] .summaryBtn::after{content:"▴"}
+
+.subdetails summary{color:#374151;font-size:13px}
+.subdetails .summaryBtn{color:#374151}
+.subdetails .summaryBtn::after{color:#6b7280}
 
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-
-.clamp{
-  display:-webkit-box;
-  -webkit-line-clamp:5;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-
 .footer{padding:0 14px 14px;color:var(--muted);font-size:12px}
 .counter{font-size:12px;color:#555}
 </style>
@@ -130,7 +115,7 @@ a:hover{text-decoration:underline}
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">Clean Cards · Key Facts · Details</span>
+    <span class="hint">Clean Cards · Empty fields · Details</span>
   </div>
   <div class="row">
     <input id="file" type="file" accept=".xlsx,.xls" />
@@ -148,21 +133,20 @@ a:hover{text-decoration:underline}
 </header>
 
 <main><div id="grid" class="grid"></div></main>
-<div id="footer" class="footer"></div>
+<div class="footer" id="footer"></div>
 
 <script src="xlsx.full.min.js"></script>
 <script>
 /* ================== Einstellungen ================== */
 const PAGE_SIZE = 50;
 const MAX_RESULTS = 600;
+const PLACEHOLDER = "—";
 
-// Clean: leere Felder standardmäßig ausblenden
-const SHOW_EMPTY_IN_DETAILS = false;
+// Jetzt wie gewünscht: leere Felder anzeigen (Key Facts + Details)
+const SHOW_EMPTY_IN_KEYFACTS = true;
+const SHOW_EMPTY_IN_DETAILS  = true;
 
-// Kurzbeschreibung im Detailsbereich standardmäßig clampen (ausklappbar per Klick)
-const CLAMP_DESCRIPTION = true;
-
-// Welche Spalten gehören wohin? (Spaltennamen exakt wie in deiner Excel)
+// Spaltennamen (müssen exakt passen; du nutzt diese bereits so)
 const COL = {
   id: "ID",
   title: "Spieletitel",
@@ -198,6 +182,7 @@ const els = {
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
+  footer: document.getElementById("footer"),
 };
 
 let workbook = null;
@@ -205,8 +190,8 @@ let allRows = [];
 let matches = [];
 let shown = 0;
 let columns = [];
-let linkMap = new Map();            // `${row1based}:${colName}` -> href
-let headerRowIndex = 1;             // 1-basiert
+let linkMap = new Map();     // `${row1based}:${colName}` -> href
+let headerRowIndex = 1;      // 1-basiert
 
 const s = v => (v == null ? "" : String(v).trim());
 const has = (row, col) => col && row && row[col] !== undefined;
@@ -240,7 +225,6 @@ function buildLinks(ws){
 }
 
 function applyDelistedFromStyles(ws){
-  // setzt row.__delisted wenn Titelzelle durchgestrichen ist
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
@@ -275,9 +259,7 @@ function getValueWithLink(row, col, rowIndex1Based){
 }
 
 /* ================== Rendering helpers ================== */
-function nodeText(t){
-  return document.createTextNode(t);
-}
+function nodeText(t){ return document.createTextNode(t); }
 
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
@@ -290,7 +272,7 @@ function renderValue(value){
     return a;
   }
   const t = s(value);
-  return nodeText(t);
+  return nodeText(t || PLACEHOLDER);
 }
 
 function kvLine(label, valueNode){
@@ -323,6 +305,12 @@ function makeBadge(text, cls=""){
   return b;
 }
 
+function formatFavorite(row){
+  const f = val(row, COL.fav).toLowerCase();
+  if (!f) return "";
+  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
+}
+
 function formatPlaytime(row){
   const m = val(row, COL.main);
   const h = val(row, COL.hundred);
@@ -331,27 +319,12 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-function formatScores(row){
-  const ms = val(row, COL.meta);
-  const us = val(row, COL.user);
-  if (!ms && !us) return "";
-  if (ms && us) return `${ms} · ${us}`;
-  return ms || us;
-}
-
-function formatFavorite(row){
-  const f = val(row, COL.fav).toLowerCase();
-  if (!f) return "";
-  // viele Varianten: "x", "1", "true", "⭐"
-  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
-}
-
 /* ================== Card ================== */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
 
-  // --- Top (Titel + Badges + Chips) ---
+  // --- Top ---
   const top = document.createElement("div");
   top.className = "cardTop";
 
@@ -366,7 +339,6 @@ function createCard(row, rowIndex1Based){
   const badges = document.createElement("div");
   badges.className = "badges";
   if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted", "delisted"));
-
   const favLabel = formatFavorite(row);
   if (favLabel) badges.appendChild(makeBadge(favLabel));
 
@@ -374,35 +346,34 @@ function createCard(row, rowIndex1Based){
 
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
-
-  const idv = val(row, COL.id);
-  if (idv) metaRow.appendChild(makeChip(`ID ${idv}`));
-
-  const sys = val(row, COL.system);
-  if (sys) metaRow.appendChild(makeChip(sys));
-
-  const avail = val(row, COL.availability);
-  if (avail) metaRow.appendChild(makeChip(avail));
+  metaRow.appendChild(makeChip(`ID ${val(row, COL.id) || PLACEHOLDER}`));
+  metaRow.appendChild(makeChip(val(row, COL.system) || PLACEHOLDER));
+  metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
   top.append(titleRow, metaRow);
 
-  // --- Key facts (kleiner, aber sofort nützlich) ---
+  // --- Key facts (mit leeren Feldern als —) ---
   const key = document.createElement("div");
   key.className = "keyFacts";
 
   const genre = val(row, COL.genre);
   const subg  = val(row, COL.subgenre);
   const pt    = formatPlaytime(row);
-  const sc    = formatScores(row);
+  const metaScore = val(row, COL.meta);
+  const userScore = val(row, COL.user);
 
-  if (genre) key.appendChild(kvLine("Genre", renderValue(genre)));
-  if (subg)  key.appendChild(kvLine("Subgenre", renderValue(subg)));
-  if (pt)    key.appendChild(kvLine("Spielzeit", renderValue(pt)));
-  if (sc)    key.appendChild(kvLine("Wertungen", renderValue(sc)));
+  // Genre / Subgenre / Spielzeit
+  if (genre || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Genre", renderValue(genre)));
+  if (subg  || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Subgenre", renderValue(subg)));
+  if (pt    || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Spielzeit", renderValue(pt)));
 
-  // --- Details (Sektionen) ---
+  // Wertungen getrennt (wie gewünscht)
+  if (metaScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Metascore", renderValue(metaScore)));
+  if (userScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Userwertung", renderValue(userScore)));
+
+  // --- Details: ein Accordion ---
   const detailsWrap = document.createElement("div");
-  detailsWrap.className = "details";
+  detailsWrap.className = "detailsWrap";
 
   const details = document.createElement("details");
   const summary = document.createElement("summary");
@@ -412,83 +383,86 @@ function createCard(row, rowIndex1Based){
   summary.appendChild(sumSpan);
   details.appendChild(summary);
 
-  // Hilfsfunktion: Sektion bauen, nur wenn Inhalte
   function addSection(titleText, lines){
-    const filtered = lines.filter(x => x != null);
-    if (!filtered.length) return;
+    // Bei SHOW_EMPTY_IN_DETAILS können Sektionen auch nur Platzhalter enthalten
+    const exists = lines.some(x => x != null);
+    if (!exists) return;
+
     const sec = document.createElement("div");
     sec.className = "section";
+
     const st = document.createElement("div");
     st.className = "sectionTitle";
     st.textContent = titleText;
+
     sec.appendChild(st);
-    for (const line of filtered) sec.appendChild(line);
+    for (const line of lines) if (line) sec.appendChild(line);
     details.appendChild(sec);
   }
 
-  // Beschreibung
+  // Beschreibung: ausklappbar (wie gewünscht)
   const desc = val(row, COL.desc);
-  if (desc) {
+  {
+    const d = document.createElement("details");
+    d.className = "subdetails";
+    const ssum = document.createElement("summary");
+    const sbtn = document.createElement("span");
+    sbtn.className = "summaryBtn";
+    sbtn.textContent = "Kurzbeschreibung anzeigen";
+    ssum.appendChild(sbtn);
+    d.appendChild(ssum);
+
     const p = document.createElement("div");
     p.className = "v";
-    p.textContent = desc;
-    if (CLAMP_DESCRIPTION) p.classList.add("clamp");
-    addSection("Beschreibung", [kvLine("Kurzbeschreibung", p)]);
+    p.textContent = desc || PLACEHOLDER;
+    d.appendChild(p);
+
+    addSection("Beschreibung", [d]);
   }
 
-  // Store & Status
+  // Store
   const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
-  const storeNode = storeVal && typeof storeVal === "object" ? renderValue(storeVal) : renderValue(storeVal);
+  const storeNode = renderValue(storeVal);
   const source = val(row, COL.source);
   const availability = val(row, COL.availability);
 
-  const storeLines = [];
-  if (storeVal) storeLines.push(kvLine("Store", storeNode));
-  if (source) storeLines.push(kvLine("Quelle", renderValue(source)));
-  if (availability) storeLines.push(kvLine("Verfügbarkeit", renderValue(availability)));
-  addSection("Store", storeLines);
+  addSection("Store", [
+    (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", storeNode) : null,
+    (source   || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(source)) : null,
+    (availability || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(availability)) : null,
+  ]);
 
   // Entwickler
   const dev = val(row, COL.dev);
-  if (dev) addSection("Entwickler", [kvLine("Entwickler", renderValue(dev))]);
+  addSection("Entwickler", [
+    (dev || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(dev)) : null
+  ]);
 
   // Extras
   const special = val(row, COL.special);
-  const easter = val(row, COL.easter);
-  const extraLines = [];
-  if (special) extraLines.push(kvLine("Besonderheiten", renderValue(special)));
-  if (easter) extraLines.push(kvLine("Eastereggs", renderValue(easter)));
-  addSection("Extras", extraLines);
+  const easter  = val(row, COL.easter);
+  addSection("Extras", [
+    (special || SHOW_EMPTY_IN_DETAILS) ? kvLine("Besonderheiten", renderValue(special)) : null,
+    (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
+  ]);
 
   // Trophäen
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
-  const trophyLines = [];
-  if (trophies) trophyLines.push(kvLine("Fortschritt", renderValue(trophies)));
-  if (platinum) trophyLines.push(kvLine("Platin", renderValue(platinum)));
-  addSection("Trophäen", trophyLines);
+  addSection("Trophäen", [
+    (trophies || SHOW_EMPTY_IN_DETAILS) ? kvLine("Fortschritt", renderValue(trophies)) : null,
+    (platinum || SHOW_EMPTY_IN_DETAILS) ? kvLine("Platin", renderValue(platinum)) : null,
+  ]);
 
   // Humorstatistik
   const hours = val(row, COL.hours);
   const life  = val(row, COL.life);
   const years = val(row, COL.years);
-  const humorLines = [];
-  if (hours) humorLines.push(kvLine("Gesamtstunden", renderValue(hours)));
-  if (life)  humorLines.push(kvLine("% Lebenszeit", renderValue(life)));
-  if (years) humorLines.push(kvLine("Jahre", renderValue(years)));
-  addSection("Humorstatistik", humorLines);
-
-  // Fallback: wenn wirklich gar keine Details
-  if (!details.querySelector(".section")) {
-    const sec = document.createElement("div");
-    sec.className = "section";
-    const st = document.createElement("div");
-    st.className = "sectionTitle";
-    st.textContent = "Details";
-    sec.appendChild(st);
-    sec.appendChild(nodeText("Keine weiteren Details."));
-    details.appendChild(sec);
-  }
+  addSection("Humorstatistik", [
+    (hours || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(hours)) : null,
+    (life  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(life)) : null,
+    (years || SHOW_EMPTY_IN_DETAILS) ? kvLine("Jahre", renderValue(years)) : null,
+  ]);
 
   detailsWrap.appendChild(details);
 
@@ -517,6 +491,7 @@ function renderMore(){
     const { row, idx } = matches[i];
     frag.appendChild(createCard(row, idx));
   }
+
   els.grid.appendChild(frag);
   shown = end;
 
@@ -533,7 +508,6 @@ function startSearch(q){
 
   const term = (q || "").toLowerCase().trim();
 
-  // schneller Scan auf Kernfelder, fallback Vollscan
   matches = allRows
     .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
     .filter(o => {
@@ -583,12 +557,10 @@ els.sheet.addEventListener("change", () => {
 
   const ws = workbook.Sheets[name];
 
-  // Daten
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
   allRows = json;
   columns = json.length ? Object.keys(json[0]) : [];
 
-  // Links + Delisted-Style
   buildLinks(ws);
   applyDelistedFromStyles(ws);
 
