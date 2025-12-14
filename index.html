@@ -55,6 +55,7 @@ main{padding:14px}
   white-space:nowrap
 }
 .badge.delisted{background:var(--dangerBg);color:var(--danger)}
+.badge.platin{background:#eef2ff;color:#1f2a8a} /* dezenter Diamant */
 .metaRow{display:flex;gap:8px;flex-wrap:wrap}
 .chip{
   font-size:12px;color:#374151;
@@ -105,17 +106,25 @@ details[open] .summaryBtn::after{content:"▴"}
 .subdetails .summaryBtn::after{color:#6b7280}
 .subdetails .descText{ margin-top: 8px; }
 
-/* Trophy Pfiff */
-.trophyList{display:grid;gap:6px}
-.trophyRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* Trophy polish */
+.trophyList{display:grid;gap:8px}
+.trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
 .platformChip{
-  font-size:11px;font-weight:700;
+  font-size:11px;font-weight:800;
   padding:2px 8px;border-radius:999px;
   background:#f3f4f6;border:1px solid #ececec;color:#374151;
+  height:fit-content
 }
-.trophyText{font-size:13px;color:#111}
+.trophyRight{display:grid;gap:6px}
+.trophyText{font-size:13px;color:#111;line-height:1.2}
+.progressWrap{display:grid;gap:4px}
+.progressBar{
+  height:8px;border-radius:999px;background:#eef2f7;overflow:hidden
+}
+.progressFill{height:100%;background:var(--accent);width:0%}
+.progressLabel{font-size:12px;color:var(--muted)}
 
-/* Mehrzeilige Fallback-Darstellung */
+/* Fallback */
 .preline{ white-space: pre-line; }
 
 a{color:var(--accent);text-decoration:none}
@@ -129,7 +138,7 @@ a:hover{text-decoration:underline}
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">Clean Cards · 1200+ ready · Trophy polish</span>
+    <span class="hint">Clean Cards · Multi-System · Trophy Bars · 💎 Platin</span>
   </div>
   <div class="row">
     <input id="file" type="file" accept=".xlsx,.xls" />
@@ -154,8 +163,6 @@ a:hover{text-decoration:underline}
 /* ================== Einstellungen ================== */
 const PAGE_SIZE = 60;
 const PLACEHOLDER = "—";
-
-// leere Felder anzeigen
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
 
@@ -196,9 +203,7 @@ const els = {
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
-  footer: document.getElementById("footer"),
 };
-
 let workbook = null;
 let allRows = [];
 let matches = [];
@@ -234,6 +239,23 @@ function val(row, colName){
   if (!colName) return "";
   const v = row[colName];
   return v == null ? "" : String(v).trim();
+}
+
+/* ================== Plattform-Parsing (System / Text) ================== */
+const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
+
+function extractPlatformsFromText(text){
+  const t = String(text ?? "");
+  const found = [];
+  const re = /\b(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g;
+  let m;
+  while ((m = re.exec(t)) !== null) found.push(m[1]);
+  return [...new Set(found)];
+}
+
+function platformsFromSystem(row){
+  const sys = val(row, COL.system);
+  return extractPlatformsFromText(sys);
 }
 
 /* ================== Hyperlinks & Delisted ================== */
@@ -334,6 +356,13 @@ function makeChip(text){
   c.textContent = text;
   return c;
 }
+function makeBadge says(text, cls=""){
+  const b = document.createElement("span");
+  b.className = "badge" + (cls ? " " + cls : "");
+  b.textContent = text;
+  return b;
+}
+// Fix: JS erlaubt keine Funktion "makeBadge says" – wir definieren korrekt:
 function makeBadge(text, cls=""){
   const b = document.createElement("span");
   b.className = "badge" + (cls ? " " + cls : "");
@@ -346,6 +375,14 @@ function formatFavorite(row){
   if (!f) return "";
   return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
 }
+
+function isPlatinum(row){
+  const p = val(row, COL.platinum).toLowerCase();
+  if (!p) return false;
+  // erkennt: "platinum", "ps4 platinum", "ps5 platinum", etc.
+  return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
+}
+
 function formatPlaytime(row){
   const m = val(row, COL.main);
   const h = val(row, COL.hundred);
@@ -354,17 +391,12 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-/* ================== Trophy polish ==================
-   Wir versuchen "PS4 ..." "PS5 ..." als Paare zu extrahieren.
-   Fällt er durch, zeigen wir als preline-Fallback. */
+/* ================== Trophy: parsing + progress ================== */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
-  const platforms = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
-
-  // Tokenisiere: finde jede Plattformposition und schneide bis zur nächsten Plattform
   const hits = [];
-  for (const p of platforms) {
+  for (const p of PLATFORM_LIST) {
     const re = new RegExp(`\\b${p}\\b`, "g");
     let m;
     while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
@@ -379,36 +411,119 @@ function parsePlatformPairs(text){
     const p = hits[j].p;
     let seg = t.slice(start, end).trim();
     seg = seg.replace(new RegExp(`^${p}\\s*`), "").trim();
-    if (!seg) seg = PLACEHOLDER;
-    out.push({ platform: p, text: seg });
+    out.push({ platform: p, text: seg || PLACEHOLDER });
   }
   return out;
 }
 
-function trophyNodeFromText(text){
-  const pairs = parsePlatformPairs(text);
-  if (pairs.length) {
-    const wrap = document.createElement("div");
-    wrap.className = "trophyList";
-    for (const it of pairs) {
-      const row = document.createElement("div");
-      row.className = "trophyRow";
-      const chip = document.createElement("span");
-      chip.className = "platformChip";
-      chip.textContent = it.platform;
-      const tt = document.createElement("span");
-      tt.className = "trophyText";
-      tt.textContent = it.text;
-      row.append(chip, tt);
-      wrap.appendChild(row);
-    }
-    return wrap;
+function parseFraction(text){
+  const s = String(text ?? "");
+  // "16 of 20" / "16 von 20" / "16/20"
+  let m = s.match(/(\d+)\s*(?:of|von|\/)\s*(\d+)/i);
+  if (!m) return null;
+  const a = parseInt(m[1], 10);
+  const b = parseInt(m[2], 10);
+  if (!b) return null;
+  const pct = Math.max(0, Math.min(1, a / b));
+  return { a, b, pct };
+}
+
+function progressNode(fr){
+  const wrap = document.createElement("div");
+  wrap.className = "progressWrap";
+
+  const bar = document.createElement("div");
+  bar.className = "progressBar";
+
+  const fill = document.createElement("div");
+  fill.className = "progressFill";
+  fill.style.width = `${Math.round(fr.pct * 100)}%`;
+  bar.appendChild(fill);
+
+  const lab = document.createElement("div");
+  lab.className = "progressLabel";
+  lab.textContent = `${Math.round(fr.pct * 100)}% (${fr.a}/${fr.b})`;
+
+  wrap.append(bar, lab);
+  return wrap;
+}
+
+function trophyNodeFromText(text, row){
+  const raw = String(text ?? "").trim();
+  if (!raw) return document.createTextNode(PLACEHOLDER);
+
+  // 1) Wenn Plattformen im Text stehen -> normal splitten
+  const pairs = parsePlatformPairs(raw);
+  if (pairs.length) return trophyList(pairs);
+
+  // 2) Kein Plattform-Token im Text:
+  //    - wenn System genau 1 Plattform enthält -> der Plattform zuweisen (dein Traumfall)
+  //    - wenn System mehrere Plattformen enthält -> neutral mit Multi-Chips (kein Raten)
+  const sysPlatforms = platformsFromSystem(row);
+  if (sysPlatforms.length === 1) {
+    return trophyList([{ platform: sysPlatforms[0], text: raw }]);
   }
-  // Fallback: mehrzeilig brechen an Plattformen
-  const fallback = document.createElement("div");
-  fallback.className = "v preline";
-  fallback.textContent = String(text ?? "").replace(/\s+(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g, "\n$1").trim() || PLACEHOLDER;
-  return fallback;
+  if (sysPlatforms.length > 1) {
+    return trophyNeutral(raw, sysPlatforms);
+  }
+
+  // 3) System leer: neutrales Layout ohne Plattform
+  return trophyNeutral(raw, []);
+}
+
+function trophyList(items){
+  const wrap = document.createElement("div");
+  wrap.className = "trophyList";
+
+  for (const it of items) {
+    const rowEl = document.createElement("div");
+    rowEl.className = "trophyRow";
+
+    const chip = document.createElement("span");
+    chip.className = "platformChip";
+    chip.textContent = it.platform || "—";
+
+    const right = document.createElement("div");
+    right.className = "trophyRight";
+
+    const txt = document.createElement("div");
+    txt.className = "trophyText";
+    txt.textContent = it.text || PLACEHOLDER;
+
+    right.appendChild(txt);
+
+    const fr = parseFraction(it.text);
+    if (fr) right.appendChild(progressNode(fr));
+
+    rowEl.append(chip, right);
+    wrap.appendChild(rowEl);
+  }
+  return wrap;
+}
+
+function trophyNeutral(text, sysPlatforms){
+  const outer = document.createElement("div");
+  outer.style.display = "grid";
+  outer.style.gap = "8px";
+
+  if (sysPlatforms && sysPlatforms.length) {
+    const chipRow = document.createElement("div");
+    chipRow.style.display = "flex";
+    chipRow.style.gap = "6px";
+    chipRow.style.flexWrap = "wrap";
+    for (const p of sysPlatforms) chipRow.appendChild(makeChip(p));
+    outer.appendChild(chipRow);
+  }
+
+  const txt = document.createElement("div");
+  txt.className = "trophyText";
+  txt.textContent = text || PLACEHOLDER;
+  outer.appendChild(txt);
+
+  const fr = parseFraction(text);
+  if (fr) outer.appendChild(progressNode(fr));
+
+  return outer;
 }
 
 /* ================== Card ================== */
@@ -416,7 +531,6 @@ function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
 
-  // Top
   const top = document.createElement("div");
   top.className = "cardTop";
 
@@ -431,17 +545,33 @@ function createCard(row, rowIndex1Based){
   const badges = document.createElement("div");
   badges.className = "badges";
   if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted", "delisted"));
+
   const favLabel = formatFavorite(row);
   if (favLabel) badges.appendChild(makeBadge(favLabel));
 
+  if (isPlatinum(row)) badges.appendChild(makeBadge("💎 Platin", "platin"));
+
   titleRow.append(title, badges);
 
+  // Meta chips: ID + Plattform(en) + Verfügbarkeit
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
   metaRow.appendChild(makeChip(`ID ${val(row, COL.id) || PLACEHOLDER}`));
-  metaRow.appendChild(makeChip(val(row, COL.system) || PLACEHOLDER));
-  metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
+  // Plattformchips: aus System ableiten; wenn leer, aus Trophäen/Platin-Text ableiten
+  let plats = platformsFromSystem(row);
+  if (!plats.length) {
+    const fromT = extractPlatformsFromText(val(row, COL.trophies));
+    const fromP = extractPlatformsFromText(val(row, COL.platinum));
+    plats = [...new Set([...fromT, ...fromP])];
+  }
+  if (plats.length) {
+    for (const p of plats) metaRow.appendChild(makeChip(p));
+  } else {
+    metaRow.appendChild(makeChip(PLACEHOLDER));
+  }
+
+  metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
   top.append(titleRow, metaRow);
 
   // Key facts
@@ -473,7 +603,7 @@ function createCard(row, rowIndex1Based){
   details.appendChild(summary);
 
   function addSection(titleText, lines){
-    const exists = lines.some(x => x != null);
+    const exists = remember(lines);
     if (!exists) return;
 
     const sec = document.createElement("div");
@@ -487,8 +617,11 @@ function createCard(row, rowIndex1Based){
     for (const line of lines) if (line) sec.appendChild(line);
     details.appendChild(sec);
   }
+  function remember(lines){
+    return lines.some(x => x != null);
+  }
 
-  // Beschreibung: ausklappbar
+  // Beschreibung toggle
   const descText = val(row, COL.desc);
   {
     const d = document.createElement("details");
@@ -533,12 +666,12 @@ function createCard(row, rowIndex1Based){
     (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
   ]);
 
-  // Trophäen (polished)
+  // Trophäen: smart fallback + bars
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
   addSection("Trophäen", [
-    kvLine("Fortschritt", trophyNodeFromText(trophies)),
-    kvLine("Platin", trophyNodeFromText(platinum)),
+    kvLine("Fortschritt", trophyNodeFromText(trophies, row)),
+    kvLine("Platin", trophyNodeFromText(platinum, row)),
   ]);
 
   // Humorstatistik
@@ -552,12 +685,11 @@ function createCard(row, rowIndex1Based){
   ]);
 
   detailsWrap.appendChild(details);
-
   card.append(top, key, detailsWrap);
   return card;
 }
 
-/* ================== Paging / Search (kein 600-Limit mehr) ================== */
+/* ================== Paging / Search (kein Limit) ================== */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
