@@ -100,14 +100,22 @@ details[open] .summaryBtn::after{content:"▴"}
   text-transform:uppercase;
 }
 
-/* Beschreibung-Toggle (innerhalb Details) */
 .subdetails summary{color:#374151;font-size:13px}
 .subdetails .summaryBtn{color:#374151}
 .subdetails .summaryBtn::after{color:#6b7280}
-/* Abstand zwischen "Kurzbeschreibung anzeigen" und Text */
 .subdetails .descText{ margin-top: 8px; }
 
-/* Mehrzeilige Darstellung (Trophäen/Platin) */
+/* Trophy Pfiff */
+.trophyList{display:grid;gap:6px}
+.trophyRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.platformChip{
+  font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:999px;
+  background:#f3f4f6;border:1px solid #ececec;color:#374151;
+}
+.trophyText{font-size:13px;color:#111}
+
+/* Mehrzeilige Fallback-Darstellung */
 .preline{ white-space: pre-line; }
 
 a{color:var(--accent);text-decoration:none}
@@ -121,7 +129,7 @@ a:hover{text-decoration:underline}
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">Clean Cards · Empty fields · Details</span>
+    <span class="hint">Clean Cards · 1200+ ready · Trophy polish</span>
   </div>
   <div class="row">
     <input id="file" type="file" accept=".xlsx,.xls" />
@@ -144,17 +152,14 @@ a:hover{text-decoration:underline}
 <script src="xlsx.full.min.js"></script>
 <script>
 /* ================== Einstellungen ================== */
-const PAGE_SIZE = 50;
-const MAX_RESULTS = 600;
+const PAGE_SIZE = 60;
 const PLACEHOLDER = "—";
 
-// wie gewünscht: leere Felder anzeigen
+// leere Felder anzeigen
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
 
-/* ================== Spalten-Aliases ==================
-   Wichtig: Deine Tabelle hat die Spalte "Subgenre"
-   Wir zeigen sie aber als "Subgenre / Stimmung" an (Label), das kommt unten im UI. */
+/* ================== Spalten-Aliases ================== */
 const COL_ALIASES = {
   id: ["ID"],
   title: ["Spieletitel","Spiel","Titel","Name"],
@@ -164,8 +169,7 @@ const COL_ALIASES = {
   store: ["Store Link","Store-Link","StoreLink","Store"],
   source: ["Quelle","Source"],
   genre: ["Genre"],
-  // <-- Hier ist dein entscheidender Punkt:
-  subgenre: ["Subgenre", "Subgenre / Stimmung","Subgenre/Stimmung"],
+  subgenre: ["Subgenre","Subgenre / Stimmung","Subgenre/Stimmung"],
   dev: ["Entwickler","Developer","Studio"],
   desc: ["Kurzbeschreibung","Beschreibung","Description"],
   easter: ["Eastereggs","Easter Eggs"],
@@ -180,8 +184,6 @@ const COL_ALIASES = {
   life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit"],
   years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre"],
 };
-
-// wird nach dem Sheet-Load gefüllt: key -> echte Spalte in deiner Datei
 let COL = {};
 
 /* ================== State ================== */
@@ -210,12 +212,11 @@ const s = v => (v == null ? "" : String(v).trim());
 /* ================== Resolver ================== */
 function normHeader(x){
   return String(x ?? "")
-    .replace(/\u00A0/g, " ")     // NBSP -> Space
+    .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
-
 function resolveColumns(columns){
   const byNorm = new Map(columns.map(c => [normHeader(c), c]));
   const resolved = {};
@@ -225,11 +226,10 @@ function resolveColumns(columns){
       const hit = byNorm.get(normHeader(a));
       if (hit) { found = hit; break; }
     }
-    resolved[key] = found; // kann leer sein, falls Spalte nicht existiert
+    resolved[key] = found;
   }
   return resolved;
 }
-
 function val(row, colName){
   if (!colName) return "";
   const v = row[colName];
@@ -262,12 +262,10 @@ function buildLinks(ws){
     }
   }
 }
-
 function applyDelistedFromStyles(ws){
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
-  // Wir suchen die echte Titelspalte aus dem Resolver (COL.title)
   const titleCol = COL.title;
   if (!titleCol) return;
 
@@ -287,13 +285,11 @@ function applyDelistedFromStyles(ws){
     if (strike) allRows[i].__delisted = true;
   }
 }
-
 function isDelistedRow(row){
   if (row.__delisted) return true;
   const v = val(row, COL.availability).toLowerCase();
   return v === "delisted" || v === "removed" || v.includes("store entfernt");
 }
-
 function getValueWithLink(row, colName, rowIndex1Based){
   const text = val(row, colName);
   const href = linkMap.get(`${rowIndex1Based}:${colName}`);
@@ -317,7 +313,6 @@ function renderValue(value){
   const t = s(value);
   return nodeText(t || PLACEHOLDER);
 }
-
 function kvLine(label, valueNode){
   const line = document.createElement("div");
   line.className = "kvLine";
@@ -333,14 +328,12 @@ function kvLine(label, valueNode){
   line.append(k, v);
   return line;
 }
-
 function makeChip(text){
   const c = document.createElement("span");
   c.className = "chip";
   c.textContent = text;
   return c;
 }
-
 function makeBadge(text, cls=""){
   const b = document.createElement("span");
   b.className = "badge" + (cls ? " " + cls : "");
@@ -353,7 +346,6 @@ function formatFavorite(row){
   if (!f) return "";
   return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
 }
-
 function formatPlaytime(row){
   const m = val(row, COL.main);
   const h = val(row, COL.hundred);
@@ -362,13 +354,61 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-// Plattformen untereinander
-function formatPlatformsMultiline(text){
+/* ================== Trophy polish ==================
+   Wir versuchen "PS4 ..." "PS5 ..." als Paare zu extrahieren.
+   Fällt er durch, zeigen wir als preline-Fallback. */
+function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
-  if (!t) return "";
-  return t
-    .replace(/\s+(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g, "\n$1")
-    .trim();
+  if (!t) return [];
+  const platforms = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
+
+  // Tokenisiere: finde jede Plattformposition und schneide bis zur nächsten Plattform
+  const hits = [];
+  for (const p of platforms) {
+    const re = new RegExp(`\\b${p}\\b`, "g");
+    let m;
+    while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
+  }
+  hits.sort((a,b)=>a.i-b.i);
+  if (!hits.length) return [];
+
+  const out = [];
+  for (let j=0;j<hits.length;j++){
+    const start = hits[j].i;
+    const end = (j+1<hits.length) ? hits[j+1].i : t.length;
+    const p = hits[j].p;
+    let seg = t.slice(start, end).trim();
+    seg = seg.replace(new RegExp(`^${p}\\s*`), "").trim();
+    if (!seg) seg = PLACEHOLDER;
+    out.push({ platform: p, text: seg });
+  }
+  return out;
+}
+
+function trophyNodeFromText(text){
+  const pairs = parsePlatformPairs(text);
+  if (pairs.length) {
+    const wrap = document.createElement("div");
+    wrap.className = "trophyList";
+    for (const it of pairs) {
+      const row = document.createElement("div");
+      row.className = "trophyRow";
+      const chip = document.createElement("span");
+      chip.className = "platformChip";
+      chip.textContent = it.platform;
+      const tt = document.createElement("span");
+      tt.className = "trophyText";
+      tt.textContent = it.text;
+      row.append(chip, tt);
+      wrap.appendChild(row);
+    }
+    return wrap;
+  }
+  // Fallback: mehrzeilig brechen an Plattformen
+  const fallback = document.createElement("div");
+  fallback.className = "v preline";
+  fallback.textContent = String(text ?? "").replace(/\s+(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g, "\n$1").trim() || PLACEHOLDER;
+  return fallback;
 }
 
 /* ================== Card ================== */
@@ -376,7 +416,7 @@ function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
 
-  // --- Top ---
+  // Top
   const top = document.createElement("div");
   top.className = "cardTop";
 
@@ -404,7 +444,7 @@ function createCard(row, rowIndex1Based){
 
   top.append(titleRow, metaRow);
 
-  // --- Key facts ---
+  // Key facts
   const key = document.createElement("div");
   key.className = "keyFacts";
 
@@ -415,15 +455,12 @@ function createCard(row, rowIndex1Based){
   const userScore = val(row, COL.user);
 
   if (genre || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Genre", renderValue(genre)));
-  // Anzeige-Label ausdrücklich wie gewünscht:
   if (subg  || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Subgenre / Stimmung", renderValue(subg)));
   if (pt    || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Spielzeit", renderValue(pt)));
-
-  // Wertungen getrennt
   if (metaScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Metascore", renderValue(metaScore)));
   if (userScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Userwertung", renderValue(userScore)));
 
-  // --- Details ---
+  // Details
   const detailsWrap = document.createElement("div");
   detailsWrap.className = "detailsWrap";
 
@@ -451,7 +488,7 @@ function createCard(row, rowIndex1Based){
     details.appendChild(sec);
   }
 
-  // Beschreibung: ausklappbar + Abstand
+  // Beschreibung: ausklappbar
   const descText = val(row, COL.desc);
   {
     const d = document.createElement("details");
@@ -473,12 +510,11 @@ function createCard(row, rowIndex1Based){
 
   // Store
   const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
-  const storeNode = renderValue(storeVal);
   const source = val(row, COL.source);
   const availability = val(row, COL.availability);
 
   addSection("Store", [
-    (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", storeNode) : null,
+    (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", renderValue(storeVal)) : null,
     (source   || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(source)) : null,
     (availability || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(availability)) : null,
   ]);
@@ -497,28 +533,18 @@ function createCard(row, rowIndex1Based){
     (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
   ]);
 
-  // Trophäen: Plattformen untereinander
+  // Trophäen (polished)
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
-
-  const trophNode = document.createElement("div");
-  trophNode.className = "v preline";
-  trophNode.textContent = formatPlatformsMultiline(trophies) || PLACEHOLDER;
-
-  const platNode = document.createElement("div");
-  platNode.className = "v preline";
-  platNode.textContent = formatPlatformsMultiline(platinum) || PLACEHOLDER;
-
   addSection("Trophäen", [
-    kvLine("Fortschritt", trophNode),
-    kvLine("Platin", platNode),
+    kvLine("Fortschritt", trophyNodeFromText(trophies)),
+    kvLine("Platin", trophyNodeFromText(platinum)),
   ]);
 
   // Humorstatistik
   const hours = val(row, COL.hours);
   const life  = val(row, COL.life);
   const years = val(row, COL.years);
-
   addSection("Humorstatistik", [
     (hours || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(hours)) : null,
     (life  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(life)) : null,
@@ -531,21 +557,19 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* ================== Paging / Search ================== */
+/* ================== Paging / Search (kein 600-Limit mehr) ================== */
 function updateCounters(){
   const total = matches.length;
-  const cap = Math.min(total, MAX_RESULTS);
-  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${Math.min(shown, cap)}/${cap}` : "";
-  els.more.disabled = shown >= cap;
-  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, cap - shown)})`;
+  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
+  els.more.disabled = shown >= total;
+  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, total - shown)})`;
 }
 
 function renderMore(){
   const total = matches.length;
-  const cap = Math.min(total, MAX_RESULTS);
-  if (shown >= cap) return;
+  if (shown >= total) return;
 
-  const end = Math.min(shown + PAGE_SIZE, cap);
+  const end = Math.min(shown + PAGE_SIZE, total);
   const frag = document.createDocumentFragment();
 
   for (let i = shown; i < end; i++){
@@ -557,7 +581,7 @@ function renderMore(){
   shown = end;
 
   els.status.textContent = total
-    ? (shown < cap ? "Mehr laden zeigt weitere Karten…" : "Alle angezeigten Karten erreicht.")
+    ? (shown < total ? "Mehr laden zeigt weitere Karten…" : "Alle Karten angezeigt.")
     : "Keine Treffer.";
 
   updateCounters();
@@ -622,7 +646,6 @@ els.sheet.addEventListener("change", () => {
   allRows = json;
   columns = json.length ? Object.keys(json[0]) : [];
 
-  // Resolver füllt COL.* mit den echten Spaltennamen
   COL = resolveColumns(columns);
 
   buildLinks(ws);
