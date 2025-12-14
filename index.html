@@ -5,38 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Excel → Karten</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-body{margin:0;background:#f6f7f9;color:#111}
-header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #e7e7e7;padding:12px 14px;display:grid;gap:10px}
+:root{
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --bg:#f6f7f9;
+  --card:#fff;
+  --text:#111;
+  --muted:#6b7280;
+  --line:#e9e9e9;
+  --accent:#2536a4;
+  --danger:#b00020;
+  --dangerBg:#ffe7ea;
+  --chipBg:#eef2ff;
+}
+body{margin:0;background:var(--bg);color:var(--text)}
+header{
+  position:sticky;top:0;z-index:10;
+  background:#fff;border-bottom:1px solid #e7e7e7;
+  padding:12px 14px;display:grid;gap:10px
+}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input,select,button{flex:1;min-width:170px;padding:10px 12px;border:1px solid #ddd;border-radius:12px;background:#fff;font-size:14px}
+input,select,button{
+  flex:1;min-width:170px;
+  padding:10px 12px;border:1px solid #ddd;border-radius:12px;
+  background:#fff;font-size:14px
+}
 button{cursor:pointer}
 button:disabled{opacity:.6;cursor:not-allowed}
 main{padding:14px}
-.hint{color:#666;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-.card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);display:grid;gap:10px}
-.title{font-weight:700;font-size:16px;line-height:1.2}
-.delistedTitle{text-decoration:line-through;color:#b00020}
-.meta{font-size:12px;color:#555;display:flex;gap:8px;flex-wrap:wrap}
-.badgeDelisted{background:#ffe7ea;color:#b00020;padding:4px 8px;border-radius:999px;font-weight:600}
-.kv{display:grid;gap:6px}
-.line{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start}
-.k{color:#666;font-size:12px}
+.hint{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+  display:grid;gap:10px
+}
+.cardTop{display:grid;gap:6px}
+.titleRow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.title{
+  font-weight:800;font-size:16px;line-height:1.15;
+}
+.title.delisted{ text-decoration:line-through; color:var(--danger); }
+.badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.badge{
+  font-size:12px;font-weight:650;
+  padding:4px 8px;border-radius:999px;
+  background:var(--chipBg);color:var(--accent);
+  white-space:nowrap
+}
+.badge.delisted{background:var(--dangerBg);color:var(--danger)}
+.metaRow{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  font-size:12px;color:#374151;
+  background:#f3f4f6;border:1px solid #ececec;
+  padding:4px 8px;border-radius:999px;
+  white-space:nowrap
+}
+
+.keyFacts{
+  display:grid;gap:8px;
+  border-top:1px solid var(--line);
+  padding-top:10px
+}
+.kvLine{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:10px;align-items:start
+}
+.k{color:var(--muted);font-size:12px}
 .v{font-size:13px;word-break:break-word}
-details{border-top:1px solid #eee;padding-top:8px}
-summary{cursor:pointer;color:#2536a4;font-size:13px;user-select:none}
-a{color:#2536a4;text-decoration:none}
+
+.section{
+  border-top:1px solid var(--line);
+  padding-top:10px;
+  display:grid;gap:8px
+}
+.sectionTitle{
+  font-size:11px;
+  letter-spacing:.08em;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.details{
+  border-top:1px solid var(--line);
+  padding-top:10px;
+}
+details{border:0}
+summary{
+  cursor:pointer;
+  color:var(--accent);
+  font-size:13px;
+  user-select:none;
+}
+summary::-webkit-details-marker{display:none}
+.summaryBtn{
+  display:inline-flex;align-items:center;gap:8px
+}
+.summaryBtn::after{
+  content:"▾";
+  font-size:12px;
+  transform:translateY(-1px);
+}
+details[open] .summaryBtn::after{content:"▴"}
+
+a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.footer{padding:0 14px 14px;color:#666;font-size:12px}
+
+.clamp{
+  display:-webkit-box;
+  -webkit-line-clamp:5;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.footer{padding:0 14px 14px;color:var(--muted);font-size:12px}
 .counter{font-size:12px;color:#555}
 </style>
 </head>
 <body>
+
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">Kompakt + Details (Excel Mobile Style)</span>
+    <span class="hint">Clean Cards · Key Facts · Details</span>
   </div>
   <div class="row">
     <input id="file" type="file" accept=".xlsx,.xls" />
@@ -58,7 +152,43 @@ a:hover{text-decoration:underline}
 
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ---------- UI ---------- */
+/* ================== Einstellungen ================== */
+const PAGE_SIZE = 50;
+const MAX_RESULTS = 600;
+
+// Clean: leere Felder standardmäßig ausblenden
+const SHOW_EMPTY_IN_DETAILS = false;
+
+// Kurzbeschreibung im Detailsbereich standardmäßig clampen (ausklappbar per Klick)
+const CLAMP_DESCRIPTION = true;
+
+// Welche Spalten gehören wohin? (Spaltennamen exakt wie in deiner Excel)
+const COL = {
+  id: "ID",
+  title: "Spieletitel",
+  fav: "Favorit",
+  system: "System",
+  availability: "Verfügbarkeit",
+  store: "Store Link",
+  source: "Quelle",
+  genre: "Genre",
+  subgenre: "Subgenre / Stimmung",
+  dev: "Entwickler",
+  desc: "Kurzbeschreibung",
+  easter: "Eastereggs",
+  special: "Besonderheiten",
+  main: "Spielzeit (Main)",
+  hundred: "Spielzeit (100%)",
+  meta: "Metascore",
+  user: "Userwertung",
+  trophies: "Trophäen Fortschritt",
+  platinum: "Platin",
+  hours: "Gesamtstunden (Humorstatistik)",
+  life: "% Lebenszeit (Humorstatistik)",
+  years: "Jahre (Humorstatistik)",
+};
+
+/* ================== State ================== */
 const els = {
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
@@ -68,218 +198,21 @@ const els = {
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
-  footer: document.getElementById("footer"),
 };
 
-/* ---------- Optionen ---------- */
-const PAGE_SIZE = 60;
-const MAX_RESULTS = 600;
-const PLACEHOLDER = "—";
-const SHOW_EMPTY_IN_DETAILS = true;     // Details zeigen auch leere Spalten (mit —)
-const SHOW_EMPTY_IN_HEADER  = false;    // Header-Bereich lieber nur echte Werte
-
-// Das ist DEINE gewünschte "immer sichtbar"-Reihenfolge:
-const CARD_HEADER_FIELDS = ["ID","Spieletitel","Favorit","Genre","Subgenre / Stimmung"];
-
-// Für Details: zuerst diese Felder (wenn vorhanden), danach Rest alphabetisch
-const DETAILS_PRIORITY = [
-  "Entwickler","System","Verfügbarkeit","Store Link","Metascore","Userwertung",
-  "Spielzeit (Main)","Spielzeit (100%)",
-  "Gesamtstunden (Humorstatistik)","% Lebenszeit (Humorstatistik)","Jahre (Humorstatistik)",
-  "Kurzbeschreibung","Quelle"
-];
-
-/* ---------- Zustand ---------- */
 let workbook = null;
 let allRows = [];
-let columns = [];
 let matches = [];
 let shown = 0;
-let linkMap = new Map();              // `${row1based}:${colName}` -> href
-let headerRowIndex = 1;               // 1-basiert
+let columns = [];
+let linkMap = new Map();            // `${row1based}:${colName}` -> href
+let headerRowIndex = 1;             // 1-basiert
 
 const s = v => (v == null ? "" : String(v).trim());
+const has = (row, col) => col && row && row[col] !== undefined;
+const val = (row, col) => has(row, col) ? s(row[col]) : "";
 
-function normalizeColName(name){ return s(name); }
-
-function renderValue(value){
-  if (value && typeof value === "object" && value.href) {
-    const a = document.createElement("a");
-    a.href = value.href;
-    a.textContent = value.text || "Link";
-    a.title = value.href;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    return a;
-  }
-  const t = s(value);
-  return document.createTextNode(t || PLACEHOLDER);
-}
-
-function makeLine(k, v){
-  const line = document.createElement("div");
-  line.className = "line";
-  const kk = document.createElement("div");
-  kk.className = "k"; kk.textContent = k;
-  const vv = document.createElement("div");
-  vv.className = "v"; vv.appendChild(renderValue(v));
-  line.append(kk, vv);
-  return line;
-}
-
-function pickTitle(row){
-  // exakt deine Spalte
-  if (s(row["Spieletitel"])) return s(row["Spieletitel"]);
-  // fallback
-  for (const key of ["Titel","Name","Spiel"]) {
-    const t = s(row[key]);
-    if (t) return t;
-  }
-  for (const k of columns) {
-    const t = s(row[k]);
-    if (t) return t;
-  }
-  return "(ohne Titel)";
-}
-
-function isDelistedRow(row){
-  if (row.__delisted) return true;
-  const v = s(row["Verfügbarkeit"]).toLowerCase();
-  return v === "delisted" || v === "removed" || v.includes("store entfernt");
-}
-
-function orderedDetailsColumns(cols){
-  const have = new Set(cols);
-  const first = DETAILS_PRIORITY.filter(c => have.has(c));
-  // alles, was nicht in Header oder Priority ist, danach alphabetisch
-  const skip = new Set([...CARD_HEADER_FIELDS, ...first]);
-  const rest = cols.filter(c => !skip.has(c)).sort((a,b)=>a.localeCompare(b));
-  return [...first, ...rest];
-}
-
-function getValueWithLink(row, col, rowIndex1Based){
-  const raw = row[col];
-  const text = s(raw);
-  const href = linkMap.get(`${rowIndex1Based}:${col}`);
-  if (href) return { text: text || "Store Link", href };
-  return raw;
-}
-
-/* ---------- Karte ---------- */
-function createCard(row, rowIndex1Based){
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const titleEl = document.createElement("div");
-  titleEl.className = "title";
-  titleEl.textContent = pickTitle(row);
-  if (isDelistedRow(row)) titleEl.classList.add("delistedTitle");
-
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  if (isDelistedRow(row)) {
-    const b = document.createElement("span");
-    b.className = "badgeDelisted";
-    b.textContent = "Delisted";
-    meta.appendChild(b);
-  }
-
-  // --- Header-Block (nur deine 5 Felder) ---
-  const headerKv = document.createElement("div");
-  headerKv.className = "kv";
-
-  for (const col of CARD_HEADER_FIELDS) {
-    if (!columns.includes(col)) continue; // falls Spalte anders heißt
-    const val = getValueWithLink(row, col, rowIndex1Based);
-    const text = s(row[col]);
-    if (!SHOW_EMPTY_IN_HEADER && !text) continue;
-    headerKv.appendChild(makeLine(col, val));
-  }
-
-  // --- Details-Block (Rest) ---
-  const details = document.createElement("details");
-  const summary = document.createElement("summary");
-  summary.textContent = "Mehr Details";
-  details.appendChild(summary);
-
-  const detailsKv = document.createElement("div");
-  detailsKv.className = "kv";
-
-  const detailCols = orderedDetailsColumns(columns);
-
-  for (const col of detailCols) {
-    // Header-Felder nicht nochmal in Details duplizieren (optional)
-    if (CARD_HEADER_FIELDS.includes(col)) continue;
-
-    const val = getValueWithLink(row, col, rowIndex1Based);
-    const text = s(row[col]);
-    if (!SHOW_EMPTY_IN_DETAILS && !text) continue;
-    detailsKv.appendChild(makeLine(col, val));
-  }
-
-  details.appendChild(detailsKv);
-
-  card.append(titleEl, meta, headerKv, details);
-  return card;
-}
-
-/* ---------- Paging / Suche ---------- */
-function updateCounters(){
-  const total = matches.length;
-  const cap = Math.min(total, MAX_RESULTS);
-  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${Math.min(shown, cap)}/${cap}` : "";
-  els.more.disabled = shown >= cap;
-  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, cap - shown)})`;
-}
-
-function renderMore(){
-  const total = matches.length;
-  const cap = Math.min(total, MAX_RESULTS);
-  if (shown >= cap) return;
-
-  const end = Math.min(shown + PAGE_SIZE, cap);
-  const frag = document.createDocumentFragment();
-
-  for (let i = shown; i < end; i++){
-    const { row, idx } = matches[i];
-    frag.appendChild(createCard(row, idx));
-  }
-
-  els.grid.appendChild(frag);
-  shown = end;
-
-  els.status.textContent = total
-    ? (shown < cap ? "Mehr laden zeigt weitere Karten…" : "Alle angezeigten Karten erreicht.")
-    : "Keine Treffer.";
-
-  updateCounters();
-}
-
-function startSearch(q){
-  els.grid.innerHTML = "";
-  shown = 0;
-
-  const term = (q || "").toLowerCase().trim();
-
-  matches = allRows
-    .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
-    .filter(o => {
-      if (!term) return true;
-      // schneller: ID/Titel/Entwickler/Genre/Subgenre zuerst, dann fallback Vollscan
-      const fast =
-        s(o.row["ID"]) + " " +
-        s(o.row["Spieletitel"]) + " " +
-        s(o.row["Entwickler"]) + " " +
-        s(o.row["Genre"]) + " " +
-        s(o.row["Subgenre / Stimmung"]);
-      if (fast.toLowerCase().includes(term)) return true;
-      return Object.values(o.row).some(v => s(v).toLowerCase().includes(term));
-    });
-
-  renderMore(); // nur erste Seite
-}
-
-/* ---------- XLSX: Links + Delisted ---------- */
+/* ================== Hyperlinks & Delisted ================== */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -307,16 +240,16 @@ function buildLinks(ws){
 }
 
 function applyDelistedFromStyles(ws){
+  // setzt row.__delisted wenn Titelzelle durchgestrichen ist
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
   const headerR = r.s.r;
   let titleC = null;
-
   for (let c = r.s.c; c <= r.e.c; c++){
     const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
     const h = cell && cell.v != null ? String(cell.v).trim() : "";
-    if (h === "Spieletitel") { titleC = c; break; }
+    if (h === COL.title) { titleC = c; break; }
   }
   if (titleC == null) return;
 
@@ -328,23 +261,317 @@ function applyDelistedFromStyles(ws){
   }
 }
 
-/* ---------- Events ---------- */
+function isDelistedRow(row){
+  if (row.__delisted) return true;
+  const v = val(row, COL.availability).toLowerCase();
+  return v === "delisted" || v === "removed" || v.includes("store entfernt");
+}
+
+function getValueWithLink(row, col, rowIndex1Based){
+  const text = val(row, col);
+  const href = linkMap.get(`${rowIndex1Based}:${col}`);
+  if (href) return { text: text || "Store Link", href };
+  return text;
+}
+
+/* ================== Rendering helpers ================== */
+function nodeText(t){
+  return document.createTextNode(t);
+}
+
+function renderValue(value){
+  if (value && typeof value === "object" && value.href) {
+    const a = document.createElement("a");
+    a.href = value.href;
+    a.textContent = value.text || "Link";
+    a.title = value.href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    return a;
+  }
+  const t = s(value);
+  return nodeText(t);
+}
+
+function kvLine(label, valueNode){
+  const line = document.createElement("div");
+  line.className = "kvLine";
+
+  const k = document.createElement("div");
+  k.className = "k";
+  k.textContent = label;
+
+  const v = document.createElement("div");
+  v.className = "v";
+  v.appendChild(valueNode);
+
+  line.append(k, v);
+  return line;
+}
+
+function makeChip(text){
+  const c = document.createElement("span");
+  c.className = "chip";
+  c.textContent = text;
+  return c;
+}
+
+function makeBadge(text, cls=""){
+  const b = document.createElement("span");
+  b.className = "badge" + (cls ? " " + cls : "");
+  b.textContent = text;
+  return b;
+}
+
+function formatPlaytime(row){
+  const m = val(row, COL.main);
+  const h = val(row, COL.hundred);
+  if (!m && !h) return "";
+  if (m && h) return `${m}h / ${h}h`;
+  return m ? `${m}h` : `${h}h`;
+}
+
+function formatScores(row){
+  const ms = val(row, COL.meta);
+  const us = val(row, COL.user);
+  if (!ms && !us) return "";
+  if (ms && us) return `${ms} · ${us}`;
+  return ms || us;
+}
+
+function formatFavorite(row){
+  const f = val(row, COL.fav).toLowerCase();
+  if (!f) return "";
+  // viele Varianten: "x", "1", "true", "⭐"
+  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
+}
+
+/* ================== Card ================== */
+function createCard(row, rowIndex1Based){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  // --- Top (Titel + Badges + Chips) ---
+  const top = document.createElement("div");
+  top.className = "cardTop";
+
+  const titleRow = document.createElement("div");
+  titleRow.className = "titleRow";
+
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = val(row, COL.title) || "(ohne Titel)";
+  if (isDelistedRow(row)) title.classList.add("delisted");
+
+  const badges = document.createElement("div");
+  badges.className = "badges";
+  if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted", "delisted"));
+
+  const favLabel = formatFavorite(row);
+  if (favLabel) badges.appendChild(makeBadge(favLabel));
+
+  titleRow.append(title, badges);
+
+  const metaRow = document.createElement("div");
+  metaRow.className = "metaRow";
+
+  const idv = val(row, COL.id);
+  if (idv) metaRow.appendChild(makeChip(`ID ${idv}`));
+
+  const sys = val(row, COL.system);
+  if (sys) metaRow.appendChild(makeChip(sys));
+
+  const avail = val(row, COL.availability);
+  if (avail) metaRow.appendChild(makeChip(avail));
+
+  top.append(titleRow, metaRow);
+
+  // --- Key facts (kleiner, aber sofort nützlich) ---
+  const key = document.createElement("div");
+  key.className = "keyFacts";
+
+  const genre = val(row, COL.genre);
+  const subg  = val(row, COL.subgenre);
+  const pt    = formatPlaytime(row);
+  const sc    = formatScores(row);
+
+  if (genre) key.appendChild(kvLine("Genre", renderValue(genre)));
+  if (subg)  key.appendChild(kvLine("Subgenre", renderValue(subg)));
+  if (pt)    key.appendChild(kvLine("Spielzeit", renderValue(pt)));
+  if (sc)    key.appendChild(kvLine("Wertungen", renderValue(sc)));
+
+  // --- Details (Sektionen) ---
+  const detailsWrap = document.createElement("div");
+  detailsWrap.className = "details";
+
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  const sumSpan = document.createElement("span");
+  sumSpan.className = "summaryBtn";
+  sumSpan.textContent = "Mehr Details";
+  summary.appendChild(sumSpan);
+  details.appendChild(summary);
+
+  // Hilfsfunktion: Sektion bauen, nur wenn Inhalte
+  function addSection(titleText, lines){
+    const filtered = lines.filter(x => x != null);
+    if (!filtered.length) return;
+    const sec = document.createElement("div");
+    sec.className = "section";
+    const st = document.createElement("div");
+    st.className = "sectionTitle";
+    st.textContent = titleText;
+    sec.appendChild(st);
+    for (const line of filtered) sec.appendChild(line);
+    details.appendChild(sec);
+  }
+
+  // Beschreibung
+  const desc = val(row, COL.desc);
+  if (desc) {
+    const p = document.createElement("div");
+    p.className = "v";
+    p.textContent = desc;
+    if (CLAMP_DESCRIPTION) p.classList.add("clamp");
+    addSection("Beschreibung", [kvLine("Kurzbeschreibung", p)]);
+  }
+
+  // Store & Status
+  const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
+  const storeNode = storeVal && typeof storeVal === "object" ? renderValue(storeVal) : renderValue(storeVal);
+  const source = val(row, COL.source);
+  const availability = val(row, COL.availability);
+
+  const storeLines = [];
+  if (storeVal) storeLines.push(kvLine("Store", storeNode));
+  if (source) storeLines.push(kvLine("Quelle", renderValue(source)));
+  if (availability) storeLines.push(kvLine("Verfügbarkeit", renderValue(availability)));
+  addSection("Store", storeLines);
+
+  // Entwickler
+  const dev = val(row, COL.dev);
+  if (dev) addSection("Entwickler", [kvLine("Entwickler", renderValue(dev))]);
+
+  // Extras
+  const special = val(row, COL.special);
+  const easter = val(row, COL.easter);
+  const extraLines = [];
+  if (special) extraLines.push(kvLine("Besonderheiten", renderValue(special)));
+  if (easter) extraLines.push(kvLine("Eastereggs", renderValue(easter)));
+  addSection("Extras", extraLines);
+
+  // Trophäen
+  const trophies = val(row, COL.trophies);
+  const platinum = val(row, COL.platinum);
+  const trophyLines = [];
+  if (trophies) trophyLines.push(kvLine("Fortschritt", renderValue(trophies)));
+  if (platinum) trophyLines.push(kvLine("Platin", renderValue(platinum)));
+  addSection("Trophäen", trophyLines);
+
+  // Humorstatistik
+  const hours = val(row, COL.hours);
+  const life  = val(row, COL.life);
+  const years = val(row, COL.years);
+  const humorLines = [];
+  if (hours) humorLines.push(kvLine("Gesamtstunden", renderValue(hours)));
+  if (life)  humorLines.push(kvLine("% Lebenszeit", renderValue(life)));
+  if (years) humorLines.push(kvLine("Jahre", renderValue(years)));
+  addSection("Humorstatistik", humorLines);
+
+  // Fallback: wenn wirklich gar keine Details
+  if (!details.querySelector(".section")) {
+    const sec = document.createElement("div");
+    sec.className = "section";
+    const st = document.createElement("div");
+    st.className = "sectionTitle";
+    st.textContent = "Details";
+    sec.appendChild(st);
+    sec.appendChild(nodeText("Keine weiteren Details."));
+    details.appendChild(sec);
+  }
+
+  detailsWrap.appendChild(details);
+
+  card.append(top, key, detailsWrap);
+  return card;
+}
+
+/* ================== Paging / Search ================== */
+function updateCounters(){
+  const total = matches.length;
+  const cap = Math.min(total, MAX_RESULTS);
+  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${Math.min(shown, cap)}/${cap}` : "";
+  els.more.disabled = shown >= cap;
+  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, cap - shown)})`;
+}
+
+function renderMore(){
+  const total = matches.length;
+  const cap = Math.min(total, MAX_RESULTS);
+  if (shown >= cap) return;
+
+  const end = Math.min(shown + PAGE_SIZE, cap);
+  const frag = document.createDocumentFragment();
+
+  for (let i = shown; i < end; i++){
+    const { row, idx } = matches[i];
+    frag.appendChild(createCard(row, idx));
+  }
+  els.grid.appendChild(frag);
+  shown = end;
+
+  els.status.textContent = total
+    ? (shown < cap ? "Mehr laden zeigt weitere Karten…" : "Alle angezeigten Karten erreicht.")
+    : "Keine Treffer.";
+
+  updateCounters();
+}
+
+function startSearch(q){
+  els.grid.innerHTML = "";
+  shown = 0;
+
+  const term = (q || "").toLowerCase().trim();
+
+  // schneller Scan auf Kernfelder, fallback Vollscan
+  matches = allRows
+    .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
+    .filter(o => {
+      if (!term) return true;
+      const fast =
+        val(o.row, COL.id) + " " +
+        val(o.row, COL.title) + " " +
+        val(o.row, COL.dev) + " " +
+        val(o.row, COL.genre) + " " +
+        val(o.row, COL.subgenre);
+      if (fast.toLowerCase().includes(term)) return true;
+      return Object.values(o.row).some(v => s(v).toLowerCase().includes(term));
+    });
+
+  renderMore();
+}
+
+/* ================== Events ================== */
+els.top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+els.more.addEventListener("click", () => renderMore());
+
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   els.status.textContent = "Lese Datei…";
+
   const buf = await f.arrayBuffer();
   workbook = XLSX.read(buf, { type: "array", cellStyles: true });
 
   els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
   workbook.SheetNames.forEach(n => {
-    const o = document.createElement("option"); o.value = n; o.textContent = n;
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
     els.sheet.appendChild(o);
   });
 
   els.sheet.disabled = false;
   els.search.disabled = true;
   els.more.disabled = true;
-  els.top.disabled = false;
   els.grid.innerHTML = "";
   els.count.textContent = "";
   els.status.textContent = "Sheet wählen…";
@@ -355,26 +582,22 @@ els.sheet.addEventListener("change", () => {
   if (!name || name === "Sheet auswählen…") return;
 
   const ws = workbook.Sheets[name];
+
+  // Daten
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-
   allRows = json;
-  // Spalten aus erster Zeile + Normierung
-  const rawCols = json.length ? Object.keys(json[0]).map(normalizeColName) : [];
-  columns = rawCols;
+  columns = json.length ? Object.keys(json[0]) : [];
 
+  // Links + Delisted-Style
   buildLinks(ws);
   applyDelistedFromStyles(ws);
 
-  els.grid.innerHTML = "";
-  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
   els.search.disabled = false;
-
-  startSearch("");
+  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
+  startSearch(els.search.value || "");
 });
 
 els.search.addEventListener("input", (e) => startSearch(e.target.value));
-els.more.addEventListener("click", () => renderMore());
-els.top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 </script>
 </body>
 </html>
