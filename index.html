@@ -19,14 +19,13 @@ main{padding:14px}
 .title{font-weight:700;font-size:16px;line-height:1.2}
 .delistedTitle{text-decoration:line-through;color:#b00020}
 .meta{font-size:12px;color:#555;display:flex;gap:8px;flex-wrap:wrap}
-.pill{background:#eef2ff;color:#2536a4;padding:4px 8px;border-radius:999px}
 .badgeDelisted{background:#ffe7ea;color:#b00020;padding:4px 8px;border-radius:999px;font-weight:600}
 .kv{display:grid;gap:6px}
 .line{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start}
 .k{color:#666;font-size:12px}
 .v{font-size:13px;word-break:break-word}
 details{border-top:1px solid #eee;padding-top:8px}
-summary{cursor:pointer;color:#2536a4;font-size:13px}
+summary{cursor:pointer;color:#2536a4;font-size:13px;user-select:none}
 a{color:#2536a4;text-decoration:none}
 a:hover{text-decoration:underline}
 .footer{padding:0 14px 14px;color:#666;font-size:12px}
@@ -37,7 +36,7 @@ a:hover{text-decoration:underline}
 <header>
   <div class="row">
     <strong>Excel → Karten</strong>
-    <span class="hint">XLSX · Links · Delisted · Paging</span>
+    <span class="hint">Kompakt + Details (Excel Mobile Style)</span>
   </div>
   <div class="row">
     <input id="file" type="file" accept=".xlsx,.xls" />
@@ -59,7 +58,7 @@ a:hover{text-decoration:underline}
 
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ---------- UI-Refs ---------- */
+/* ---------- UI ---------- */
 const els = {
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
@@ -73,14 +72,21 @@ const els = {
 };
 
 /* ---------- Optionen ---------- */
-const PAGE_SIZE = 60;                // Karten pro Klick
-const MAX_RESULTS = 600;             // Sicherheitslimit fürs DOM
-const PLACEHOLDER = "—";             // Anzeige für leere Felder
-const SHOW_EMPTY_COLUMNS = true;     // leere Spalten trotzdem anzeigen
-const ALWAYS_FIRST = [               // feste Reihenfolge oben
-  "ID","Spieletitel","Titel","Name","Entwickler","Developer","Studio",
-  "Verfügbarkeit","Store Link","Metascore","Userwertung",
-  "Spielzeit (Main)","Spielzeit (100%)","Gesamtstunden (Humorstatistik)","% Lebenszeit (Humorstatistik)","Jahre (Humorstatistik)"
+const PAGE_SIZE = 60;
+const MAX_RESULTS = 600;
+const PLACEHOLDER = "—";
+const SHOW_EMPTY_IN_DETAILS = true;     // Details zeigen auch leere Spalten (mit —)
+const SHOW_EMPTY_IN_HEADER  = false;    // Header-Bereich lieber nur echte Werte
+
+// Das ist DEINE gewünschte "immer sichtbar"-Reihenfolge:
+const CARD_HEADER_FIELDS = ["ID","Spieletitel","Favorit","Genre","Subgenre / Stimmung"];
+
+// Für Details: zuerst diese Felder (wenn vorhanden), danach Rest alphabetisch
+const DETAILS_PRIORITY = [
+  "Entwickler","System","Verfügbarkeit","Store Link","Metascore","Userwertung",
+  "Spielzeit (Main)","Spielzeit (100%)",
+  "Gesamtstunden (Humorstatistik)","% Lebenszeit (Humorstatistik)","Jahre (Humorstatistik)",
+  "Kurzbeschreibung","Quelle"
 ];
 
 /* ---------- Zustand ---------- */
@@ -88,20 +94,13 @@ let workbook = null;
 let allRows = [];
 let columns = [];
 let matches = [];
-let shown = 0;                       // wie viele Karten gerendert
-let linkMap = new Map();             // `${row1based}:${colName}` -> href
-let headerRowIndex = 1;              // 1-basiert (erste Zeile = Header)
+let shown = 0;
+let linkMap = new Map();              // `${row1based}:${colName}` -> href
+let headerRowIndex = 1;               // 1-basiert
 
-/* ---------- Helfer ---------- */
 const s = v => (v == null ? "" : String(v).trim());
 
-function orderColumns(cols){
-  // feste Reihenfolge: ALWAYS_FIRST zuerst, danach Rest alphabetisch
-  const have = new Set(cols);
-  const first = ALWAYS_FIRST.filter(c => have.has(c));
-  const rest = [...cols].filter(c => !first.includes(c)).sort((a,b)=>a.localeCompare(b));
-  return [...first, ...rest];
-}
+function normalizeColName(name){ return s(name); }
 
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
@@ -129,11 +128,13 @@ function makeLine(k, v){
 }
 
 function pickTitle(row){
-  for (const key of ["Spieletitel","Titel","Name","Spiel"]) {
+  // exakt deine Spalte
+  if (s(row["Spieletitel"])) return s(row["Spieletitel"]);
+  // fallback
+  for (const key of ["Titel","Name","Spiel"]) {
     const t = s(row[key]);
     if (t) return t;
   }
-  // fallback: erste nichtleere Spalte
   for (const k of columns) {
     const t = s(row[k]);
     if (t) return t;
@@ -142,14 +143,29 @@ function pickTitle(row){
 }
 
 function isDelistedRow(row){
-  // 1) Flag aus Formatierung (applyDelisted) – bereits gesetzt?
   if (row.__delisted) return true;
-  // 2) Inhaltlich über Spalte "Verfügbarkeit"
   const v = s(row["Verfügbarkeit"]).toLowerCase();
   return v === "delisted" || v === "removed" || v.includes("store entfernt");
 }
 
-/* ---------- Karten ---------- */
+function orderedDetailsColumns(cols){
+  const have = new Set(cols);
+  const first = DETAILS_PRIORITY.filter(c => have.has(c));
+  // alles, was nicht in Header oder Priority ist, danach alphabetisch
+  const skip = new Set([...CARD_HEADER_FIELDS, ...first]);
+  const rest = cols.filter(c => !skip.has(c)).sort((a,b)=>a.localeCompare(b));
+  return [...first, ...rest];
+}
+
+function getValueWithLink(row, col, rowIndex1Based){
+  const raw = row[col];
+  const text = s(raw);
+  const href = linkMap.get(`${rowIndex1Based}:${col}`);
+  if (href) return { text: text || "Store Link", href };
+  return raw;
+}
+
+/* ---------- Karte ---------- */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
@@ -159,44 +175,61 @@ function createCard(row, rowIndex1Based){
   titleEl.textContent = pickTitle(row);
   if (isDelistedRow(row)) titleEl.classList.add("delistedTitle");
 
-  const pills = document.createElement("div");
-  pills.className = "meta";
-  // Delisted-Badge
+  const meta = document.createElement("div");
+  meta.className = "meta";
   if (isDelistedRow(row)) {
     const b = document.createElement("span");
     b.className = "badgeDelisted";
     b.textContent = "Delisted";
-    pills.appendChild(b);
+    meta.appendChild(b);
   }
 
-  const kv = document.createElement("div");
-  kv.className = "kv";
+  // --- Header-Block (nur deine 5 Felder) ---
+  const headerKv = document.createElement("div");
+  headerKv.className = "kv";
 
-  // feste Reihenfolge + leere Felder optional anzeigen
-  const ordered = orderColumns(columns);
-  for (const col of ordered) {
-    const raw = row[col];
-    const text = s(raw);
-    if (!SHOW_EMPTY_COLUMNS && !text) continue;
-
-    // Link overlay?
-    const href = linkMap.get(`${rowIndex1Based}:${col}`);
-    const val = href ? { text: text || "Link", href } : raw || "";
-    kv.appendChild(makeLine(col, val));
+  for (const col of CARD_HEADER_FIELDS) {
+    if (!columns.includes(col)) continue; // falls Spalte anders heißt
+    const val = getValueWithLink(row, col, rowIndex1Based);
+    const text = s(row[col]);
+    if (!SHOW_EMPTY_IN_HEADER && !text) continue;
+    headerKv.appendChild(makeLine(col, val));
   }
 
-  card.append(titleEl, pills, kv);
+  // --- Details-Block (Rest) ---
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "Mehr Details";
+  details.appendChild(summary);
+
+  const detailsKv = document.createElement("div");
+  detailsKv.className = "kv";
+
+  const detailCols = orderedDetailsColumns(columns);
+
+  for (const col of detailCols) {
+    // Header-Felder nicht nochmal in Details duplizieren (optional)
+    if (CARD_HEADER_FIELDS.includes(col)) continue;
+
+    const val = getValueWithLink(row, col, rowIndex1Based);
+    const text = s(row[col]);
+    if (!SHOW_EMPTY_IN_DETAILS && !text) continue;
+    detailsKv.appendChild(makeLine(col, val));
+  }
+
+  details.appendChild(detailsKv);
+
+  card.append(titleEl, meta, headerKv, details);
   return card;
 }
 
-/* ---------- Paging ---------- */
+/* ---------- Paging / Suche ---------- */
 function updateCounters(){
   const total = matches.length;
   const cap = Math.min(total, MAX_RESULTS);
-  els.count.textContent = total
-    ? `Treffer: ${total} · angezeigt: ${Math.min(shown, cap)}/${cap}`
-    : "";
+  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${Math.min(shown, cap)}/${cap}` : "";
   els.more.disabled = shown >= cap;
+  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, cap - shown)})`;
 }
 
 function renderMore(){
@@ -208,17 +241,16 @@ function renderMore(){
   const frag = document.createDocumentFragment();
 
   for (let i = shown; i < end; i++){
-    const { row, idx } = matches[i];      // idx = Excel-Zeilennummer (1-basiert)
+    const { row, idx } = matches[i];
     frag.appendChild(createCard(row, idx));
   }
+
   els.grid.appendChild(frag);
   shown = end;
 
   els.status.textContent = total
-    ? (shown < cap
-        ? `Mehr laden zeigt weitere Karten…`
-        : `Alle angezeigten Karten erreicht.`)
-    : `Keine Treffer.`;
+    ? (shown < cap ? "Mehr laden zeigt weitere Karten…" : "Alle angezeigten Karten erreicht.")
+    : "Keine Treffer.";
 
   updateCounters();
 }
@@ -228,22 +260,34 @@ function startSearch(q){
   shown = 0;
 
   const term = (q || "").toLowerCase().trim();
-  // mappe mit Zeilennummer (Header ist 1 Zeile, Daten ab +1)
+
   matches = allRows
     .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
-    .filter(o => !term || Object.values(o.row).some(v => s(v).toLowerCase().includes(term)));
+    .filter(o => {
+      if (!term) return true;
+      // schneller: ID/Titel/Entwickler/Genre/Subgenre zuerst, dann fallback Vollscan
+      const fast =
+        s(o.row["ID"]) + " " +
+        s(o.row["Spieletitel"]) + " " +
+        s(o.row["Entwickler"]) + " " +
+        s(o.row["Genre"]) + " " +
+        s(o.row["Subgenre / Stimmung"]);
+      if (fast.toLowerCase().includes(term)) return true;
+      return Object.values(o.row).some(v => s(v).toLowerCase().includes(term));
+    });
 
-  renderMore(); // **nur** die erste Seite
+  renderMore(); // nur erste Seite
 }
 
-/* ---------- XLSX: Links + Delisted aus Styles ---------- */
+/* ---------- XLSX: Links + Delisted ---------- */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
-  // Headerzeile (erste Zeile der Range)
-  const headerR = r.s.r; headerRowIndex = headerR + 1;
+  const headerR = r.s.r;
+  headerRowIndex = headerR + 1;
+
   const headerByCol = new Map();
   for (let c = r.s.c; c <= r.e.c; c++){
     const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
@@ -266,13 +310,13 @@ function applyDelistedFromStyles(ws){
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
 
-  // Spaltenindex der Titel-Spalte erkennen (Spieletitel/Titel/Name)
   const headerR = r.s.r;
   let titleC = null;
+
   for (let c = r.s.c; c <= r.e.c; c++){
     const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
     const h = cell && cell.v != null ? String(cell.v).trim() : "";
-    if (["Spieletitel","Titel","Name"].includes(h)) { titleC = c; break; }
+    if (h === "Spieletitel") { titleC = c; break; }
   }
   if (titleC == null) return;
 
@@ -284,20 +328,19 @@ function applyDelistedFromStyles(ws){
   }
 }
 
-/* ---------- Event-Wiring ---------- */
+/* ---------- Events ---------- */
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   els.status.textContent = "Lese Datei…";
   const buf = await f.arrayBuffer();
-  // Styles mit einlesen, damit wir strike erkennen
   workbook = XLSX.read(buf, { type: "array", cellStyles: true });
 
-  // Sheet-Auswahl befüllen
   els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
   workbook.SheetNames.forEach(n => {
     const o = document.createElement("option"); o.value = n; o.textContent = n;
     els.sheet.appendChild(o);
   });
+
   els.sheet.disabled = false;
   els.search.disabled = true;
   els.more.disabled = true;
@@ -312,39 +355,26 @@ els.sheet.addEventListener("change", () => {
   if (!name || name === "Sheet auswählen…") return;
 
   const ws = workbook.Sheets[name];
-  // Daten robust und schnell
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-  allRows = json;
-  columns = json.length ? orderColumns(Object.keys(json[0])) : [];
 
-  // Links + Delisted (Format) aufbauen
+  allRows = json;
+  // Spalten aus erster Zeile + Normierung
+  const rawCols = json.length ? Object.keys(json[0]).map(normalizeColName) : [];
+  columns = rawCols;
+
   buildLinks(ws);
   applyDelistedFromStyles(ws);
 
-  els.search.disabled = true;         // erst initialisieren, dann frei geben
-  els.more.disabled = true;
   els.grid.innerHTML = "";
-  els.count.textContent = "";
-
-  els.status.textContent = `Geladen: ${allRows.length} Zeilen · Suche starten oder "Mehr laden" drücken`;
-  // leeres Suchfeld → zeigt trotzdem die erste Seite (komfortabel)
-  startSearch("");
+  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
   els.search.disabled = false;
-  els.more.disabled = shown >= Math.min(matches.length, MAX_RESULTS);
+
+  startSearch("");
 });
 
-els.search.addEventListener("input", (e) => {
-  startSearch(e.target.value);
-  els.more.disabled = shown >= Math.min(matches.length, MAX_RESULTS);
-});
-
-els.more.addEventListener("click", () => {
-  renderMore();
-});
-
-els.top.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
+els.search.addEventListener("input", (e) => startSearch(e.target.value));
+els.more.addEventListener("click", () => renderMore());
+els.top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 </script>
 </body>
 </html>
