@@ -55,7 +55,7 @@ main{padding:14px}
   white-space:nowrap
 }
 .badge.delisted{background:var(--dangerBg);color:var(--danger)}
-.badge.platin{background:#eef2ff;color:#1f2a8a} /* dezenter Diamant */
+.badge.platin{background:#eef2ff;color:#1f2a8a}
 .metaRow{display:flex;gap:8px;flex-wrap:wrap}
 .chip{
   font-size:12px;color:#374151;
@@ -124,12 +124,10 @@ details[open] .summaryBtn::after{content:"▴"}
 .progressFill{height:100%;background:var(--accent);width:0%}
 .progressLabel{font-size:12px;color:var(--muted)}
 
-/* Fallback */
 .preline{ white-space: pre-line; }
 
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.footer{padding:0 14px 14px;color:var(--muted);font-size:12px}
 .counter{font-size:12px;color:#555}
 </style>
 </head>
@@ -156,7 +154,6 @@ a:hover{text-decoration:underline}
 </header>
 
 <main><div id="grid" class="grid"></div></main>
-<div class="footer" id="footer"></div>
 
 <script src="xlsx.full.min.js"></script>
 <script>
@@ -193,6 +190,8 @@ const COL_ALIASES = {
 };
 let COL = {};
 
+const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
+
 /* ================== State ================== */
 const els = {
   file: document.getElementById("file"),
@@ -204,6 +203,7 @@ const els = {
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
 };
+
 let workbook = null;
 let allRows = [];
 let matches = [];
@@ -222,8 +222,8 @@ function normHeader(x){
     .trim()
     .toLowerCase();
 }
-function resolveColumns(columns){
-  const byNorm = new Map(columns.map(c => [normHeader(c), c]));
+function resolveColumns(cols){
+  const byNorm = new Map(cols.map(c => [normHeader(c), c]));
   const resolved = {};
   for (const [key, aliases] of Object.entries(COL_ALIASES)) {
     let found = "";
@@ -241,9 +241,7 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* ================== Plattform-Parsing (System / Text) ================== */
-const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
-
+/* ================== Plattform-Parsing ================== */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -252,13 +250,11 @@ function extractPlatformsFromText(text){
   while ((m = re.exec(t)) !== null) found.push(m[1]);
   return [...new Set(found)];
 }
-
 function platformsFromSystem(row){
-  const sys = val(row, COL.system);
-  return extractPlatformsFromText(sys);
+  return extractPlatformsFromText(val(row, COL.system));
 }
 
-/* ================== Hyperlinks & Delisted ================== */
+/* ================== Links & Delisted ================== */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -320,8 +316,6 @@ function getValueWithLink(row, colName, rowIndex1Based){
 }
 
 /* ================== Rendering helpers ================== */
-function nodeText(t){ return document.createTextNode(t); }
-
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -333,20 +327,17 @@ function renderValue(value){
     return a;
   }
   const t = s(value);
-  return nodeText(t || PLACEHOLDER);
+  return document.createTextNode(t || PLACEHOLDER);
 }
 function kvLine(label, valueNode){
   const line = document.createElement("div");
   line.className = "kvLine";
-
   const k = document.createElement("div");
   k.className = "k";
   k.textContent = label;
-
   const v = document.createElement("div");
   v.className = "v";
   v.appendChild(valueNode);
-
   line.append(k, v);
   return line;
 }
@@ -356,13 +347,6 @@ function makeChip(text){
   c.textContent = text;
   return c;
 }
-function makeBadge says(text, cls=""){
-  const b = document.createElement("span");
-  b.className = "badge" + (cls ? " " + cls : "");
-  b.textContent = text;
-  return b;
-}
-// Fix: JS erlaubt keine Funktion "makeBadge says" – wir definieren korrekt:
 function makeBadge(text, cls=""){
   const b = document.createElement("span");
   b.className = "badge" + (cls ? " " + cls : "");
@@ -375,14 +359,11 @@ function formatFavorite(row){
   if (!f) return "";
   return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
 }
-
 function isPlatinum(row){
   const p = val(row, COL.platinum).toLowerCase();
   if (!p) return false;
-  // erkennt: "platinum", "ps4 platinum", "ps5 platinum", etc.
   return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
 }
-
 function formatPlaytime(row){
   const m = val(row, COL.main);
   const h = val(row, COL.hundred);
@@ -391,7 +372,7 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-/* ================== Trophy: parsing + progress ================== */
+/* ================== Trophy ================== */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
@@ -415,10 +396,8 @@ function parsePlatformPairs(text){
   }
   return out;
 }
-
 function parseFraction(text){
   const s = String(text ?? "");
-  // "16 of 20" / "16 von 20" / "16/20"
   let m = s.match(/(\d+)\s*(?:of|von|\/)\s*(\d+)/i);
   if (!m) return null;
   const a = parseInt(m[1], 10);
@@ -427,48 +406,20 @@ function parseFraction(text){
   const pct = Math.max(0, Math.min(1, a / b));
   return { a, b, pct };
 }
-
 function progressNode(fr){
   const wrap = document.createElement("div");
   wrap.className = "progressWrap";
-
   const bar = document.createElement("div");
   bar.className = "progressBar";
-
   const fill = document.createElement("div");
   fill.className = "progressFill";
   fill.style.width = `${Math.round(fr.pct * 100)}%`;
   bar.appendChild(fill);
-
   const lab = document.createElement("div");
   lab.className = "progressLabel";
   lab.textContent = `${Math.round(fr.pct * 100)}% (${fr.a}/${fr.b})`;
-
   wrap.append(bar, lab);
   return wrap;
-}
-
-function trophyNodeFromText(text, row){
-  const raw = String(text ?? "").trim();
-  if (!raw) return document.createTextNode(PLACEHOLDER);
-
-  // 1) Wenn Plattformen im Text stehen -> normal splitten
-  const pairs = parsePlatformPairs(raw);
-  if (pairs.length) return trophyList(pairs);
-
-  // 2) Kein Plattform-Token im Text:
-  //    - wenn System genau 1 Plattform enthält -> der Plattform zuweisen (dein Traumfall)
-  //    - wenn System mehrere Plattformen enthält -> neutral mit Multi-Chips (kein Raten)
-  const sysPlatforms = platformsFromSystem(row);
-  if (sysPlatforms.length === 1) {
-    return trophyList([{ platform: sysPlatforms[0], text: raw }]);
-  }
-  if (sysPlatforms.length > 1) {
-    return trophyNeutral(raw, sysPlatforms);
-  }
-
-  // 3) System leer: neutrales Layout ohne Plattform
-  return trophyNeutral(raw, []);
 }
 
 function trophyList(items){
@@ -489,7 +440,6 @@ function trophyList(items){
     const txt = document.createElement("div");
     txt.className = "trophyText";
     txt.textContent = it.text || PLACEHOLDER;
-
     right.appendChild(txt);
 
     const fr = parseFraction(it.text);
@@ -526,6 +476,23 @@ function trophyNeutral(text, sysPlatforms){
   return outer;
 }
 
+function trophyNodeFromText(text, row){
+  const raw = String(text ?? "").trim();
+  if (!raw) return document.createTextNode(PLACEHOLDER);
+
+  const pairs = parsePlatformPairs(raw);
+  if (pairs.length) return trophyList(pairs);
+
+  const sysPlatforms = platformsFromSystem(row);
+  if (sysPlatforms.length === 1) {
+    return trophyList([{ platform: sysPlatforms[0], text: raw }]);
+  }
+  if (sysPlatforms.length > 1) {
+    return trophyNeutral(raw, sysPlatforms);
+  }
+  return trophyNeutral(raw, []);
+}
+
 /* ================== Card ================== */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
@@ -545,36 +512,29 @@ function createCard(row, rowIndex1Based){
   const badges = document.createElement("div");
   badges.className = "badges";
   if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted", "delisted"));
-
   const favLabel = formatFavorite(row);
   if (favLabel) badges.appendChild(makeBadge(favLabel));
-
   if (isPlatinum(row)) badges.appendChild(makeBadge("💎 Platin", "platin"));
 
   titleRow.append(title, badges);
 
-  // Meta chips: ID + Plattform(en) + Verfügbarkeit
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
   metaRow.appendChild(makeChip(`ID ${val(row, COL.id) || PLACEHOLDER}`));
 
-  // Plattformchips: aus System ableiten; wenn leer, aus Trophäen/Platin-Text ableiten
   let plats = platformsFromSystem(row);
   if (!plats.length) {
     const fromT = extractPlatformsFromText(val(row, COL.trophies));
     const fromP = extractPlatformsFromText(val(row, COL.platinum));
     plats = [...new Set([...fromT, ...fromP])];
   }
-  if (plats.length) {
-    for (const p of plats) metaRow.appendChild(makeChip(p));
-  } else {
-    metaRow.appendChild(makeChip(PLACEHOLDER));
-  }
+  if (plats.length) plats.forEach(p => metaRow.appendChild(makeChip(p)));
+  else metaRow.appendChild(makeChip(PLACEHOLDER));
 
   metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
+
   top.append(titleRow, metaRow);
 
-  // Key facts
   const key = document.createElement("div");
   key.className = "keyFacts";
 
@@ -590,7 +550,6 @@ function createCard(row, rowIndex1Based){
   if (metaScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Metascore", renderValue(metaScore)));
   if (userScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Userwertung", renderValue(userScore)));
 
-  // Details
   const detailsWrap = document.createElement("div");
   detailsWrap.className = "detailsWrap";
 
@@ -603,22 +562,15 @@ function createCard(row, rowIndex1Based){
   details.appendChild(summary);
 
   function addSection(titleText, lines){
-    const exists = remember(lines);
-    if (!exists) return;
-
+    if (!lines.some(x => x != null)) return;
     const sec = document.createElement("div");
     sec.className = "section";
-
     const st = document.createElement("div");
     st.className = "sectionTitle";
     st.textContent = titleText;
-
     sec.appendChild(st);
     for (const line of lines) if (line) sec.appendChild(line);
     details.appendChild(sec);
-  }
-  function remember(lines){
-    return lines.some(x => x != null);
   }
 
   // Beschreibung toggle
@@ -645,7 +597,6 @@ function createCard(row, rowIndex1Based){
   const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
   const source = val(row, COL.source);
   const availability = val(row, COL.availability);
-
   addSection("Store", [
     (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", renderValue(storeVal)) : null,
     (source   || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(source)) : null,
@@ -666,7 +617,7 @@ function createCard(row, rowIndex1Based){
     (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
   ]);
 
-  // Trophäen: smart fallback + bars
+  // Trophäen
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
   addSection("Trophäen", [
@@ -689,7 +640,7 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* ================== Paging / Search (kein Limit) ================== */
+/* ================== Paging / Search ================== */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
@@ -749,6 +700,12 @@ els.more.addEventListener("click", () => renderMore());
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   els.status.textContent = "Lese Datei…";
+
+  // Wenn die XLSX lib fehlt, sieht man es sofort:
+  if (typeof XLSX === "undefined") {
+    els.status.textContent = "Fehler: XLSX Library nicht geladen (xlsx.full.min.js fehlt?)";
+    return;
+  }
 
   const buf = await f.arrayBuffer();
   workbook = XLSX.read(buf, { type: "array", cellStyles: true });
