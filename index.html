@@ -25,14 +25,16 @@ header{
 }
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 input,select,button{
-  flex:1;min-width:170px;
+  flex:1;min-width:160px;
   padding:10px 12px;border:1px solid #ddd;border-radius:12px;
   background:#fff;font-size:14px
 }
 button{cursor:pointer}
 button:disabled{opacity:.6;cursor:not-allowed}
+
 main{padding:14px}
 .hint{color:var(--muted);font-size:13px}
+.counter{font-size:12px;color:#555}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
 
 .card{
@@ -44,11 +46,28 @@ main{padding:14px}
   display:grid;gap:10px
 }
 .cardTop{display:grid;gap:6px}
-.titleRow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+
+/* Titel links, Badge-Spalte rechts */
+.titleRow{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:10px;
+  align-items:start;
+}
 .title{font-weight:800;font-size:16px;line-height:1.15}
 .title.delisted{ text-decoration:line-through; color:var(--danger); }
-.badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+
+/* Badges immer untereinander */
+.badges{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-end;
+  justify-content:flex-start;
+  min-width:120px;
+}
 .badge{
+  width:fit-content;
   font-size:12px;font-weight:650;
   padding:4px 8px;border-radius:999px;
   background:var(--chipBg);color:var(--accent);
@@ -64,7 +83,14 @@ main{padding:14px}
   padding:4px 8px;border-radius:999px;
   white-space:nowrap
 }
-/* ID hervorheben */
+.chip.on{
+  background:var(--chipBg);
+  border-color:#d7ddff;
+  color:var(--accent);
+}
+.chip.btn{cursor:pointer; user-select:none}
+.chip.btn:active{transform:translateY(1px)}
+
 .idBadge{
   font-size:12px;
   font-weight:900;
@@ -117,13 +143,12 @@ details[open] .summaryBtn::after{content:"▴"}
 .subdetails .summaryBtn{color:#374151}
 .subdetails .summaryBtn::after{color:#6b7280}
 .subdetails .content{ margin-top: 8px; }
-.subdetails .contentText{ line-height:1.35; }
+.subdetails .contentText{ line-height:1.35; white-space:pre-line }
 
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.counter{font-size:12px;color:#555}
 
-/* Trophy (wie vorher) */
+/* Trophy */
 .trophyList{display:grid;gap:8px}
 .trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
 .platformChip{
@@ -138,6 +163,22 @@ a:hover{text-decoration:underline}
 .progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
 .progressFill{height:100%;background:var(--accent);width:0%}
 .progressLabel{font-size:12px;color:var(--muted)}
+
+/* Floating Top Button */
+#fabTop{
+  position:fixed;
+  right:14px;
+  bottom:16px;
+  z-index:50;
+  display:none;
+  border-radius:999px;
+  padding:12px 14px;
+  border:1px solid #ddd;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(0,0,0,.12);
+  font-weight:700;
+}
+#fabTop.show{display:inline-flex}
 </style>
 </head>
 <body>
@@ -145,18 +186,39 @@ a:hover{text-decoration:underline}
 <header>
   <div class="row">
     <strong>Spieleliste</strong>
-    <span class="hint">Clean Cards · Multi-System · Trophy Bars · 💎 Platin</span>
+    <span class="hint">Filter · Sort · Query-Suche · Persistenz · CSV-Fallback</span>
   </div>
+
   <div class="row">
-    <input id="file" type="file" accept=".xlsx,.xls" />
+    <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
     <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
   </div>
+
   <div class="row">
-    <input id="search" type="search" placeholder="Suche…" disabled />
-    <button id="moreBtn" disabled>Mehr laden</button>
-    <button id="topBtn" disabled>↑ Top</button>
+    <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom platform:ps5 fav:1)" disabled />
+    <select id="sortSelect" disabled>
+      <option value="id">Sort: ID</option>
+      <option value="title">Sort: Titel</option>
+      <option value="meta">Sort: Metascore</option>
+      <option value="user">Sort: Userwertung</option>
+      <option value="main">Sort: Spielzeit (Main)</option>
+    </select>
+    <button id="sortDirBtn" disabled>↑</button>
   </div>
+
+  <div class="row" id="filtersRow">
+    <span class="chip btn" data-filter="fav">⭐ Favorit</span>
+    <span class="chip btn" data-filter="platin">💎 Platin</span>
+    <span class="chip btn" data-filter="delisted">Delisted</span>
+    <span class="chip btn" data-filter="ps5">PS5</span>
+    <span class="chip btn" data-filter="ps4">PS4</span>
+    <span class="chip btn" data-filter="ps3">PS3</span>
+    <span class="chip btn" data-filter="vita">Vita</span>
+    <button id="clearFiltersBtn" disabled>Filter löschen</button>
+  </div>
+
   <div class="row">
+    <button id="moreBtn" disabled>Mehr laden</button>
     <span id="status" class="hint">Datei wählen → Sheet wählen → suchen</span>
     <span id="count" class="counter"></span>
   </div>
@@ -164,12 +226,17 @@ a:hover{text-decoration:underline}
 
 <main><div id="grid" class="grid"></div></main>
 
+<button id="fabTop" aria-label="Nach oben">↑ Top</button>
+
 <script src="xlsx.full.min.js"></script>
 <script>
+/* ================== Settings ================== */
 const PAGE_SIZE = 60;
 const PLACEHOLDER = "—";
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
+
+const STORAGE_KEY = "spieleliste_view_state_v1";
 
 const COL_ALIASES = {
   id: ["ID"],
@@ -196,31 +263,72 @@ const COL_ALIASES = {
   years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre"],
 };
 let COL = {};
-const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
 
+const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
+const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
+
+/* ================== DOM ================== */
 const els = {
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
   search: document.getElementById("search"),
+  sort: document.getElementById("sortSelect"),
+  sortDir: document.getElementById("sortDirBtn"),
+  filtersRow: document.getElementById("filtersRow"),
+  clearFilters: document.getElementById("clearFiltersBtn"),
   more: document.getElementById("moreBtn"),
-  top: document.getElementById("topBtn"),
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
+  fabTop: document.getElementById("fabTop"),
 };
 
+const s = v => (v == null ? "" : String(v).trim());
+
+/* ================== State ================== */
 let workbook = null;
 let allRows = [];
 let matches = [];
 let shown = 0;
 let columns = [];
-let linkMap = new Map();
-let headerRowIndex = 1;
+let linkMap = new Map();   // `${row1based}:${colName}` -> href (XLSX only)
+let headerRowIndex = 1;    // 1-based header row (XLSX)
 
-const s = v => (v == null ? "" : String(v).trim());
+const viewState = {
+  fileMode: "",            // "xlsx" | "csv"
+  sheetName: "",
+  search: "",
+  sortKey: "id",
+  sortDir: "asc",          // "asc" | "desc"
+  filters: { fav:false, platin:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false },
+};
 
+/* ================== Persistenz ================== */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const st = JSON.parse(raw);
+    if (st && typeof st === "object"){
+      Object.assign(viewState, st);
+      if (st.filters) Object.assign(viewState.filters, st.filters);
+    }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState));
+  }catch(e){}
+}
+loadState();
+
+/* ================== Header resolver ================== */
 function normHeader(x){
-  return String(x ?? "").replace(/\u00A0/g," ").replace(/\s+/g," ").trim().toLowerCase();
+  return String(x ?? "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 function resolveColumns(cols){
   const byNorm = new Map(cols.map(c => [normHeader(c), c]));
@@ -241,7 +349,7 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* Plattformen */
+/* ================== Plattform parsing ================== */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -253,8 +361,16 @@ function extractPlatformsFromText(text){
 function platformsFromSystem(row){
   return extractPlatformsFromText(val(row, COL.system));
 }
+function rowHasPlatform(row, key){ // key: ps5/ps4/ps3/vita
+  const plats = platformsFromSystem(row).map(p => p.toLowerCase());
+  if (!plats.length){
+    const fallback = [...extractPlatformsFromText(val(row, COL.trophies)), ...extractPlatformsFromText(val(row, COL.platinum))].map(p=>p.toLowerCase());
+    return fallback.some(p => PLATFORM_CANON[p] === key || p === key);
+  }
+  return plats.some(p => PLATFORM_CANON[p] === key || p === key);
+}
 
-/* Links / Delisted */
+/* ================== XLSX Links & Delisted style ================== */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -315,7 +431,24 @@ function getValueWithLink(row, colName, rowIndex1Based){
   return text;
 }
 
-/* UI helpers */
+/* ================== Parsing helper (Scores / Hours) ================== */
+function parseScore(text){
+  const t = String(text ?? "").trim();
+  if (!t) return NaN;
+  // "72 / 100" -> 72
+  const m = t.match(/(\d+(?:[.,]\d+)?)/);
+  if (!m) return NaN;
+  return parseFloat(m[1].replace(",", "."));
+}
+function parseHours(text){
+  const t = String(text ?? "").trim();
+  if (!t) return NaN;
+  const m = t.match(/(\d+(?:[.,]\d+)?)/);
+  if (!m) return NaN;
+  return parseFloat(m[1].replace(",", "."));
+}
+
+/* ================== UI helpers ================== */
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -341,9 +474,9 @@ function kvLine(label, valueNode){
   line.append(k, v);
   return line;
 }
-function makeChip(text){
+function makeChip(text, cls=""){
   const c = document.createElement("span");
-  c.className = "chip";
+  c.className = "chip" + (cls ? " " + cls : "");
   c.textContent = text;
   return c;
 }
@@ -377,7 +510,7 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-/* Toggle-Block wie Beschreibung (wiederverwendbar) */
+/* Toggle-Block */
 function makeToggleBlock(label, contentText){
   const d = document.createElement("details");
   d.className = "subdetails";
@@ -517,7 +650,7 @@ function trophyNodeFromText(text, row){
   return trophyNeutral(raw, []);
 }
 
-/* Card */
+/* ================== Card ================== */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
@@ -544,11 +677,8 @@ function createCard(row, rowIndex1Based){
 
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
-
-  // ID stärker
   metaRow.appendChild(makeIdBadge(val(row, COL.id)));
 
-  // Plattform-Chips
   let plats = platformsFromSystem(row);
   if (!plats.length) {
     const fromT = extractPlatformsFromText(val(row, COL.trophies));
@@ -588,7 +718,6 @@ function createCard(row, rowIndex1Based){
   summary.appendChild(sumSpan);
   details.appendChild(summary);
 
-  // Zustandsabhängiger Text
   details.addEventListener("toggle", () => {
     sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details";
   });
@@ -605,13 +734,12 @@ function createCard(row, rowIndex1Based){
     details.appendChild(sec);
   }
 
-  // Beschreibung toggle
-  addSection("Beschreibung", [
-    makeToggleBlock("Kurzbeschreibung", val(row, COL.desc))
-  ]);
+  addSection("Beschreibung", [ makeToggleBlock("Kurzbeschreibung", val(row, COL.desc)) ]);
 
-  // Store
-  const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
+  const storeVal = (viewState.fileMode === "xlsx")
+    ? getValueWithLink(row, COL.store, rowIndex1Based)
+    : val(row, COL.store);
+
   const source = val(row, COL.source);
   const availability = val(row, COL.availability);
   addSection("Store", [
@@ -620,19 +748,16 @@ function createCard(row, rowIndex1Based){
     (availability || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(availability)) : null,
   ]);
 
-  // Entwickler
   const dev = val(row, COL.dev);
   addSection("Entwickler", [
     (dev || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(dev)) : null
   ]);
 
-  // Extras: jetzt ausklappbar
   addSection("Extras", [
     makeToggleBlock("Besonderheiten", val(row, COL.special)),
     makeToggleBlock("Eastereggs", val(row, COL.easter))
   ]);
 
-  // Trophäen
   const trophies = val(row, COL.trophies);
   const platinum = val(row, COL.platinum);
   addSection("Trophäen", [
@@ -640,7 +765,6 @@ function createCard(row, rowIndex1Based){
     kvLine("Platin", trophyNodeFromText(platinum, row)),
   ]);
 
-  // Humorstatistik
   const hours = val(row, COL.hours);
   const life  = val(row, COL.life);
   const years = val(row, COL.years);
@@ -655,16 +779,151 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* Paging / Search */
+/* ================== Query Syntax ================== */
+function parseQuery(q){
+  const raw = (q || "").trim();
+  const tokens = raw.length ? raw.split(/\s+/) : [];
+  const filters = {
+    text: [],
+    id: "",
+    dev: "",
+    platform: "",
+    genre: "",
+    sub: "",
+    fav: null,
+    platin: null,
+    delisted: null,
+  };
+
+  for (const t of tokens){
+    const m = t.match(/^(\w+)\:(.+)$/);
+    if (!m){ filters.text.push(t); continue; }
+    const key = m[1].toLowerCase();
+    const val = m[2];
+
+    const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
+    const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
+
+    if (key === "id") filters.id = val;
+    else if (key === "dev") filters.dev = val;
+    else if (key === "platform" || key === "plat") filters.platform = val.toLowerCase();
+    else if (key === "genre") filters.genre = val;
+    else if (key === "sub") filters.sub = val;
+    else if (key === "fav") filters.fav = truthy(val) ? true : (falsy(val) ? false : null);
+    else if (key === "platin") filters.platin = truthy(val) ? true : (falsy(val) ? false : null);
+    else if (key === "delisted") filters.delisted = truthy(val) ? true : (falsy(val) ? false : null);
+    else filters.text.push(t);
+  }
+  return filters;
+}
+function queryMatchesRow(qf, row){
+  const txt = qf.text.join(" ").toLowerCase();
+  if (txt){
+    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
+    if (!hay.includes(txt)) return false;
+  }
+  if (qf.id){
+    const idv = val(row, COL.id).toLowerCase();
+    if (!idv.includes(qf.id.toLowerCase())) return false;
+  }
+  if (qf.dev){
+    const dv = val(row, COL.dev).toLowerCase();
+    if (!dv.includes(qf.dev.toLowerCase())) return false;
+  }
+  if (qf.genre){
+    const gv = val(row, COL.genre).toLowerCase();
+    if (!gv.includes(qf.genre.toLowerCase())) return false;
+  }
+  if (qf.sub){
+    const sv = val(row, COL.subgenre).toLowerCase();
+    if (!sv.includes(qf.sub.toLowerCase())) return false;
+  }
+  if (qf.platform){
+    const p = qf.platform.toLowerCase();
+    const canon = PLATFORM_CANON[p] || p;
+    if (!rowHasPlatform(row, canon)) return false;
+  }
+  if (qf.fav !== null){
+    const isFav = !!formatFavorite(row);
+    if (isFav !== qf.fav) return false;
+  }
+  if (qf.platin !== null){
+    const pl = isPlatinum(row);
+    if (pl !== qf.platin) return false;
+  }
+  if (qf.delisted !== null){
+    const d = isDelistedRow(row);
+    if (d !== qf.delisted) return false;
+  }
+  return true;
+}
+
+/* ================== Sort ================== */
+function sortMatches(arr){
+  const key = viewState.sortKey;
+  const dir = viewState.sortDir === "asc" ? 1 : -1;
+
+  const get = (row) => {
+    if (key === "id") return parseScore(val(row, COL.id));
+    if (key === "title") return val(row, COL.title).toLowerCase();
+    if (key === "meta") return parseScore(val(row, COL.meta));
+    if (key === "user") return parseScore(val(row, COL.user));
+    if (key === "main") return parseHours(val(row, COL.main));
+    return 0;
+  };
+
+  arr.sort((a,b) => {
+    const av = get(a.row);
+    const bv = get(b.row);
+
+    // Strings
+    if (typeof av === "string" || typeof bv === "string"){
+      const as = String(av ?? "");
+      const bs = String(bv ?? "");
+      return dir * as.localeCompare(bs, "de", { sensitivity: "base" });
+    }
+
+    // Numbers (NaN -> bottom)
+    const an = Number.isFinite(av) ? av : -Infinity;
+    const bn = Number.isFinite(bv) ? bv : -Infinity;
+    if (an === bn) return 0;
+    return dir * (an < bn ? -1 : 1);
+  });
+
+  return arr;
+}
+
+/* ================== Filters (Chips) ================== */
+function applyChipUI(){
+  for (const el of els.filtersRow.querySelectorAll(".chip[data-filter]")){
+    const k = el.getAttribute("data-filter");
+    const on = !!viewState.filters[k];
+    el.classList.toggle("on", on);
+  }
+  els.clearFilters.disabled = !(Object.values(viewState.filters).some(Boolean));
+}
+function rowPassesChipFilters(row){
+  const f = viewState.filters;
+  if (f.fav && !formatFavorite(row)) return false;
+  if (f.platin && !isPlatinum(row)) return false;
+  if (f.delisted && !isDelistedRow(row)) return false;
+
+  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
+  if (platformFilters.length){
+    // OR-Logik: irgendeine Plattform passt
+    const ok = platformFilters.some(k => rowHasPlatform(row, k));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+/* ================== Paging / Render ================== */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
   els.more.disabled = shown >= total;
   els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, total - shown)})`;
-  // Top-Button: sobald etwas angezeigt wird, aktivieren
-  els.top.disabled = shown === 0;
 }
-
 function renderMore(){
   const total = matches.length;
   if (shown >= total) return;
@@ -676,7 +935,6 @@ function renderMore(){
     const { row, idx } = matches[i];
     frag.appendChild(createCard(row, idx));
   }
-
   els.grid.appendChild(frag);
   shown = end;
 
@@ -686,44 +944,104 @@ function renderMore(){
 
   updateCounters();
 }
-
-function startSearch(q){
+function rebuildMatches(){
   els.grid.innerHTML = "";
   shown = 0;
 
-  const term = (q || "").toLowerCase().trim();
+  const q = parseQuery(viewState.search);
 
   matches = allRows
     .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
-    .filter(o => {
-      if (!term) return true;
-      const fast =
-        val(o.row, COL.id) + " " +
-        val(o.row, COL.title) + " " +
-        val(o.row, COL.dev) + " " +
-        val(o.row, COL.genre) + " " +
-        val(o.row, COL.subgenre);
-      if (fast.toLowerCase().includes(term)) return true;
-      return Object.values(o.row).some(v => s(v).toLowerCase().includes(term));
-    });
+    .filter(o => queryMatchesRow(q, o.row))
+    .filter(o => rowPassesChipFilters(o.row));
 
+  sortMatches(matches);
   renderMore();
+
+  // Controls enable
+  els.more.disabled = matches.length === 0;
+  els.sort.disabled = false;
+  els.sortDir.disabled = false;
+}
+function startSearch(q){
+  viewState.search = q || "";
+  saveState();
+  rebuildMatches();
 }
 
-/* Events */
-els.top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-els.more.addEventListener("click", () => renderMore());
+/* ================== CSV fallback ================== */
+function detectDelimiter(firstLine){
+  const commas = (firstLine.match(/,/g) || []).length;
+  const semis  = (firstLine.match(/;/g) || []).length;
+  return semis > commas ? ";" : ",";
+}
+function parseCSV(text){
+  // Simple CSV parser with quotes; supports \r\n or \n
+  const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
+  // skip empty leading lines
+  while (lines.length && !lines[0].trim()) lines.shift();
+  if (!lines.length) return { rows: [], headers: [] };
 
-els.file.addEventListener("change", async (e) => {
-  const f = e.target.files?.[0]; if (!f) return;
-  els.status.textContent = "Lese Datei…";
+  const delim = detectDelimiter(lines[0]);
 
+  function splitLine(line){
+    const out = [];
+    let cur = "";
+    let inQ = false;
+    for (let i=0;i<line.length;i++){
+      const ch = line[i];
+      if (ch === '"'){
+        // double quote escape
+        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === delim && !inQ){
+        out.push(cur); cur = "";
+      } else cur += ch;
+    }
+    out.push(cur);
+    return out.map(v => v.trim());
+  }
+
+  const headers = splitLine(lines[0]).map(h => h.replace(/^\uFEFF/, "").trim());
+  const rows = [];
+
+  for (let r=1; r<lines.length; r++){
+    const line = lines[r];
+    if (!line || !line.trim()) continue;
+    const cells = splitLine(line);
+    const obj = {};
+    for (let c=0; c<headers.length; c++){
+      obj[headers[c]] = cells[c] ?? "";
+    }
+    rows.push(obj);
+  }
+  return { rows, headers };
+}
+
+/* ================== Load file ================== */
+function resetUIForNewData(){
+  els.grid.innerHTML = "";
+  els.count.textContent = "";
+  els.more.disabled = true;
+  els.sort.disabled = true;
+  els.sortDir.disabled = true;
+  els.clearFilters.disabled = true;
+  els.search.disabled = true;
+  els.sheet.disabled = true;
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  linkMap.clear();
+  headerRowIndex = 1;
+  allRows = [];
+  matches = [];
+  shown = 0;
+}
+async function loadXLSX(file){
   if (typeof XLSX === "undefined") {
     els.status.textContent = "Fehler: XLSX Library nicht geladen (xlsx.full.min.js fehlt?)";
     return;
   }
-
-  const buf = await f.arrayBuffer();
+  viewState.fileMode = "xlsx";
+  const buf = await file.arrayBuffer();
   workbook = XLSX.read(buf, { type: "array", cellStyles: true });
 
   els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
@@ -734,35 +1052,150 @@ els.file.addEventListener("change", async (e) => {
   });
 
   els.sheet.disabled = false;
-  els.search.disabled = true;
-  els.more.disabled = true;
-  els.top.disabled = true;
-  els.grid.innerHTML = "";
-  els.count.textContent = "";
   els.status.textContent = "Sheet wählen…";
-});
 
-els.sheet.addEventListener("change", () => {
-  const name = els.sheet.value;
-  if (!name || name === "Sheet auswählen…") return;
-
+  // Persist: restore last sheet if exists
+  if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
+    els.sheet.value = viewState.sheetName;
+    loadSheet(viewState.sheetName);
+  }
+}
+function loadSheet(name){
   const ws = workbook.Sheets[name];
-
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
   allRows = json;
   columns = json.length ? Object.keys(json[0]) : [];
-
   COL = resolveColumns(columns);
 
   buildLinks(ws);
   applyDelistedFromStyles(ws);
 
   els.search.disabled = false;
+  els.sort.disabled = false;
+  els.sortDir.disabled = false;
+
+  els.search.value = viewState.search || "";
+  els.sort.value = viewState.sortKey || "id";
+  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+
+  viewState.sheetName = name;
+  saveState();
+
   els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
-  startSearch(els.search.value || "");
+  rebuildMatches();
+}
+async function loadCSV(file){
+  viewState.fileMode = "csv";
+  workbook = null;
+  linkMap.clear();
+
+  const buf = await file.arrayBuffer();
+  const text = new TextDecoder("utf-8").decode(buf);
+
+  const parsed = parseCSV(text);
+  allRows = parsed.rows;
+  columns = parsed.headers;
+
+  COL = resolveColumns(columns);
+
+  // CSV has no styling; no strike-through detection
+  els.sheet.disabled = true;
+  els.sheet.innerHTML = "<option>(CSV: kein Sheet)</option>";
+  els.search.disabled = false;
+  els.sort.disabled = false;
+  els.sortDir.disabled = false;
+
+  els.search.value = viewState.search || "";
+  els.sort.value = viewState.sortKey || "id";
+  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+
+  els.status.textContent = `CSV geladen: ${allRows.length} Zeilen`;
+  saveState();
+  rebuildMatches();
+}
+
+/* ================== Events ================== */
+els.more.addEventListener("click", () => renderMore());
+
+els.fabTop.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+window.addEventListener("scroll", () => {
+  const show = window.scrollY > 500;
+  els.fabTop.classList.toggle("show", show);
+}, { passive:true });
+
+els.file.addEventListener("change", async (e) => {
+  const f = e.target.files?.[0]; if (!f) return;
+  resetUIForNewData();
+  els.status.textContent = "Lese Datei…";
+
+  const name = (f.name || "").toLowerCase();
+  try{
+    if (name.endsWith(".csv")){
+      await loadCSV(f);
+    } else {
+      await loadXLSX(f);
+    }
+  }catch(err){
+    els.status.textContent = "Fehler beim Einlesen: " + (err?.message || String(err));
+  }
+});
+
+els.sheet.addEventListener("change", () => {
+  const name = els.sheet.value;
+  if (!name || name === "Sheet auswählen…") return;
+  loadSheet(name);
 });
 
 els.search.addEventListener("input", (e) => startSearch(e.target.value));
+
+els.sort.addEventListener("change", (e) => {
+  viewState.sortKey = e.target.value;
+  saveState();
+  rebuildMatches();
+});
+els.sortDir.addEventListener("click", () => {
+  viewState.sortDir = (viewState.sortDir === "asc") ? "desc" : "asc";
+  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+  saveState();
+  rebuildMatches();
+});
+
+/* Filter chips */
+els.filtersRow.addEventListener("click", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLElement)) return;
+
+  if (t.id === "clearFiltersBtn"){
+    for (const k of Object.keys(viewState.filters)) viewState.filters[k] = false;
+    applyChipUI();
+    saveState();
+    rebuildMatches();
+    return;
+  }
+
+  if (t.classList.contains("chip") && t.dataset.filter){
+    const k = t.dataset.filter;
+    viewState.filters[k] = !viewState.filters[k];
+    applyChipUI();
+    saveState();
+    rebuildMatches();
+  }
+});
+
+/* ================== Restore UI state (filters + controls) ================== */
+function bootApplyUI(){
+  // Apply chips state
+  applyChipUI();
+  // Controls initial (until file loaded)
+  els.sort.value = viewState.sortKey || "id";
+  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+  els.search.value = viewState.search || "";
+}
+bootApplyUI();
 </script>
 </body>
 </html>
