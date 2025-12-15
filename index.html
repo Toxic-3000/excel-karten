@@ -7,42 +7,54 @@
 <style>
 :root{
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --bg:#f6f7f9;
-  --card:#fff;
-  --text:#111;
-  --muted:#6b7280;
-  --line:#e9e9e9;
-  --accent:#2536a4;
-  --danger:#b00020;
-  --dangerBg:#ffe7ea;
-  --chipBg:#eef2ff;
+  --bg:#f6f7f9; --card:#fff; --text:#111; --muted:#6b7280;
+  --line:#e9e9e9; --accent:#2536a4; --danger:#b00020; --dangerBg:#ffe7ea;
+  --chipBg:#eef2ff; --shadow: 0 10px 24px rgba(0,0,0,.12);
 }
 body{margin:0;background:var(--bg);color:var(--text)}
+/* Header */
 header{
-  position:sticky;top:0;z-index:10;
+  position:sticky;top:0;z-index:20;
   background:#fff;border-bottom:1px solid #e7e7e7;
-  padding:12px 14px;display:grid;gap:10px;
-  transition: padding .18s ease, gap .18s ease;
 }
-header.compact{
-  padding:10px 14px;
-  gap:8px;
-}
+.headerInner{padding:12px 14px; display:grid; gap:10px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{font-size:20px;margin:0}
+.brand .sub{color:var(--muted);font-size:13px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.row.tight{gap:8px}
 input,select,button{
-  flex:1;min-width:150px;
-  padding:10px 12px;border:1px solid #ddd;border-radius:12px;
+  padding:10px 12px;border:1px solid #ddd;border-radius:14px;
   background:#fff;font-size:14px
 }
+input,select{flex:1;min-width:150px}
 button{cursor:pointer}
 button:disabled{opacity:.6;cursor:not-allowed}
-
-main{padding:14px}
-.hint{color:var(--muted);font-size:13px}
+.pill{font-size:12px;color:#374151;background:#f3f4f6;border:1px solid #ececec;padding:4px 10px;border-radius:999px}
 .counter{font-size:12px;color:#555}
+.hint{font-size:13px;color:var(--muted)}
+/* Compact header (one-line bar) */
+#compactBar{
+  display:none;
+  padding:10px 14px;
+  gap:10px;
+  align-items:center;
+  border-top:1px solid #f1f1f1;
+  background:#fff;
+}
+#compactBar.show{display:flex}
+#compactSearch{
+  flex:1; min-width: 0;
+}
+#openSheetBtn{
+  width:52px; flex:0 0 auto;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-weight:800;
+}
+#openSheetBtn span{font-size:18px; line-height:1}
+/* Main */
+main{padding:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
-
+/* Card */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -51,143 +63,104 @@ main{padding:14px}
   box-shadow:0 1px 2px rgba(0,0,0,.04);
   display:grid;gap:10px
 }
-.cardTop{display:grid;gap:6px}
-.titleRow{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  gap:10px;
-  align-items:start;
-}
-.title{font-weight:800;font-size:16px;line-height:1.15}
-.title.delisted{ text-decoration:line-through; color:var(--danger); }
-
-.badges{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  align-items:flex-end;
-  justify-content:flex-start;
-  min-width:120px;
-}
-.badge{
-  width:fit-content;
-  font-size:12px;font-weight:650;
-  padding:4px 8px;border-radius:999px;
-  background:var(--chipBg);color:var(--accent);
-  white-space:nowrap
-}
+.titleRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.title{font-weight:850;font-size:16px;line-height:1.15}
+.title.delisted{text-decoration:line-through;color:var(--danger)}
+.badges{display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:120px}
+.badge{width:fit-content;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--chipBg);color:var(--accent);white-space:nowrap}
 .badge.delisted{background:var(--dangerBg);color:var(--danger)}
 .badge.platin{background:#eef2ff;color:#1f2a8a}
-
 .metaRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chip{
-  font-size:12px;color:#374151;
-  background:#f3f4f6;border:1px solid #ececec;
-  padding:4px 8px;border-radius:999px;
-  white-space:nowrap
-}
-.chip.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
-.chip.btn{cursor:pointer; user-select:none}
-.chip.btn:active{transform:translateY(1px)}
-
-.idBadge{
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:.02em;
-  padding:4px 10px;
-  border-radius:999px;
-  background:var(--accent);
-  color:#fff;
-}
-
-.keyFacts{
-  display:grid;gap:8px;
-  border-top:1px solid var(--line);
-  padding-top:10px
-}
-.kvLine{
-  display:grid;
-  grid-template-columns:120px 1fr;
-  gap:10px;align-items:start
-}
+.idBadge{font-size:12px;font-weight:900;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff}
+.chip{font-size:12px;color:#374151;background:#f3f4f6;border:1px solid #ececec;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.keyFacts{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.kvLine{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start}
 .k{color:var(--muted);font-size:12px}
 .v{font-size:13px;word-break:break-word}
-
 .detailsWrap{border-top:1px solid var(--line);padding-top:10px}
 details{border:0}
-summary{
-  cursor:pointer;color:var(--accent);
-  font-size:13px;user-select:none
-}
+summary{cursor:pointer;color:var(--accent);font-size:13px;user-select:none}
 summary::-webkit-details-marker{display:none}
 .summaryBtn{display:inline-flex;align-items:center;gap:8px}
 .summaryBtn::after{content:"▾";font-size:12px;transform:translateY(-1px)}
 details[open] .summaryBtn::after{content:"▴"}
-
-.section{
-  border-top:1px solid var(--line);
-  padding-top:10px;
-  margin-top:10px;
-  display:grid;gap:8px
-}
-.sectionTitle{
-  font-size:11px;
-  letter-spacing:.08em;
-  color:var(--muted);
-  text-transform:uppercase;
-}
-
+.section{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:grid;gap:8px}
+.sectionTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
 .subdetails summary{color:#374151;font-size:13px}
 .subdetails .summaryBtn{color:#374151}
 .subdetails .summaryBtn::after{color:#6b7280}
-.subdetails .content{ margin-top: 8px; }
-.subdetails .contentText{ line-height:1.35; white-space:pre-line }
-
+.subdetails .content{margin-top:8px}
+.subdetails .contentText{line-height:1.35;white-space:pre-line}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-
 /* Trophy */
 .trophyList{display:grid;gap:8px}
 .trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-.platformChip{
-  font-size:11px;font-weight:800;
-  padding:2px 8px;border-radius:999px;
-  background:#f3f4f6;border:1px solid #ececec;color:#374151;
-  height:fit-content
-}
+.platformChip{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:#f3f4f6;border:1px solid #ececec;color:#374151;height:fit-content}
 .trophyRight{display:grid;gap:6px}
 .trophyText{font-size:13px;color:#111;line-height:1.2}
 .progressWrap{display:grid;gap:4px}
 .progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
 .progressFill{height:100%;background:var(--accent);width:0%}
 .progressLabel{font-size:12px;color:var(--muted)}
-
-/* Floating Top Button */
+/* Floating Top */
 #fabTop{
   position:fixed;right:14px;bottom:16px;z-index:50;
-  display:none;border-radius:999px;
-  padding:12px 14px;border:1px solid #ddd;background:#fff;
-  box-shadow:0 10px 24px rgba(0,0,0,.12);
-  font-weight:700;
+  display:none;border-radius:999px;padding:12px 14px;border:1px solid #ddd;background:#fff;
+  box-shadow:var(--shadow);font-weight:800;
 }
 #fabTop.show{display:inline-flex}
-
-/* Mini Trefferhilfe */
-#helpBox{
-  border:1px solid #eee;border-radius:12px;
-  padding:8px 10px;background:#fafafa;color:#374151;
-  font-size:12px;line-height:1.35;
+/* Bottom sheet */
+#sheetOverlay{
+  position:fixed;inset:0;z-index:60;
+  background:rgba(0,0,0,.35);
+  display:none;
 }
-#helpBox summary{color:#374151}
-#helpBox .examples{color:#6b7280}
-header.compact #helpBox{display:none} /* im kompakten Modus ausblenden */
-
-/* Header sections hide/show in compact mode */
-#rowTitle{display:flex}
-header.compact #rowTitle{display:none}
-header.compact #rowFile{display:none}
-header.compact #filtersRow{display:none}
-
+#sheetOverlay.show{display:block}
+#bottomSheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:#fff;border-radius:18px 18px 0 0;
+  box-shadow:var(--shadow);
+  transform:translateY(110%);
+  transition:transform .2s ease;
+  max-height:78vh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+}
+#bottomSheet.show{transform:translateY(0)}
+.sheetHead{
+  padding:10px 14px;border-bottom:1px solid #eee;
+  display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+.handle{width:46px;height:5px;border-radius:999px;background:#e5e7eb;margin:8px auto 0 auto}
+.sheetTitle{font-weight:900}
+.sheetClose{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff}
+.sheetBody{padding:12px 14px;overflow:auto;display:grid;gap:14px}
+.groupTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.sortRow{display:grid;gap:8px}
+.sortChoice{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 10px;border:1px solid #eee;border-radius:14px;background:#fafafa
+}
+.sortChoice.active{border-color:#d7ddff;background:#f4f6ff}
+.sortName{font-weight:750}
+.sortMeta{color:var(--muted);font-size:12px}
+.dirBtns{display:flex;gap:8px}
+.dirBtn{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff;font-weight:800}
+.dirBtn.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
+.togGrid{display:flex;gap:8px;flex-wrap:wrap}
+.tog{
+  border:1px solid #eee;background:#fafafa;border-radius:999px;
+  padding:8px 10px;font-size:13px;font-weight:700;cursor:pointer;user-select:none
+}
+.tog.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
+.sheetFoot{
+  padding:10px 14px;border-top:1px solid #eee;
+  display:flex;gap:10px;justify-content:space-between;align-items:center
+}
+.ghost{border:1px solid #ddd;background:#fff}
+.primary{border:1px solid #d7ddff;background:var(--chipBg);color:var(--accent);font-weight:900}
+.smallHelp{font-size:12px;color:var(--muted);line-height:1.35}
 /* Sentinel */
 #sentinel{height:1px}
 </style>
@@ -195,65 +168,94 @@ header.compact #filtersRow{display:none}
 <body>
 
 <header id="hdr">
-  <div class="row" id="rowTitle">
-    <strong>Spieleliste</strong>
-    <span class="hint">Sort (alle Spalten) · Infinite Scroll · Query-Suche · Persistenz · CSV</span>
-  </div>
-
-  <div class="row" id="rowFile">
-    <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
-    <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
-  </div>
-
-  <div class="row tight" id="rowSearch">
-    <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom platform:ps5 fav:1)" disabled />
-    <select id="sortSelect" disabled>
-      <option value="__id">Sort: ID</option>
-    </select>
-    <button id="sortDirBtn" disabled>↑</button>
-  </div>
-
-  <details id="helpBox">
-    <summary>ⓘ Suche & Filter kurz erklärt</summary>
-    <div class="examples">
-      Beispiele: <code>id:622</code> · <code>dev:naughty</code> · <code>platform:ps5</code> · <code>fav:1</code> · <code>platin:1</code> · <code>delisted:1</code><br/>
-      Text ohne Prefix sucht überall: <code>LittleBigPlanet</code>
+  <div class="headerInner" id="fullHeader">
+    <div class="brand">
+      <h1>Spieleliste</h1>
+      <div class="sub">Clean · Infinite · Query · Sort/Filter Sheet</div>
     </div>
-  </details>
 
-  <div class="row" id="filtersRow">
-    <span class="chip btn" data-filter="fav">⭐ Favorit</span>
-    <span class="chip btn" data-filter="platin">💎 Platin</span>
-    <span class="chip btn" data-filter="delisted">Delisted</span>
-    <span class="chip btn" data-filter="ps5">PS5</span>
-    <span class="chip btn" data-filter="ps4">PS4</span>
-    <span class="chip btn" data-filter="ps3">PS3</span>
-    <span class="chip btn" data-filter="vita">Vita</span>
-    <button id="clearFiltersBtn" disabled>Filter löschen</button>
+    <div class="row" id="rowFile">
+      <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
+      <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
+    </div>
+
+    <div class="row" id="rowSearch">
+      <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom platform:ps5 fav:1)" disabled />
+      <button id="openSheetBtn2" class="primary" disabled title="Sort & Filter öffnen"><span>☰</span></button>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <div class="hint" id="sortLabel">Sort: —</div>
+      <div class="counter" id="count"></div>
+    </div>
+
+    <div class="smallHelp" id="helpLine">
+      ⓘ Tipp: Du kannst Query-Suche nutzen (id:, dev:, platform:, fav:, platin:, delisted:) oder einfach Text.
+    </div>
   </div>
 
-  <div class="row">
-    <span id="status" class="hint">Datei wählen → Sheet wählen → suchen</span>
-    <span id="count" class="counter"></span>
+  <!-- Compact bar: search + open bottom sheet -->
+  <div id="compactBar">
+    <input id="compactSearch" type="search" placeholder="Suche…" />
+    <button id="openSheetBtn" class="primary" title="Sort & Filter"><span>☰</span></button>
   </div>
 </header>
 
 <main>
+  <div id="status" class="hint" style="margin-bottom:10px">Datei wählen → Sheet wählen → suchen</div>
   <div id="grid" class="grid"></div>
   <div id="sentinel"></div>
 </main>
 
 <button id="fabTop" aria-label="Nach oben">↑ Top</button>
 
+<!-- Bottom sheet -->
+<div id="sheetOverlay"></div>
+<div id="bottomSheet" aria-hidden="true">
+  <div class="handle"></div>
+  <div class="sheetHead">
+    <div>
+      <div class="sheetTitle">Sortieren & Filtern</div>
+      <div class="smallHelp" id="sheetMiniInfo">—</div>
+    </div>
+    <button class="sheetClose" id="sheetClose">Schließen</button>
+  </div>
+
+  <div class="sheetBody">
+    <div class="sortRow">
+      <div class="groupTitle">Sortieren nach</div>
+      <div id="sortList"></div>
+    </div>
+
+    <div>
+      <div class="groupTitle">Filter</div>
+      <div class="togGrid" id="filterTogs"></div>
+    </div>
+
+    <div>
+      <div class="groupTitle">System</div>
+      <div class="togGrid" id="platformTogs"></div>
+    </div>
+
+    <div class="smallHelp">
+      Beispiele: <code>id:622</code> · <code>dev:naughty</code> · <code>platform:ps5</code> · <code>fav:1</code> · <code>platin:1</code> · <code>delisted:1</code>
+    </div>
+  </div>
+
+  <div class="sheetFoot">
+    <button id="clearFiltersBtn" class="ghost">Filter löschen</button>
+    <button id="applySheetBtn" class="primary">Übernehmen</button>
+  </div>
+</div>
+
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ========== Settings ========== */
-const PAGE_SIZE = 40;                    // kleiner = smoother infinite scroll
+/* ========= Settings ========= */
+const PAGE_SIZE = 40;
 const PLACEHOLDER = "—";
-const SHOW_EMPTY_IN_KEYFACTS = true;
-const SHOW_EMPTY_IN_DETAILS  = true;
-const STORAGE_KEY = "spieleliste_view_state_v2";
+const STORAGE_KEY = "spieleliste_view_state_v3";
 
+/* ========= Column aliases ========= */
 const COL_ALIASES = {
   id: ["ID"],
   title: ["Spieletitel","Spiel","Titel","Name"],
@@ -274,53 +276,68 @@ const COL_ALIASES = {
   user: ["Userwertung","Userwertung (Ø)"],
   trophies: ["Trophäen Fortschritt","Trophäen-Fortschritt","Trophäenfortschritt","Trophies Progress"],
   platinum: ["Platin","Platinum"],
-  hours: ["Gesamtstunden (Humorstatistik)","Humorstatistik – Gesamtstunden"],
-  life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit"],
-  years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre"],
+  hours: ["Gesamtstunden (Humorstatistik)","Humorstatistik – Gesamtstunden","Humorstatistik - Gesamtstunden"],
+  life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit","Humorstatistik - % Lebenszeit","% Lebenszeit"],
+  years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre","Humorstatistik - Jahre","Jahre"],
 };
 let COL = {};
 
+/* ========= Platforms ========= */
 const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
 const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
 
-/* ========== DOM ========== */
+/* ========= DOM ========= */
 const els = {
   hdr: document.getElementById("hdr"),
+  fullHeader: document.getElementById("fullHeader"),
+  compactBar: document.getElementById("compactBar"),
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
   search: document.getElementById("search"),
-  sort: document.getElementById("sortSelect"),
-  sortDir: document.getElementById("sortDirBtn"),
-  filtersRow: document.getElementById("filtersRow"),
-  clearFilters: document.getElementById("clearFiltersBtn"),
+  compactSearch: document.getElementById("compactSearch"),
+  openSheetBtn: document.getElementById("openSheetBtn"),
+  openSheetBtn2: document.getElementById("openSheetBtn2"),
+  sortLabel: document.getElementById("sortLabel"),
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
-  fabTop: document.getElementById("fabTop"),
   sentinel: document.getElementById("sentinel"),
+  fabTop: document.getElementById("fabTop"),
+
+  overlay: document.getElementById("sheetOverlay"),
+  sheetBox: document.getElementById("bottomSheet"),
+  sheetClose: document.getElementById("sheetClose"),
+  sortList: document.getElementById("sortList"),
+  filterTogs: document.getElementById("filterTogs"),
+  platformTogs: document.getElementById("platformTogs"),
+  clearFiltersBtn: document.getElementById("clearFiltersBtn"),
+  applySheetBtn: document.getElementById("applySheetBtn"),
+  sheetMiniInfo: document.getElementById("sheetMiniInfo"),
 };
 
 const s = v => (v == null ? "" : String(v).trim());
 
-/* ========== State ========== */
+/* ========= State ========= */
 let workbook = null;
 let allRows = [];
 let matches = [];
 let shown = 0;
 let columns = [];
-let linkMap = new Map();   // XLSX only
-let headerRowIndex = 1;    // 1-based header row
+let linkMap = new Map(); // XLSX links
+let headerRowIndex = 1;  // 1-based header row
+let io = null;
+let isLoading = false;
 
 const viewState = {
-  fileMode: "",            // "xlsx" | "csv"
+  fileMode: "",
   sheetName: "",
   search: "",
-  sortKey: "__id",         // internal
+  sortKey: "__id",      // can be real column OR special __life, __years, etc.
   sortDir: "asc",
   filters: { fav:false, platin:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false },
 };
 
-/* ========== Persistenz ========== */
+/* ========= Persist ========= */
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -337,13 +354,9 @@ function saveState(){
 }
 loadState();
 
-/* ========== Column resolver ========== */
+/* ========= Column resolving ========= */
 function normHeader(x){
-  return String(x ?? "")
-    .replace(/\u00A0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+  return String(x ?? "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
 }
 function resolveColumns(cols){
   const byNorm = new Map(cols.map(c => [normHeader(c), c]));
@@ -364,7 +377,7 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* ========== Platform parsing ========== */
+/* ========= Platform parsing ========= */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -377,15 +390,15 @@ function platformsFromSystem(row){
   return extractPlatformsFromText(val(row, COL.system));
 }
 function rowHasPlatform(row, key){
-  const plats = platformsFromSystem(row).map(p => p.toLowerCase());
+  let plats = platformsFromSystem(row).map(p => p.toLowerCase());
   if (!plats.length){
     const fallback = [...extractPlatformsFromText(val(row, COL.trophies)), ...extractPlatformsFromText(val(row, COL.platinum))].map(p=>p.toLowerCase());
-    return fallback.some(p => (PLATFORM_CANON[p] || p) === key);
+    plats = fallback;
   }
   return plats.some(p => (PLATFORM_CANON[p] || p) === key);
 }
 
-/* ========== XLSX Links & Delisted style ========== */
+/* ========= XLSX links + styles ========= */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -399,7 +412,6 @@ function buildLinks(ws){
     const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
     headerByCol.set(c, cell && cell.v != null ? String(cell.v).trim() : "");
   }
-
   for (let rr = headerR + 1; rr <= r.e.r; rr++){
     const row1 = rr + 1;
     for (let c = r.s.c; c <= r.e.c; c++){
@@ -414,7 +426,6 @@ function buildLinks(ws){
 function applyDelistedFromStyles(ws){
   const ref = ws["!ref"]; if (!ref) return;
   const r = XLSX.utils.decode_range(ref);
-
   const titleCol = COL.title;
   if (!titleCol) return;
 
@@ -446,37 +457,134 @@ function getValueWithLink(row, colName, rowIndex1Based){
   return text;
 }
 
-/* ========== Parsing values for sorting ========== */
-function parseAnyNumber(text){
+/* ========= Numeric parsing for sorting ========= */
+function parseFloatLoose(text){
   const t = String(text ?? "").trim();
   if (!t) return NaN;
-
-  // handle "86 / 100"
-  const mScore = t.match(/(\d+(?:[.,]\d+)?)/);
-  if (mScore) return parseFloat(mScore[1].replace(",", "."));
-
-  return NaN;
-}
-function parseHoursLike(text){
-  const t = String(text ?? "").trim();
-  if (!t) return NaN;
-  const m = t.match(/(\d+(?:[.,]\d+)?)/);
+  // grab first number
+  const m = t.match(/-?\d+(?:[.,]\d+)?/);
   if (!m) return NaN;
-  return parseFloat(m[1].replace(",", "."));
+  return parseFloat(m[0].replace(",", "."));
 }
-function toSortableValue(v){
-  const t = String(v ?? "").trim();
+function parseScore(text){
+  // "86 / 100" -> 86
+  return parseFloatLoose(text);
+}
+function toSortableValue(raw){
+  const t = String(raw ?? "").trim();
   if (!t) return { type:"empty", v:"" };
-
-  // numbers with comma/point
-  const num = parseAnyNumber(t);
+  const num = parseFloatLoose(t);
   if (Number.isFinite(num)) return { type:"num", v:num };
-
-  // fallback string
   return { type:"str", v:t.toLowerCase() };
 }
 
-/* ========== UI helpers ========== */
+/* Special computed sort values */
+function sortValueFor(row, sortKey){
+  if (sortKey === "__id") return toSortableValue(val(row, COL.id));
+  if (sortKey === "__title") return toSortableValue(val(row, COL.title));
+  if (sortKey === "__meta") return { type:"num", v: (Number.isFinite(parseScore(val(row, COL.meta))) ? parseScore(val(row, COL.meta)) : Infinity) };
+  if (sortKey === "__user") return { type:"num", v: (Number.isFinite(parseScore(val(row, COL.user))) ? parseScore(val(row, COL.user)) : Infinity) };
+  if (sortKey === "__life"){ // % Lebenszeit
+    const n = parseFloatLoose(val(row, COL.life));
+    return Number.isFinite(n) ? { type:"num", v:n } : { type:"empty", v:"" };
+  }
+  if (sortKey === "__years"){
+    const n = parseFloatLoose(val(row, COL.years));
+    return Number.isFinite(n) ? { type:"num", v:n } : { type:"empty", v:"" };
+  }
+  // real column key
+  if (sortKey in row) return toSortableValue(row[sortKey]);
+  return { type:"empty", v:"" };
+}
+function sortMatches(arr){
+  const dir = viewState.sortDir === "asc" ? 1 : -1;
+  const key = viewState.sortKey;
+
+  arr.sort((a,b)=>{
+    const av = sortValueFor(a.row, key);
+    const bv = sortValueFor(b.row, key);
+
+    if (av.type === "empty" && bv.type !== "empty") return 1;
+    if (bv.type === "empty" && av.type !== "empty") return -1;
+
+    if (av.type === "num" && bv.type === "num"){
+      if (av.v === bv.v) return 0;
+      return dir * (av.v < bv.v ? -1 : 1);
+    }
+    const as = String(av.v ?? "");
+    const bs = String(bv.v ?? "");
+    return dir * as.localeCompare(bs, "de", { sensitivity:"base" });
+  });
+  return arr;
+}
+
+/* ========= Query search ========= */
+function parseQuery(q){
+  const raw = (q || "").trim();
+  const tokens = raw.length ? raw.split(/\s+/) : [];
+  const filters = { text: [], id:"", dev:"", platform:"", fav:null, platin:null, delisted:null };
+  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
+  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
+
+  for (const t of tokens){
+    const m = t.match(/^(\w+)\:(.+)$/);
+    if (!m){ filters.text.push(t); continue; }
+    const key = m[1].toLowerCase();
+    const vv = m[2];
+    if (key === "id") filters.id = vv;
+    else if (key === "dev") filters.dev = vv;
+    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
+    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else filters.text.push(t);
+  }
+  return filters;
+}
+function formatFavorite(row){
+  const f = val(row, COL.fav).toLowerCase();
+  if (!f) return "";
+  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
+}
+function isPlatinum(row){
+  const p = val(row, COL.platinum).toLowerCase();
+  if (!p) return false;
+  return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
+}
+function queryMatchesRow(qf, row){
+  const txt = qf.text.join(" ").toLowerCase();
+  if (txt){
+    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
+    if (!hay.includes(txt)) return false;
+  }
+  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
+  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
+  if (qf.platform){
+    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
+    if (!rowHasPlatform(row, canon)) return false;
+  }
+  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
+  if (qf.platin !== null){ if (isPlatinum(row) !== qf.platin) return false; }
+  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
+  return true;
+}
+
+/* ========= Chip filters (sheet toggles) ========= */
+function rowPassesChipFilters(row){
+  const f = viewState.filters;
+  if (f.fav && !formatFavorite(row)) return false;
+  if (f.platin && !isPlatinum(row)) return false;
+  if (f.delisted && !isDelistedRow(row)) return false;
+
+  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
+  if (platformFilters.length){
+    const ok = platformFilters.some(k => rowHasPlatform(row, k));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+/* ========= UI helpers ========= */
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -490,29 +598,19 @@ function renderValue(value){
   const t = s(value);
   return document.createTextNode(t || PLACEHOLDER);
 }
-function kvLine(label, valueNode){
+function kvLine(label, node){
   const line = document.createElement("div");
   line.className = "kvLine";
-  const k = document.createElement("div");
-  k.className = "k";
-  k.textContent = label;
-  const v = document.createElement("div");
-  v.className = "v";
-  v.appendChild(valueNode);
-  line.append(k, v);
+  const k = document.createElement("div"); k.className="k"; k.textContent = label;
+  const v = document.createElement("div"); v.className="v"; v.appendChild(node);
+  line.append(k,v);
   return line;
 }
-function makeChip(text, cls=""){
+function makeChip(text){
   const c = document.createElement("span");
-  c.className = "chip" + (cls ? " " + cls : "");
+  c.className = "chip";
   c.textContent = text;
   return c;
-}
-function makeIdBadge(idText){
-  const b = document.createElement("span");
-  b.className = "idBadge";
-  b.textContent = `ID ${idText || PLACEHOLDER}`;
-  return b;
 }
 function makeBadge(text, cls=""){
   const b = document.createElement("span");
@@ -520,33 +618,15 @@ function makeBadge(text, cls=""){
   b.textContent = text;
   return b;
 }
-function formatFavorite(row){
-  const f = val(row, COL.fav).toLowerCase();
-  if (!f) return "";
-  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
-}
-function isPlatinum(row){
-  const p = val(row, COL.platinum).toLowerCase();
-  if (!p) return false;
-  return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
-}
-function formatPlaytime(row){
-  const m = val(row, COL.main);
-  const h = val(row, COL.hundred);
-  if (!m && !h) return "";
-  ifnd;
-  if (m && h) return `${m}h / ${h}h`;
-  return m ? `${m}h` : `${h}h`;
-}
 function makeToggleBlock(label, contentText){
   const d = document.createElement("details");
   d.className = "subdetails";
-  const ssum = document.createElement("summary");
-  const sbtn = document.createElement("span");
-  sbtn.className = "summaryBtn";
-  sbtn.textContent = `${label} anzeigen`;
-  ssum.appendChild(sbtn);
-  d.appendChild(ssum);
+  const sum = document.createElement("summary");
+  const btn = document.createElement("span");
+  btn.className = "summaryBtn";
+  btn.textContent = `${label} anzeigen`;
+  sum.appendChild(btn);
+  d.appendChild(sum);
 
   const wrap = document.createElement("div");
   wrap.className = "content";
@@ -556,21 +636,25 @@ function makeToggleBlock(label, contentText){
   wrap.appendChild(txt);
   d.appendChild(wrap);
 
-  d.addEventListener("toggle", () => {
-    sbtn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`;
-  });
+  d.addEventListener("toggle", () => btn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`);
   return d;
 }
+function formatPlaytime(row){
+  const m = val(row, COL.main);
+  const h = val(row, COL.hundred);
+  if (!m && !h) return "";
+  if (m && h) return `${m}h / ${h}h`;
+  return m ? `${m}h` : `${h}h`;
+}
 
-/* Trophy parsing */
+/* Trophy parsing (unchanged-ish) */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
   const hits = [];
   for (const p of PLATFORM_LIST) {
     const re = new RegExp(`\\b${p}\\b`, "g");
-    let m;
-    while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
+    let m; while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
   }
   hits.sort((a,b)=>a.i-b.i);
   if (!hits.length) return [];
@@ -589,41 +673,27 @@ function parseFraction(text){
   const s = String(text ?? "");
   let m = s.match(/(\d+)\s*(?:of|von|\/)\s*(\d+)/i);
   if (!m) return null;
-  const a = parseInt(m[1], 10);
-  const b = parseInt(m[2], 10);
+  const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
   if (!b) return null;
   const pct = Math.max(0, Math.min(1, a / b));
   return { a, b, pct };
 }
 function progressNode(fr){
-  const wrap = document.createElement("div");
-  wrap.className = "progressWrap";
-  const bar = document.createElement("div");
-  bar.className = "progressBar";
-  const fill = document.createElement("div");
-  fill.className = "progressFill";
-  fill.style.width = `${Math.round(fr.pct * 100)}%`;
+  const wrap = document.createElement("div"); wrap.className="progressWrap";
+  const bar = document.createElement("div"); bar.className="progressBar";
+  const fill = document.createElement("div"); fill.className="progressFill"; fill.style.width = `${Math.round(fr.pct*100)}%`;
   bar.appendChild(fill);
-  const lab = document.createElement("div");
-  lab.className = "progressLabel";
-  lab.textContent = `${Math.round(fr.pct * 100)}% (${fr.a}/${fr.b})`;
+  const lab = document.createElement("div"); lab.className="progressLabel"; lab.textContent = `${Math.round(fr.pct*100)}% (${fr.a}/${fr.b})`;
   wrap.append(bar, lab);
   return wrap;
 }
 function trophyList(items){
-  const wrap = document.createElement("div");
-  wrap.className = "trophyList";
+  const wrap = document.createElement("div"); wrap.className="trophyList";
   for (const it of items) {
-    const rowEl = document.createElement("div");
-    rowEl.className = "trophyRow";
-    const chip = document.createElement("span");
-    chip.className = "platformChip";
-    chip.textContent = it.platform || "—";
-    const right = document.createElement("div");
-    right.className = "trophyRight";
-    const txt = document.createElement("div");
-    txt.className = "trophyText";
-    txt.textContent = it.text || PLACEHOLDER;
+    const rowEl = document.createElement("div"); rowEl.className="trophyRow";
+    const chip = document.createElement("span"); chip.className="platformChip"; chip.textContent = it.platform || "—";
+    const right = document.createElement("div"); right.className="trophyRight";
+    const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = it.text || PLACEHOLDER;
     right.appendChild(txt);
     const fr = parseFraction(it.text);
     if (fr) right.appendChild(progressNode(fr));
@@ -632,26 +702,6 @@ function trophyList(items){
   }
   return wrap;
 }
-function trophyNeutral(text, sysPlatforms){
-  const outer = document.createElement("div");
-  outer.style.display = "grid";
-  outer.style.gap = "8px";
-  if (sysPlatforms && sysPlatforms.length) {
-    const chipRow = document.createElement("div");
-    chipRow.style.display = "flex";
-    chipRow.style.gap = "6px";
-    chipRow.style.flexWrap = "wrap";
-    for (const p of sysPlatforms) chipRow.appendChild(makeChip(p));
-    outer.appendChild(chipRow);
-  }
-  const txt = document.createElement("div");
-  txt.className = "trophyText";
-  txt.textContent = text || PLACEHOLDER;
-  outer.appendChild(txt);
-  const fr = parseFraction(text);
-  if (fr) outer.appendChild(progressNode(fr));
-  return outer;
-}
 function trophyNodeFromText(text, row){
   const raw = String(text ?? "").trim();
   if (!raw) return document.createTextNode(PLACEHOLDER);
@@ -659,17 +709,26 @@ function trophyNodeFromText(text, row){
   if (pairs.length) return trophyList(pairs);
   const sysPlatforms = platformsFromSystem(row);
   if (sysPlatforms.length === 1) return trophyList([{ platform: sysPlatforms[0], text: raw }]);
-  if (sysPlatforms.length > 1) return trophyNeutral(raw, sysPlatforms);
-  return trophyNeutral(raw, []);
+  // multi or none: show as plain + optional bar
+  const outer = document.createElement("div");
+  outer.style.display="grid"; outer.style.gap="8px";
+  if (sysPlatforms.length){
+    const chipRow = document.createElement("div");
+    chipRow.style.display="flex"; chipRow.style.gap="6px"; chipRow.style.flexWrap="wrap";
+    for (const p of sysPlatforms) chipRow.appendChild(makeChip(p));
+    outer.appendChild(chipRow);
+  }
+  const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = raw;
+  outer.appendChild(txt);
+  const fr = parseFraction(raw);
+  if (fr) outer.appendChild(progressNode(fr));
+  return outer;
 }
 
-/* ========== Card ========== */
+/* ========= Card render ========= */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
-
-  const top = document.createElement("div");
-  top.className = "cardTop";
 
   const titleRow = document.createElement("div");
   titleRow.className = "titleRow";
@@ -681,19 +740,22 @@ function createCard(row, rowIndex1Based){
 
   const badges = document.createElement("div");
   badges.className = "badges";
-  if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted", "delisted"));
+  if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted","delisted"));
   const favLabel = formatFavorite(row);
   if (favLabel) badges.appendChild(makeBadge(favLabel));
-  if (isPlatinum(row)) badges.appendChild(makeBadge("💎 Platin", "platin"));
+  if (isPlatinum(row)) badges.appendChild(makeBadge("💎 Platin","platin"));
 
   titleRow.append(title, badges);
 
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
-  metaRow.appendChild(makeIdBadge(val(row, COL.id)));
+  const idB = document.createElement("span");
+  idB.className = "idBadge";
+  idB.textContent = `ID ${val(row, COL.id) || PLACEHOLDER}`;
+  metaRow.appendChild(idB);
 
   let plats = platformsFromSystem(row);
-  if (!plats.length) {
+  if (!plats.length){
     const fromT = extractPlatformsFromText(val(row, COL.trophies));
     const fromP = extractPlatformsFromText(val(row, COL.platinum));
     plats = [...new Set([...fromT, ...fromP])];
@@ -702,26 +764,16 @@ function createCard(row, rowIndex1Based){
   else metaRow.appendChild(makeChip(PLACEHOLDER));
   metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
-  top.append(titleRow, metaRow);
-
   const key = document.createElement("div");
   key.className = "keyFacts";
-
-  const genre = val(row, COL.genre);
-  const subg  = val(row, COL.subgenre);
-  const pt    = formatPlaytime(row);
-  const metaScore = val(row, COL.meta);
-  const userScore = val(row, COL.user);
-
-  if (genre || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Genre", renderValue(genre)));
-  if (subg  || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Subgenre / Stimmung", renderValue(subg)));
-  if (pt    || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Spielzeit", renderValue(pt)));
-  if (metaScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Metascore", renderValue(metaScore)));
-  if (userScore || SHOW_EMPTY_IN_KEYFACTS) key.appendChild(kvLine("Userwertung", renderValue(userScore)));
+  key.appendChild(kvLine("Genre", renderValue(val(row, COL.genre))));
+  key.appendChild(kvLine("Subgenre / Stimmung", renderValue(val(row, COL.subgenre))));
+  key.appendChild(kvLine("Spielzeit", renderValue(formatPlaytime(row))));
+  key.appendChild(kvLine("Metascore", renderValue(val(row, COL.meta))));
+  key.appendChild(kvLine("Userwertung", renderValue(val(row, COL.user))));
 
   const detailsWrap = document.createElement("div");
   detailsWrap.className = "detailsWrap";
-
   const details = document.createElement("details");
   const summary = document.createElement("summary");
   const sumSpan = document.createElement("span");
@@ -729,20 +781,16 @@ function createCard(row, rowIndex1Based){
   sumSpan.textContent = "Mehr Details";
   summary.appendChild(sumSpan);
   details.appendChild(summary);
+  details.addEventListener("toggle", () => sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details");
 
-  details.addEventListener("toggle", () => {
-    sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details";
-  });
-
-  function addSection(titleText, lines){
-    if (!lines.some(x => x != null)) return;
+  function addSection(titleText, nodes){
     const sec = document.createElement("div");
-    sec.className = "section";
+    sec.className="section";
     const st = document.createElement("div");
-    st.className = "sectionTitle";
+    st.className="sectionTitle";
     st.textContent = titleText;
     sec.appendChild(st);
-    for (const line of lines) if (line) sec.appendChild(line);
+    nodes.forEach(n => sec.appendChild(n));
     details.appendChild(sec);
   }
 
@@ -753,18 +801,16 @@ function createCard(row, rowIndex1Based){
     : val(row, COL.store);
 
   addSection("Store", [
-    (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", renderValue(storeVal)) : null,
-    (val(row, COL.source) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(val(row, COL.source))) : null,
-    (val(row, COL.availability) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))) : null,
+    kvLine("Store", renderValue(storeVal)),
+    kvLine("Quelle", renderValue(val(row, COL.source))),
+    kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))),
   ]);
 
-  addSection("Entwickler", [
-    (val(row, COL.dev) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(val(row, COL.dev))) : null
-  ]);
+  addSection("Entwickler", [ kvLine("Entwickler", renderValue(val(row, COL.dev))) ]);
 
   addSection("Extras", [
     makeToggleBlock("Besonderheiten", val(row, COL.special)),
-    makeToggleBlock("Eastereggs", val(row, COL.easter))
+    makeToggleBlock("Eastereggs", val(row, COL.easter)),
   ]);
 
   addSection("Trophäen", [
@@ -773,153 +819,17 @@ function createCard(row, rowIndex1Based){
   ]);
 
   addSection("Humorstatistik", [
-    (val(row, COL.hours) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(val(row, COL.hours))) : null,
-    (val(row, COL.life)  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(val(row, COL.life))) : null,
-    (val(row, COL.years) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Jahre", renderValue(val(row, COL.years))) : null,
+    kvLine("Gesamtstunden", renderValue(val(row, COL.hours))),
+    kvLine("% Lebenszeit", renderValue(val(row, COL.life))),
+    kvLine("Jahre", renderValue(val(row, COL.years))),
   ]);
 
   detailsWrap.appendChild(details);
-  card.append(top, key, detailsWrap);
+  card.append(titleRow, metaRow, key, detailsWrap);
   return card;
 }
 
-/* ========== Query syntax ========== */
-function parseQuery(q){
-  const raw = (q || "").trim();
-  const tokens = raw.length ? raw.split(/\s+/) : [];
-  const filters = {
-    text: [],
-    id: "",
-    dev: "",
-    platform: "",
-    genre: "",
-    sub: "",
-    fav: null,
-    platin: null,
-    delisted: null,
-  };
-  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
-  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
-
-  for (const t of tokens){
-    const m = t.match(/^(\w+)\:(.+)$/);
-    if (!m){ filters.text.push(t); continue; }
-    const key = m[1].toLowerCase();
-    const vv = m[2];
-    if (key === "id") filters.id = vv;
-    else if (key === "dev") filters.dev = vv;
-    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
-    else if (key === "genre") filters.genre = vv;
-    else if (key === "sub") filters.sub = vv;
-    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else filters.text.push(t);
-  }
-  return filters;
-}
-function queryMatchesRow(qf, row){
-  const txt = qf.text.join(" ").toLowerCase();
-  if (txt){
-    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
-    if (!hay.includes(txt)) return false;
-  }
-  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
-  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
-  if (qf.genre && !val(row, COL.genre).toLowerCase().includes(qf.genre.toLowerCase())) return false;
-  if (qf.sub && !val(row, COL.subgenre).toLowerCase().includes(qf.sub.toLowerCase())) return false;
-  if (qf.platform){
-    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
-    if (!rowHasPlatform(row, canon)) return false;
-  }
-  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
-  if (qf.platin !== null){ if (isPlatinum(row) !== qf.platin) return false; }
-  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
-  return true;
-}
-
-/* ========== Chip filters ========== */
-function applyChipUI(){
-  for (const el of els.filtersRow.querySelectorAll(".chip[data-filter]")){
-    const k = el.getAttribute("data-filter");
-    el.classList.toggle("on", !!viewState.filters[k]);
-  }
-  els.clearFilters.disabled = !(Object.values(viewState.filters).some(Boolean));
-}
-function rowPassesChipFilters(row){
-  const f = viewState.filters;
-  if (f.fav && !formatFavorite(row)) return false;
-  if (f.platin && !isPlatinum(row)) return false;
-  if (f.delisted && !isDelistedRow(row)) return false;
-
-  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
-  if (platformFilters.length){
-    const ok = platformFilters.some(k => rowHasPlatform(row, k));
-    if (!ok) return false;
-  }
-  return true;
-}
-
-/* ========== Sorting (ALL columns) ========== */
-function buildSortOptionsFromColumns(){
-  const opts = [];
-  // internal: ID always first if present
-  opts.push({ value:"__id", label:"ID" });
-
-  // then all actual columns in sheet
-  for (const c of columns){
-    opts.push({ value:c, label:c });
-  }
-
-  // fill select
-  els.sort.innerHTML = "";
-  for (const o of opts){
-    const op = document.createElement("option");
-    op.value = o.value;
-    op.textContent = "Sort: " + o.label;
-    els.sort.appendChild(op);
-  }
-
-  // restore selected
-  if (opts.some(o=>o.value===viewState.sortKey)) els.sort.value = viewState.sortKey;
-  else { viewState.sortKey = "__id"; els.sort.value = "__id"; saveState(); }
-}
-function getSortValue(row, sortKey){
-  if (sortKey === "__id") return toSortableValue(val(row, COL.id));
-  // raw column
-  return toSortableValue(row[sortKey]);
-}
-function sortMatches(arr){
-  const dir = viewState.sortDir === "asc" ? 1 : -1;
-  const key = viewState.sortKey;
-
-  arr.sort((a,b)=>{
-    const av = getSortValue(a.row, key);
-    const bv = getSortValue(b.row, key);
-
-    // empty last
-    if (av.type === "empty" && bv.type !== "empty") return 1;
-    if (bv.type === "empty" && av.type !== "empty") return -1;
-
-    // both numbers
-    if (av.type === "num" && bv.type === "num"){
-      if (av.v === bv.v) return 0;
-      return dir * (av.v < bv.v ? -1 : 1);
-    }
-
-    // mix or both strings: compare as strings
-    const as = String(av.v ?? "");
-    const bs = String(bv.v ?? "");
-    return dir * as.localeCompare(bs, "de", { sensitivity:"base" });
-  });
-
-  return arr;
-}
-
-/* ========== Paging / Infinite Scroll ========== */
-let io = null;
-let isLoading = false;
-
+/* ========= Paging / Infinite Scroll ========= */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
@@ -932,7 +842,6 @@ function renderMore(){
   isLoading = true;
   const end = Math.min(shown + PAGE_SIZE, total);
   const frag = document.createDocumentFragment();
-
   for (let i = shown; i < end; i++){
     const { row, idx } = matches[i];
     frag.appendChild(createCard(row, idx));
@@ -943,7 +852,6 @@ function renderMore(){
   els.status.textContent = total
     ? (shown < total ? "Lade weitere Karten…" : "Alle Karten angezeigt.")
     : "Keine Treffer.";
-
   updateCounters();
   isLoading = false;
 }
@@ -960,18 +868,248 @@ function rebuildMatches(){
     .filter(o => rowPassesChipFilters(o.row));
 
   sortMatches(matches);
+
+  // IMPORTANT: always render initial batch (prevents empty deadlock)
   renderMore();
 
-  els.status.textContent = `Treffer: ${matches.length}`;
+  // re-arm observer after initial paint
+  requestAnimationFrame(() => {
+    if (io) { io.disconnect(); io.observe(els.sentinel); }
+  });
+
+  els.status.textContent = matches.length ? "Bereit." : "Keine Treffer.";
   updateCounters();
+  updateSortLabel();
 }
-function startSearch(q){
-  viewState.search = q || "";
+
+/* ========= Sort label / sheet info ========= */
+function sortKeyLabel(key){
+  // special labels
+  if (key === "__id") return "ID";
+  if (key === "__title") return "Spieletitel";
+  if (key === "__meta") return "Metascore";
+  if (key === "__user") return "Userwertung";
+  if (key === "__life") return "% Lebenszeit";
+  if (key === "__years") return "Jahre (Humorstatistik)";
+  // real column
+  return key;
+}
+function updateSortLabel(){
+  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
+  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
+  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${activeFilterCount()}`;
+}
+function activeFilterCount(){
+  return Object.values(viewState.filters).filter(Boolean).length;
+}
+
+/* ========= Bottom sheet UI ========= */
+const sheetDraft = {
+  sortKey: viewState.sortKey,
+  sortDir: viewState.sortDir,
+  filters: {...viewState.filters},
+};
+
+function openSheet(){
+  // sync draft from state each time
+  sheetDraft.sortKey = viewState.sortKey;
+  sheetDraft.sortDir = viewState.sortDir;
+  sheetDraft.filters = {...viewState.filters};
+
+  renderSheetControls();
+  els.overlay.classList.add("show");
+  els.sheetBox.classList.add("show");
+  els.sheetBox.setAttribute("aria-hidden","false");
+}
+function closeSheet(){
+  els.overlay.classList.remove("show");
+  els.sheetBox.classList.remove("show");
+  els.sheetBox.setAttribute("aria-hidden","true");
+}
+function renderSheetControls(){
+  // Sort list: special first, then all columns
+  const items = [];
+  items.push({ key:"__id", label:"ID", meta:"numerisch" });
+  items.push({ key:"__title", label:"Spieletitel", meta:"Text" });
+  items.push({ key:"__life", label:"% Lebenszeit", meta:"Humorstatistik (numerisch)" });
+  items.push({ key:"__years", label:"Jahre", meta:"Humorstatistik (numerisch)" });
+  items.push({ key:"__meta", label:"Metascore", meta:"Wertung (numerisch)" });
+  items.push({ key:"__user", label:"Userwertung", meta:"Wertung (numerisch)" });
+
+  // include all sheet columns too (optional, but you wanted "jede Spalte")
+  for (const c of columns){
+    // avoid duplicates for those that are already covered as special
+    if ([COL.id, COL.title, COL.life, COL.years, COL.meta, COL.user].includes(c)) continue;
+    items.push({ key:c, label:c, meta:"Spalte" });
+  }
+
+  // render sort list
+  els.sortList.innerHTML = "";
+  for (const it of items){
+    const row = document.createElement("div");
+    row.className = "sortChoice" + (sheetDraft.sortKey === it.key ? " active" : "");
+    row.addEventListener("click", () => {
+      sheetDraft.sortKey = it.key;
+      renderSheetControls();
+    });
+
+    const left = document.createElement("div");
+    const name = document.createElement("div"); name.className="sortName"; name.textContent = it.label;
+    const meta = document.createElement("div"); meta.className="sortMeta"; meta.textContent = it.meta;
+    left.append(name, meta);
+
+    const right = document.createElement("div");
+    right.className = "dirBtns";
+
+    const up = document.createElement("button");
+    up.className = "dirBtn" + (sheetDraft.sortDir === "asc" && sheetDraft.sortKey === it.key ? " on" : "");
+    up.textContent = "↑";
+    up.addEventListener("click", (e) => {
+      e.stopPropagation();
+      sheetDraft.sortKey = it.key;
+      sheetDraft.sortDir = "asc";
+      renderSheetControls();
+    });
+
+    const down = document.createElement("button");
+    down.className = "dirBtn" + (sheetDraft.sortDir === "desc" && sheetDraft.sortKey === it.key ? " on" : "");
+    down.textContent = "↓";
+    down.addEventListener("click", (e) => {
+      e.stopPropagation();
+      sheetDraft.sortKey = it.key;
+      sheetDraft.sortDir = "desc";
+      renderSheetControls();
+    });
+
+    right.append(up, down);
+    row.append(left, right);
+    els.sortList.appendChild(row);
+  }
+
+  // filters
+  const filterDefs = [
+    { key:"fav", label:"⭐ Favorit" },
+    { key:"platin", label:"💎 Platin" },
+    { key:"delisted", label:"Delisted" },
+  ];
+  els.filterTogs.innerHTML = "";
+  for (const f of filterDefs){
+    const t = document.createElement("div");
+    t.className = "tog" + (sheetDraft.filters[f.key] ? " on" : "");
+    t.textContent = f.label;
+    t.addEventListener("click", () => {
+      sheetDraft.filters[f.key] = !sheetDraft.filters[f.key];
+      renderSheetControls();
+    });
+    els.filterTogs.appendChild(t);
+  }
+
+  const platformDefs = [
+    { key:"ps5", label:"PS5" },
+    { key:"ps4", label:"PS4" },
+    { key:"ps3", label:"PS3" },
+    { key:"vita", label:"Vita" },
+  ];
+  els.platformTogs.innerHTML = "";
+  for (const p of platformDefs){
+    const t = document.createElement("div");
+    t.className = "tog" + (sheetDraft.filters[p.key] ? " on" : "");
+    t.textContent = p.label;
+    t.addEventListener("click", () => {
+      sheetDraft.filters[p.key] = !sheetDraft.filters[p.key];
+      renderSheetControls();
+    });
+    els.platformTogs.appendChild(t);
+  }
+
+  els.sheetMiniInfo.textContent = `${sortKeyLabel(sheetDraft.sortKey)} ${(sheetDraft.sortDir==="asc"?"↑":"↓")} · Filter aktiv: ${Object.values(sheetDraft.filters).filter(Boolean).length}`;
+}
+
+function applySheet(){
+  viewState.sortKey = sheetDraft.sortKey;
+  viewState.sortDir = sheetDraft.sortDir;
+  viewState.filters = {...sheetDraft.filters};
   saveState();
+  closeSheet();
   rebuildMatches();
 }
 
-/* ========== CSV fallback ========== */
+/* ========= Observer ========= */
+function setupObserver(){
+  if (io) io.disconnect();
+  io = new IntersectionObserver((entries)=>{
+    const e = entries[0];
+    if (!e) return;
+    if (e.isIntersecting) renderMore();
+  }, { root:null, threshold:0.1 });
+  io.observe(els.sentinel);
+}
+setupObserver();
+
+/* ========= File load ========= */
+function resetUIForNewData(){
+  els.grid.innerHTML = "";
+  els.count.textContent = "";
+  els.status.textContent = "Lese Datei…";
+  els.search.disabled = true;
+  els.openSheetBtn.disabled = true;
+  els.openSheetBtn2.disabled = true;
+  els.sheet.disabled = true;
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  linkMap.clear();
+  headerRowIndex = 1;
+  allRows = [];
+  matches = [];
+  shown = 0;
+  columns = [];
+  workbook = null;
+}
+async function loadXLSX(file){
+  if (typeof XLSX === "undefined") throw new Error("XLSX Library nicht geladen (xlsx.full.min.js fehlt?)");
+  viewState.fileMode = "xlsx";
+
+  const buf = await file.arrayBuffer();
+  workbook = XLSX.read(buf, { type: "array", cellStyles: true });
+
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  workbook.SheetNames.forEach(n => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    els.sheet.appendChild(o);
+  });
+
+  els.sheet.disabled = false;
+  els.status.textContent = "Sheet wählen…";
+
+  if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
+    els.sheet.value = viewState.sheetName;
+    loadSheet(viewState.sheetName);
+  }
+}
+function loadSheet(name){
+  const ws = workbook.Sheets[name];
+  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+  allRows = json;
+  columns = json.length ? Object.keys(json[0]) : [];
+  COL = resolveColumns(columns);
+
+  buildLinks(ws);
+  applyDelistedFromStyles(ws);
+
+  viewState.sheetName = name;
+  saveState();
+
+  els.search.disabled = false;
+  els.openSheetBtn.disabled = false;
+  els.openSheetBtn2.disabled = false;
+
+  els.search.value = viewState.search || "";
+  els.compactSearch.value = viewState.search || "";
+
+  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
+  rebuildMatches();
+}
 function detectDelimiter(firstLine){
   const commas = (firstLine.match(/,/g) || []).length;
   const semis  = (firstLine.match(/;/g) || []).length;
@@ -981,13 +1119,11 @@ function parseCSV(text){
   const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
   while (lines.length && !lines[0].trim()) lines.shift();
   if (!lines.length) return { rows: [], headers: [] };
-
   const delim = detectDelimiter(lines[0]);
 
   function splitLine(line){
     const out = [];
-    let cur = "";
-    let inQ = false;
+    let cur = "", inQ = false;
     for (let i=0;i<line.length;i++){
       const ch = line[i];
       if (ch === '"'){
@@ -1013,79 +1149,6 @@ function parseCSV(text){
   }
   return { rows, headers };
 }
-
-/* ========== Load file ========== */
-function resetUIForNewData(){
-  els.grid.innerHTML = "";
-  els.count.textContent = "";
-  els.search.disabled = true;
-  els.sort.disabled = true;
-  els.sortDir.disabled = true;
-  els.sheet.disabled = true;
-  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
-  linkMap.clear();
-  headerRowIndex = 1;
-  allRows = [];
-  matches = [];
-  shown = 0;
-  columns = [];
-  workbook = null;
-}
-
-async function loadXLSX(file){
-  if (typeof XLSX === "undefined") {
-    els.status.textContent = "Fehler: XLSX Library nicht geladen (xlsx.full.min.js fehlt?)";
-    return;
-  }
-  viewState.fileMode = "xlsx";
-
-  const buf = await file.arrayBuffer();
-  workbook = XLSX.read(buf, { type: "array", cellStyles: true });
-
-  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
-  workbook.SheetNames.forEach(n => {
-    const o = document.createElement("option");
-    o.value = n; o.textContent = n;
-    els.sheet.appendChild(o);
-  });
-
-  els.sheet.disabled = false;
-  els.status.textContent = "Sheet wählen…";
-
-  if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
-    els.sheet.value = viewState.sheetName;
-    loadSheet(viewState.sheetName);
-  }
-}
-
-function loadSheet(name){
-  const ws = workbook.Sheets[name];
-  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-
-  allRows = json;
-  columns = json.length ? Object.keys(json[0]) : [];
-  COL = resolveColumns(columns);
-
-  buildLinks(ws);
-  applyDelistedFromStyles(ws);
-
-  buildSortOptionsFromColumns();
-
-  els.search.disabled = false;
-  els.sort.disabled = false;
-  els.sortDir.disabled = false;
-
-  els.search.value = viewState.search || "";
-  els.sort.value = viewState.sortKey || "__id";
-  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
-
-  viewState.sheetName = name;
-  saveState();
-
-  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
-  rebuildMatches();
-}
-
 async function loadCSV(file){
   viewState.fileMode = "csv";
   workbook = null;
@@ -1093,34 +1156,31 @@ async function loadCSV(file){
 
   const buf = await file.arrayBuffer();
   const text = new TextDecoder("utf-8").decode(buf);
-
   const parsed = parseCSV(text);
+
   allRows = parsed.rows;
   columns = parsed.headers;
   COL = resolveColumns(columns);
 
-  buildSortOptionsFromColumns();
-
   els.sheet.disabled = true;
   els.sheet.innerHTML = "<option>(CSV: kein Sheet)</option>";
+
   els.search.disabled = false;
-  els.sort.disabled = false;
-  els.sortDir.disabled = false;
+  els.openSheetBtn.disabled = false;
+  els.openSheetBtn2.disabled = false;
 
   els.search.value = viewState.search || "";
-  els.sort.value = viewState.sortKey || "__id";
-  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+  els.compactSearch.value = viewState.search || "";
 
   els.status.textContent = `CSV geladen: ${allRows.length} Zeilen`;
   saveState();
   rebuildMatches();
 }
 
-/* ========== Events ========== */
+/* ========= Events ========= */
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   resetUIForNewData();
-  els.status.textContent = "Lese Datei…";
   const name = (f.name || "").toLowerCase();
   try{
     if (name.endsWith(".csv")) await loadCSV(f);
@@ -1129,52 +1189,34 @@ els.file.addEventListener("change", async (e) => {
     els.status.textContent = "Fehler beim Einlesen: " + (err?.message || String(err));
   }
 });
-
 els.sheet.addEventListener("change", () => {
   const name = els.sheet.value;
   if (!name || name === "Sheet auswählen…") return;
   loadSheet(name);
 });
-
-els.search.addEventListener("input", (e) => startSearch(e.target.value));
-
-els.sort.addEventListener("change", (e) => {
-  viewState.sortKey = e.target.value;
+function setSearch(q){
+  viewState.search = q || "";
+  els.search.value = viewState.search;
+  els.compactSearch.value = viewState.search;
   saveState();
   rebuildMatches();
-});
+}
+els.search.addEventListener("input", (e) => setSearch(e.target.value));
+els.compactSearch.addEventListener("input", (e) => setSearch(e.target.value));
 
-els.sortDir.addEventListener("click", () => {
-  viewState.sortDir = (viewState.sortDir === "asc") ? "desc" : "asc";
-  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
-  saveState();
-  rebuildMatches();
-});
-
-els.filtersRow.addEventListener("click", (e) => {
-  const t = e.target;
-  if (!(t instanceof HTMLElement)) return;
-
-  if (t.id === "clearFiltersBtn"){
-    for (const k of Object.keys(viewState.filters)) viewState.filters[k] = false;
-    applyChipUI();
-    saveState();
-    rebuildMatches();
-    return;
-  }
-
-  if (t.classList.contains("chip") && t.dataset.filter){
-    const k = t.dataset.filter;
-    viewState.filters[k] = !viewState.filters[k];
-    applyChipUI();
-    saveState();
-    rebuildMatches();
-  }
+els.openSheetBtn.addEventListener("click", openSheet);
+els.openSheetBtn2.addEventListener("click", openSheet);
+els.overlay.addEventListener("click", closeSheet);
+els.sheetClose.addEventListener("click", closeSheet);
+els.applySheetBtn.addEventListener("click", applySheet);
+els.clearFiltersBtn.addEventListener("click", () => {
+  sheetDraft.filters = { fav:false, platin:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false };
+  renderSheetControls();
 });
 
 els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-/* Header compact on scroll + FAB show */
+/* ========= Compact header behavior ========= */
 let lastY = 0;
 window.addEventListener("scroll", () => {
   const y = window.scrollY;
@@ -1183,33 +1225,27 @@ window.addEventListener("scroll", () => {
 
   els.fabTop.classList.toggle("show", y > 500);
 
-  // compact header when scrolling down, expand when scrolling up a bit
-  if (goingDown && y > 120) els.hdr.classList.add("compact");
-  if (!goingDown && y < 260) els.hdr.classList.remove("compact");
+  // do not compact when user is interacting with inputs
+  const active = document.activeElement;
+  const typing = active && (active.tagName === "INPUT" || active.tagName === "SELECT");
+
+  if (!typing && goingDown && y > 130){
+    els.fullHeader.style.display = "none";
+    els.compactBar.classList.add("show");
+  }
+  if (!typing && !goingDown && y < 260){
+    els.fullHeader.style.display = "grid";
+    els.compactBar.classList.remove("show");
+  }
 }, { passive:true });
 
-/* Infinite scroll observer */
-function setupObserver(){
-  if (io) io.disconnect();
-  io = new IntersectionObserver((entries)=>{
-    const e = entries[0];
-    if (!e) return;
-    if (e.isIntersecting){
-      // load more when reaching bottom sentinel
-      renderMore();
-    }
-  }, { root:null, threshold:0.1 });
-  io.observe(els.sentinel);
-}
-setupObserver();
-
-/* Restore chips UI */
-function bootUI(){
-  applyChipUI();
-  els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
+/* ========= Boot UI ========= */
+function updateFromState(){
   els.search.value = viewState.search || "";
+  els.compactSearch.value = viewState.search || "";
+  updateSortLabel();
 }
-bootUI();
+updateFromState();
 </script>
 </body>
 </html>
