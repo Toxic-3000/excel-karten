@@ -17,12 +17,11 @@ header{
 }
 .headerShell{position:relative}
 
-/* FULL header now collapses its height in compact mode (without display:none) */
 #fullHeader{
   padding:12px 14px;
   display:grid; gap:10px;
   overflow:hidden;
-  max-height:420px; /* enough for full content */
+  max-height:420px;
   opacity:1;
   transform:translateY(0);
   pointer-events:auto;
@@ -40,7 +39,7 @@ header.compact #fullHeader{
 
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand h1{font-size:20px;margin:0}
-.brand .sub{color:var(--muted);font-size:13px}
+
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 input,select,button{
   padding:10px 12px;border:1px solid #ddd;border-radius:14px;background:#fff;font-size:14px
@@ -53,7 +52,6 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .primary{border:1px solid #d7ddff;background:var(--chipBg);color:var(--accent);font-weight:900}
 .smallHelp{font-size:12px;color:var(--muted);line-height:1.35}
 
-/* Compact bar is separate and becomes visible in compact mode */
 #compactBar{
   padding:10px 14px;
   display:flex; gap:10px; align-items:center;
@@ -70,10 +68,8 @@ header.compact #compactBar{opacity:1; transform:translateY(0); pointer-events:au
 #openSheetBtn{width:52px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; font-weight:900}
 #openSheetBtn span{font-size:18px; line-height:1}
 
-/* Main */
 main{padding:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
-/* Card */
 .card{
   background:var(--card); border:1px solid var(--line); border-radius:16px;
   padding:12px; box-shadow:0 1px 2px rgba(0,0,0,.04);
@@ -115,7 +111,6 @@ details[open] .summaryBtn::after{content:"▴"}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* Trophy */
 .trophyList{display:grid;gap:8px}
 .trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
 .platformChip{font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px;background:#f3f4f6;border:1px solid #ececec;color:#374151;height:fit-content}
@@ -125,8 +120,17 @@ a:hover{text-decoration:underline}
 .progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
 .progressFill{height:100%;background:var(--accent);width:0%}
 .progressLabel{font-size:12px;color:var(--muted)}
+.statusPill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  background:#f3f4f6; border:1px solid #ececec;
+  font-size:12px; font-weight:900; color:#111;
+  width:fit-content;
+}
+.statusPill.ok{background:#eaf7ef;border-color:#cbead6;color:#166534}
+.statusPill.mid{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.statusPill.dim{background:#f3f4f6;border-color:#ececec;color:#4b5563}
 
-/* Floating Top */
 #fabTop{
   position:fixed;right:14px;bottom:16px;z-index:50;
   display:none;border-radius:999px;padding:12px 14px;border:1px solid #ddd;background:#fff;
@@ -134,7 +138,6 @@ a:hover{text-decoration:underline}
 }
 #fabTop.show{display:inline-flex}
 
-/* Bottom sheet */
 #sheetOverlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.35);display:none}
 #sheetOverlay.show{display:block}
 #bottomSheet{
@@ -166,7 +169,6 @@ a:hover{text-decoration:underline}
 .sheetFoot{padding:10px 14px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:space-between;align-items:center}
 .ghost{border:1px solid #ddd;background:#fff}
 
-/* Sentinel */
 #sentinel{height:1px}
 </style>
 </head>
@@ -177,7 +179,6 @@ a:hover{text-decoration:underline}
     <div id="fullHeader">
       <div class="brand">
         <h1>Spieleliste</h1>
-        <div class="sub">Clean · Infinite · Query · Sort/Filter Sheet</div>
       </div>
 
       <div class="row">
@@ -196,7 +197,7 @@ a:hover{text-decoration:underline}
       </div>
 
       <div class="smallHelp">
-        ⓘ Query: <code>id:</code> <code>dev:</code> <code>platform:</code> <code>fav:</code> <code>platin:</code> <code>completed:</code> <code>delisted:</code>
+        ⓘ Query: <code>id:</code> <code>dev:</code> <code>platform:</code> <code>fav:</code> <code>platin:</code> <code>completed:</code> <code>delisted:</code> <code>psplus:</code> <code>buy:</code> <code>disc:</code>
       </div>
     </div>
 
@@ -215,7 +216,6 @@ a:hover{text-decoration:underline}
 
 <button id="fabTop" aria-label="Nach oben">↑ Top</button>
 
-<!-- Bottom sheet -->
 <div id="sheetOverlay"></div>
 <div id="bottomSheet" aria-hidden="true">
   <div class="handle"></div>
@@ -244,7 +244,7 @@ a:hover{text-decoration:underline}
     </div>
 
     <div class="smallHelp">
-      Beispiele: <code>completed:1</code> · <code>platin:1</code> · <code>fav:1</code> · <code>platform:ps5</code>
+      Beispiele: <code>completed:1</code> · <code>platin:1</code> · <code>fav:1</code> · <code>platform:ps5</code> · <code>psplus:1</code> · <code>buy:1</code> · <code>disc:1</code>
     </div>
   </div>
 
@@ -256,12 +256,10 @@ a:hover{text-decoration:underline}
 
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ========= Settings ========= */
 const PAGE_SIZE = 40;
 const PLACEHOLDER = "—";
-const STORAGE_KEY = "spieleliste_view_state_v5";
+const STORAGE_KEY = "spieleliste_view_state_v6";
 
-/* ========= Column aliases ========= */
 const COL_ALIASES = {
   id: ["ID"],
   title: ["Spieletitel","Spiel","Titel","Name"],
@@ -287,11 +285,9 @@ const COL_ALIASES = {
 };
 let COL = {};
 
-/* ========= Platforms ========= */
 const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
 const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
 
-/* ========= DOM ========= */
 const els = {
   hdr: document.getElementById("hdr"),
   file: document.getElementById("file"),
@@ -320,7 +316,6 @@ const els = {
 
 const s = v => (v == null ? "" : String(v).trim());
 
-/* ========= State ========= */
 let workbook = null;
 let allRows = [];
 let matches = [];
@@ -331,10 +326,9 @@ let headerRowIndex = 1;
 let io = null;
 let isLoading = false;
 
-/* Sort keys: fixed list (your order) */
 const SORT_KEYS = [
   { key:"__id",   label:"ID",            meta:"numerisch" },
-  { key:"__title",label:"Spieletitel",   meta:"A→Z (stabil)" },
+  { key:"__title",label:"Spieletitel",   meta:"Text" },              // changed
   { key:"__system",label:"System",       meta:"Text" },
   { key:"__source",label:"Quelle",       meta:"Text" },
   { key:"__genre",label:"Genre",         meta:"Text" },
@@ -351,10 +345,13 @@ const viewState = {
   search: "",
   sortKey: "__id",
   sortDir: "asc",
-  filters: { fav:false, platin:false, completed:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false },
+  filters: {
+    fav:false, platin:false, completed:false, delisted:false,
+    ps5:false, ps4:false, ps3:false, vita:false,
+    psplus:false, buy:false, disc:false
+  },
 };
 
-/* ========= Persist ========= */
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -369,7 +366,6 @@ function loadState(){
 function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState)); }catch(e){} }
 loadState();
 
-/* ========= Column resolving ========= */
 function normHeader(x){
   return String(x ?? "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
 }
@@ -392,7 +388,6 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* ========= Platforms ========= */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -413,7 +408,23 @@ function rowHasPlatform(row, key){
   return plats.some(p => (PLATFORM_CANON[p] || p) === key);
 }
 
-/* ========= XLSX links + styles ========= */
+/* Source filters (PS Plus / buy / disc) */
+function sourceText(row){
+  return val(row, COL.source).toLowerCase();
+}
+function isPSPlus(row){
+  const t = sourceText(row);
+  return t.includes("ps plus") || t.includes("ps+") || t.includes("plus");
+}
+function isBuy(row){
+  const t = sourceText(row);
+  return t.includes("gekauft") || t.includes("kauf") || t.includes("buy") || t.includes("purchased");
+}
+function isDisc(row){
+  const t = sourceText(row);
+  return t.includes("disc") || t.includes("disk") || t.includes("retail") || t.includes("blu-ray") || t.includes("bluray");
+}
+
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -472,7 +483,6 @@ function getValueWithLink(row, colName, rowIndex1Based){
   return text;
 }
 
-/* ========= Completed logic (your definition) ========= */
 function parseAllFractions(text){
   const t = String(text ?? "");
   const out = [];
@@ -486,25 +496,14 @@ function parseAllFractions(text){
   return out;
 }
 function isCompleted(row){
-  // 1) 100% column contains "completed"
   const flag = val(row, COL.completedFlag).toLowerCase();
   if (flag && flag.includes("completed")) return true;
-
-  // 2) Progress contains "x of x"
   const prog = val(row, COL.trophies);
   const frs = parseAllFractions(prog);
   if (frs.some(f => f.a === f.b && f.b > 0)) return true;
-
   return false;
 }
-function completedStatusText(row){
-  if (isCompleted(row)) return "100 % completed";
-  const flag = val(row, COL.completedFlag);
-  if (flag) return flag;
-  return PLACEHOLDER;
-}
 
-/* ========= Helpers ========= */
 function parseFloatLoose(text){
   const t = String(text ?? "").trim();
   if (!t) return NaN;
@@ -525,7 +524,115 @@ function isPlatinum(row){
   return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
 }
 
-/* ========= Sorting ========= */
+/* Pretty status */
+function bestFraction(row){
+  const frs = parseAllFractions(val(row, COL.trophies));
+  if (!frs.length) return null;
+  // best = highest pct, tie -> higher b
+  frs.sort((a,b)=> (b.a/b.b)-(a.a/a.b) || b.b-a.b);
+  return frs[0];
+}
+function statusPillNode(row){
+  const fr = bestFraction(row);
+
+  const pill = document.createElement("span");
+  pill.className = "statusPill";
+
+  if (isCompleted(row)){
+    pill.classList.add("ok");
+    pill.textContent = "✅ 100% completed";
+    return pill;
+  }
+  if (isPlatinum(row)){
+    pill.classList.add("ok");
+    pill.textContent = "💎 Platin";
+    return pill;
+  }
+  if (fr){
+    const pct = Math.round((fr.a/fr.b)*100);
+    pill.classList.add("mid");
+    pill.textContent = `⏳ In Arbeit · ${pct}% (${fr.a}/${fr.b})`;
+    return pill;
+  }
+  pill.classList.add("dim");
+  pill.textContent = "💤 Kein Fortschritt";
+  return pill;
+}
+function completedStatusText(row){
+  if (isCompleted(row)) return "100 % completed";
+  const flag = val(row, COL.completedFlag);
+  if (flag) return flag;
+  return PLACEHOLDER;
+}
+
+function parseQuery(q){
+  const raw = (q || "").trim();
+  const tokens = raw.length ? raw.split(/\s+/) : [];
+  const filters = { text: [], id:"", dev:"", platform:"", fav:null, platin:null, completed:null, delisted:null, psplus:null, buy:null, disc:null };
+
+  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
+  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
+
+  for (const t of tokens){
+    const m = t.match(/^(\w+)\:(.+)$/);
+    if (!m){ filters.text.push(t); continue; }
+    const key = m[1].toLowerCase();
+    const vv = m[2];
+
+    if (key === "id") filters.id = vv;
+    else if (key === "dev") filters.dev = vv;
+    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
+    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "completed") filters.completed = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "psplus") filters.psplus = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "buy") filters.buy = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "disc") filters.disc = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else filters.text.push(t);
+  }
+  return filters;
+}
+function queryMatchesRow(qf, row){
+  const txt = qf.text.join(" ").toLowerCase();
+  if (txt){
+    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
+    if (!hay.includes(txt)) return false;
+  }
+  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
+  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
+  if (qf.platform){
+    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
+    if (!rowHasPlatform(row, canon)) return false;
+  }
+  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
+  if (qf.platin !== null){ if (isPlatinum(row) !== qf.platin) return false; }
+  if (qf.completed !== null){ if (isCompleted(row) !== qf.completed) return false; }
+  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
+  if (qf.psplus !== null){ if (isPSPlus(row) !== qf.psplus) return false; }
+  if (qf.buy !== null){ if (isBuy(row) !== qf.buy) return false; }
+  if (qf.disc !== null){ if (isDisc(row) !== qf.disc) return false; }
+  return true;
+}
+function rowPassesFilters(row){
+  const f = viewState.filters;
+  if (f.fav && !formatFavorite(row)) return false;
+  if (f.platin && !isPlatinum(row)) return false;
+  if (f.completed && !isCompleted(row)) return false;
+  if (f.delisted && !isDelistedRow(row)) return false;
+
+  if (f.psplus && !isPSPlus(row)) return false;
+  if (f.buy && !isBuy(row)) return false;
+  if (f.disc && !isDisc(row)) return false;
+
+  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
+  if (platformFilters.length){
+    const ok = platformFilters.some(k => rowHasPlatform(row, k));
+    if (!ok) return false;
+  }
+  return true;
+}
+
 function sortValue(row, key){
   if (key === "__id"){
     const n = parseFloatLoose(val(row, COL.id));
@@ -569,7 +676,6 @@ function sortMatches(arr){
       if (av.v === bv.v) return 0;
       return dir * (av.v < bv.v ? -1 : 1);
     }
-
     if (av.t === "title" && bv.t === "title"){
       return dir * av.v.localeCompare(bv.v, "de", {
         sensitivity: "base",
@@ -577,7 +683,6 @@ function sortMatches(arr){
         ignorePunctuation: true
       });
     }
-
     const as = String(av.v ?? "");
     const bs = String(bv.v ?? "");
     return dir * as.localeCompare(bs, "de", { sensitivity:"base", numeric:true, ignorePunctuation:true });
@@ -586,68 +691,6 @@ function sortMatches(arr){
   return arr;
 }
 
-/* ========= Query ========= */
-function parseQuery(q){
-  const raw = (q || "").trim();
-  const tokens = raw.length ? raw.split(/\s+/) : [];
-  const filters = { text: [], id:"", dev:"", platform:"", fav:null, platin:null, completed:null, delisted:null };
-
-  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
-  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
-
-  for (const t of tokens){
-    const m = t.match(/^(\w+)\:(.+)$/);
-    if (!m){ filters.text.push(t); continue; }
-    const key = m[1].toLowerCase();
-    const vv = m[2];
-
-    if (key === "id") filters.id = vv;
-    else if (key === "dev") filters.dev = vv;
-    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
-    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "completed") filters.completed = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else filters.text.push(t);
-  }
-  return filters;
-}
-function queryMatchesRow(qf, row){
-  const txt = qf.text.join(" ").toLowerCase();
-  if (txt){
-    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
-    if (!hay.includes(txt)) return false;
-  }
-  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
-  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
-  if (qf.platform){
-    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
-    if (!rowHasPlatform(row, canon)) return false;
-  }
-  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
-  if (qf.platin !== null){ if (isPlatinum(row) !== qf.platin) return false; }
-  if (qf.completed !== null){ if (isCompleted(row) !== qf.completed) return false; }
-  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
-  return true;
-}
-
-/* ========= Filters ========= */
-function rowPassesFilters(row){
-  const f = viewState.filters;
-  if (f.fav && !formatFavorite(row)) return false;
-  if (f.platin && !isPlatinum(row)) return false;
-  if (f.completed && !isCompleted(row)) return false;
-  if (f.delisted && !isDelistedRow(row)) return false;
-
-  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
-  if (platformFilters.length){
-    const ok = platformFilters.some(k => rowHasPlatform(row, k));
-    if (!ok) return false;
-  }
-  return true;
-}
-
-/* ========= UI nodes ========= */
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -700,7 +743,6 @@ function makeToggleBlock(label, contentText){
   return d;
 }
 
-/* Trophy progress formatting */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
@@ -770,7 +812,6 @@ function trophyNodeFromText(text){
   return outer;
 }
 
-/* ========= Card render ========= */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div"); card.className="card";
 
@@ -802,7 +843,6 @@ function createCard(row, rowIndex1Based){
   else metaRow.appendChild(makeChip(PLACEHOLDER));
   metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
-  // ✅ Reduced card view: only these 5 lines (plus title + badges)
   const key = document.createElement("div"); key.className="keyFacts";
   key.appendChild(kvLine("Genre", renderValue(val(row, COL.genre))));
   key.appendChild(kvLine("Entwickler", renderValue(val(row, COL.dev))));
@@ -831,7 +871,6 @@ function createCard(row, rowIndex1Based){
 
   addSection("Beschreibung", [ makeToggleBlock("Kurzbeschreibung", val(row, COL.desc)) ]);
 
-  // ✅ STORE section order: Quelle, Store, Verfügbarkeit
   addSection("Store", [
     kvLine("Quelle", renderValue(val(row, COL.source))),
     kvLine("Store", renderValue(storeVal)),
@@ -843,14 +882,12 @@ function createCard(row, rowIndex1Based){
     makeToggleBlock("Eastereggs", val(row, COL.easter)),
   ]);
 
-  // ✅ TROPHÄEN section order: Fortschritt, Status, Platin
   addSection("Trophäen", [
     kvLine("Fortschritt", trophyNodeFromText(val(row, COL.trophies))),
-    kvLine("Status", renderValue(completedStatusText(row))),
+    kvLine("Status", statusPillNode(row)),   // prettier
     kvLine("Platin", trophyNodeFromText(val(row, COL.platinum))),
   ]);
 
-  // ✅ HUMORSTATISTIK without 100% status
   addSection("Humorstatistik", [
     kvLine("Gesamtstunden", renderValue(val(row, COL.hours))),
     kvLine("% Lebenszeit", renderValue(val(row, COL.life))),
@@ -862,7 +899,6 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* ========= Paging / Infinite Scroll ========= */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
@@ -923,7 +959,6 @@ function rebuildMatches(){
   updateSortLabel();
 }
 
-/* ========= Bottom sheet ========= */
 const sheetDraft = {
   sortKey: viewState.sortKey,
   sortDir: viewState.sortDir,
@@ -991,6 +1026,9 @@ function renderSheetControls(){
     { key:"platin", label:"💎 Platin" },
     { key:"completed", label:"✅ 100 %" },
     { key:"delisted", label:"Delisted" },
+    { key:"psplus", label:"PS Plus" },
+    { key:"buy", label:"gekauft" },
+    { key:"disc", label:"Disc" },
   ];
   els.filterTogs.innerHTML = "";
   for (const f of filterDefs){
@@ -1035,7 +1073,6 @@ function applySheet(){
   rebuildMatches();
 }
 
-/* ========= Observer ========= */
 function setupObserver(){
   if (io) io.disconnect();
   io = new IntersectionObserver((entries)=>{
@@ -1046,7 +1083,6 @@ function setupObserver(){
 }
 setupObserver();
 
-/* ========= Load file ========= */
 function resetUIForNewData(){
   els.grid.innerHTML = "";
   els.count.textContent = "";
@@ -1177,7 +1213,6 @@ async function loadCSV(file){
   rebuildMatches();
 }
 
-/* ========= Events ========= */
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   resetUIForNewData();
@@ -1211,13 +1246,16 @@ els.overlay.addEventListener("click", closeSheet);
 els.sheetClose.addEventListener("click", closeSheet);
 els.applySheetBtn.addEventListener("click", applySheet);
 els.clearFiltersBtn.addEventListener("click", () => {
-  sheetDraft.filters = { fav:false, platin:false, completed:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false };
+  sheetDraft.filters = {
+    fav:false, platin:false, completed:false, delisted:false,
+    ps5:false, ps4:false, ps3:false, vita:false,
+    psplus:false, buy:false, disc:false
+  };
   renderSheetControls();
 });
 
 els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-/* ========= Compact header behavior ========= */
 let lastY = 0;
 let isCompact = false;
 let rafPending = false;
@@ -1227,7 +1265,6 @@ function setCompact(next){
   isCompact = next;
   els.hdr.classList.toggle("compact", isCompact);
 }
-
 window.addEventListener("scroll", () => {
   if (rafPending) return;
   rafPending = true;
@@ -1250,12 +1287,10 @@ window.addEventListener("scroll", () => {
   });
 }, { passive:true });
 
-/* ========= Boot ========= */
 function updateSortLabel(){
   const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
-  const it = SORT_KEYS.find(x=>x.key===viewState.sortKey);
-  els.sortLabel.textContent = `Sort: ${(it?it.label:viewState.sortKey)} ${arrow}`;
-  els.sheetMiniInfo.textContent = `${(it?it.label:viewState.sortKey)} ${arrow} · Filter aktiv: ${Object.values(viewState.filters).filter(Boolean).length}`;
+  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
+  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${Object.values(viewState.filters).filter(Boolean).length}`;
 }
 updateSortLabel();
 </script>
