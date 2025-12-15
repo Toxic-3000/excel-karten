@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Excel → Karten</title>
+<title>Spieleliste</title>
 <style>
 :root{
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -56,12 +56,24 @@ main{padding:14px}
 }
 .badge.delisted{background:var(--dangerBg);color:var(--danger)}
 .badge.platin{background:#eef2ff;color:#1f2a8a}
-.metaRow{display:flex;gap:8px;flex-wrap:wrap}
+
+.metaRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .chip{
   font-size:12px;color:#374151;
   background:#f3f4f6;border:1px solid #ececec;
   padding:4px 8px;border-radius:999px;
   white-space:nowrap
+}
+/* ID hervorheben */
+.idBadge{
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.02em;
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--accent);
+  color:#fff;
+  border:1px solid rgba(0,0,0,0.05);
 }
 
 .keyFacts{
@@ -104,9 +116,14 @@ details[open] .summaryBtn::after{content:"▴"}
 .subdetails summary{color:#374151;font-size:13px}
 .subdetails .summaryBtn{color:#374151}
 .subdetails .summaryBtn::after{color:#6b7280}
-.subdetails .descText{ margin-top: 8px; }
+.subdetails .content{ margin-top: 8px; }
+.subdetails .contentText{ line-height:1.35; }
 
-/* Trophy polish */
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.counter{font-size:12px;color:#555}
+
+/* Trophy (wie vorher) */
 .trophyList{display:grid;gap:8px}
 .trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
 .platformChip{
@@ -118,24 +135,16 @@ details[open] .summaryBtn::after{content:"▴"}
 .trophyRight{display:grid;gap:6px}
 .trophyText{font-size:13px;color:#111;line-height:1.2}
 .progressWrap{display:grid;gap:4px}
-.progressBar{
-  height:8px;border-radius:999px;background:#eef2f7;overflow:hidden
-}
+.progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
 .progressFill{height:100%;background:var(--accent);width:0%}
 .progressLabel{font-size:12px;color:var(--muted)}
-
-.preline{ white-space: pre-line; }
-
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-.counter{font-size:12px;color:#555}
 </style>
 </head>
 <body>
 
 <header>
   <div class="row">
-    <strong>Excel → Karten</strong>
+    <strong>Spieleliste</strong>
     <span class="hint">Clean Cards · Multi-System · Trophy Bars · 💎 Platin</span>
   </div>
   <div class="row">
@@ -157,13 +166,11 @@ a:hover{text-decoration:underline}
 
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ================== Einstellungen ================== */
 const PAGE_SIZE = 60;
 const PLACEHOLDER = "—";
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
 
-/* ================== Spalten-Aliases ================== */
 const COL_ALIASES = {
   id: ["ID"],
   title: ["Spieletitel","Spiel","Titel","Name"],
@@ -189,10 +196,8 @@ const COL_ALIASES = {
   years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre"],
 };
 let COL = {};
-
 const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
 
-/* ================== State ================== */
 const els = {
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
@@ -209,18 +214,13 @@ let allRows = [];
 let matches = [];
 let shown = 0;
 let columns = [];
-let linkMap = new Map();     // `${row1based}:${colName}` -> href
-let headerRowIndex = 1;      // 1-basiert
+let linkMap = new Map();
+let headerRowIndex = 1;
 
 const s = v => (v == null ? "" : String(v).trim());
 
-/* ================== Resolver ================== */
 function normHeader(x){
-  return String(x ?? "")
-    .replace(/\u00A0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+  return String(x ?? "").replace(/\u00A0/g," ").replace(/\s+/g," ").trim().toLowerCase();
 }
 function resolveColumns(cols){
   const byNorm = new Map(cols.map(c => [normHeader(c), c]));
@@ -241,7 +241,7 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* ================== Plattform-Parsing ================== */
+/* Plattformen */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -254,7 +254,7 @@ function platformsFromSystem(row){
   return extractPlatformsFromText(val(row, COL.system));
 }
 
-/* ================== Links & Delisted ================== */
+/* Links / Delisted */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -315,7 +315,7 @@ function getValueWithLink(row, colName, rowIndex1Based){
   return text;
 }
 
-/* ================== Rendering helpers ================== */
+/* UI helpers */
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -347,13 +347,18 @@ function makeChip(text){
   c.textContent = text;
   return c;
 }
+function makeIdBadge(idText){
+  const b = document.createElement("span");
+  b.className = "idBadge";
+  b.textContent = `ID ${idText || PLACEHOLDER}`;
+  return b;
+}
 function makeBadge(text, cls=""){
   const b = document.createElement("span");
   b.className = "badge" + (cls ? " " + cls : "");
   b.textContent = text;
   return b;
 }
-
 function formatFavorite(row){
   const f = val(row, COL.fav).toLowerCase();
   if (!f) return "";
@@ -372,7 +377,34 @@ function formatPlaytime(row){
   return m ? `${m}h` : `${h}h`;
 }
 
-/* ================== Trophy ================== */
+/* Toggle-Block wie Beschreibung (wiederverwendbar) */
+function makeToggleBlock(label, contentText){
+  const d = document.createElement("details");
+  d.className = "subdetails";
+
+  const ssum = document.createElement("summary");
+  const sbtn = document.createElement("span");
+  sbtn.className = "summaryBtn";
+  sbtn.textContent = `${label} anzeigen`;
+  ssum.appendChild(sbtn);
+  d.appendChild(ssum);
+
+  const wrap = document.createElement("div");
+  wrap.className = "content";
+  const txt = document.createElement("div");
+  txt.className = "v contentText";
+  txt.textContent = contentText || PLACEHOLDER;
+  wrap.appendChild(txt);
+  d.appendChild(wrap);
+
+  d.addEventListener("toggle", () => {
+    sbtn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`;
+  });
+
+  return d;
+}
+
+/* Trophy */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
@@ -421,11 +453,9 @@ function progressNode(fr){
   wrap.append(bar, lab);
   return wrap;
 }
-
 function trophyList(items){
   const wrap = document.createElement("div");
   wrap.className = "trophyList";
-
   for (const it of items) {
     const rowEl = document.createElement("div");
     rowEl.className = "trophyRow";
@@ -450,7 +480,6 @@ function trophyList(items){
   }
   return wrap;
 }
-
 function trophyNeutral(text, sysPlatforms){
   const outer = document.createElement("div");
   outer.style.display = "grid";
@@ -475,7 +504,6 @@ function trophyNeutral(text, sysPlatforms){
 
   return outer;
 }
-
 function trophyNodeFromText(text, row){
   const raw = String(text ?? "").trim();
   if (!raw) return document.createTextNode(PLACEHOLDER);
@@ -484,16 +512,12 @@ function trophyNodeFromText(text, row){
   if (pairs.length) return trophyList(pairs);
 
   const sysPlatforms = platformsFromSystem(row);
-  if (sysPlatforms.length === 1) {
-    return trophyList([{ platform: sysPlatforms[0], text: raw }]);
-  }
-  if (sysPlatforms.length > 1) {
-    return trophyNeutral(raw, sysPlatforms);
-  }
+  if (sysPlatforms.length === 1) return trophyList([{ platform: sysPlatforms[0], text: raw }]);
+  if (sysPlatforms.length > 1) return trophyNeutral(raw, sysPlatforms);
   return trophyNeutral(raw, []);
 }
 
-/* ================== Card ================== */
+/* Card */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
@@ -520,8 +544,11 @@ function createCard(row, rowIndex1Based){
 
   const metaRow = document.createElement("div");
   metaRow.className = "metaRow";
-  metaRow.appendChild(makeChip(`ID ${val(row, COL.id) || PLACEHOLDER}`));
 
+  // ID stärker
+  metaRow.appendChild(makeIdBadge(val(row, COL.id)));
+
+  // Plattform-Chips
   let plats = platformsFromSystem(row);
   if (!plats.length) {
     const fromT = extractPlatformsFromText(val(row, COL.trophies));
@@ -561,6 +588,11 @@ function createCard(row, rowIndex1Based){
   summary.appendChild(sumSpan);
   details.appendChild(summary);
 
+  // Zustandsabhängiger Text
+  details.addEventListener("toggle", () => {
+    sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details";
+  });
+
   function addSection(titleText, lines){
     if (!lines.some(x => x != null)) return;
     const sec = document.createElement("div");
@@ -574,24 +606,9 @@ function createCard(row, rowIndex1Based){
   }
 
   // Beschreibung toggle
-  const descText = val(row, COL.desc);
-  {
-    const d = document.createElement("details");
-    d.className = "subdetails";
-    const ssum = document.createElement("summary");
-    const sbtn = document.createElement("span");
-    sbtn.className = "summaryBtn";
-    sbtn.textContent = "Kurzbeschreibung anzeigen";
-    ssum.appendChild(sbtn);
-    d.appendChild(ssum);
-
-    const p = document.createElement("div");
-    p.className = "v descText";
-    p.textContent = descText || PLACEHOLDER;
-    d.appendChild(p);
-
-    addSection("Beschreibung", [d]);
-  }
+  addSection("Beschreibung", [
+    makeToggleBlock("Kurzbeschreibung", val(row, COL.desc))
+  ]);
 
   // Store
   const storeVal = getValueWithLink(row, COL.store, rowIndex1Based);
@@ -609,12 +626,10 @@ function createCard(row, rowIndex1Based){
     (dev || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(dev)) : null
   ]);
 
-  // Extras
-  const special = val(row, COL.special);
-  const easter  = val(row, COL.easter);
+  // Extras: jetzt ausklappbar
   addSection("Extras", [
-    (special || SHOW_EMPTY_IN_DETAILS) ? kvLine("Besonderheiten", renderValue(special)) : null,
-    (easter  || SHOW_EMPTY_IN_DETAILS) ? kvLine("Eastereggs", renderValue(easter)) : null,
+    makeToggleBlock("Besonderheiten", val(row, COL.special)),
+    makeToggleBlock("Eastereggs", val(row, COL.easter))
   ]);
 
   // Trophäen
@@ -640,12 +655,14 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* ================== Paging / Search ================== */
+/* Paging / Search */
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
   els.more.disabled = shown >= total;
   els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, total - shown)})`;
+  // Top-Button: sobald etwas angezeigt wird, aktivieren
+  els.top.disabled = shown === 0;
 }
 
 function renderMore(){
@@ -693,7 +710,7 @@ function startSearch(q){
   renderMore();
 }
 
-/* ================== Events ================== */
+/* Events */
 els.top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 els.more.addEventListener("click", () => renderMore());
 
@@ -701,7 +718,6 @@ els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   els.status.textContent = "Lese Datei…";
 
-  // Wenn die XLSX lib fehlt, sieht man es sofort:
   if (typeof XLSX === "undefined") {
     els.status.textContent = "Fehler: XLSX Library nicht geladen (xlsx.full.min.js fehlt?)";
     return;
@@ -720,6 +736,7 @@ els.file.addEventListener("change", async (e) => {
   els.sheet.disabled = false;
   els.search.disabled = true;
   els.more.disabled = true;
+  els.top.disabled = true;
   els.grid.innerHTML = "";
   els.count.textContent = "";
   els.status.textContent = "Sheet wählen…";
