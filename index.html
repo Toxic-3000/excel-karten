@@ -15,14 +15,29 @@ body{margin:0;background:var(--bg);color:var(--text)}
 header{
   position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e7e7e7;
 }
-.headerShell{
-  position:relative;
+.headerShell{position:relative}
+
+/* FULL header now collapses its height in compact mode (without display:none) */
+#fullHeader{
+  padding:12px 14px;
+  display:grid; gap:10px;
+  overflow:hidden;
+  max-height:420px; /* enough for full content */
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+  will-change: opacity, transform, max-height, padding;
+  transition: opacity .14s ease, transform .14s ease, max-height .18s ease, padding .18s ease;
 }
-.headerInner{
-  padding:12px 14px; display:grid; gap:10px;
-  will-change: opacity, transform;
-  transition: opacity .14s ease, transform .14s ease;
+header.compact #fullHeader{
+  max-height:0;
+  padding-top:0;
+  padding-bottom:0;
+  opacity:0;
+  transform:translateY(-6px);
+  pointer-events:none;
 }
+
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand h1{font-size:20px;margin:0}
 .brand .sub{color:var(--muted);font-size:13px}
@@ -38,17 +53,13 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .primary{border:1px solid #d7ddff;background:var(--chipBg);color:var(--accent);font-weight:900}
 .smallHelp{font-size:12px;color:var(--muted);line-height:1.35}
 
-/* Full vs compact: no display:none to avoid flicker */
-#fullHeader{opacity:1; transform:translateY(0); pointer-events:auto;}
-header.compact #fullHeader{opacity:0; transform:translateY(-6px); pointer-events:none;}
-
-/* Compact bar lives as an overlay row */
+/* Compact bar is separate and becomes visible in compact mode */
 #compactBar{
-  position:absolute; left:0; right:0; bottom:0;
   padding:10px 14px;
   display:flex; gap:10px; align-items:center;
   border-top:1px solid #f1f1f1;
   background:#fff;
+
   opacity:0; transform:translateY(6px);
   pointer-events:none;
   will-change: opacity, transform;
@@ -163,7 +174,7 @@ a:hover{text-decoration:underline}
 
 <header id="hdr">
   <div class="headerShell">
-    <div class="headerInner" id="fullHeader">
+    <div id="fullHeader">
       <div class="brand">
         <h1>Spieleliste</h1>
         <div class="sub">Clean · Infinite · Query · Sort/Filter Sheet</div>
@@ -176,7 +187,7 @@ a:hover{text-decoration:underline}
 
       <div class="row">
         <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom completed:1 platform:ps5)" disabled />
-        <button id="openSheetBtn2" class="primary" disabled title="Sort & Filter öffnen"><span>☰</span></button>
+        <button id="openSheetBtn2" class="primary" disabled title="Sort & Filter öffnen"><span style="font-size:18px;font-weight:900">☰</span></button>
       </div>
 
       <div class="row" style="justify-content:space-between">
@@ -248,7 +259,7 @@ a:hover{text-decoration:underline}
 /* ========= Settings ========= */
 const PAGE_SIZE = 40;
 const PLACEHOLDER = "—";
-const STORAGE_KEY = "spieleliste_view_state_v4";
+const STORAGE_KEY = "spieleliste_view_state_v5";
 
 /* ========= Column aliases ========= */
 const COL_ALIASES = {
@@ -475,7 +486,7 @@ function parseAllFractions(text){
   return out;
 }
 function isCompleted(row){
-  // 1) "100%" column contains "completed"
+  // 1) 100% column contains "completed"
   const flag = val(row, COL.completedFlag).toLowerCase();
   if (flag && flag.includes("completed")) return true;
 
@@ -485,6 +496,12 @@ function isCompleted(row){
   if (frs.some(f => f.a === f.b && f.b > 0)) return true;
 
   return false;
+}
+function completedStatusText(row){
+  if (isCompleted(row)) return "100 % completed";
+  const flag = val(row, COL.completedFlag);
+  if (flag) return flag;
+  return PLACEHOLDER;
 }
 
 /* ========= Helpers ========= */
@@ -506,9 +523,6 @@ function isPlatinum(row){
   const p = val(row, COL.platinum).toLowerCase();
   if (!p) return false;
   return p.includes("platinum") || p === "x" || p === "ja" || p === "yes" || p === "true";
-}
-function formatPlaytimeMain(row){
-  return val(row, COL.main);
 }
 
 /* ========= Sorting ========= */
@@ -543,7 +557,6 @@ function sortValue(row, key){
   }
   return {t:"str", v:""};
 }
-
 function sortMatches(arr){
   const dir = viewState.sortDir === "asc" ? 1 : -1;
   const key = viewState.sortKey;
@@ -558,7 +571,6 @@ function sortMatches(arr){
     }
 
     if (av.t === "title" && bv.t === "title"){
-      // ✅ FIX: stable german, numeric-aware title sort
       return dir * av.v.localeCompare(bv.v, "de", {
         sensitivity: "base",
         numeric: true,
@@ -600,7 +612,6 @@ function parseQuery(q){
   }
   return filters;
 }
-
 function queryMatchesRow(qf, row){
   const txt = qf.text.join(" ").toLowerCase();
   if (txt){
@@ -744,7 +755,7 @@ function trophyList(items){
   }
   return wrap;
 }
-function trophyNodeFromText(text, row){
+function trophyNodeFromText(text){
   const raw = String(text ?? "").trim();
   if (!raw) return document.createTextNode(PLACEHOLDER);
   const pairs = parsePlatformPairs(raw);
@@ -791,15 +802,13 @@ function createCard(row, rowIndex1Based){
   else metaRow.appendChild(makeChip(PLACEHOLDER));
   metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
+  // ✅ Reduced card view: only these 5 lines (plus title + badges)
   const key = document.createElement("div"); key.className="keyFacts";
-  key.appendChild(kvLine("System", renderValue(val(row, COL.system))));
-  key.appendChild(kvLine("Quelle", renderValue(val(row, COL.source))));
   key.appendChild(kvLine("Genre", renderValue(val(row, COL.genre))));
   key.appendChild(kvLine("Entwickler", renderValue(val(row, COL.dev))));
-  key.appendChild(kvLine("Spielzeit (Main)", renderValue(formatPlaytimeMain(row))));
+  key.appendChild(kvLine("Spielzeit", renderValue(val(row, COL.main))));
   key.appendChild(kvLine("Metascore", renderValue(val(row, COL.meta))));
   key.appendChild(kvLine("Userwertung", renderValue(val(row, COL.user))));
-  key.appendChild(kvLine("Lebenszeit %", renderValue(val(row, COL.life))));
 
   const detailsWrap = document.createElement("div"); detailsWrap.className="detailsWrap";
   const details = document.createElement("details");
@@ -821,23 +830,31 @@ function createCard(row, rowIndex1Based){
     : val(row, COL.store);
 
   addSection("Beschreibung", [ makeToggleBlock("Kurzbeschreibung", val(row, COL.desc)) ]);
+
+  // ✅ STORE section order: Quelle, Store, Verfügbarkeit
   addSection("Store", [
+    kvLine("Quelle", renderValue(val(row, COL.source))),
     kvLine("Store", renderValue(storeVal)),
     kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))),
   ]);
+
   addSection("Extras", [
     makeToggleBlock("Besonderheiten", val(row, COL.special)),
     makeToggleBlock("Eastereggs", val(row, COL.easter)),
   ]);
+
+  // ✅ TROPHÄEN section order: Fortschritt, Status, Platin
   addSection("Trophäen", [
-    kvLine("Fortschritt", trophyNodeFromText(val(row, COL.trophies), row)),
-    kvLine("Platin", trophyNodeFromText(val(row, COL.platinum), row)),
+    kvLine("Fortschritt", trophyNodeFromText(val(row, COL.trophies))),
+    kvLine("Status", renderValue(completedStatusText(row))),
+    kvLine("Platin", trophyNodeFromText(val(row, COL.platinum))),
   ]);
+
+  // ✅ HUMORSTATISTIK without 100% status
   addSection("Humorstatistik", [
     kvLine("Gesamtstunden", renderValue(val(row, COL.hours))),
     kvLine("% Lebenszeit", renderValue(val(row, COL.life))),
     kvLine("Jahre", renderValue(val(row, COL.years))),
-    kvLine("100% Status", renderValue(val(row, COL.completedFlag))),
   ]);
 
   detailsWrap.appendChild(details);
@@ -929,7 +946,6 @@ function closeSheet(){
 }
 
 function renderSheetControls(){
-  // sort list (fixed)
   els.sortList.innerHTML = "";
   for (const it of SORT_KEYS){
     const row = document.createElement("div");
@@ -970,7 +986,6 @@ function renderSheetControls(){
     els.sortList.appendChild(row);
   }
 
-  // filters
   const filterDefs = [
     { key:"fav", label:"⭐ Favorit" },
     { key:"platin", label:"💎 Platin" },
@@ -1202,7 +1217,7 @@ els.clearFiltersBtn.addEventListener("click", () => {
 
 els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-/* ========= Compact header behavior (no flicker) ========= */
+/* ========= Compact header behavior ========= */
 let lastY = 0;
 let isCompact = false;
 let rafPending = false;
@@ -1228,16 +1243,20 @@ window.addEventListener("scroll", () => {
 
     const active = document.activeElement;
     const typing = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.isContentEditable);
-
     if (typing) return;
 
-    // hysteresis to prevent rapid toggling
     if (!isCompact && goingDown && y > 160) setCompact(true);
     else if (isCompact && !goingDown && y < 220) setCompact(false);
   });
 }, { passive:true });
 
 /* ========= Boot ========= */
+function updateSortLabel(){
+  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
+  const it = SORT_KEYS.find(x=>x.key===viewState.sortKey);
+  els.sortLabel.textContent = `Sort: ${(it?it.label:viewState.sortKey)} ${arrow}`;
+  els.sheetMiniInfo.textContent = `${(it?it.label:viewState.sortKey)} ${arrow} · Filter aktiv: ${Object.values(viewState.filters).filter(Boolean).length}`;
+}
 updateSortLabel();
 </script>
 </body>
