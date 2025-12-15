@@ -21,11 +21,17 @@ body{margin:0;background:var(--bg);color:var(--text)}
 header{
   position:sticky;top:0;z-index:10;
   background:#fff;border-bottom:1px solid #e7e7e7;
-  padding:12px 14px;display:grid;gap:10px
+  padding:12px 14px;display:grid;gap:10px;
+  transition: padding .18s ease, gap .18s ease;
+}
+header.compact{
+  padding:10px 14px;
+  gap:8px;
 }
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.tight{gap:8px}
 input,select,button{
-  flex:1;min-width:160px;
+  flex:1;min-width:150px;
   padding:10px 12px;border:1px solid #ddd;border-radius:12px;
   background:#fff;font-size:14px
 }
@@ -46,8 +52,6 @@ main{padding:14px}
   display:grid;gap:10px
 }
 .cardTop{display:grid;gap:6px}
-
-/* Titel links, Badge-Spalte rechts */
 .titleRow{
   display:grid;
   grid-template-columns: 1fr auto;
@@ -57,7 +61,6 @@ main{padding:14px}
 .title{font-weight:800;font-size:16px;line-height:1.15}
 .title.delisted{ text-decoration:line-through; color:var(--danger); }
 
-/* Badges immer untereinander */
 .badges{
   display:flex;
   flex-direction:column;
@@ -83,11 +86,7 @@ main{padding:14px}
   padding:4px 8px;border-radius:999px;
   white-space:nowrap
 }
-.chip.on{
-  background:var(--chipBg);
-  border-color:#d7ddff;
-  color:var(--accent);
-}
+.chip.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
 .chip.btn{cursor:pointer; user-select:none}
 .chip.btn:active{transform:translateY(1px)}
 
@@ -99,7 +98,6 @@ main{padding:14px}
   border-radius:999px;
   background:var(--accent);
   color:#fff;
-  border:1px solid rgba(0,0,0,0.05);
 }
 
 .keyFacts{
@@ -166,45 +164,62 @@ a:hover{text-decoration:underline}
 
 /* Floating Top Button */
 #fabTop{
-  position:fixed;
-  right:14px;
-  bottom:16px;
-  z-index:50;
-  display:none;
-  border-radius:999px;
-  padding:12px 14px;
-  border:1px solid #ddd;
-  background:#fff;
+  position:fixed;right:14px;bottom:16px;z-index:50;
+  display:none;border-radius:999px;
+  padding:12px 14px;border:1px solid #ddd;background:#fff;
   box-shadow:0 10px 24px rgba(0,0,0,.12);
   font-weight:700;
 }
 #fabTop.show{display:inline-flex}
+
+/* Mini Trefferhilfe */
+#helpBox{
+  border:1px solid #eee;border-radius:12px;
+  padding:8px 10px;background:#fafafa;color:#374151;
+  font-size:12px;line-height:1.35;
+}
+#helpBox summary{color:#374151}
+#helpBox .examples{color:#6b7280}
+header.compact #helpBox{display:none} /* im kompakten Modus ausblenden */
+
+/* Header sections hide/show in compact mode */
+#rowTitle{display:flex}
+header.compact #rowTitle{display:none}
+header.compact #rowFile{display:none}
+header.compact #filtersRow{display:none}
+
+/* Sentinel */
+#sentinel{height:1px}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="row">
+<header id="hdr">
+  <div class="row" id="rowTitle">
     <strong>Spieleliste</strong>
-    <span class="hint">Filter · Sort · Query-Suche · Persistenz · CSV-Fallback</span>
+    <span class="hint">Sort (alle Spalten) · Infinite Scroll · Query-Suche · Persistenz · CSV</span>
   </div>
 
-  <div class="row">
+  <div class="row" id="rowFile">
     <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
     <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
   </div>
 
-  <div class="row">
+  <div class="row tight" id="rowSearch">
     <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom platform:ps5 fav:1)" disabled />
     <select id="sortSelect" disabled>
-      <option value="id">Sort: ID</option>
-      <option value="title">Sort: Titel</option>
-      <option value="meta">Sort: Metascore</option>
-      <option value="user">Sort: Userwertung</option>
-      <option value="main">Sort: Spielzeit (Main)</option>
+      <option value="__id">Sort: ID</option>
     </select>
     <button id="sortDirBtn" disabled>↑</button>
   </div>
+
+  <details id="helpBox">
+    <summary>ⓘ Suche & Filter kurz erklärt</summary>
+    <div class="examples">
+      Beispiele: <code>id:622</code> · <code>dev:naughty</code> · <code>platform:ps5</code> · <code>fav:1</code> · <code>platin:1</code> · <code>delisted:1</code><br/>
+      Text ohne Prefix sucht überall: <code>LittleBigPlanet</code>
+    </div>
+  </details>
 
   <div class="row" id="filtersRow">
     <span class="chip btn" data-filter="fav">⭐ Favorit</span>
@@ -218,25 +233,26 @@ a:hover{text-decoration:underline}
   </div>
 
   <div class="row">
-    <button id="moreBtn" disabled>Mehr laden</button>
     <span id="status" class="hint">Datei wählen → Sheet wählen → suchen</span>
     <span id="count" class="counter"></span>
   </div>
 </header>
 
-<main><div id="grid" class="grid"></div></main>
+<main>
+  <div id="grid" class="grid"></div>
+  <div id="sentinel"></div>
+</main>
 
 <button id="fabTop" aria-label="Nach oben">↑ Top</button>
 
 <script src="xlsx.full.min.js"></script>
 <script>
-/* ================== Settings ================== */
-const PAGE_SIZE = 60;
+/* ========== Settings ========== */
+const PAGE_SIZE = 40;                    // kleiner = smoother infinite scroll
 const PLACEHOLDER = "—";
 const SHOW_EMPTY_IN_KEYFACTS = true;
 const SHOW_EMPTY_IN_DETAILS  = true;
-
-const STORAGE_KEY = "spieleliste_view_state_v1";
+const STORAGE_KEY = "spieleliste_view_state_v2";
 
 const COL_ALIASES = {
   id: ["ID"],
@@ -267,8 +283,9 @@ let COL = {};
 const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
 const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
 
-/* ================== DOM ================== */
+/* ========== DOM ========== */
 const els = {
+  hdr: document.getElementById("hdr"),
   file: document.getElementById("file"),
   sheet: document.getElementById("sheetSelect"),
   search: document.getElementById("search"),
@@ -276,34 +293,34 @@ const els = {
   sortDir: document.getElementById("sortDirBtn"),
   filtersRow: document.getElementById("filtersRow"),
   clearFilters: document.getElementById("clearFiltersBtn"),
-  more: document.getElementById("moreBtn"),
   status: document.getElementById("status"),
   count: document.getElementById("count"),
   grid: document.getElementById("grid"),
   fabTop: document.getElementById("fabTop"),
+  sentinel: document.getElementById("sentinel"),
 };
 
 const s = v => (v == null ? "" : String(v).trim());
 
-/* ================== State ================== */
+/* ========== State ========== */
 let workbook = null;
 let allRows = [];
 let matches = [];
 let shown = 0;
 let columns = [];
-let linkMap = new Map();   // `${row1based}:${colName}` -> href (XLSX only)
-let headerRowIndex = 1;    // 1-based header row (XLSX)
+let linkMap = new Map();   // XLSX only
+let headerRowIndex = 1;    // 1-based header row
 
 const viewState = {
   fileMode: "",            // "xlsx" | "csv"
   sheetName: "",
   search: "",
-  sortKey: "id",
-  sortDir: "asc",          // "asc" | "desc"
+  sortKey: "__id",         // internal
+  sortDir: "asc",
   filters: { fav:false, platin:false, delisted:false, ps5:false, ps4:false, ps3:false, vita:false },
 };
 
-/* ================== Persistenz ================== */
+/* ========== Persistenz ========== */
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -316,13 +333,11 @@ function loadState(){
   }catch(e){}
 }
 function saveState(){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState));
-  }catch(e){}
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState)); }catch(e){}
 }
 loadState();
 
-/* ================== Header resolver ================== */
+/* ========== Column resolver ========== */
 function normHeader(x){
   return String(x ?? "")
     .replace(/\u00A0/g, " ")
@@ -349,7 +364,7 @@ function val(row, colName){
   return v == null ? "" : String(v).trim();
 }
 
-/* ================== Plattform parsing ================== */
+/* ========== Platform parsing ========== */
 function extractPlatformsFromText(text){
   const t = String(text ?? "");
   const found = [];
@@ -361,16 +376,16 @@ function extractPlatformsFromText(text){
 function platformsFromSystem(row){
   return extractPlatformsFromText(val(row, COL.system));
 }
-function rowHasPlatform(row, key){ // key: ps5/ps4/ps3/vita
+function rowHasPlatform(row, key){
   const plats = platformsFromSystem(row).map(p => p.toLowerCase());
   if (!plats.length){
     const fallback = [...extractPlatformsFromText(val(row, COL.trophies)), ...extractPlatformsFromText(val(row, COL.platinum))].map(p=>p.toLowerCase());
-    return fallback.some(p => PLATFORM_CANON[p] === key || p === key);
+    return fallback.some(p => (PLATFORM_CANON[p] || p) === key);
   }
-  return plats.some(p => PLATFORM_CANON[p] === key || p === key);
+  return plats.some(p => (PLATFORM_CANON[p] || p) === key);
 }
 
-/* ================== XLSX Links & Delisted style ================== */
+/* ========== XLSX Links & Delisted style ========== */
 function buildLinks(ws){
   linkMap.clear();
   const ref = ws["!ref"]; if (!ref) return;
@@ -431,24 +446,37 @@ function getValueWithLink(row, colName, rowIndex1Based){
   return text;
 }
 
-/* ================== Parsing helper (Scores / Hours) ================== */
-function parseScore(text){
+/* ========== Parsing values for sorting ========== */
+function parseAnyNumber(text){
   const t = String(text ?? "").trim();
   if (!t) return NaN;
-  // "72 / 100" -> 72
+
+  // handle "86 / 100"
+  const mScore = t.match(/(\d+(?:[.,]\d+)?)/);
+  if (mScore) return parseFloat(mScore[1].replace(",", "."));
+
+  return NaN;
+}
+function parseHoursLike(text){
+  const t = String(text ?? "").trim();
+  if (!t) return NaN;
   const m = t.match(/(\d+(?:[.,]\d+)?)/);
   if (!m) return NaN;
   return parseFloat(m[1].replace(",", "."));
 }
-function parseHours(text){
-  const t = String(text ?? "").trim();
-  if (!t) return NaN;
-  const m = t.match(/(\d+(?:[.,]\d+)?)/);
-  if (!m) return NaN;
-  return parseFloat(m[1].replace(",", "."));
+function toSortableValue(v){
+  const t = String(v ?? "").trim();
+  if (!t) return { type:"empty", v:"" };
+
+  // numbers with comma/point
+  const num = parseAnyNumber(t);
+  if (Number.isFinite(num)) return { type:"num", v:num };
+
+  // fallback string
+  return { type:"str", v:t.toLowerCase() };
 }
 
-/* ================== UI helpers ================== */
+/* ========== UI helpers ========== */
 function renderValue(value){
   if (value && typeof value === "object" && value.href) {
     const a = document.createElement("a");
@@ -506,15 +534,13 @@ function formatPlaytime(row){
   const m = val(row, COL.main);
   const h = val(row, COL.hundred);
   if (!m && !h) return "";
+  ifnd;
   if (m && h) return `${m}h / ${h}h`;
   return m ? `${m}h` : `${h}h`;
 }
-
-/* Toggle-Block */
 function makeToggleBlock(label, contentText){
   const d = document.createElement("details");
   d.className = "subdetails";
-
   const ssum = document.createElement("summary");
   const sbtn = document.createElement("span");
   sbtn.className = "summaryBtn";
@@ -533,11 +559,10 @@ function makeToggleBlock(label, contentText){
   d.addEventListener("toggle", () => {
     sbtn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`;
   });
-
   return d;
 }
 
-/* Trophy */
+/* Trophy parsing */
 function parsePlatformPairs(text){
   const t = String(text ?? "").trim();
   if (!t) return [];
@@ -549,7 +574,6 @@ function parsePlatformPairs(text){
   }
   hits.sort((a,b)=>a.i-b.i);
   if (!hits.length) return [];
-
   const out = [];
   for (let j=0;j<hits.length;j++){
     const start = hits[j].i;
@@ -592,22 +616,17 @@ function trophyList(items){
   for (const it of items) {
     const rowEl = document.createElement("div");
     rowEl.className = "trophyRow";
-
     const chip = document.createElement("span");
     chip.className = "platformChip";
     chip.textContent = it.platform || "—";
-
     const right = document.createElement("div");
     right.className = "trophyRight";
-
     const txt = document.createElement("div");
     txt.className = "trophyText";
     txt.textContent = it.text || PLACEHOLDER;
     right.appendChild(txt);
-
     const fr = parseFraction(it.text);
     if (fr) right.appendChild(progressNode(fr));
-
     rowEl.append(chip, right);
     wrap.appendChild(rowEl);
   }
@@ -617,7 +636,6 @@ function trophyNeutral(text, sysPlatforms){
   const outer = document.createElement("div");
   outer.style.display = "grid";
   outer.style.gap = "8px";
-
   if (sysPlatforms && sysPlatforms.length) {
     const chipRow = document.createElement("div");
     chipRow.style.display = "flex";
@@ -626,31 +644,26 @@ function trophyNeutral(text, sysPlatforms){
     for (const p of sysPlatforms) chipRow.appendChild(makeChip(p));
     outer.appendChild(chipRow);
   }
-
   const txt = document.createElement("div");
   txt.className = "trophyText";
   txt.textContent = text || PLACEHOLDER;
   outer.appendChild(txt);
-
   const fr = parseFraction(text);
   if (fr) outer.appendChild(progressNode(fr));
-
   return outer;
 }
 function trophyNodeFromText(text, row){
   const raw = String(text ?? "").trim();
   if (!raw) return document.createTextNode(PLACEHOLDER);
-
   const pairs = parsePlatformPairs(raw);
   if (pairs.length) return trophyList(pairs);
-
   const sysPlatforms = platformsFromSystem(row);
   if (sysPlatforms.length === 1) return trophyList([{ platform: sysPlatforms[0], text: raw }]);
   if (sysPlatforms.length > 1) return trophyNeutral(raw, sysPlatforms);
   return trophyNeutral(raw, []);
 }
 
-/* ================== Card ================== */
+/* ========== Card ========== */
 function createCard(row, rowIndex1Based){
   const card = document.createElement("div");
   card.className = "card";
@@ -687,7 +700,6 @@ function createCard(row, rowIndex1Based){
   }
   if (plats.length) plats.forEach(p => metaRow.appendChild(makeChip(p)));
   else metaRow.appendChild(makeChip(PLACEHOLDER));
-
   metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
 
   top.append(titleRow, metaRow);
@@ -740,17 +752,14 @@ function createCard(row, rowIndex1Based){
     ? getValueWithLink(row, COL.store, rowIndex1Based)
     : val(row, COL.store);
 
-  const source = val(row, COL.source);
-  const availability = val(row, COL.availability);
   addSection("Store", [
     (storeVal || SHOW_EMPTY_IN_DETAILS) ? kvLine("Store", renderValue(storeVal)) : null,
-    (source   || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(source)) : null,
-    (availability || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(availability)) : null,
+    (val(row, COL.source) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Quelle", renderValue(val(row, COL.source))) : null,
+    (val(row, COL.availability) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))) : null,
   ]);
 
-  const dev = val(row, COL.dev);
   addSection("Entwickler", [
-    (dev || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(dev)) : null
+    (val(row, COL.dev) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Entwickler", renderValue(val(row, COL.dev))) : null
   ]);
 
   addSection("Extras", [
@@ -758,20 +767,15 @@ function createCard(row, rowIndex1Based){
     makeToggleBlock("Eastereggs", val(row, COL.easter))
   ]);
 
-  const trophies = val(row, COL.trophies);
-  const platinum = val(row, COL.platinum);
   addSection("Trophäen", [
-    kvLine("Fortschritt", trophyNodeFromText(trophies, row)),
-    kvLine("Platin", trophyNodeFromText(platinum, row)),
+    kvLine("Fortschritt", trophyNodeFromText(val(row, COL.trophies), row)),
+    kvLine("Platin", trophyNodeFromText(val(row, COL.platinum), row)),
   ]);
 
-  const hours = val(row, COL.hours);
-  const life  = val(row, COL.life);
-  const years = val(row, COL.years);
   addSection("Humorstatistik", [
-    (hours || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(hours)) : null,
-    (life  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(life)) : null,
-    (years || SHOW_EMPTY_IN_DETAILS) ? kvLine("Jahre", renderValue(years)) : null,
+    (val(row, COL.hours) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Gesamtstunden", renderValue(val(row, COL.hours))) : null,
+    (val(row, COL.life)  || SHOW_EMPTY_IN_DETAILS) ? kvLine("% Lebenszeit", renderValue(val(row, COL.life))) : null,
+    (val(row, COL.years) || SHOW_EMPTY_IN_DETAILS) ? kvLine("Jahre", renderValue(val(row, COL.years))) : null,
   ]);
 
   detailsWrap.appendChild(details);
@@ -779,7 +783,7 @@ function createCard(row, rowIndex1Based){
   return card;
 }
 
-/* ================== Query Syntax ================== */
+/* ========== Query syntax ========== */
 function parseQuery(q){
   const raw = (q || "").trim();
   const tokens = raw.length ? raw.split(/\s+/) : [];
@@ -794,24 +798,22 @@ function parseQuery(q){
     platin: null,
     delisted: null,
   };
+  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
+  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
 
   for (const t of tokens){
     const m = t.match(/^(\w+)\:(.+)$/);
     if (!m){ filters.text.push(t); continue; }
     const key = m[1].toLowerCase();
-    const val = m[2];
-
-    const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
-    const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
-
-    if (key === "id") filters.id = val;
-    else if (key === "dev") filters.dev = val;
-    else if (key === "platform" || key === "plat") filters.platform = val.toLowerCase();
-    else if (key === "genre") filters.genre = val;
-    else if (key === "sub") filters.sub = val;
-    else if (key === "fav") filters.fav = truthy(val) ? true : (falsy(val) ? false : null);
-    else if (key === "platin") filters.platin = truthy(val) ? true : (falsy(val) ? false : null);
-    else if (key === "delisted") filters.delisted = truthy(val) ? true : (falsy(val) ? false : null);
+    const vv = m[2];
+    if (key === "id") filters.id = vv;
+    else if (key === "dev") filters.dev = vv;
+    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
+    else if (key === "genre") filters.genre = vv;
+    else if (key === "sub") filters.sub = vv;
+    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
     else filters.text.push(t);
   }
   return filters;
@@ -822,83 +824,25 @@ function queryMatchesRow(qf, row){
     const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
     if (!hay.includes(txt)) return false;
   }
-  if (qf.id){
-    const idv = val(row, COL.id).toLowerCase();
-    if (!idv.includes(qf.id.toLowerCase())) return false;
-  }
-  if (qf.dev){
-    const dv = val(row, COL.dev).toLowerCase();
-    if (!dv.includes(qf.dev.toLowerCase())) return false;
-  }
-  if (qf.genre){
-    const gv = val(row, COL.genre).toLowerCase();
-    if (!gv.includes(qf.genre.toLowerCase())) return false;
-  }
-  if (qf.sub){
-    const sv = val(row, COL.subgenre).toLowerCase();
-    if (!sv.includes(qf.sub.toLowerCase())) return false;
-  }
+  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
+  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
+  if (qf.genre && !val(row, COL.genre).toLowerCase().includes(qf.genre.toLowerCase())) return false;
+  if (qf.sub && !val(row, COL.subgenre).toLowerCase().includes(qf.sub.toLowerCase())) return false;
   if (qf.platform){
-    const p = qf.platform.toLowerCase();
-    const canon = PLATFORM_CANON[p] || p;
+    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
     if (!rowHasPlatform(row, canon)) return false;
   }
-  if (qf.fav !== null){
-    const isFav = !!formatFavorite(row);
-    if (isFav !== qf.fav) return false;
-  }
-  if (qf.platin !== null){
-    const pl = isPlatinum(row);
-    if (pl !== qf.platin) return false;
-  }
-  if (qf.delisted !== null){
-    const d = isDelistedRow(row);
-    if (d !== qf.delisted) return false;
-  }
+  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
+  if (qf.platin !== null){ if (isPlatinum(row) !== qf.platin) return false; }
+  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
   return true;
 }
 
-/* ================== Sort ================== */
-function sortMatches(arr){
-  const key = viewState.sortKey;
-  const dir = viewState.sortDir === "asc" ? 1 : -1;
-
-  const get = (row) => {
-    if (key === "id") return parseScore(val(row, COL.id));
-    if (key === "title") return val(row, COL.title).toLowerCase();
-    if (key === "meta") return parseScore(val(row, COL.meta));
-    if (key === "user") return parseScore(val(row, COL.user));
-    if (key === "main") return parseHours(val(row, COL.main));
-    return 0;
-  };
-
-  arr.sort((a,b) => {
-    const av = get(a.row);
-    const bv = get(b.row);
-
-    // Strings
-    if (typeof av === "string" || typeof bv === "string"){
-      const as = String(av ?? "");
-      const bs = String(bv ?? "");
-      return dir * as.localeCompare(bs, "de", { sensitivity: "base" });
-    }
-
-    // Numbers (NaN -> bottom)
-    const an = Number.isFinite(av) ? av : -Infinity;
-    const bn = Number.isFinite(bv) ? bv : -Infinity;
-    if (an === bn) return 0;
-    return dir * (an < bn ? -1 : 1);
-  });
-
-  return arr;
-}
-
-/* ================== Filters (Chips) ================== */
+/* ========== Chip filters ========== */
 function applyChipUI(){
   for (const el of els.filtersRow.querySelectorAll(".chip[data-filter]")){
     const k = el.getAttribute("data-filter");
-    const on = !!viewState.filters[k];
-    el.classList.toggle("on", on);
+    el.classList.toggle("on", !!viewState.filters[k]);
   }
   els.clearFilters.disabled = !(Object.values(viewState.filters).some(Boolean));
 }
@@ -910,24 +854,82 @@ function rowPassesChipFilters(row){
 
   const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
   if (platformFilters.length){
-    // OR-Logik: irgendeine Plattform passt
     const ok = platformFilters.some(k => rowHasPlatform(row, k));
     if (!ok) return false;
   }
   return true;
 }
 
-/* ================== Paging / Render ================== */
+/* ========== Sorting (ALL columns) ========== */
+function buildSortOptionsFromColumns(){
+  const opts = [];
+  // internal: ID always first if present
+  opts.push({ value:"__id", label:"ID" });
+
+  // then all actual columns in sheet
+  for (const c of columns){
+    opts.push({ value:c, label:c });
+  }
+
+  // fill select
+  els.sort.innerHTML = "";
+  for (const o of opts){
+    const op = document.createElement("option");
+    op.value = o.value;
+    op.textContent = "Sort: " + o.label;
+    els.sort.appendChild(op);
+  }
+
+  // restore selected
+  if (opts.some(o=>o.value===viewState.sortKey)) els.sort.value = viewState.sortKey;
+  else { viewState.sortKey = "__id"; els.sort.value = "__id"; saveState(); }
+}
+function getSortValue(row, sortKey){
+  if (sortKey === "__id") return toSortableValue(val(row, COL.id));
+  // raw column
+  return toSortableValue(row[sortKey]);
+}
+function sortMatches(arr){
+  const dir = viewState.sortDir === "asc" ? 1 : -1;
+  const key = viewState.sortKey;
+
+  arr.sort((a,b)=>{
+    const av = getSortValue(a.row, key);
+    const bv = getSortValue(b.row, key);
+
+    // empty last
+    if (av.type === "empty" && bv.type !== "empty") return 1;
+    if (bv.type === "empty" && av.type !== "empty") return -1;
+
+    // both numbers
+    if (av.type === "num" && bv.type === "num"){
+      if (av.v === bv.v) return 0;
+      return dir * (av.v < bv.v ? -1 : 1);
+    }
+
+    // mix or both strings: compare as strings
+    const as = String(av.v ?? "");
+    const bs = String(bv.v ?? "");
+    return dir * as.localeCompare(bs, "de", { sensitivity:"base" });
+  });
+
+  return arr;
+}
+
+/* ========== Paging / Infinite Scroll ========== */
+let io = null;
+let isLoading = false;
+
 function updateCounters(){
   const total = matches.length;
   els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
-  els.more.disabled = shown >= total;
-  els.more.textContent = els.more.disabled ? "Mehr laden" : `Mehr laden (+${Math.min(PAGE_SIZE, total - shown)})`;
 }
 function renderMore(){
+  if (isLoading) return;
   const total = matches.length;
   if (shown >= total) return;
 
+  isLoading = true;
   const end = Math.min(shown + PAGE_SIZE, total);
   const frag = document.createDocumentFragment();
 
@@ -939,11 +941,13 @@ function renderMore(){
   shown = end;
 
   els.status.textContent = total
-    ? (shown < total ? "Mehr laden zeigt weitere Karten…" : "Alle Karten angezeigt.")
+    ? (shown < total ? "Lade weitere Karten…" : "Alle Karten angezeigt.")
     : "Keine Treffer.";
 
   updateCounters();
+  isLoading = false;
 }
+
 function rebuildMatches(){
   els.grid.innerHTML = "";
   shown = 0;
@@ -958,10 +962,8 @@ function rebuildMatches(){
   sortMatches(matches);
   renderMore();
 
-  // Controls enable
-  els.more.disabled = matches.length === 0;
-  els.sort.disabled = false;
-  els.sortDir.disabled = false;
+  els.status.textContent = `Treffer: ${matches.length}`;
+  updateCounters();
 }
 function startSearch(q){
   viewState.search = q || "";
@@ -969,16 +971,14 @@ function startSearch(q){
   rebuildMatches();
 }
 
-/* ================== CSV fallback ================== */
+/* ========== CSV fallback ========== */
 function detectDelimiter(firstLine){
   const commas = (firstLine.match(/,/g) || []).length;
   const semis  = (firstLine.match(/;/g) || []).length;
   return semis > commas ? ";" : ",";
 }
 function parseCSV(text){
-  // Simple CSV parser with quotes; supports \r\n or \n
   const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
-  // skip empty leading lines
   while (lines.length && !lines[0].trim()) lines.shift();
   if (!lines.length) return { rows: [], headers: [] };
 
@@ -991,7 +991,6 @@ function parseCSV(text){
     for (let i=0;i<line.length;i++){
       const ch = line[i];
       if (ch === '"'){
-        // double quote escape
         if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
         else inQ = !inQ;
       } else if (ch === delim && !inQ){
@@ -1004,29 +1003,24 @@ function parseCSV(text){
 
   const headers = splitLine(lines[0]).map(h => h.replace(/^\uFEFF/, "").trim());
   const rows = [];
-
   for (let r=1; r<lines.length; r++){
     const line = lines[r];
     if (!line || !line.trim()) continue;
     const cells = splitLine(line);
     const obj = {};
-    for (let c=0; c<headers.length; c++){
-      obj[headers[c]] = cells[c] ?? "";
-    }
+    for (let c=0; c<headers.length; c++) obj[headers[c]] = cells[c] ?? "";
     rows.push(obj);
   }
   return { rows, headers };
 }
 
-/* ================== Load file ================== */
+/* ========== Load file ========== */
 function resetUIForNewData(){
   els.grid.innerHTML = "";
   els.count.textContent = "";
-  els.more.disabled = true;
+  els.search.disabled = true;
   els.sort.disabled = true;
   els.sortDir.disabled = true;
-  els.clearFilters.disabled = true;
-  els.search.disabled = true;
   els.sheet.disabled = true;
   els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
   linkMap.clear();
@@ -1034,13 +1028,17 @@ function resetUIForNewData(){
   allRows = [];
   matches = [];
   shown = 0;
+  columns = [];
+  workbook = null;
 }
+
 async function loadXLSX(file){
   if (typeof XLSX === "undefined") {
     els.status.textContent = "Fehler: XLSX Library nicht geladen (xlsx.full.min.js fehlt?)";
     return;
   }
   viewState.fileMode = "xlsx";
+
   const buf = await file.arrayBuffer();
   workbook = XLSX.read(buf, { type: "array", cellStyles: true });
 
@@ -1054,12 +1052,12 @@ async function loadXLSX(file){
   els.sheet.disabled = false;
   els.status.textContent = "Sheet wählen…";
 
-  // Persist: restore last sheet if exists
   if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
     els.sheet.value = viewState.sheetName;
     loadSheet(viewState.sheetName);
   }
 }
+
 function loadSheet(name){
   const ws = workbook.Sheets[name];
   const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
@@ -1071,12 +1069,14 @@ function loadSheet(name){
   buildLinks(ws);
   applyDelistedFromStyles(ws);
 
+  buildSortOptionsFromColumns();
+
   els.search.disabled = false;
   els.sort.disabled = false;
   els.sortDir.disabled = false;
 
   els.search.value = viewState.search || "";
-  els.sort.value = viewState.sortKey || "id";
+  els.sort.value = viewState.sortKey || "__id";
   els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
 
   viewState.sheetName = name;
@@ -1085,6 +1085,7 @@ function loadSheet(name){
   els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
   rebuildMatches();
 }
+
 async function loadCSV(file){
   viewState.fileMode = "csv";
   workbook = null;
@@ -1096,10 +1097,10 @@ async function loadCSV(file){
   const parsed = parseCSV(text);
   allRows = parsed.rows;
   columns = parsed.headers;
-
   COL = resolveColumns(columns);
 
-  // CSV has no styling; no strike-through detection
+  buildSortOptionsFromColumns();
+
   els.sheet.disabled = true;
   els.sheet.innerHTML = "<option>(CSV: kein Sheet)</option>";
   els.search.disabled = false;
@@ -1107,7 +1108,7 @@ async function loadCSV(file){
   els.sortDir.disabled = false;
 
   els.search.value = viewState.search || "";
-  els.sort.value = viewState.sortKey || "id";
+  els.sort.value = viewState.sortKey || "__id";
   els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
 
   els.status.textContent = `CSV geladen: ${allRows.length} Zeilen`;
@@ -1115,30 +1116,15 @@ async function loadCSV(file){
   rebuildMatches();
 }
 
-/* ================== Events ================== */
-els.more.addEventListener("click", () => renderMore());
-
-els.fabTop.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-window.addEventListener("scroll", () => {
-  const show = window.scrollY > 500;
-  els.fabTop.classList.toggle("show", show);
-}, { passive:true });
-
+/* ========== Events ========== */
 els.file.addEventListener("change", async (e) => {
   const f = e.target.files?.[0]; if (!f) return;
   resetUIForNewData();
   els.status.textContent = "Lese Datei…";
-
   const name = (f.name || "").toLowerCase();
   try{
-    if (name.endsWith(".csv")){
-      await loadCSV(f);
-    } else {
-      await loadXLSX(f);
-    }
+    if (name.endsWith(".csv")) await loadCSV(f);
+    else await loadXLSX(f);
   }catch(err){
     els.status.textContent = "Fehler beim Einlesen: " + (err?.message || String(err));
   }
@@ -1157,6 +1143,7 @@ els.sort.addEventListener("change", (e) => {
   saveState();
   rebuildMatches();
 });
+
 els.sortDir.addEventListener("click", () => {
   viewState.sortDir = (viewState.sortDir === "asc") ? "desc" : "asc";
   els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
@@ -1164,7 +1151,6 @@ els.sortDir.addEventListener("click", () => {
   rebuildMatches();
 });
 
-/* Filter chips */
 els.filtersRow.addEventListener("click", (e) => {
   const t = e.target;
   if (!(t instanceof HTMLElement)) return;
@@ -1186,16 +1172,44 @@ els.filtersRow.addEventListener("click", (e) => {
   }
 });
 
-/* ================== Restore UI state (filters + controls) ================== */
-function bootApplyUI(){
-  // Apply chips state
+els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+/* Header compact on scroll + FAB show */
+let lastY = 0;
+window.addEventListener("scroll", () => {
+  const y = window.scrollY;
+  const goingDown = y > lastY;
+  lastY = y;
+
+  els.fabTop.classList.toggle("show", y > 500);
+
+  // compact header when scrolling down, expand when scrolling up a bit
+  if (goingDown && y > 120) els.hdr.classList.add("compact");
+  if (!goingDown && y < 260) els.hdr.classList.remove("compact");
+}, { passive:true });
+
+/* Infinite scroll observer */
+function setupObserver(){
+  if (io) io.disconnect();
+  io = new IntersectionObserver((entries)=>{
+    const e = entries[0];
+    if (!e) return;
+    if (e.isIntersecting){
+      // load more when reaching bottom sentinel
+      renderMore();
+    }
+  }, { root:null, threshold:0.1 });
+  io.observe(els.sentinel);
+}
+setupObserver();
+
+/* Restore chips UI */
+function bootUI(){
   applyChipUI();
-  // Controls initial (until file loaded)
-  els.sort.value = viewState.sortKey || "id";
   els.sortDir.textContent = (viewState.sortDir === "asc") ? "↑" : "↓";
   els.search.value = viewState.search || "";
 }
-bootApplyUI();
+bootUI();
 </script>
 </body>
 </html>
