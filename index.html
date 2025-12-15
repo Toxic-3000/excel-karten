@@ -1,1713 +1,1452 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Spieleliste</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spieleliste</title>
+<style>
+:root{
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --bg:#f6f7f9; --card:#fff; --text:#111; --muted:#6b7280;
+  --line:#e9e9e9; --accent:#2536a4;
+  --danger:#b00020; --dangerBg:#ffe7ea;
+  --ok:#166534; --okBg:#eaf7ef; --okBd:#cbead6;
+  --blue:#1f2a8a; --blueBg:#eef2ff; --blueBd:#d7ddff;
+  --chipBg:#eef2ff; --shadow: 0 10px 24px rgba(0,0,0,.12);
+}
 
-  <!-- XLSX Library (lokal im selben Ordner) -->
-  <script src="./xlsx.full.min.js"></script>
+body{margin:0;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e7e7e7}
+.headerShell{position:relative}
 
-  <style>
-    :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
-      --text:#12151a;
-      --muted:#6b7280;
-      --line:#e6e8ef;
-      --shadow:0 10px 30px rgba(10, 20, 40, .08);
-      --radius:18px;
+#fullHeader{
+  padding:12px 14px;
+  display:grid; gap:10px;
+  overflow:hidden;
+  max-height:420px;
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+  will-change: opacity, transform, max-height, padding;
+  transition: opacity .14s ease, transform .14s ease, max-height .18s ease, padding .18s ease;
+}
+header.compact #fullHeader{
+  max-height:0;
+  padding-top:0;
+  padding-bottom:0;
+  opacity:0;
+  transform:translateY(-6px);
+  pointer-events:none;
+}
 
-      --chip:#eef1f6;
-      --chipText:#2a3446;
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{font-size:20px;margin:0}
 
-      --blue:#2f5bff;
-      --blueBg:#e9efff;
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input,select,button{
+  padding:10px 12px;border:1px solid #ddd;border-radius:14px;background:#fff;font-size:14px
+}
+input,select{flex:1;min-width:150px}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+.counter{font-size:12px;color:#555}
+.hint{font-size:13px;color:var(--muted)}
+.primary{border:1px solid #d7ddff;background:var(--chipBg);color:var(--accent);font-weight:900}
+.smallHelp{font-size:12px;color:var(--muted);line-height:1.35}
 
-      --green:#156a3a;
-      --greenBg:#e7f7ee;
+#compactBar{
+  padding:10px 14px;
+  display:flex; gap:10px; align-items:center;
+  border-top:1px solid #f1f1f1;
+  background:#fff;
+  opacity:0; transform:translateY(6px);
+  pointer-events:none;
+  will-change: opacity, transform;
+  transition: opacity .14s ease, transform .14s ease;
+}
+header.compact #compactBar{opacity:1; transform:translateY(0); pointer-events:auto;}
+#compactSearch{flex:1; min-width:0}
+#openSheetBtn{width:52px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; font-weight:900}
+#openSheetBtn span{font-size:18px; line-height:1}
 
-      --red:#a11b1b;
-      --redBg:#fdecec;
+main{padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:12px; box-shadow:0 1px 2px rgba(0,0,0,.04);
+  display:grid; gap:10px;
+}
 
-      --gold:#7a5a00;
-      --goldBg:#fff7dd;
+.titleRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.title{font-weight:850;font-size:16px;line-height:1.15}
+.title.delisted{text-decoration:line-through;color:var(--danger)}
+.badges{display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:120px}
 
-      --violet:#4b2aa6;
-      --violetBg:#efeaff;
-    }
+.badge{
+  width:fit-content;font-size:12px;font-weight:900;padding:4px 10px;border-radius:999px;
+  background:#f3f4f6;border:1px solid #ececec;color:#111;white-space:nowrap
+}
+.badge.delisted{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
+.badge.blue{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
+.badge.ok{background:var(--okBg);border-color:var(--okBd);color:var(--ok)}
+.badge.mid{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
-    }
+.metaRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.idBadge{font-size:12px;font-weight:950;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff}
+.chip{font-size:12px;color:#374151;background:#f3f4f6;border:1px solid #ececec;padding:4px 8px;border-radius:999px;white-space:nowrap}
 
-    .wrap{
-      max-width:860px;
-      margin:0 auto;
-      padding:14px 12px 80px;
-    }
+.keyFacts{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.kvLine{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start}
+.k{color:var(--muted);font-size:12px}
+.v{font-size:13px;word-break:break-word}
 
-    /* Header / Menü */
-    .header{
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:linear-gradient(to bottom, rgba(246,247,251,.98), rgba(246,247,251,.92));
-      backdrop-filter: blur(10px);
-      padding:10px 0 12px;
-      transition: padding .2s ease;
-    }
-    .header.collapsed{
-      padding:6px 0 6px;
-    }
+.detailsWrap{border-top:1px solid var(--line);padding-top:10px}
+details{border:0}
+summary{cursor:pointer;color:var(--accent);font-size:13px;user-select:none}
+summary::-webkit-details-marker{display:none}
+.summaryBtn{display:inline-flex;align-items:center;gap:8px}
+.summaryBtn::after{content:"▾";font-size:12px;transform:translateY(-1px)}
+details[open] .summaryBtn::after{content:"▴"}
 
-    .titleRow{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-      padding:0 2px 10px;
-      transition: padding .2s ease, opacity .2s ease;
-    }
-    .header.collapsed .titleRow{
-      padding:0 2px 6px;
-    }
+.section{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:grid;gap:8px}
+.sectionTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
 
-    h1{
-      font-size:26px;
-      line-height:1.05;
-      margin:0;
-      letter-spacing:-.02em;
-    }
+.subdetails summary{color:#374151;font-size:13px}
+.subdetails .summaryBtn{color:#374151}
+.subdetails .summaryBtn::after{color:#6b7280}
+.subdetails .content{margin-top:8px}
+.subdetails .contentText{line-height:1.35;white-space:pre-line}
 
-    .controls{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      align-items:stretch;
-    }
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
 
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
+.trophyList{display:grid;gap:8px}
+.trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.platformChip{font-size:11px;font-weight:950;padding:2px 8px;border-radius:999px;background:#f3f4f6;border:1px solid #ececec;color:#374151;height:fit-content}
+.trophyRight{display:grid;gap:6px}
+.trophyText{font-size:13px;color:#111;line-height:1.2}
 
-    .box{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:16px;
-      box-shadow:0 2px 10px rgba(0,0,0,.03);
-      overflow:hidden;
-    }
+.progressWrap{display:grid;gap:4px}
+.progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
+.progressFill{height:100%;background:var(--accent);width:0%}
+.progressLabel{font-size:12px;color:var(--muted)}
 
-    .box.pad{ padding:10px; }
+.statusPill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  border:1px solid #ececec;
+  font-size:12px; font-weight:950;
+  width:fit-content;
+}
+.statusPill.ok{background:var(--okBg);border-color:var(--okBd);color:var(--ok)}
+.statusPill.mid{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
+.statusPill.blue{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
+.statusPill.dim{background:#f3f4f6;border-color:#ececec;color:#4b5563}
 
-    label.small{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin:0 0 6px;
-    }
+#fabTop{
+  position:fixed;right:14px;bottom:16px;z-index:50;
+  display:none;border-radius:999px;padding:12px 14px;border:1px solid #ddd;background:#fff;
+  box-shadow:var(--shadow);font-weight:950;
+}
+#fabTop.show{display:inline-flex}
 
-    input[type="file"]{
-      width:100%;
-      padding:10px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-    }
+#sentinel{height:1px}
 
-    select, input[type="text"]{
-      width:100%;
-      padding:12px 12px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:#fff;
-      font-size:15px;
-      outline:none;
-    }
-    select:disabled{opacity:.5}
-
-    .searchRow{
-      display:grid;
-      grid-template-columns: 1fr 56px;
-      gap:10px;
-      align-items:stretch;
-    }
-
-    .hamburger{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      width:56px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:var(--blueBg);
-      color:#0f2dbb;
-      font-size:24px;
-      user-select:none;
-      cursor:pointer;
-    }
-
-    .metaLine{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      padding:10px 2px 0;
-      color:var(--muted);
-      font-size:14px;
-      min-height:24px;
-    }
-
-    /* Drawer */
-    .drawerBackdrop{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.25);
-      z-index:80;
-      display:none;
-    }
-    .drawerBackdrop.show{display:block}
-    .drawer{
-      position:fixed;
-      top:0; right:0;
-      height:100%;
-      width:min(420px, 92vw);
-      background:var(--card);
-      border-left:1px solid var(--line);
-      box-shadow: -10px 0 40px rgba(0,0,0,.12);
-      z-index:90;
-      transform:translateX(100%);
-      transition: transform .22s ease;
-      display:flex;
-      flex-direction:column;
-    }
-    .drawer.show{ transform:translateX(0) }
-    .drawerHead{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-    .drawerHead b{font-size:16px}
-    .closeBtn{
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:12px;
-      padding:8px 10px;
-      cursor:pointer;
-    }
-    .drawerBody{
-      padding:12px 14px 16px;
-      overflow:auto;
-    }
-
-    .chipRow{ display:flex; flex-wrap:wrap; gap:8px; }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--chip);
-      color:var(--chipText);
-      font-size:14px;
-      cursor:pointer;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .chip.on{
-      border-color:transparent;
-      background:var(--blueBg);
-      color:#0f2dbb;
-    }
-
-    .chip.green.on{ background:var(--greenBg); color:var(--green); }
-    .chip.red.on{ background:var(--redBg); color:var(--red); }
-    .chip.violet.on{ background:var(--violetBg); color:var(--violet); }
-
-    .divider{
-      height:1px;
-      background:var(--line);
-      margin:14px 0;
-    }
-
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-
-    .help{
-      font-size:14px;
-      color:var(--muted);
-      line-height:1.35;
-      background:#fbfbfe;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-    }
-
-    /* Cards */
-    .list{
-      display:grid;
-      gap:14px;
-      padding-top:14px;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow: var(--shadow);
-      padding:14px 14px 12px;
-      overflow:hidden;
-    }
-
-    .card.delisted{
-      opacity:.95;
-    }
-    .card.delisted .gameTitle{
-      color:var(--red);
-      text-decoration: line-through;
-      text-decoration-thickness: 2px;
-    }
-
-    .cardTop{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-    }
-
-    .gameTitle{
-      font-size:20px;
-      line-height:1.15;
-      margin:0;
-      letter-spacing:-.01em;
-    }
-
-    .badges{
-      display:flex;
-      flex-direction:column; /* immer untereinander */
-      gap:6px;
-      align-items:flex-end;
-      min-width:120px;
-      flex:0 0 auto;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      font-size:13px;
-      border:1px solid var(--line);
-      background:#fff;
-      color:#1f2a37;
-      white-space:nowrap;
-    }
-    .badge.fav{ background:var(--goldBg); color:var(--gold); border-color:transparent; }
-    .badge.plat{ background:var(--blueBg); color:#0f2dbb; border-color:transparent; }
-    .badge.c100{ background:var(--greenBg); color:var(--green); border-color:transparent; }
-    .badge.work{ background:var(--redBg); color:var(--red); border-color:transparent; }
-    .badge.sleep{ background:#eef2f7; color:#3b455a; border-color:transparent; }
-
-    .subBadges{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      padding-bottom:10px;
-      border-bottom:1px solid var(--line);
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:13px;
-      background:var(--chip);
-      border:1px solid var(--line);
-      color:#111827;
-      min-height:30px;
-    }
-    .pill.id{
-      background:#223a9a;
-      color:#fff;
-      border-color:transparent;
-      font-weight:700;
-      letter-spacing:.02em;
-    }
-    .pill.status{
-      background:#f3f4f6;
-      color:#111827;
-    }
-
-    .kv{
-      display:grid;
-      grid-template-columns: 160px 1fr;
-      gap:8px 14px;
-      padding:10px 0;
-      border-bottom:1px solid rgba(230,232,239,.7);
-    }
-    .kv:last-child{ border-bottom:none; padding-bottom:0; }
-
-    .k{
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.3;
-    }
-    .v{
-      font-size:15px;
-      line-height:1.35;
-      word-break:break-word;
-    }
-    .v.mono{
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum";
-    }
-
-    .detailsToggle{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      cursor:pointer;
-      user-select:none;
-      color:#1f3aa7;
-      font-weight:600;
-      padding:10px 0 0;
-    }
-    .detailsToggle span{ font-size:14px; }
-
-    .details{
-      display:none;
-      margin-top:10px;
-      padding-top:12px;
-      border-top:1px solid var(--line);
-    }
-    .details.open{ display:block; }
-
-    .sectionTitle{
-      color:var(--muted);
-      letter-spacing:.10em;
-      font-size:12px;
-      margin:14px 0 8px;
-    }
-
-    .fold{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 12px;
-      background:#fff;
-    }
-    .foldHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      cursor:pointer;
-      user-select:none;
-      font-weight:650;
-      color:#1f3aa7;
-    }
-    .foldBody{
-      display:none;
-      margin-top:10px;
-      border-top:1px dashed rgba(230,232,239,.9);
-      padding-top:10px;
-      color:#111827;
-      white-space:pre-wrap;
-      line-height:1.4;
-      font-size:15px;
-    }
-    .fold.open .foldBody{ display:block; }
-    .foldSubGap{ height:8px; }
-
-    /* Trophy layout */
-    .trophyList{
-      display:grid;
-      gap:10px;
-    }
-    .trophyRow{
-      display:grid;
-      grid-template-columns: 54px 1fr;
-      gap:10px;
-      align-items:center;
-    }
-    .tPlatform{
-      justify-self:start;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:6px 10px;
-      border-radius:999px;
-      background:#f3f4f6;
-      border:1px solid var(--line);
-      font-size:13px;
-      color:#111827;
-      min-width:54px;
-    }
-    .tMain{
-      display:grid;
-      gap:6px;
-    }
-    .tLine{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .tText{
-      font-size:14px;
-      color:#111827;
-    }
-    .bar{
-      height:10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#f2f4f8;
-      overflow:hidden;
-    }
-    .bar > i{
-      display:block;
-      height:100%;
-      width:0%;
-      background:#2f5bff;
-    }
-    .barMeta{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    /* Sentinel + Top button */
-    .sentinel{
-      height:1px;
-    }
-    .fabTop{
-      position:fixed;
-      right:14px;
-      bottom:14px;
-      z-index:60;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:12px 14px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      box-shadow:0 12px 30px rgba(0,0,0,.10);
-      cursor:pointer;
-      user-select:none;
-      font-weight:700;
-    }
-    .fabTop.show{ display:flex; }
-
-    /* Responsive */
-    @media (max-width:560px){
-      .controls{ grid-template-columns: 1fr; }
-      .kv{ grid-template-columns: 140px 1fr; }
-      .badges{ min-width:108px; }
-    }
-  </style>
+#sheetOverlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.35);display:none}
+#sheetOverlay.show{display:block}
+#bottomSheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;background:#fff;border-radius:18px 18px 0 0;
+  box-shadow:var(--shadow);transform:translateY(110%);transition:transform .2s ease;
+  max-height:78vh;display:grid;grid-template-rows:auto 1fr auto;
+}
+#bottomSheet.show{transform:translateY(0)}
+.handle{width:46px;height:5px;border-radius:999px;background:#e5e7eb;margin:8px auto 0 auto}
+.sheetHead{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheetTitle{font-weight:950}
+.sheetClose{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff}
+.sheetBody{padding:12px 14px;overflow:auto;display:grid;gap:14px}
+.groupTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.sortRow{display:grid;gap:8px}
+.sortChoice{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 10px;border:1px solid #eee;border-radius:14px;background:#fafafa
+}
+.sortChoice.active{border-color:#d7ddff;background:#f4f6ff}
+.sortName{font-weight:900}
+.sortMeta{color:var(--muted);font-size:12px}
+.dirBtns{display:flex;gap:8px}
+.dirBtn{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff;font-weight:950}
+.dirBtn.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
+.togGrid{display:flex;gap:8px;flex-wrap:wrap}
+.tog{border:1px solid #eee;background:#fafafa;border-radius:999px;padding:8px 10px;font-size:13px;font-weight:900;cursor:pointer;user-select:none}
+.tog.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
+.sheetFoot{padding:10px 14px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.ghost{border:1px solid #ddd;background:#fff}
+</style>
 </head>
-
 <body>
-  <div class="header" id="header">
-    <div class="wrap">
-      <div class="titleRow" id="titleRow">
+
+<header id="hdr">
+  <div class="headerShell">
+    <div id="fullHeader">
+      <div class="brand">
         <h1>Spieleliste</h1>
       </div>
 
-      <div class="controls">
-        <div class="box pad">
-          <label class="small">Datei</label>
-          <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
-        </div>
-
-        <div class="box pad">
-          <label class="small">Sheet</label>
-          <select id="sheet" disabled>
-            <option value="">Sheet auswählen…</option>
-          </select>
-        </div>
-
-        <div class="box pad" style="grid-column:1/-1;">
-          <div class="searchRow">
-            <input id="q" type="text" placeholder="Suche… (z.B. id:643 delisted ps5 dev:capcom)" />
-            <div class="hamburger" id="openMenu" title="Sort & Filter">☰</div>
-          </div>
-        </div>
+      <div class="row">
+        <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
+        <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
       </div>
 
-      <div class="metaLine" id="metaLine">Datei wählen → Sheet wählen → suchen</div>
+      <div class="row">
+        <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom completed:1 platform:ps5)" disabled />
+        <button id="openSheetBtn2" class="primary" disabled title="Sort & Filter öffnen"><span style="font-size:18px;font-weight:950">☰</span></button>
+      </div>
+
+      <div class="row" style="justify-content:space-between">
+        <div class="hint" id="sortLabel">Sort: —</div>
+        <div class="counter" id="count"></div>
+      </div>
+
+      <div class="smallHelp">
+        ⓘ Query: <code>id:</code> <code>dev:</code> <code>platform:</code> <code>fav:</code> <code>platin:</code> <code>completed:</code> <code>delisted:</code> <code>psplus:</code> <code>digital:</code> <code>disc:</code>
+      </div>
+    </div>
+
+    <div id="compactBar">
+      <input id="compactSearch" type="search" placeholder="Suche…" />
+      <button id="openSheetBtn" class="primary" title="Sort & Filter"><span>☰</span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="status" class="hint" style="margin-bottom:10px">Datei wählen → Sheet wählen → suchen</div>
+  <div id="grid" class="grid"></div>
+  <div id="sentinel"></div>
+</main>
+
+<button id="fabTop" aria-label="Nach oben">↑ Top</button>
+
+<div id="sheetOverlay"></div>
+<div id="bottomSheet" aria-hidden="true">
+  <div class="handle"></div>
+  <div class="sheetHead">
+    <div>
+      <div class="sheetTitle">Sortieren & Filtern</div>
+      <div class="smallHelp" id="sheetMiniInfo">—</div>
+    </div>
+    <button class="sheetClose" id="sheetClose">Schließen</button>
+  </div>
+
+  <div class="sheetBody">
+    <div class="sortRow">
+      <div class="groupTitle">Sortieren nach</div>
+      <div id="sortList"></div>
+    </div>
+
+    <div>
+      <div class="groupTitle">Filter</div>
+      <div class="togGrid" id="filterTogs"></div>
+    </div>
+
+    <div>
+      <div class="groupTitle">System</div>
+      <div class="togGrid" id="platformTogs"></div>
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="list" id="list"></div>
-    <div class="sentinel" id="sentinel"></div>
+  <div class="sheetFoot">
+    <button id="clearFiltersBtn" class="ghost">Filter löschen</button>
+    <button id="applySheetBtn" class="primary">Übernehmen</button>
   </div>
+</div>
 
-  <div class="fabTop" id="fabTop">↑ Top</div>
-
-  <!-- Drawer -->
-  <div class="drawerBackdrop" id="backdrop"></div>
-  <div class="drawer" id="drawer">
-    <div class="drawerHead">
-      <b>Sortieren & Filtern</b>
-      <button class="closeBtn" id="closeMenu">Schließen</button>
-    </div>
-    <div class="drawerBody">
-      <div class="twoCol">
-        <div class="box pad">
-          <label class="small">Sortieren nach</label>
-          <select id="sortKey">
-            <!-- wird dynamisch gefüllt -->
-          </select>
-        </div>
-        <div class="box pad">
-          <label class="small">Richtung</label>
-          <select id="sortDir">
-            <option value="asc">Aufsteigend</option>
-            <option value="desc">Absteigend</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="help">
-        <b>Mini-Hilfe</b><br/>
-        - <b>id:643</b> sucht nach ID<br/>
-        - <b>delisted</b>, <b>ps5</b>, <b>ps4</b>, <b>vita</b>, <b>ps3</b><br/>
-        - <b>dev:capcom</b> Entwickler enthält „capcom“<br/>
-        - Rest ist normale Volltextsuche
-      </div>
-
-      <div class="divider"></div>
-
-      <label class="small">Filter</label>
-      <div class="chipRow" style="margin-bottom:10px;">
-        <div class="chip on" id="fAll">Alle</div>
-        <div class="chip" id="fFav">⭐ Favorit</div>
-        <div class="chip violet" id="fPlat">💎 Platin</div>
-        <div class="chip green" id="f100">✅ 100%</div>
-        <div class="chip red" id="fDel">Delisted</div>
-      </div>
-
-      <label class="small">Plattform</label>
-      <div class="chipRow" style="margin-bottom:10px;">
-        <div class="chip" data-plat="PS5">PS5</div>
-        <div class="chip" data-plat="PS4">PS4</div>
-        <div class="chip" data-plat="PS3">PS3</div>
-        <div class="chip" data-plat="Vita">Vita</div>
-      </div>
-
-      <label class="small">Quelle</label>
-      <div class="chipRow">
-        <div class="chip" data-src="digital">Digital</div>
-        <div class="chip" data-src="psplus">PS Plus</div>
-        <div class="chip" data-src="disc">Disc</div>
-      </div>
-
-      <div class="divider"></div>
-
-      <button class="closeBtn" id="clearFilters" style="width:100%; padding:12px; border-radius:14px;">
-        Filter löschen
-      </button>
-    </div>
-  </div>
-
+<script src="xlsx.full.min.js"></script>
 <script>
-(() => {
-  const PLACEHOLDER = "—";
+const PAGE_SIZE = 40;
+const PLACEHOLDER = "—";
+const STORAGE_KEY = "spieleliste_view_state_v9";
 
-  // ---- Column mapping (deine Datei)
-  const COL = {
-    id: ["ID","Id","id"],
-    title: ["Spieletitel","Spiel","Titel","Title"],
-    system: ["System","Plattform","Platform"],
-    source: ["Quelle","Source"],
-    availability: ["Verfügbarkeit","Availability"],
-    store: ["Store Link","Store","StoreLink","Link"],
-    genre: ["Genre"],
-    subgenre: ["Subgenre","Subgenre / Stimmung","Subgenre/Stimmung"],
-    dev: ["Entwickler","Developer"],
-    desc: ["Kurzbeschreibung","Beschreibung"],
-    easter: ["Eastereggs","Easter Eggs"],
-    special: ["Besonderheiten"],
-    main: ["Spielzeit (Main)","Main Story (Std.)","Main"],
-    hundred: ["Spielzeit (100%)","100 % (Std.)","100%"],
-    meta: ["Metascore","Pressemeinung (Ø)"],
-    user: ["Userwertung","Userwertung (Ø)"],
-    life: ["Lebenszeit %","% Lebenszeit (Humorstatistik)","% Lebenszeit"],
-    hours: ["Gesamtstunden","Gesamtstunden (Humorstatistik)"],
-    years: ["Jahre","Jahre (Humorstatistik)"],
-    trophies: ["Trophäen Fortschritt","Fortschritt","Trophäen","Trophäen-Fortschritt"],
-    completedCol: ["100%","100 %","100% Completed","Completed"], // in deiner Excel gibt’s eine "100%"-Spalte
-    platinumCol: ["Platin","Platinum"],
-    fav: ["Favorit","Favorite"],
-  };
+const COL_ALIASES = {
+  id: ["ID"],
+  title: ["Spieletitel","Spiel","Titel","Name"],
+  system: ["System","Plattform","Platform"],
+  source: ["Quelle","Source"],
+  genre: ["Genre"],
+  dev: ["Entwickler","Developer","Studio"],
+  main: ["Spielzeit (Main)","Spielzeit Main","Main Story (Std.)","Main Story"],
+  meta: ["Metascore","Pressemeinung (Ø)"],
+  user: ["Userwertung","Userwertung (Ø)"],
+  life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit","Humorstatistik - % Lebenszeit","% Lebenszeit"],
+  fav: ["Favorit","Favorite"],
+  platinum: ["Platin","Platinum"],
+  trophies: ["Trophäen Fortschritt","Trophäen-Fortschritt","Trophäenfortschritt","Trophies Progress"],
+  availability: ["Verfügbarkeit","Verfuegbarkeit","Availability"],
+  store: ["Store Link","Store-Link","StoreLink","Store"],
+  desc: ["Kurzbeschreibung","Beschreibung","Description"],
+  special: ["Besonderheiten","Highlights"],
+  easter: ["Eastereggs","Easter Eggs"],
+  hours: ["Gesamtstunden (Humorstatistik)","Humorstatistik – Gesamtstunden","Humorstatistik - Gesamtstunden"],
+  years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre","Humorstatistik - Jahre","Jahre"],
+  completedFlag: ["100%","100 %","100% Completed","100 % Completed","Completed (100%)","Komplett (100%)","100% Status"],
+};
+let COL = {};
 
-  // Sort keys (nur die sinnvollen + Reihenfolge wie von dir gewünscht)
-  const SORT_KEYS = [
-    { key:"ID", label:"ID" },
-    { key:"Spieletitel", label:"Spieletitel (Text, stabil)" },
-    { key:"System", label:"System" },
-    { key:"Quelle", label:"Quelle" },
-    { key:"Genre", label:"Genre" },
-    { key:"Entwickler", label:"Entwickler" },
-    { key:"SpielzeitMain", label:"Spielzeit (Main)" },
-    { key:"Metascore", label:"Metascore" },
-    { key:"Userwertung", label:"Userwertung" },
-    { key:"Lebenszeit", label:"Lebenszeit %" },
-  ];
+const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
+const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
 
-  const els = {
-    file: document.getElementById("file"),
-    sheet: document.getElementById("sheet"),
-    q: document.getElementById("q"),
-    list: document.getElementById("list"),
-    metaLine: document.getElementById("metaLine"),
-    sentinel: document.getElementById("sentinel"),
-    fabTop: document.getElementById("fabTop"),
-    header: document.getElementById("header"),
+const els = {
+  hdr: document.getElementById("hdr"),
+  file: document.getElementById("file"),
+  sheet: document.getElementById("sheetSelect"),
+  search: document.getElementById("search"),
+  compactSearch: document.getElementById("compactSearch"),
+  openSheetBtn: document.getElementById("openSheetBtn"),
+  openSheetBtn2: document.getElementById("openSheetBtn2"),
+  sortLabel: document.getElementById("sortLabel"),
+  status: document.getElementById("status"),
+  count: document.getElementById("count"),
+  grid: document.getElementById("grid"),
+  sentinel: document.getElementById("sentinel"),
+  fabTop: document.getElementById("fabTop"),
 
-    openMenu: document.getElementById("openMenu"),
-    closeMenu: document.getElementById("closeMenu"),
-    drawer: document.getElementById("drawer"),
-    backdrop: document.getElementById("backdrop"),
+  overlay: document.getElementById("sheetOverlay"),
+  sheetBox: document.getElementById("bottomSheet"),
+  sheetClose: document.getElementById("sheetClose"),
+  sortList: document.getElementById("sortList"),
+  filterTogs: document.getElementById("filterTogs"),
+  platformTogs: document.getElementById("platformTogs"),
+  clearFiltersBtn: document.getElementById("clearFiltersBtn"),
+  applySheetBtn: document.getElementById("applySheetBtn"),
+  sheetMiniInfo: document.getElementById("sheetMiniInfo"),
+};
 
-    sortKey: document.getElementById("sortKey"),
-    sortDir: document.getElementById("sortDir"),
+const s = v => (v == null ? "" : String(v).trim());
 
-    fAll: document.getElementById("fAll"),
-    fFav: document.getElementById("fFav"),
-    fPlat: document.getElementById("fPlat"),
-    f100: document.getElementById("f100"),
-    fDel: document.getElementById("fDel"),
-    clearFilters: document.getElementById("clearFilters"),
-  };
+let workbook = null;
+let allRows = [];
+let matches = [];
+let shown = 0;
+let columns = [];
+let linkMap = new Map();
+let headerRowIndex = 1;
+let io = null;
+let isLoading = false;
 
-  // drawer chips
-  const platChips = Array.from(document.querySelectorAll(".chip[data-plat]"));
-  const srcChips  = Array.from(document.querySelectorAll(".chip[data-src]"));
+const SORT_KEYS = [
+  { key:"__id",   label:"ID",            meta:"numerisch" },
+  { key:"__title",label:"Spieletitel",   meta:"Text" },
+  { key:"__system",label:"System",       meta:"Text" },
+  { key:"__source",label:"Quelle",       meta:"Text" },
+  { key:"__genre",label:"Genre",         meta:"Text" },
+  { key:"__dev",  label:"Entwickler",    meta:"Text" },
+  { key:"__main", label:"Spielzeit (Main)", meta:"numerisch" },
+  { key:"__meta", label:"Metascore",     meta:"numerisch" },
+  { key:"__user", label:"Userwertung",   meta:"numerisch" },
+  { key:"__life", label:"Lebenszeit %",  meta:"numerisch" },
+];
 
-  let workbook = null;
-  let rawRows = [];
-  let rows = []; // normalized objects
-  let visible = [];
-  let renderedCount = 0;
-  const PAGE = 60;
+const viewState = {
+  fileMode: "",
+  sheetName: "",
+  search: "",
+  sortKey: "__id",
+  sortDir: "asc",
+  filters: {
+    fav:false, platin:false, completed:false, delisted:false,
+    ps5:false, ps4:false, ps3:false, vita:false,
+    psplus:false, digital:false, disc:false
+  },
+};
 
-  // Filters state
-  const state = {
-    sheetName: "",
-    query: "",
-    sortKey: "ID",
-    sortDir: "asc",
-    filterFav: false,
-    filterPlat: false,
-    filter100: false,
-    filterDel: false,
-    plats: new Set(), // PS5/PS4/PS3/Vita
-    sources: new Set(), // digital/psplus/disc
-  };
-
-  // Persistence
-  const LS_KEY = "spieleliste_ui_v1";
-  function loadState(){
-    try{
-      const s = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
-      if (typeof s.sheetName === "string") state.sheetName = s.sheetName;
-      if (typeof s.query === "string") state.query = s.query;
-      if (typeof s.sortKey === "string") state.sortKey = s.sortKey;
-      if (typeof s.sortDir === "string") state.sortDir = s.sortDir;
-      state.filterFav = !!s.filterFav;
-      state.filterPlat = !!s.filterPlat;
-      state.filter100 = !!s.filter100;
-      state.filterDel = !!s.filterDel;
-      state.plats = new Set(Array.isArray(s.plats) ? s.plats : []);
-      state.sources = new Set(Array.isArray(s.sources) ? s.sources : []);
-    }catch{}
-  }
-  function saveState(){
-    const s = {
-      sheetName: state.sheetName,
-      query: state.query,
-      sortKey: state.sortKey,
-      sortDir: state.sortDir,
-      filterFav: state.filterFav,
-      filterPlat: state.filterPlat,
-      filter100: state.filter100,
-      filterDel: state.filterDel,
-      plats: [...state.plats],
-      sources: [...state.sources],
-    };
-    localStorage.setItem(LS_KEY, JSON.stringify(s));
-  }
-
-  // ---- Utilities
-  const norm = (v) => String(v ?? "").replace(/\s+/g," ").trim();
-  const lower = (v) => norm(v).toLowerCase();
-
-  function findHeaderKey(headers, wantedList){
-    const map = new Map(headers.map(h => [lower(h), h]));
-    for (const w of wantedList){
-      const hit = map.get(lower(w));
-      if (hit) return hit;
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const st = JSON.parse(raw);
+    if (st && typeof st === "object"){
+      Object.assign(viewState, st);
+      if (st.filters) Object.assign(viewState.filters, st.filters);
     }
-    // fuzzy: ignore punctuation
-    const clean = (s)=> lower(s).replace(/[^a-z0-9%äöüß]+/g,"");
-    const map2 = new Map(headers.map(h => [clean(h), h]));
-    for (const w of wantedList){
-      const hit = map2.get(clean(w));
-      if (hit) return hit;
+  }catch(e){}
+}
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState)); }catch(e){} }
+loadState();
+
+function normHeader(x){
+  return String(x ?? "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+}
+function resolveColumns(cols){
+  const byNorm = new Map(cols.map(c => [normHeader(c), c]));
+  const resolved = {};
+  for (const [key, aliases] of Object.entries(COL_ALIASES)) {
+    let found = "";
+    for (const a of aliases) {
+      const hit = byNorm.get(normHeader(a));
+      if (hit) { found = hit; break; }
     }
-    return null;
+    resolved[key] = found;
   }
+  return resolved;
+}
+function val(row, colName){
+  if (!colName) return "";
+  const v = row[colName];
+  return v == null ? "" : String(v).trim();
+}
 
-  function val(row, key){
-    const v = row?.[key];
-    const s = norm(v);
-    return s ? s : "";
+/* Plattform-Utilities */
+function extractPlatformsFromText(text){
+  const t = String(text ?? "");
+  const found = [];
+  const re = /\b(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g;
+  let m;
+  while ((m = re.exec(t)) !== null) found.push(m[1]);
+  return [...new Set(found)];
+}
+function platformsFromSystem(row){
+  return extractPlatformsFromText(val(row, COL.system));
+}
+function rowHasPlatform(row, key){
+  let plats = platformsFromSystem(row).map(p => p.toLowerCase());
+  if (!plats.length){
+    const fallback = [...extractPlatformsFromText(val(row, COL.trophies)), ...extractPlatformsFromText(val(row, COL.platinum)), ...extractPlatformsFromText(val(row, COL.completedFlag))].map(p=>p.toLowerCase());
+    plats = fallback;
   }
+  return plats.some(p => (PLATFORM_CANON[p] || p) === key);
+}
 
-  function parseScore(s){
-    const t = norm(s);
-    if(!t) return NaN;
-    const m = t.match(/(\d+(?:[.,]\d+)?)/);
-    if(!m) return NaN;
-    return parseFloat(m[1].replace(",", "."));
-  }
-  function parseNumber(s){
-    const t = norm(s);
-    if(!t) return NaN;
-    const m = t.match(/-?\d+(?:[.,]\d+)?/);
-    if(!m) return NaN;
-    return parseFloat(m[0].replace(",", "."));
-  }
-  function parseHoursPair(main, hundred){
-    const a = parseNumber(main);
-    const b = parseNumber(hundred);
-    const mainOk = Number.isFinite(a) ? String(a).replace(/\.0+$/,"") : "";
-    const hundOk = Number.isFinite(b) ? String(b).replace(/\.0+$/,"") : "";
-    if(mainOk || hundOk) return `${mainOk || PLACEHOLDER}h / ${hundOk || PLACEHOLDER}h`;
-    return PLACEHOLDER;
-  }
+/* Quelle-Erkennung (PS Plus / Digital / Disc) */
+function sourceText(row){ return val(row, COL.source).toLowerCase(); }
+function isPSPlus(row){
+  const t = sourceText(row);
+  return t.includes("ps plus") || t.includes("ps+") || t.includes("plus");
+}
+function isDigital(row){
+  const t = sourceText(row);
+  return t.includes("gekauft") || t.includes("kauf") || t.includes("buy") || t.includes("purchased");
+}
+function isDisc(row){
+  const t = sourceText(row);
+  return t.includes("disc") || t.includes("disk") || t.includes("retail") || t.includes("blu-ray") || t.includes("bluray");
+}
+function displaySource(row){
+  if (isPSPlus(row)) return "PS Plus";
+  if (isDigital(row)) return "Digital";
+  if (isDisc(row)) return "Disc";
+  const raw = val(row, COL.source);
+  return raw || PLACEHOLDER;
+}
 
-  function parseSystems(systemText){
-    const t = norm(systemText);
-    if(!t) return [];
-    // Accept "PS3, PS4, Vita" etc
-    const parts = t.split(/[,/|]+/).map(p=>norm(p)).filter(Boolean);
-    const normed = [];
-    for(const p of parts){
-      if(/^ps5$/i.test(p)) normed.push("PS5");
-      else if(/^ps4$/i.test(p)) normed.push("PS4");
-      else if(/^ps3$/i.test(p)) normed.push("PS3");
-      else if(/^vita$/i.test(p) || /^psvita$/i.test(p)) normed.push("Vita");
-      else normed.push(p);
+/* XLSX Links */
+function buildLinks(ws){
+  linkMap.clear();
+  const ref = ws["!ref"]; if (!ref) return;
+  const r = XLSX.utils.decode_range(ref);
+
+  const headerR = r.s.r;
+  headerRowIndex = headerR + 1;
+
+  const headerByCol = new Map();
+  for (let c = r.s.c; c <= r.e.c; c++){
+    const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
+    headerByCol.set(c, cell && cell.v != null ? String(cell.v).trim() : "");
+  }
+  for (let rr = headerR + 1; rr <= r.e.r; rr++){
+    const row1 = rr + 1;
+    for (let c = r.s.c; c <= r.e.c; c++){
+      const cell = ws[XLSX.utils.encode_cell({ r: rr, c })];
+      if (cell && cell.l && cell.l.Target){
+        const colName = headerByCol.get(c);
+        if (colName) linkMap.set(`${row1}:${colName}`, String(cell.l.Target));
+      }
     }
-    // unique preserve
-    return [...new Set(normed)];
+  }
+}
+function applyDelistedFromStyles(ws){
+  const ref = ws["!ref"]; if (!ref) return;
+  const r = XLSX.utils.decode_range(ref);
+  const titleCol = COL.title;
+  if (!titleCol) return;
+
+  const headerR = r.s.r;
+  let titleC = null;
+  for (let c = r.s.c; c <= r.e.c; c++){
+    const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
+    const h = cell && cell.v != null ? String(cell.v).trim() : "";
+    if (h === titleCol) { titleC = c; break; }
+  }
+  if (titleC == null) return;
+
+  for (let i = 0; i < allRows.length; i++){
+    const rr = headerR + 1 + i;
+    const cell = ws[XLSX.utils.encode_cell({ r: rr, c: titleC })];
+    const strike = !!(cell && cell.s && cell.s.font && (cell.s.font.strike || cell.s.font.strikethrough));
+    if (strike) allRows[i].__delisted = true;
+  }
+}
+function isDelistedRow(row){
+  if (row.__delisted) return true;
+  const v = val(row, COL.availability).toLowerCase();
+  return v === "delisted" || v === "removed" || v.includes("store entfernt");
+}
+function getValueWithLink(row, colName, rowIndex1Based){
+  const text = val(row, colName);
+  const href = linkMap.get(`${rowIndex1Based}:${colName}`);
+  if (href) return { text: text || "Store Link", href };
+  return text;
+}
+
+/* Fortschritt: Fractions */
+function parseAllFractions(text){
+  const t = String(text ?? "");
+  const out = [];
+  const re = /(\d+)\s*(?:of|von|\/)\s*(\d+)/ig;
+  let m;
+  while ((m = re.exec(t)) !== null){
+    const a = parseInt(m[1],10);
+    const b = parseInt(m[2],10);
+    if (Number.isFinite(a) && Number.isFinite(b) && b > 0) out.push({a,b});
+  }
+  return out;
+}
+
+/* Fortschritt pro Plattform rausziehen (PS4 15 of 15 / PS5 --- etc.) */
+function parsePlatformPairs(text){
+  const t = String(text ?? "").trim();
+  if (!t) return [];
+  const hits = [];
+  for (const p of PLATFORM_LIST) {
+    const re = new RegExp(`\\b${p}\\b`, "g");
+    let m; while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
+  }
+  hits.sort((a,b)=>a.i-b.i);
+  if (!hits.length) return [];
+  const out = [];
+  for (let j=0;j<hits.length;j++){
+    const start = hits[j].i;
+    const end = (j+1<hits.length) ? hits[j+1].i : t.length;
+    const p = hits[j].p;
+    let seg = t.slice(start, end).trim();
+    seg = seg.replace(new RegExp(`^${p}\\s*`), "").trim();
+    out.push({ platform: (p==="PSVita" ? "Vita" : p), text: seg || PLACEHOLDER });
+  }
+  return out;
+}
+
+/* Status-Text (100% / Platin) pro Plattform extrahieren */
+function parsePlatformStatusText(text){
+  const raw = String(text ?? "").trim();
+  if (!raw) return [];
+  const pairs = parsePlatformPairs(raw);
+  if (pairs.length) return pairs.map(p => ({ platform:p.platform, text:p.text }));
+  return [{ platform:"", text: raw }];
+}
+
+/* Normalisierung */
+function normStatusText(t){
+  const x = String(t ?? "").trim();
+  if (!x) return "";
+  if (x === "---" || x === "-" || x.toLowerCase() === "n/a") return "";
+  return x;
+}
+function isCompletedText(t){
+  const x = normStatusText(t).toLowerCase();
+  return x.includes("completed") || x === "complete" || x === "100%" || x.includes("100");
+}
+function isPlatinumText(t){
+  const x = normStatusText(t).toLowerCase();
+  return x.includes("platinum") || x.includes("platin");
+}
+
+/* Fortschritt-Parsing */
+function parseFraction(text){
+  const s = String(text ?? "");
+  let m = s.match(/(\d+)\s*(?:of|von|\/)\s*(\d+)/i);
+  if (!m) return null;
+  const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+  if (!b) return null;
+  const pct = Math.max(0, Math.min(1, a / b));
+  return { a, b, pct };
+}
+function progressNode(fr){
+  const wrap = document.createElement("div"); wrap.className="progressWrap";
+  const bar = document.createElement("div"); bar.className="progressBar";
+  const fill = document.createElement("div"); fill.className="progressFill"; fill.style.width = `${Math.round(fr.pct*100)}%`;
+  bar.appendChild(fill);
+  const lab = document.createElement("div"); lab.className="progressLabel"; lab.textContent = `${Math.round(fr.pct*100)}% (${fr.a}/${fr.b})`;
+  wrap.append(bar, lab);
+  return wrap;
+}
+function trophyList(items){
+  const wrap = document.createElement("div"); wrap.className="trophyList";
+  for (const it of items) {
+    const rowEl = document.createElement("div"); rowEl.className="trophyRow";
+    const chip = document.createElement("span"); chip.className="platformChip"; chip.textContent = it.platform || "—";
+    const right = document.createElement("div"); right.className="trophyRight";
+    const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = it.text || PLACEHOLDER;
+    right.appendChild(txt);
+    const fr = parseFraction(it.text);
+    if (fr) right.appendChild(progressNode(fr));
+    rowEl.append(chip, right);
+    wrap.appendChild(rowEl);
+  }
+  return wrap;
+}
+
+/* === NEU: Fortschritt konsistent als Plattformliste ausgeben === */
+function trophyNodeFromTextUnified(row){
+  const raw = String(val(row, COL.trophies) ?? "").trim();
+  const plats = trophyPlatforms(row);
+
+  // 1) Wenn Plattform-Paare vorhanden, normal rendern
+  const pairs = parsePlatformPairs(raw);
+  if (pairs.length) return trophyList(pairs);
+
+  // 2) Wenn Singleplatform UND kein Fortschritt -> "Ungespielt" für diese Plattform
+  if (plats.length === 1){
+    const p = plats[0];
+    const text = raw ? raw : "💤 Ungespielt";
+    const list = [{ platform:p, text }];
+    // Wenn raw ein Fraction ist, wird Bar automatisch ergänzt (ok)
+    // Wenn raw leer ist, bleibt "Ungespielt" ohne Bar (gewollt)
+    return trophyList(list);
   }
 
-  // Source classification
-  function sourceClass(sourceText){
-    const t = lower(sourceText);
-    if(!t) return "";
-    if(t.includes("ps plus")) return "psplus";
-    if(t.includes("disc")) return "disc";
-    if(t.includes("gekauft")) return "digital"; // du willst gekauft als Digital
-    return "";
+  // 3) Multi-Platform + globaler Text (ohne Marker) -> global anzeigen (wie vorher)
+  if (!raw) return document.createTextNode(PLACEHOLDER);
+
+  const outer = document.createElement("div");
+  outer.style.display="grid"; outer.style.gap="8px";
+  const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = raw;
+  outer.appendChild(txt);
+  const fr = parseFraction(raw);
+  if (fr) outer.appendChild(progressNode(fr));
+  return outer;
+}
+
+/* Pro Plattform: Fortschritt für Plattform suchen */
+function progressForPlatform(row, platform){
+  const prog = val(row, COL.trophies);
+  if (!prog) return null;
+  const pairs = parsePlatformPairs(prog);
+  if (pairs.length){
+    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
+    if (!hit) return null;
+    return parseFraction(hit.text);
+  }
+  return parseFraction(prog);
+}
+
+/* Plattformliste, die im TROPHÄEN-Bereich benutzt wird */
+function trophyPlatforms(row){
+  let plats = platformsFromSystem(row);
+  if (!plats.length){
+    const p1 = extractPlatformsFromText(val(row, COL.trophies));
+    const p2 = extractPlatformsFromText(val(row, COL.completedFlag));
+    const p3 = extractPlatformsFromText(val(row, COL.platinum));
+    plats = [...new Set([...p1,...p2,...p3])];
+  }
+  plats = plats.map(p => (p === "PSVita" ? "Vita" : p));
+  return plats;
+}
+
+/* Pro Plattform: Status aus 100%-Spalte holen */
+function completedForPlatform(row, platform){
+  const t = val(row, COL.completedFlag);
+  if (!t) return false;
+
+  const hasMarkers = parsePlatformPairs(t).length > 0;
+  const pairs = parsePlatformStatusText(t);
+
+  if (hasMarkers){
+    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
+    return hit ? isCompletedText(hit.text) : false;
   }
 
-  // Delisted detection
-  function isDelisted(row){
-    const q = lower(val(row, keyMap.source) + " " + val(row, keyMap.availability));
-    return q.includes("aus store entfernt") || q.includes("delisted");
+  const sysPlats = trophyPlatforms(row);
+  if (sysPlats.length === 1){
+    return sysPlats[0].toLowerCase() === platform.toLowerCase()
+      ? isCompletedText(pairs[0]?.text || "")
+      : false;
+  }
+  return false;
+}
+
+/* Pro Plattform: Platin-Status aus Platin-Spalte holen */
+function platinumForPlatform(row, platform){
+  const t = val(row, COL.platinum);
+  if (!t) return false;
+
+  const hasMarkers = parsePlatformPairs(t).length > 0;
+  const pairs = parsePlatformStatusText(t);
+
+  if (hasMarkers){
+    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
+    return hit ? isPlatinumText(hit.text) : false;
   }
 
-  // Favorit detection
-  function isFav(row){
-    const f = lower(val(row, keyMap.fav));
-    return f === "x" || f === "1" || f === "true" || f === "yes";
+  const sysPlats = trophyPlatforms(row);
+  if (sysPlats.length === 1){
+    return sysPlats[0].toLowerCase() === platform.toLowerCase()
+      ? isPlatinumText(pairs[0]?.text || "")
+      : false;
+  }
+  return false;
+}
+
+/* UI helpers */
+function renderValue(value){
+  if (value && typeof value === "object" && value.href) {
+    const a = document.createElement("a");
+    a.href = value.href;
+    a.textContent = value.text || "Link";
+    a.title = value.href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    return a;
+  }
+  const t = s(value);
+  return document.createTextNode(t || PLACEHOLDER);
+}
+function kvLine(label, node){
+  const line = document.createElement("div");
+  line.className = "kvLine";
+  const k = document.createElement("div"); k.className="k"; k.textContent=label;
+  const v = document.createElement("div"); v.className="v"; v.appendChild(node);
+  line.append(k,v);
+  return line;
+}
+function makeChip(text){
+  const c = document.createElement("span");
+  c.className = "chip"; c.textContent=text;
+  return c;
+}
+function makeBadge(text, cls=""){
+  const b = document.createElement("span");
+  b.className = "badge" + (cls ? " " + cls : "");
+  b.textContent = text;
+  return b;
+}
+function makeToggleBlock(label, contentText){
+  const d = document.createElement("details");
+  d.className = "subdetails";
+  const sum = document.createElement("summary");
+  const btn = document.createElement("span");
+  btn.className = "summaryBtn";
+  btn.textContent = `${label} anzeigen`;
+  sum.appendChild(btn);
+  d.appendChild(sum);
+
+  const wrap = document.createElement("div"); wrap.className="content";
+  const txt = document.createElement("div"); txt.className="v contentText";
+  txt.textContent = contentText || PLACEHOLDER;
+  wrap.appendChild(txt);
+  d.appendChild(wrap);
+
+  d.addEventListener("toggle", () => btn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`);
+  return d;
+}
+
+function makePill(cls, text){
+  const pill = document.createElement("span");
+  pill.className = "statusPill " + cls;
+  pill.textContent = text;
+  return pill;
+}
+
+/* TROPHÄEN: Status-Liste pro Plattform */
+function trophyStatusList(row, kind /* "completion" | "platin" */){
+  const plats = trophyPlatforms(row);
+
+  // Wenn gar keine Plattform ermittelbar: fallback
+  if (!plats.length){
+    const wrap = document.createElement("div");
+    wrap.textContent = PLACEHOLDER;
+    return wrap;
   }
 
-  // Parse platform pairs from a trophy cell: "PS4 16 of 20 PS5 10 of 30"
-  function parsePlatformPairs(text){
-    const t = norm(text);
-    if(!t) return [];
-    const re = /(PS5|PS4|PS3|Vita)\s*([^PS]*)/gi;
-    const out = [];
-    let m;
-    while((m=re.exec(t))){
-      const platform = m[1].toUpperCase()==="VITA" ? "Vita" : m[1].toUpperCase();
-      const chunk = norm(m[2]);
-      if(chunk) out.push({ platform, text: chunk });
-    }
-    // If regex fails but contains explicit tokens, do another pass:
-    if(out.length===0){
-      const tokens = ["PS5","PS4","PS3","Vita"];
-      for(const tok of tokens){
-        const idx = t.toLowerCase().indexOf(tok.toLowerCase());
-        if(idx>=0){
-          // naive split: keep as is
+  const wrap = document.createElement("div");
+  wrap.className = "trophyList";
+
+  for (const plat of plats){
+    const rowEl = document.createElement("div"); rowEl.className="trophyRow";
+    const chip = document.createElement("span"); chip.className="platformChip"; chip.textContent = plat;
+
+    const right = document.createElement("div"); right.className="trophyRight";
+
+    if (kind === "completion"){
+      if (completedForPlatform(row, plat)){
+        right.appendChild(makePill("ok","✅ 100% erreicht"));
+      } else {
+        const fr = progressForPlatform(row, plat);
+        if (fr && fr.a === fr.b && fr.b > 0){
+          right.appendChild(makePill("ok","✅ 100% erreicht"));
+        } else if (fr && fr.a > 0 && fr.a < fr.b){
+          right.appendChild(makePill("mid","⏳ In Arbeit"));
+        } else {
+          right.appendChild(makePill("dim","💤 Ungespielt"));
+        }
+      }
+    } else {
+      if (platinumForPlatform(row, plat)){
+        right.appendChild(makePill("blue","💎 Platin erlangt"));
+      } else {
+        const fr = progressForPlatform(row, plat);
+        if (fr && fr.a > 0 && fr.a < fr.b){
+          right.appendChild(makePill("mid","⏳ In Arbeit"));
+        } else {
+          right.appendChild(makePill("dim","💤 Ungespielt"));
         }
       }
     }
-    // clean: remove empties
-    return out.map(x=>({platform:x.platform, text:norm(x.text)})).filter(x=>x.text);
+
+    rowEl.append(chip, right);
+    wrap.appendChild(rowEl);
   }
+  return wrap;
+}
 
-  function parseFraction(s){
-    const t = norm(s);
-    const m = t.match(/(\d+)\s*of\s*(\d+)/i);
-    if(!m) return null;
-    const a = parseInt(m[1],10), b=parseInt(m[2],10);
-    if(!b || !Number.isFinite(a) || !Number.isFinite(b)) return null;
-    return { a, b, pct: Math.max(0, Math.min(1, a/b)) };
+/* Favorit/Platin/100% global (Badges oben nur “erreicht” anzeigen) */
+function formatFavorite(row){
+  const f = val(row, COL.fav).toLowerCase();
+  if (!f) return "";
+  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
+}
+function isCompletedAny(row){
+  const plats = trophyPlatforms(row);
+  if (!plats.length){
+    return isCompletedText(val(row, COL.completedFlag)) || parseAllFractions(val(row, COL.trophies)).some(f=>f.a===f.b);
   }
-
-  function progressNode(fr){
-    const wrap = document.createElement("div");
-    const bar = document.createElement("div");
-    bar.className="bar";
-    const fill = document.createElement("i");
-    fill.style.width = (fr.pct*100).toFixed(0) + "%";
-    bar.appendChild(fill);
-
-    const meta = document.createElement("div");
-    meta.className="barMeta";
-    meta.textContent = `${(fr.pct*100).toFixed(0)}% (${fr.a}/${fr.b})`;
-
-    wrap.appendChild(bar);
-    wrap.appendChild(meta);
-    return wrap;
+  return plats.some(p => completedForPlatform(row,p) || (()=>{ const fr=progressForPlatform(row,p); return fr && fr.a===fr.b && fr.b>0; })());
+}
+function isPlatinumAny(row){
+  const plats = trophyPlatforms(row);
+  if (!plats.length){
+    return isPlatinumText(val(row, COL.platinum));
   }
+  return plats.some(p => platinumForPlatform(row,p));
+}
 
-  function trophyList(pairs){
-    const outer = document.createElement("div");
-    outer.className = "trophyList";
-    for(const p of pairs){
-      const row = document.createElement("div");
-      row.className="trophyRow";
+/* Scores / Sort helpers */
+function parseFloatLoose(text){
+  const t = String(text ?? "").trim();
+  if (!t) return NaN;
+  const m = t.match(/-?\d+(?:[.,]\d+)?/);
+  if (!m) return NaN;
+  return parseFloat(m[0].replace(",", "."));
+}
+function scoreNum(text){ return parseFloatLoose(text); }
 
-      const plat = document.createElement("div");
-      plat.className="tPlatform";
-      plat.textContent = p.platform;
+/* Query / Filter */
+function parseQuery(q){
+  const raw = (q || "").trim();
+  const tokens = raw.length ? raw.split(/\s+/) : [];
+  const filters = { text: [], id:"", dev:"", platform:"", fav:null, platin:null, completed:null, delisted:null, psplus:null, digital:null, disc:null };
 
-      const main = document.createElement("div");
-      main.className="tMain";
+  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
+  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
 
-      const line = document.createElement("div");
-      line.className="tLine";
+  for (const t of tokens){
+    const m = t.match(/^(\w+)\:(.+)$/);
+    if (!m){ filters.text.push(t); continue; }
+    const key = m[1].toLowerCase();
+    const vv = m[2];
 
-      const t = document.createElement("div");
-      t.className="tText";
-      t.textContent = p.text;
+    if (key === "id") filters.id = vv;
+    else if (key === "dev") filters.dev = vv;
+    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
+    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "completed") filters.completed = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "psplus") filters.psplus = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "digital") filters.digital = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else if (key === "disc") filters.disc = truthy(vv) ? true : (falsy(vv) ? false : null);
+    else filters.text.push(t);
+  }
+  return filters;
+}
+function queryMatchesRow(qf, row){
+  const txt = qf.text.join(" ").toLowerCase();
+  if (txt){
+    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
+    if (!hay.includes(txt)) return false;
+  }
+  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
+  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
+  if (qf.platform){
+    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
+    if (!rowHasPlatform(row, canon)) return false;
+  }
+  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
+  if (qf.platin !== null){ if (isPlatinumAny(row) !== qf.platin) return false; }
+  if (qf.completed !== null){ if (isCompletedAny(row) !== qf.completed) return false; }
+  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
+  if (qf.psplus !== null){ if (isPSPlus(row) !== qf.psplus) return false; }
+  if (qf.digital !== null){ if (isDigital(row) !== qf.digital) return false; }
+  if (qf.disc !== null){ if (isDisc(row) !== qf.disc) return false; }
+  return true;
+}
 
-      line.appendChild(t);
-      main.appendChild(line);
+function rowPassesFilters(row){
+  const f = viewState.filters;
+  if (f.fav && !formatFavorite(row)) return false;
+  if (f.platin && !isPlatinumAny(row)) return false;
+  if (f.completed && !isCompletedAny(row)) return false;
+  if (f.delisted && !isDelistedRow(row)) return false;
 
-      const fr = parseFraction(p.text);
-      if(fr) main.appendChild(progressNode(fr));
+  if (f.psplus && !isPSPlus(row)) return false;
+  if (f.digital && !isDigital(row)) return false;
+  if (f.disc && !isDisc(row)) return false;
 
-      row.appendChild(plat);
-      row.appendChild(main);
-      outer.appendChild(row);
+  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
+  if (platformFilters.length){
+    const ok = platformFilters.some(k => rowHasPlatform(row, k));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+/* Sort */
+function sortValue(row, key){
+  if (key === "__id"){
+    const n = parseFloatLoose(val(row, COL.id));
+    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
+  }
+  if (key === "__title"){
+    const t = val(row, COL.title) || "";
+    return {t:"title", v: t};
+  }
+  if (key === "__system") return {t:"str", v: (val(row, COL.system)||"")};
+  if (key === "__source") return {t:"str", v: (displaySource(row)||"")};
+  if (key === "__genre") return {t:"str", v: (val(row, COL.genre)||"")};
+  if (key === "__dev") return {t:"str", v: (val(row, COL.dev)||"")};
+  if (key === "__main"){
+    const n = parseFloatLoose(val(row, COL.main));
+    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
+  }
+  if (key === "__meta"){
+    const n = scoreNum(val(row, COL.meta));
+    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
+  }
+  if (key === "__user"){
+    const n = scoreNum(val(row, COL.user));
+    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
+  }
+  if (key === "__life"){
+    const n = parseFloatLoose(val(row, COL.life));
+    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
+  }
+  return {t:"str", v:""};
+}
+function sortMatches(arr){
+  const dir = viewState.sortDir === "asc" ? 1 : -1;
+  const key = viewState.sortKey;
+  arr.sort((a,b) => {
+    const av = sortValue(a.row, key);
+    const bv = sortValue(b.row, key);
+
+    if (av.t === "num" && bv.t === "num"){
+      if (av.v === bv.v) return 0;
+      return dir * (av.v < bv.v ? -1 : 1);
     }
-    return outer;
-  }
-
-  function trophyPlatforms(row){
-    // primary: System field
-    const sys = parseSystems(val(row, keyMap.system));
-    if(sys.length) return sys;
-
-    // fallback: sniff from trophy text if present
-    const t = val(row, keyMap.trophies);
-    const pairs = parsePlatformPairs(t);
-    const p = pairs.map(x=>x.platform);
-    return [...new Set(p)];
-  }
-
-  // ✅ Singleplatform: show platform even when progress is "16 of 20"
-  function trophyNodeFromText(text, row){
-    const raw = String(text ?? "").trim();
-    if (!raw) return document.createTextNode(PLACEHOLDER);
-
-    const pairs = parsePlatformPairs(raw);
-    if (pairs.length) return trophyList(pairs);
-
-    const plats = trophyPlatforms(row);
-    if (plats.length === 1){
-      return trophyList([{ platform: plats[0], text: raw }]);
+    if (av.t === "title" && bv.t === "title"){
+      return dir * av.v.localeCompare(bv.v, "de", { sensitivity: "base", numeric: true, ignorePunctuation: true });
     }
+    const as = String(av.v ?? "");
+    const bs = String(bv.v ?? "");
+    return dir * as.localeCompare(bs, "de", { sensitivity:"base", numeric:true, ignorePunctuation:true });
+  });
+  return arr;
+}
 
-    // Multi-platform but no markers -> show as global text + bar if possible
-    const outer = document.createElement("div");
-    outer.style.display="grid";
-    outer.style.gap="8px";
+/* Card */
+function createCard(row, rowIndex1Based){
+  const card = document.createElement("div"); card.className="card";
 
-    const txt = document.createElement("div");
-    txt.className="tText";
-    txt.textContent = raw;
-    outer.appendChild(txt);
+  const titleRow = document.createElement("div"); titleRow.className="titleRow";
+  const title = document.createElement("div"); title.className="title";
+  title.textContent = val(row, COL.title) || "(ohne Titel)";
+  if (isDelistedRow(row)) title.classList.add("delisted");
 
-    const fr = parseFraction(raw);
-    if(fr) outer.appendChild(progressNode(fr));
-    return outer;
+  const badges = document.createElement("div"); badges.className="badges";
+  if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted","delisted"));
+  const favLabel = formatFavorite(row);
+  if (favLabel) badges.appendChild(makeBadge(favLabel));
+
+  if (isPlatinumAny(row)) badges.appendChild(makeBadge("💎 Platin erlangt","blue"));
+  if (isCompletedAny(row)) badges.appendChild(makeBadge("✅ 100% erreicht","ok"));
+
+  titleRow.append(title, badges);
+
+  const metaRow = document.createElement("div"); metaRow.className="metaRow";
+  const idB = document.createElement("span"); idB.className="idBadge"; idB.textContent = `ID ${val(row, COL.id) || PLACEHOLDER}`;
+  metaRow.appendChild(idB);
+
+  let plats = platformsFromSystem(row);
+  if (!plats.length){
+    plats = trophyPlatforms(row);
+  }
+  if (plats.length) plats.forEach(p => metaRow.appendChild(makeChip(p === "PSVita" ? "Vita" : p)));
+  else metaRow.appendChild(makeChip(PLACEHOLDER));
+  metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
+
+  const key = document.createElement("div"); key.className="keyFacts";
+  key.appendChild(kvLine("Genre", renderValue(val(row, COL.genre))));
+  key.appendChild(kvLine("Entwickler", renderValue(val(row, COL.dev))));
+  key.appendChild(kvLine("Spielzeit", renderValue(val(row, COL.main))));
+  key.appendChild(kvLine("Metascore", renderValue(val(row, COL.meta))));
+  key.appendChild(kvLine("Userwertung", renderValue(val(row, COL.user))));
+
+  const detailsWrap = document.createElement("div"); detailsWrap.className="detailsWrap";
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  const sumSpan = document.createElement("span"); sumSpan.className="summaryBtn"; sumSpan.textContent="Mehr Details";
+  summary.appendChild(sumSpan); details.appendChild(summary);
+  details.addEventListener("toggle", ()=> sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details");
+
+  function addSection(titleText, nodes){
+    const sec = document.createElement("div"); sec.className="section";
+    const st = document.createElement("div"); st.className="sectionTitle"; st.textContent=titleText;
+    sec.appendChild(st);
+    nodes.forEach(n => sec.appendChild(n));
+    details.appendChild(sec);
   }
 
-  function computeKompletion(row){
-    // rules from you:
-    // - if in 100% column: "completed"
-    // - OR if Fortschritt has "x of x" anywhere (single or per platform)
-    const c = lower(val(row, keyMap.completedCol));
-    if(c.includes("completed")) return "done";
+  const storeVal = (viewState.fileMode === "xlsx")
+    ? getValueWithLink(row, COL.store, rowIndex1Based)
+    : val(row, COL.store);
 
-    const t = val(row, keyMap.trophies);
-    if(!t) return ""; // unknown
-    const pairs = parsePlatformPairs(t);
-    if(pairs.length){
-      for(const p of pairs){
-        const fr = parseFraction(p.text);
-        if(fr && fr.a===fr.b) return "done";
-      }
-      // if any progress exists but none complete -> in work
-      for(const p of pairs){
-        const fr = parseFraction(p.text);
-        if(fr && fr.a>0) return "work";
-      }
-      return "sleep";
-    }else{
-      const fr = parseFraction(t);
-      if(fr && fr.a===fr.b) return "done";
-      if(fr && fr.a>0) return "work";
-      // if explicitly "---" or empty handled earlier
-      return "sleep";
-    }
+  addSection("Beschreibung", [ makeToggleBlock("Kurzbeschreibung", val(row, COL.desc)) ]);
+
+  addSection("Store", [
+    kvLine("Quelle", renderValue(displaySource(row))),
+    kvLine("Store", renderValue(storeVal)),
+    kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))),
+  ]);
+
+  addSection("Extras", [
+    makeToggleBlock("Besonderheiten", val(row, COL.special)),
+    makeToggleBlock("Eastereggs", val(row, COL.easter)),
+  ]);
+
+  // === Änderung hier: Fortschritt unified + Singleplatform zeigt "PS5 Ungespielt" ===
+  addSection("Trophäen", [
+    kvLine("Fortschritt", trophyNodeFromTextUnified(row)),
+    kvLine("Komplettion", trophyStatusList(row, "completion")),
+    kvLine("Platin", trophyStatusList(row, "platin")),
+  ]);
+
+  addSection("Humorstatistik", [
+    kvLine("Gesamtstunden", renderValue(val(row, COL.hours))),
+    kvLine("% Lebenszeit", renderValue(val(row, COL.life))),
+    kvLine("Jahre", renderValue(val(row, COL.years))),
+  ]);
+
+  detailsWrap.appendChild(details);
+  card.append(titleRow, metaRow, key, detailsWrap);
+  return card;
+}
+
+/* Counters + Infinite */
+function updateCounters(){
+  const total = matches.length;
+  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
+}
+function renderMore(){
+  if (isLoading) return;
+  const total = matches.length;
+  if (shown >= total) return;
+
+  isLoading = true;
+  const end = Math.min(shown + PAGE_SIZE, total);
+  const frag = document.createDocumentFragment();
+  for (let i = shown; i < end; i++){
+    const { row, idx } = matches[i];
+    frag.appendChild(createCard(row, idx));
   }
+  els.grid.appendChild(frag);
+  shown = end;
+  els.status.textContent = total ? (shown < total ? "Lade weitere Karten…" : "Alle Karten angezeigt.") : "Keine Treffer.";
+  updateCounters();
+  isLoading = false;
+}
 
-  function computePlatin(row){
-    // if Platin column contains "Platinum" / "Platin" or per platform,
-    // else if empty but progress exists => in work, else sleep
-    const p = lower(val(row, keyMap.platinumCol));
-    const sys = trophyPlatforms(row);
+function sortKeyLabel(key){
+  const it = SORT_KEYS.find(x=>x.key===key);
+  return it ? it.label : key;
+}
+function activeFilterCount(){
+  return Object.values(viewState.filters).filter(Boolean).length;
+}
+function updateSortLabel(){
+  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
+  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
+  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${activeFilterCount()}`;
+}
 
-    if(p.includes("platinum") || p.includes("platin")){
-      return { state:"done", plats: sys.length?sys:[] };
-    }
-    if(p){
-      // might be "PS4 Platinum PS5 ---" etc
-      if(p.includes("ps4") || p.includes("ps5") || p.includes("ps3") || p.includes("vita")){
-        const pairs = parsePlatformPairs(val(row, keyMap.platinumCol));
-        const anyDone = pairs.some(x => lower(x.text).includes("platinum") || lower(x.text).includes("platin"));
-        const anyWork = pairs.some(x => x.text && x.text!==PLACEHOLDER && x.text!=="---" && !lower(x.text).includes("—"));
-        if(anyDone) return { state:"done", plats: pairs.filter(x=>lower(x.text).includes("platinum")||lower(x.text).includes("platin")).map(x=>x.platform) };
-        if(anyWork) return { state:"work", plats: sys.length?sys:[] };
-      }
-      // unknown text -> assume work
-      return { state:"work", plats: sys.length?sys:[] };
-    }
+function rebuildMatches(){
+  els.grid.innerHTML = "";
+  shown = 0;
 
-    // no platin text: infer from trophies progress
-    const t = val(row, keyMap.trophies);
-    const fr = parseFraction(t);
-    if(fr && fr.a>0) return { state:"work", plats: sys.length?sys:[] };
-    const pairs = parsePlatformPairs(t);
-    if(pairs.some(x => (parseFraction(x.text)||{a:0}).a>0)) return { state:"work", plats: sys.length?sys:[] };
+  const q = parseQuery(viewState.search);
 
-    return { state:"sleep", plats: sys.length?sys:[] };
-  }
+  matches = allRows
+    .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
+    .filter(o => queryMatchesRow(q, o.row))
+    .filter(o => rowPassesFilters(o.row));
 
-  // ---- UI helpers
-  function el(tag, cls, txt){
-    const e = document.createElement(tag);
-    if(cls) e.className=cls;
-    if(txt!=null) e.textContent=txt;
-    return e;
-  }
+  sortMatches(matches);
+  renderMore();
 
-  function linkNode(storeText, storeUrl){
-    const url = norm(storeUrl);
-    if(!url) return document.createTextNode(PLACEHOLDER);
+  requestAnimationFrame(() => {
+    if (io) { io.disconnect(); io.observe(els.sentinel); }
+  });
 
-    // store text might be "Store Link" in the cell. We'll always show "Store Link" clickable.
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = "Store Link";
-    a.style.color = "#1f3aa7";
-    a.style.fontWeight = "650";
-    return a;
-  }
+  els.status.textContent = matches.length ? "Bereit." : "Keine Treffer.";
+  updateCounters();
+  updateSortLabel();
+}
 
-  function kvLine(k, vNodeOrText, mono=false){
-    const wrap = el("div","kv");
-    const kk = el("div","k",k);
-    const vv = el("div","v" + (mono ? " mono":""), "");
-    if(vNodeOrText instanceof Node) vv.appendChild(vNodeOrText);
-    else vv.textContent = vNodeOrText || PLACEHOLDER;
+/* Bottom Sheet */
+const sheetDraft = {
+  sortKey: viewState.sortKey,
+  sortDir: viewState.sortDir,
+  filters: {...viewState.filters},
+};
 
-    wrap.appendChild(kk);
-    wrap.appendChild(vv);
-    return wrap;
-  }
+function openSheet(){
+  sheetDraft.sortKey = viewState.sortKey;
+  sheetDraft.sortDir = viewState.sortDir;
+  sheetDraft.filters = {...viewState.filters};
+  renderSheetControls();
+  els.overlay.classList.add("show");
+  els.sheetBox.classList.add("show");
+  els.sheetBox.setAttribute("aria-hidden","false");
+}
+function closeSheet(){
+  els.overlay.classList.remove("show");
+  els.sheetBox.classList.remove("show");
+  els.sheetBox.setAttribute("aria-hidden","true");
+}
 
-  function foldBlock(label, content){
-    const box = el("div","fold");
-    const head = el("div","foldHead");
-    const left = el("div","", `▶ ${label} anzeigen`);
-    const right = el("div","", "▾");
-    right.style.color = "#6b7280";
-    head.appendChild(left);
-    head.appendChild(right);
-
-    const body = el("div","foldBody", content || PLACEHOLDER);
-
-    head.addEventListener("click", ()=>{
-      const open = box.classList.toggle("open");
-      left.textContent = (open ? "▼ " : "▶ ") + `${label} anzeigen`;
-      right.textContent = open ? "▴" : "▾";
+function renderSheetControls(){
+  els.sortList.innerHTML = "";
+  for (const it of SORT_KEYS){
+    const row = document.createElement("div");
+    row.className = "sortChoice" + (sheetDraft.sortKey === it.key ? " active" : "");
+    row.addEventListener("click", () => {
+      sheetDraft.sortKey = it.key;
+      renderSheetControls();
     });
 
-    box.appendChild(head);
-    box.appendChild(body);
-    return box;
-  }
+    const left = document.createElement("div");
+    const name = document.createElement("div"); name.className="sortName"; name.textContent = it.label;
+    const meta = document.createElement("div"); meta.className="sortMeta"; meta.textContent = it.meta;
+    left.append(name, meta);
 
-  // ---- XLSX / CSV reading
-  let keyMap = {}; // resolved header keys
-
-  async function readFile(file){
-    const name = (file?.name || "").toLowerCase();
-    if(name.endsWith(".csv")){
-      const text = await file.text();
-      // Try UTF-8 (browser already), fallback not needed typically on GitHub Pages.
-      const rows = parseCSV(text);
-      return { type:"csv", sheets: {"CSV": rows} };
-    }
-    // XLSX
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type:"array", cellText:true, cellDates:true });
-    return { type:"xlsx", wb };
-  }
-
-  function sheetToRows(wb, sheetName){
-    const ws = wb.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(ws, { defval:"", raw:false });
-    return json;
-  }
-
-  function parseCSV(text){
-    // lightweight CSV parser (comma or semicolon)
-    const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.length>0);
-    if(!lines.length) return [];
-    const sep = (lines[0].includes(";") && !lines[0].includes(",")) ? ";" : ",";
-    const headers = splitCSVLine(lines[0], sep).map(h=>h.trim());
-    const out = [];
-    for(let i=1;i<lines.length;i++){
-      const cols = splitCSVLine(lines[i], sep);
-      const obj = {};
-      headers.forEach((h,idx)=> obj[h] = cols[idx] ?? "");
-      out.push(obj);
-    }
-    return out;
-  }
-
-  function splitCSVLine(line, sep){
-    const out=[]; let cur=""; let q=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch === '"'){
-        if(q && line[i+1]==='"'){ cur+='"'; i++; }
-        else q=!q;
-      }else if(!q && ch===sep){
-        out.push(cur); cur="";
-      }else{
-        cur+=ch;
-      }
-    }
-    out.push(cur);
-    return out;
-  }
-
-  function resolveKeyMap(headers){
-    const map = {};
-    for(const [k, list] of Object.entries(COL)){
-      map[k] = findHeaderKey(headers, list);
-    }
-    return map;
-  }
-
-  function normalizeRows(rowsIn){
-    const headers = rowsIn.length ? Object.keys(rowsIn[0]) : [];
-    keyMap = resolveKeyMap(headers);
-
-    // if required keys missing, we still proceed, but some values empty.
-    return rowsIn.map(r => ({
-      _raw: r,
-      id: val(r, keyMap.id),
-      title: val(r, keyMap.title),
-      system: val(r, keyMap.system),
-      source: val(r, keyMap.source),
-      availability: val(r, keyMap.availability),
-      storeUrl: val(r, keyMap.store),
-      genre: val(r, keyMap.genre),
-      subgenre: val(r, keyMap.subgenre),
-      dev: val(r, keyMap.dev),
-      desc: val(r, keyMap.desc),
-      special: val(r, keyMap.special),
-      easter: val(r, keyMap.easter),
-      main: val(r, keyMap.main),
-      hundred: val(r, keyMap.hundred),
-      meta: val(r, keyMap.meta),
-      user: val(r, keyMap.user),
-      life: val(r, keyMap.life),
-      hours: val(r, keyMap.hours),
-      years: val(r, keyMap.years),
-      trophies: val(r, keyMap.trophies),
-      completedCol: val(r, keyMap.completedCol),
-      platinumCol: val(r, keyMap.platinumCol),
-      fav: val(r, keyMap.fav),
-    })).filter(x => x.title || x.id); // ignore empty rows
-  }
-
-  // ---- Query parsing
-  function parseQuery(q){
-    const t = norm(q);
-    const tokens = t.split(/\s+/).filter(Boolean);
-    const spec = { id:null, dev:null, wantsDelisted:false, plats:new Set(), text:[] };
-    for(const tok of tokens){
-      const low = tok.toLowerCase();
-      if(low.startsWith("id:")) spec.id = low.slice(3);
-      else if(low.startsWith("dev:")) spec.dev = low.slice(4);
-      else if(low === "delisted") spec.wantsDelisted = true;
-      else if(["ps5","ps4","ps3","vita"].includes(low)) spec.plats.add(low.toUpperCase()==="VITA"?"Vita":low.toUpperCase());
-      else spec.text.push(tok);
-    }
-    spec.text = spec.text.join(" ").toLowerCase();
-    return spec;
-  }
-
-  // ---- Filtering + Sorting
-  function applyAll(){
-    if(!rows.length){
-      els.list.innerHTML = "";
-      els.metaLine.textContent = "Datei wählen → Sheet wählen → suchen";
-      return;
-    }
-
-    const q = parseQuery(state.query);
-    let filtered = rows;
-
-    // query filters
-    if(q.id){
-      filtered = filtered.filter(r => String(r.id).toLowerCase().includes(q.id));
-    }
-    if(q.dev){
-      filtered = filtered.filter(r => lower(r.dev).includes(q.dev));
-    }
-    if(q.wantsDelisted){
-      filtered = filtered.filter(r => r._isDelisted);
-    }
-    if(q.plats.size){
-      filtered = filtered.filter(r => r._plats.some(p=>q.plats.has(p)));
-    }
-    if(q.text){
-      filtered = filtered.filter(r => r._hay.includes(q.text));
-    }
-
-    // drawer filters
-    if(state.filterFav) filtered = filtered.filter(r => r._fav);
-    if(state.filterDel) filtered = filtered.filter(r => r._isDelisted);
-
-    if(state.filter100) filtered = filtered.filter(r => r._kompl === "done");
-    if(state.filterPlat) filtered = filtered.filter(r => r._platin.state === "done");
-
-    if(state.plats.size){
-      filtered = filtered.filter(r => r._plats.some(p=>state.plats.has(p)));
-    }
-    if(state.sources.size){
-      filtered = filtered.filter(r => state.sources.has(r._srcClass));
-    }
-
-    // sort
-    filtered = stableSort(filtered, state.sortKey, state.sortDir);
-
-    visible = filtered;
-    renderedCount = 0;
-    els.list.innerHTML = "";
-    renderMore(true);
-    updateMeta();
-    saveState();
-  }
-
-  function stableSort(arr, key, dir){
-    const sign = dir === "desc" ? -1 : 1;
-    const coll = new Intl.Collator("de", { sensitivity:"base", numeric:true });
-
-    // stable: decorate with index
-    const deco = arr.map((v,i)=>({v,i}));
-
-    function getSortVal(r){
-      switch(key){
-        case "ID": return parseNumber(r.id);
-        case "Spieletitel": return r.title || "";
-        case "System": return (r.system || "");
-        case "Quelle": return (r.source || "");
-        case "Genre": return (r.genre || "");
-        case "Entwickler": return (r.dev || "");
-        case "SpielzeitMain": return parseNumber(r.main);
-        case "Metascore": return parseScore(r.meta);
-        case "Userwertung": return parseScore(r.user);
-        case "Lebenszeit": return parseNumber(r.life);
-        default: return r.title || "";
-      }
-    }
-
-    deco.sort((a,b)=>{
-      const ra=a.v, rb=b.v;
-      const va=getSortVal(ra), vb=getSortVal(rb);
-
-      // numbers
-      const na = typeof va === "number" && Number.isFinite(va);
-      const nb = typeof vb === "number" && Number.isFinite(vb);
-      if(na || nb){
-        if(!na && !nb) return a.i - b.i;
-        if(!na) return 1;
-        if(!nb) return -1;
-        if(va<vb) return -1*sign;
-        if(va>vb) return 1*sign;
-        return a.i - b.i;
-      }
-
-      // strings
-      const sa = String(va ?? "");
-      const sb = String(vb ?? "");
-      const c = coll.compare(sa, sb);
-      if(c!==0) return c*sign;
-      return a.i - b.i;
+    const right = document.createElement("div"); right.className="dirBtns";
+    const up = document.createElement("button");
+    up.className = "dirBtn" + (sheetDraft.sortDir === "asc" && sheetDraft.sortKey === it.key ? " on" : "");
+    up.textContent = "↑";
+    up.addEventListener("click", (e) => {
+      e.stopPropagation();
+      sheetDraft.sortKey = it.key;
+      sheetDraft.sortDir = "asc";
+      renderSheetControls();
     });
 
-    return deco.map(x=>x.v);
-  }
-
-  function updateMeta(){
-    const total = visible.length;
-    const shown = Math.min(renderedCount, total);
-    els.metaLine.textContent = `Treffer: ${total} · angezeigt: ${shown}/${total}`;
-  }
-
-  // ---- Rendering
-  function renderMore(reset=false){
-    if(reset) renderedCount = 0;
-
-    const target = Math.min(renderedCount + PAGE, visible.length);
-    for(let i=renderedCount;i<target;i++){
-      els.list.appendChild(renderCard(visible[i]));
-    }
-    renderedCount = target;
-    updateMeta();
-  }
-
-  function renderCard(r){
-    const card = el("div","card" + (r._isDelisted ? " delisted": ""));
-    const top = el("div","cardTop");
-
-    const left = el("div","");
-    const h = el("h2","gameTitle", r.title || PLACEHOLDER);
-    left.appendChild(h);
-
-    const badges = el("div","badges");
-    if(r._fav) badges.appendChild(badge("⭐ Favorit","fav"));
-
-    // Platin badge state
-    if(r._platin.state === "done") badges.appendChild(badge("💎 Platin erlangt","plat"));
-    else if(r._platin.state === "work") badges.appendChild(badge("⏳ In Arbeit","work"));
-    // sleep not shown as badge in header
-
-    // Kompletion badge state (100%)
-    if(r._kompl === "done") badges.appendChild(badge("✅ 100% erreicht","c100"));
-    else if(r._kompl === "work") badges.appendChild(badge("⏳ In Arbeit","work"));
-    else if(r._kompl === "sleep") badges.appendChild(badge("💤 Ungespielt","sleep"));
-
-    top.appendChild(left);
-    top.appendChild(badges);
-    card.appendChild(top);
-
-    // Pills row: ID + platforms + availability
-    const pills = el("div","subBadges");
-    pills.appendChild(el("div","pill id", `ID ${r.id || "?"}`));
-
-    for(const p of r._plats){
-      pills.appendChild(el("div","pill", p));
-    }
-    pills.appendChild(el("div","pill status", r.availability || PLACEHOLDER));
-    card.appendChild(pills);
-
-    // Reduced view (only these fields)
-    card.appendChild(kvLine("Genre", r.genre || PLACEHOLDER));
-    card.appendChild(kvLine("Entwickler", r.dev || PLACEHOLDER));
-    card.appendChild(kvLine("Spielzeit", parseHoursPair(r.main, r.hundred), true));
-    card.appendChild(kvLine("Metascore", r.meta || PLACEHOLDER, true));
-    card.appendChild(kvLine("Userwertung", r.user || PLACEHOLDER, true));
-
-    // Details toggle (state text)
-    const toggle = el("div","detailsToggle");
-    const icon = el("span","", "▶");
-    const txt = el("span","", "Mehr Details");
-    const caret = el("span","", "▾");
-    caret.style.color = "#6b7280";
-    toggle.appendChild(icon);
-    toggle.appendChild(txt);
-    toggle.appendChild(caret);
-
-    const details = el("div","details");
-
-    toggle.addEventListener("click", ()=>{
-      const open = details.classList.toggle("open");
-      icon.textContent = open ? "▼" : "▶";
-      txt.textContent = open ? "Weniger Details" : "Mehr Details";
-      caret.textContent = open ? "▴" : "▾";
+    const down = document.createElement("button");
+    down.className = "dirBtn" + (sheetDraft.sortDir === "desc" && sheetDraft.sortKey === it.key ? " on" : "");
+    down.textContent = "↓";
+    down.addEventListener("click", (e) => {
+      e.stopPropagation();
+      sheetDraft.sortKey = it.key;
+      sheetDraft.sortDir = "desc";
+      renderSheetControls();
     });
 
-    card.appendChild(toggle);
-
-    // ---- DETAILS CONTENT
-    // BESCHREIBUNG
-    details.appendChild(el("div","sectionTitle","BESCHREIBUNG"));
-    details.appendChild(foldBlock("Kurzbeschreibung", r.desc || PLACEHOLDER));
-    details.appendChild(el("div","foldSubGap",""));
-
-    // STORE (Quelle wieder hier oben!)
-    details.appendChild(el("div","sectionTitle","STORE"));
-    details.appendChild(kvLine("Quelle", (r._srcLabel || r.source) || PLACEHOLDER));
-    details.appendChild(kvLine("Store", linkNode("Store Link", r.storeUrl)));
-    details.appendChild(kvLine("Verfügbarkeit", r.availability || PLACEHOLDER));
-
-    // Subgenre / Stimmung & System optional im Detailbereich:
-    details.appendChild(el("div","sectionTitle","DETAILS"));
-    details.appendChild(kvLine("System", r.system || PLACEHOLDER));
-    details.appendChild(kvLine("Subgenre / Stimmung", r.subgenre || PLACEHOLDER));
-
-    // EXTRAS
-    details.appendChild(el("div","sectionTitle","EXTRAS"));
-    details.appendChild(foldBlock("Besonderheiten", r.special || PLACEHOLDER));
-    details.appendChild(el("div","foldSubGap",""));
-    details.appendChild(foldBlock("Eastereggs", r.easter || PLACEHOLDER));
-
-    // TROPHÄEN
-    details.appendChild(el("div","sectionTitle","TROPHÄEN"));
-    details.appendChild(kvLine("Fortschritt", trophyNodeFromText(r.trophies, r._raw)));
-
-    // Kompletion + Platin lines (badges inside)
-    details.appendChild(kvLine("Kompletion", kompletionBadge(r._kompl)));
-    details.appendChild(kvLine("Platin", platinBadge(r._platin.state)));
-
-    // HUMORSTATISTIK
-    details.appendChild(el("div","sectionTitle","HUMORSTATISTIK"));
-    details.appendChild(kvLine("Gesamtstunden", r.hours || PLACEHOLDER, true));
-    details.appendChild(kvLine("Lebenszeit %", r.life || PLACEHOLDER, true));
-    details.appendChild(kvLine("Jahre", r.years || PLACEHOLDER, true));
-
-    card.appendChild(details);
-    return card;
+    right.append(up, down);
+    row.append(left, right);
+    els.sortList.appendChild(row);
   }
 
-  function badge(text, kind){
-    const b = el("div","badge " + kind, text);
-    return b;
-  }
-  function kompletionBadge(state){
-    if(state==="done") return badge("✅ 100% erreicht","c100");
-    if(state==="work") return badge("⏳ In Arbeit","work");
-    if(state==="sleep") return badge("💤 Ungespielt","sleep");
-    return document.createTextNode(PLACEHOLDER);
-  }
-  function platinBadge(state){
-    if(state==="done") return badge("💎 Platin erlangt","plat");
-    if(state==="work") return badge("⏳ In Arbeit","work");
-    if(state==="sleep") return badge("💤 Ungespielt","sleep");
-    return document.createTextNode(PLACEHOLDER);
+  const filterDefs = [
+    { key:"fav", label:"⭐ Favorit" },
+    { key:"platin", label:"💎 Platin" },
+    { key:"completed", label:"✅ 100%" },
+    { key:"delisted", label:"Delisted" },
+    { key:"psplus", label:"PS Plus" },
+    { key:"digital", label:"Digital" },
+    { key:"disc", label:"Disc" },
+  ];
+  els.filterTogs.innerHTML = "";
+  for (const f of filterDefs){
+    const t = document.createElement("div");
+    t.className = "tog" + (sheetDraft.filters[f.key] ? " on" : "");
+    t.textContent = f.label;
+    t.addEventListener("click", () => {
+      sheetDraft.filters[f.key] = !sheetDraft.filters[f.key];
+      renderSheetControls();
+    });
+    els.filterTogs.appendChild(t);
   }
 
-  // ---- Infinite scroll
-  const io = new IntersectionObserver((entries)=>{
+  const platformDefs = [
+    { key:"ps5", label:"PS5" },
+    { key:"ps4", label:"PS4" },
+    { key:"ps3", label:"PS3" },
+    { key:"vita", label:"Vita" },
+  ];
+  els.platformTogs.innerHTML = "";
+  for (const p of platformDefs){
+    const t = document.createElement("div");
+    t.className = "tog" + (sheetDraft.filters[p.key] ? " on" : "");
+    t.textContent = p.label;
+    t.addEventListener("click", () => {
+      sheetDraft.filters[p.key] = !sheetDraft.filters[p.key];
+      renderSheetControls();
+    });
+    els.platformTogs.appendChild(t);
+  }
+
+  els.sheetMiniInfo.textContent =
+    `${sortKeyLabel(sheetDraft.sortKey)} ${(sheetDraft.sortDir==="asc"?"↑":"↓")} · Filter aktiv: ${Object.values(sheetDraft.filters).filter(Boolean).length}`;
+}
+
+function applySheet(){
+  viewState.sortKey = sheetDraft.sortKey;
+  viewState.sortDir = sheetDraft.sortDir;
+  viewState.filters = {...sheetDraft.filters};
+  saveState();
+  closeSheet();
+  rebuildMatches();
+}
+
+/* IO */
+function setupObserver(){
+  if (io) io.disconnect();
+  io = new IntersectionObserver((entries)=>{
     const e = entries[0];
-    if(e.isIntersecting){
-      if(renderedCount < visible.length){
-        renderMore();
-      }
-    }
+    if (e && e.isIntersecting) renderMore();
   }, { root:null, threshold:0.1 });
   io.observe(els.sentinel);
+}
+setupObserver();
 
-  // ---- Top button
-  els.fabTop.addEventListener("click", ()=> window.scrollTo({ top:0, behavior:"smooth" }));
-  window.addEventListener("scroll", ()=>{
-    els.fabTop.classList.toggle("show", window.scrollY > 700);
-  }, { passive:true });
+/* Loaders */
+function resetUIForNewData(){
+  els.grid.innerHTML = "";
+  els.count.textContent = "";
+  els.status.textContent = "Lese Datei…";
+  els.search.disabled = true;
+  els.openSheetBtn.disabled = true;
+  els.openSheetBtn2.disabled = true;
+  els.sheet.disabled = true;
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  linkMap.clear();
+  headerRowIndex = 1;
+  allRows = []; matches = []; shown = 0; columns = [];
+  workbook = null;
+}
 
-  // ---- Header collapse (ohne Flackern)
-  let lastY = 0;
-  let ticking = false;
-  window.addEventListener("scroll", ()=>{
-    if(ticking) return;
-    ticking = true;
-    requestAnimationFrame(()=>{
-      const y = window.scrollY || 0;
-      // collapse when scrolling down past 120
-      if(y > 120 && y > lastY) els.header.classList.add("collapsed");
-      if(y < 80) els.header.classList.remove("collapsed");
-      lastY = y;
-      ticking = false;
-    });
-  }, { passive:true });
+async function loadXLSX(file){
+  if (typeof XLSX === "undefined") throw new Error("XLSX Library nicht geladen (xlsx.full.min.js fehlt?)");
+  viewState.fileMode = "xlsx";
 
-  // ---- Drawer open/close
-  function openDrawer(){
-    els.drawer.classList.add("show");
-    els.backdrop.classList.add("show");
+  const buf = await file.arrayBuffer();
+  workbook = XLSX.read(buf, { type: "array", cellStyles: true });
+
+  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
+  workbook.SheetNames.forEach(n => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    els.sheet.appendChild(o);
+  });
+
+  els.sheet.disabled = false;
+  els.status.textContent = "Sheet wählen…";
+
+  if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
+    els.sheet.value = viewState.sheetName;
+    loadSheet(viewState.sheetName);
   }
-  function closeDrawer(){
-    els.drawer.classList.remove("show");
-    els.backdrop.classList.remove("show");
-  }
-  els.openMenu.addEventListener("click", openDrawer);
-  els.closeMenu.addEventListener("click", closeDrawer);
-  els.backdrop.addEventListener("click", closeDrawer);
+}
 
-  // ---- Build sort dropdown
-  function fillSortDropdown(){
-    els.sortKey.innerHTML = "";
-    for(const s of SORT_KEYS){
-      const opt = document.createElement("option");
-      opt.value = s.key;
-      opt.textContent = s.label;
-      els.sortKey.appendChild(opt);
+function loadSheet(name){
+  const ws = workbook.Sheets[name];
+  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+  allRows = json;
+  columns = json.length ? Object.keys(json[0]) : [];
+  COL = resolveColumns(columns);
+
+  buildLinks(ws);
+  applyDelistedFromStyles(ws);
+
+  viewState.sheetName = name;
+  saveState();
+
+  els.search.disabled = false;
+  els.openSheetBtn.disabled = false;
+  els.openSheetBtn2.disabled = false;
+
+  els.search.value = viewState.search || "";
+  els.compactSearch.value = viewState.search || "";
+
+  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
+  rebuildMatches();
+}
+
+function detectDelimiter(firstLine){
+  const commas = (firstLine.match(/,/g) || []).length;
+  const semis  = (firstLine.match(/;/g) || []).length;
+  return semis > commas ? ";" : ",";
+}
+function parseCSV(text){
+  const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
+  while (lines.length && !lines[0].trim()) lines.shift();
+  if (!lines.length) return { rows: [], headers: [] };
+  const delim = detectDelimiter(lines[0]);
+
+  function splitLine(line){
+    const out = [];
+    let cur = "", inQ = false;
+    for (let i=0;i<line.length;i++){
+      const ch = line[i];
+      if (ch === '"'){
+        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === delim && !inQ){
+        out.push(cur); cur = "";
+      } else cur += ch;
     }
-    els.sortKey.value = state.sortKey;
-    els.sortDir.value = state.sortDir;
+    out.push(cur);
+    return out.map(v => v.trim());
   }
 
-  // ---- Filter chips behavior
-  function syncChips(){
-    els.fFav.classList.toggle("on", state.filterFav);
-    els.fPlat.classList.toggle("on", state.filterPlat);
-    els.f100.classList.toggle("on", state.filter100);
-    els.fDel.classList.toggle("on", state.filterDel);
-
-    // plats
-    for(const c of platChips){
-      const p = c.getAttribute("data-plat");
-      c.classList.toggle("on", state.plats.has(p));
-    }
-    // sources
-    for(const c of srcChips){
-      const s = c.getAttribute("data-src");
-      c.classList.toggle("on", state.sources.has(s));
-    }
-
-    // "Alle" on when no filter selected (except query)
-    const any =
-      state.filterFav || state.filterPlat || state.filter100 || state.filterDel ||
-      state.plats.size || state.sources.size;
-    els.fAll.classList.toggle("on", !any);
+  const headers = splitLine(lines[0]).map(h => h.replace(/^\uFEFF/, "").trim());
+  const rows = [];
+  for (let r=1; r<lines.length; r++){
+    const line = lines[r];
+    if (!line || !line.trim()) continue;
+    const cells = splitLine(line);
+    const obj = {};
+    for (let c=0; c<headers.length; c++) obj[headers[c]] = cells[c] ?? "";
+    rows.push(obj);
   }
+  return { rows, headers };
+}
+async function loadCSV(file){
+  viewState.fileMode = "csv";
+  workbook = null;
+  linkMap.clear();
 
-  els.fAll.addEventListener("click", ()=>{
-    state.filterFav=false; state.filterPlat=false; state.filter100=false; state.filterDel=false;
-    state.plats.clear(); state.sources.clear();
-    syncChips(); applyAll();
-  });
-  els.fFav.addEventListener("click", ()=>{ state.filterFav=!state.filterFav; syncChips(); applyAll(); });
-  els.fPlat.addEventListener("click", ()=>{ state.filterPlat=!state.filterPlat; syncChips(); applyAll(); });
-  els.f100.addEventListener("click", ()=>{ state.filter100=!state.filter100; syncChips(); applyAll(); });
-  els.fDel.addEventListener("click", ()=>{ state.filterDel=!state.filterDel; syncChips(); applyAll(); });
+  const buf = await file.arrayBuffer();
+  const text = new TextDecoder("utf-8").decode(buf);
+  const parsed = parseCSV(text);
 
-  for(const c of platChips){
-    c.addEventListener("click", ()=>{
-      const p = c.getAttribute("data-plat");
-      if(state.plats.has(p)) state.plats.delete(p); else state.plats.add(p);
-      syncChips(); applyAll();
-    });
+  allRows = parsed.rows;
+  columns = parsed.headers;
+  COL = resolveColumns(columns);
+
+  els.sheet.disabled = true;
+  els.sheet.innerHTML = "<option>(CSV: kein Sheet)</option>";
+
+  els.search.disabled = false;
+  els.openSheetBtn.disabled = false;
+  els.openSheetBtn2.disabled = false;
+
+  els.search.value = viewState.search || "";
+  els.compactSearch.value = viewState.search || "";
+
+  els.status.textContent = `CSV geladen: ${allRows.length} Zeilen`;
+  saveState();
+  rebuildMatches();
+}
+
+els.file.addEventListener("change", async (e) => {
+  const f = e.target.files?.[0]; if (!f) return;
+  resetUIForNewData();
+  const name = (f.name || "").toLowerCase();
+  try{
+    if (name.endsWith(".csv")) await loadCSV(f);
+    else await loadXLSX(f);
+  }catch(err){
+    els.status.textContent = "Fehler beim Einlesen: " + (err?.message || String(err));
   }
-  for(const c of srcChips){
-    c.addEventListener("click", ()=>{
-      const s = c.getAttribute("data-src");
-      if(state.sources.has(s)) state.sources.delete(s); else state.sources.add(s);
-      syncChips(); applyAll();
-    });
-  }
+});
+els.sheet.addEventListener("change", () => {
+  const name = els.sheet.value;
+  if (!name || name === "Sheet auswählen…") return;
+  loadSheet(name);
+});
 
-  els.clearFilters.addEventListener("click", ()=>{
-    state.filterFav=false; state.filterPlat=false; state.filter100=false; state.filterDel=false;
-    state.plats.clear(); state.sources.clear();
-    syncChips(); applyAll();
+function setSearch(q){
+  viewState.search = q || "";
+  els.search.value = viewState.search;
+  els.compactSearch.value = viewState.search;
+  saveState();
+  rebuildMatches();
+}
+els.search.addEventListener("input", (e) => setSearch(e.target.value));
+els.compactSearch.addEventListener("input", (e) => setSearch(e.target.value));
+
+els.openSheetBtn.addEventListener("click", openSheet);
+els.openSheetBtn2.addEventListener("click", openSheet);
+els.overlay.addEventListener("click", closeSheet);
+els.sheetClose.addEventListener("click", closeSheet);
+els.applySheetBtn.addEventListener("click", applySheet);
+els.clearFiltersBtn.addEventListener("click", () => {
+  sheetDraft.filters = {
+    fav:false, platin:false, completed:false, delisted:false,
+    ps5:false, ps4:false, ps3:false, vita:false,
+    psplus:false, digital:false, disc:false
+  };
+  renderSheetControls();
+});
+
+els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+let lastY = 0;
+let isCompact = false;
+let rafPending = false;
+
+function setCompact(next){
+  if (next === isCompact) return;
+  isCompact = next;
+  els.hdr.classList.toggle("compact", isCompact);
+}
+window.addEventListener("scroll", () => {
+  if (rafPending) return;
+  rafPending = true;
+
+  requestAnimationFrame(() => {
+    rafPending = false;
+
+    const y = window.scrollY;
+    const goingDown = y > lastY;
+    lastY = y;
+
+    els.fabTop.classList.toggle("show", y > 500);
+
+    const active = document.activeElement;
+    const typing = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.isContentEditable);
+    if (typing) return;
+
+    if (!isCompact && goingDown && y > 160) setCompact(true);
+    else if (isCompact && !goingDown && y < 220) setCompact(false);
   });
+}, { passive:true });
 
-  els.sortKey.addEventListener("change", ()=>{
-    state.sortKey = els.sortKey.value;
-    applyAll();
-  });
-  els.sortDir.addEventListener("change", ()=>{
-    state.sortDir = els.sortDir.value;
-    applyAll();
-  });
-
-  // ---- Search
-  let qTimer = null;
-  els.q.addEventListener("input", ()=>{
-    clearTimeout(qTimer);
-    qTimer = setTimeout(()=>{
-      state.query = els.q.value;
-      applyAll();
-    }, 120);
-  });
-
-  // ---- File load
-  els.file.addEventListener("change", async ()=>{
-    const f = els.file.files?.[0];
-    if(!f) return;
-
-    els.metaLine.textContent = "Lese Datei…";
-    els.sheet.disabled = true;
-    els.sheet.innerHTML = `<option value="">Sheet auswählen…</option>`;
-    els.list.innerHTML = "";
-    rows = []; rawRows = []; visible = []; renderedCount = 0;
-    workbook = null;
-
-    try{
-      const res = await readFile(f);
-
-      if(res.type === "csv"){
-        // CSV: one pseudo sheet
-        workbook = { type:"csv", sheets: res.sheets };
-        const names = Object.keys(res.sheets);
-        els.sheet.disabled = false;
-        els.sheet.innerHTML = names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-        const wanted = state.sheetName && names.includes(state.sheetName) ? state.sheetName : names[0];
-        els.sheet.value = wanted;
-        state.sheetName = wanted;
-        rawRows = res.sheets[wanted];
-      }else{
-        workbook = res.wb;
-        const names = workbook.SheetNames || [];
-        els.sheet.disabled = false;
-        els.sheet.innerHTML = names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-        const wanted = state.sheetName && names.includes(state.sheetName) ? state.sheetName : (names.includes("Spieleliste Komplett") ? "Spieleliste Komplett" : names[0]);
-        els.sheet.value = wanted;
-        state.sheetName = wanted;
-        rawRows = sheetToRows(workbook, wanted);
-      }
-
-      rows = normalizeRows(rawRows);
-
-      // precompute searchable + computed flags
-      for(const r of rows){
-        const sys = parseSystems(r.system);
-        r._plats = sys;
-        r._srcClass = sourceClass(r.source);
-        r._srcLabel = r._srcClass==="digital" ? "Digital" : (r._srcClass==="psplus" ? "PS Plus" : (r._srcClass==="disc" ? "Disc" : r.source));
-        r._fav = isFav(r._raw);
-        r._isDelisted = isDelisted(r._raw);
-
-        r._kompl = computeKompletion(r._raw); // done/work/sleep
-        r._platin = computePlatin(r._raw); // {state, plats}
-
-        // haystack
-        r._hay = lower([
-          r.id, r.title, r.system, r.source, r.availability, r.genre,
-          r.subgenre, r.dev, r.desc, r.special, r.easter,
-          r.main, r.hundred, r.meta, r.user, r.life, r.trophies
-        ].join(" "));
-      }
-
-      // apply persisted UI
-      els.q.value = state.query || "";
-      fillSortDropdown();
-      syncChips();
-
-      applyAll();
-    }catch(err){
-      els.metaLine.textContent = "Fehler beim Einlesen: " + (err?.message || err);
-      console.error(err);
-    }
-  });
-
-  // ---- Sheet change
-  els.sheet.addEventListener("change", ()=>{
-    const name = els.sheet.value;
-    if(!name) return;
-    state.sheetName = name;
-
-    try{
-      if(workbook && workbook.type === "csv"){
-        rawRows = workbook.sheets[name] || [];
-      }else if(workbook){
-        rawRows = sheetToRows(workbook, name);
-      }else{
-        rawRows = [];
-      }
-      rows = normalizeRows(rawRows);
-
-      for(const r of rows){
-        const sys = parseSystems(r.system);
-        r._plats = sys;
-        r._srcClass = sourceClass(r.source);
-        r._srcLabel = r._srcClass==="digital" ? "Digital" : (r._srcClass==="psplus" ? "PS Plus" : (r._srcClass==="disc" ? "Disc" : r.source));
-        r._fav = isFav(r._raw);
-        r._isDelisted = isDelisted(r._raw);
-        r._kompl = computeKompletion(r._raw);
-        r._platin = computePlatin(r._raw);
-
-        r._hay = lower([
-          r.id, r.title, r.system, r.source, r.availability, r.genre,
-          r.subgenre, r.dev, r.desc, r.special, r.easter,
-          r.main, r.hundred, r.meta, r.user, r.life, r.trophies
-        ].join(" "));
-      }
-      applyAll();
-    }catch(err){
-      els.metaLine.textContent = "Fehler beim Sheet: " + (err?.message || err);
-    }
-  });
-
-  // ---- Init
-  loadState();
-  fillSortDropdown();
-  syncChips();
-  els.q.value = state.query || "";
-
-  // helper
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
-  }
-
-})();
+function updateSortLabel(){
+  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
+  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
+  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${activeFilterCount()}`;
+}
+updateSortLabel();
 </script>
-
 </body>
 </html>
