@@ -1,1452 +1,1542 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Spieleliste</title>
-<style>
-:root{
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --bg:#f6f7f9; --card:#fff; --text:#111; --muted:#6b7280;
-  --line:#e9e9e9; --accent:#2536a4;
-  --danger:#b00020; --dangerBg:#ffe7ea;
-  --ok:#166534; --okBg:#eaf7ef; --okBd:#cbead6;
-  --blue:#1f2a8a; --blueBg:#eef2ff; --blueBd:#d7ddff;
-  --chipBg:#eef2ff; --shadow: 0 10px 24px rgba(0,0,0,.12);
-}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Spieleliste</title>
 
-body{margin:0;background:var(--bg);color:var(--text)}
-header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e7e7e7}
-.headerShell{position:relative}
+  <!-- SheetJS lokal: xlsx.full.min.js liegt im gleichen Ordner -->
+  <script src="./xlsx.full.min.js"></script>
 
-#fullHeader{
-  padding:12px 14px;
-  display:grid; gap:10px;
-  overflow:hidden;
-  max-height:420px;
-  opacity:1;
-  transform:translateY(0);
-  pointer-events:auto;
-  will-change: opacity, transform, max-height, padding;
-  transition: opacity .14s ease, transform .14s ease, max-height .18s ease, padding .18s ease;
-}
-header.compact #fullHeader{
-  max-height:0;
-  padding-top:0;
-  padding-bottom:0;
-  opacity:0;
-  transform:translateY(-6px);
-  pointer-events:none;
-}
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --chip:#f3f4f6;
+      --chipText:#374151;
+      --shadow:0 10px 25px rgba(17,24,39,.08);
+      --radius:18px;
+      --radius2:14px;
+      --pad:14px;
+      --accent:#1f4cff;
 
-.brand{display:flex;align-items:baseline;gap:10px}
-.brand h1{font-size:20px;margin:0}
+      --goodBg:#e8f7ee; --goodText:#166534; --goodLine:#bfe8cc;
+      --blueBg:#eaf2ff; --blueText:#1d4ed8; --blueLine:#bfd6ff;
+      --warnBg:#ffecec; --warnText:#991b1b; --warnLine:#fecaca;
+      --sleepBg:#f3f4f6; --sleepText:#4b5563; --sleepLine:#e5e7eb;
+      --delBg:#ffecec; --delText:#991b1b;
 
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input,select,button{
-  padding:10px 12px;border:1px solid #ddd;border-radius:14px;background:#fff;font-size:14px
-}
-input,select{flex:1;min-width:150px}
-button{cursor:pointer}
-button:disabled{opacity:.6;cursor:not-allowed}
-.counter{font-size:12px;color:#555}
-.hint{font-size:13px;color:var(--muted)}
-.primary{border:1px solid #d7ddff;background:var(--chipBg);color:var(--accent);font-weight:900}
-.smallHelp{font-size:12px;color:var(--muted);line-height:1.35}
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:16px 14px 80px}
+    h1{margin:8px 2px 10px;font-size:28px;letter-spacing:-.02em}
+    .muted{color:var(--muted)}
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      background:linear-gradient(to bottom, rgba(246,247,251,.96), rgba(246,247,251,.86));
+      backdrop-filter:saturate(150%) blur(10px);
+      border-bottom:1px solid rgba(229,231,235,.7);
+      padding:10px 0 12px;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+    .row{display:flex;gap:10px;align-items:center}
+    .col{display:flex;flex-direction:column;gap:8px}
+    .grow{flex:1}
+    .btn, select, input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      font-size:16px;
+      background:#fff;
+      outline:none;
+    }
+    input:focus, select:focus{border-color:#c7d2fe; box-shadow:0 0 0 4px rgba(99,102,241,.12)}
+    .btn{
+      cursor:pointer;
+      background:#fff;
+      font-weight:600;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btnIcon{
+      width:54px; min-width:54px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;
+      background:#eef2ff;
+      border-color:#dbeafe;
+    }
+    .stats{
+      display:flex;gap:14px;flex-wrap:wrap;
+      padding:8px 2px 0;
+      font-size:14px;
+      color:var(--muted);
+    }
 
-#compactBar{
-  padding:10px 14px;
-  display:flex; gap:10px; align-items:center;
-  border-top:1px solid #f1f1f1;
-  background:#fff;
-  opacity:0; transform:translateY(6px);
-  pointer-events:none;
-  will-change: opacity, transform;
-  transition: opacity .14s ease, transform .14s ease;
-}
-header.compact #compactBar{opacity:1; transform:translateY(0); pointer-events:auto;}
-#compactSearch{flex:1; min-width:0}
-#openSheetBtn{width:52px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; font-weight:900}
-#openSheetBtn span{font-size:18px; line-height:1}
+    /* Mini/Full Menu */
+    .menuFull{display:block}
+    .menuMini{
+      display:none;
+      padding:10px 12px;
+    }
+    .miniRow{display:flex;gap:10px;align-items:center}
+    .miniRow input{padding:11px 12px}
+    .miniStats{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding-top:8px}
+    .hidden{display:none !important;}
 
-main{padding:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
-.card{
-  background:var(--card); border:1px solid var(--line); border-radius:16px;
-  padding:12px; box-shadow:0 1px 2px rgba(0,0,0,.04);
-  display:grid; gap:10px;
-}
+    /* Filter chips */
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      user-select:none;
+      border:1px solid var(--line);
+      background:var(--chip);
+      color:var(--chipText);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:14px;
+      cursor:pointer;
+      display:inline-flex;align-items:center;gap:8px;
+    }
+    .chip[data-on="1"]{
+      background:#eef2ff;
+      border-color:#c7d2fe;
+      color:#1d4ed8;
+      font-weight:600;
+    }
+    .chipSmall{padding:7px 10px;font-size:13px}
+    .chipClear{background:#fff}
 
-.titleRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
-.title{font-weight:850;font-size:16px;line-height:1.15}
-.title.delisted{text-decoration:line-through;color:var(--danger)}
-.badges{display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:120px}
+    /* Cards */
+    .list{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:14px 14px 10px;
+    }
+    .card.delisted{
+      border-color:#fecaca;
+      background:linear-gradient(to bottom, #fff, #fff7f7);
+    }
+    .cardHead{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+    .title{
+      margin:0;
+      font-size:20px;
+      line-height:1.1;
+      letter-spacing:-.01em;
+    }
+    .badgeStack{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+      min-width:130px;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:700;
+      border:1px solid var(--line);
+      background:#fff;
+      white-space:nowrap;
+    }
+    .pill.good{background:var(--goodBg);color:var(--goodText);border-color:var(--goodLine)}
+    .pill.blue{background:var(--blueBg);color:var(--blueText);border-color:var(--blueLine)}
+    .pill.warn{background:var(--warnBg);color:var(--warnText);border-color:var(--warnLine)}
+    .pill.sleep{background:var(--sleepBg);color:var(--sleepText);border-color:var(--sleepLine)}
+    .metaRow{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+    }
+    .idPill{
+      background:#102a83;
+      color:#fff;
+      border:none;
+      font-weight:800;
+      letter-spacing:.02em;
+      padding:8px 12px;
+    }
+    .sysPill,.availPill{
+      background:#f3f4f6;border-color:#e5e7eb;color:#111827;font-weight:700;
+    }
+    .kv{display:grid;grid-template-columns: 160px 1fr;gap:8px 14px;margin-top:12px}
+    .k{color:var(--muted);font-size:14px}
+    .v{font-size:15px}
+    .v strong{font-weight:800}
+    .hr{height:1px;background:var(--line);margin:10px 0}
 
-.badge{
-  width:fit-content;font-size:12px;font-weight:900;padding:4px 10px;border-radius:999px;
-  background:#f3f4f6;border:1px solid #ececec;color:#111;white-space:nowrap
-}
-.badge.delisted{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
-.badge.blue{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
-.badge.ok{background:var(--okBg);border-color:var(--okBd);color:var(--ok)}
-.badge.mid{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
+    /* Details toggle */
+    details{
+      border-top:1px solid var(--line);
+      margin-top:10px;
+      padding-top:10px;
+    }
+    summary{
+      cursor:pointer;
+      user-select:none;
+      list-style:none;
+      display:flex;align-items:center;gap:8px;
+      color:#1f2a6a;
+      font-weight:800;
+      padding:8px 0;
+    }
+    summary::-webkit-details-marker{display:none}
+    .sectionTitle{
+      font-size:12px;
+      letter-spacing:.12em;
+      color:var(--muted);
+      margin:12px 0 6px;
+      text-transform:uppercase;
+    }
+    .subdetails{
+      border-top:1px solid var(--line);
+      padding-top:10px;
+      margin-top:10px;
+    }
+    .subdetails summary{
+      color:#111827;
+      font-weight:800;
+      padding:6px 0;
+    }
+    .longText{
+      white-space:pre-wrap;
+      line-height:1.35;
+      margin-top:8px;
+    }
+    .longText.gapTop{margin-top:10px}
 
-.metaRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.idBadge{font-size:12px;font-weight:950;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff}
-.chip{font-size:12px;color:#374151;background:#f3f4f6;border:1px solid #ececec;padding:4px 8px;border-radius:999px;white-space:nowrap}
+    /* Store link */
+    a.store{
+      color:#1d4ed8;
+      text-decoration:none;
+      font-weight:800;
+    }
+    a.store:hover{text-decoration:underline}
 
-.keyFacts{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
-.kvLine{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start}
-.k{color:var(--muted);font-size:12px}
-.v{font-size:13px;word-break:break-word}
+    /* Trophy blocks */
+    .trophyGrid{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:6px;
+    }
+    .tRow{
+      display:grid;
+      grid-template-columns: 50px 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    .tSys{
+      display:inline-flex;align-items:center;justify-content:center;
+      font-weight:900;
+      border:1px solid var(--line);
+      background:#f3f4f6;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:13px;
+      width:max-content;
+    }
+    .barWrap{
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .barLine{
+      display:flex;justify-content:space-between;align-items:baseline;
+      gap:10px;
+      font-size:14px;
+    }
+    .bar{
+      height:10px;border-radius:999px;
+      background:#e5e7eb;
+      overflow:hidden;
+      border:1px solid #e5e7eb;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background:#1d4ed8;
+    }
+    .barNote{font-size:12px;color:var(--muted)}
+    .tPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
 
-.detailsWrap{border-top:1px solid var(--line);padding-top:10px}
-details{border:0}
-summary{cursor:pointer;color:var(--accent);font-size:13px;user-select:none}
-summary::-webkit-details-marker{display:none}
-.summaryBtn{display:inline-flex;align-items:center;gap:8px}
-.summaryBtn::after{content:"▾";font-size:12px;transform:translateY(-1px)}
-details[open] .summaryBtn::after{content:"▴"}
+    /* Floating Top button */
+    .fabTop{
+      position:fixed;
+      right:14px;
+      bottom:18px;
+      z-index:30;
+      border:none;
+      border-radius:999px;
+      padding:12px 14px;
+      box-shadow:0 14px 30px rgba(17,24,39,.18);
+      background:#ffffff;
+      border:1px solid var(--line);
+      font-weight:900;
+      cursor:pointer;
+      display:none;
+    }
+    .fabTop.show{display:block}
 
-.section{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:grid;gap:8px}
-.sectionTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+    /* Sentinel */
+    #sentinel{height:1px}
 
-.subdetails summary{color:#374151;font-size:13px}
-.subdetails .summaryBtn{color:#374151}
-.subdetails .summaryBtn::after{color:#6b7280}
-.subdetails .content{margin-top:8px}
-.subdetails .contentText{line-height:1.35;white-space:pre-line}
+    /* Small helper */
+    .help{
+      background:#fff;
+      border:1px dashed #d1d5db;
+      border-radius:16px;
+      padding:10px 12px;
+      margin-top:10px;
+      color:#374151;
+      font-size:14px;
+    }
 
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-
-.trophyList{display:grid;gap:8px}
-.trophyRow{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-.platformChip{font-size:11px;font-weight:950;padding:2px 8px;border-radius:999px;background:#f3f4f6;border:1px solid #ececec;color:#374151;height:fit-content}
-.trophyRight{display:grid;gap:6px}
-.trophyText{font-size:13px;color:#111;line-height:1.2}
-
-.progressWrap{display:grid;gap:4px}
-.progressBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
-.progressFill{height:100%;background:var(--accent);width:0%}
-.progressLabel{font-size:12px;color:var(--muted)}
-
-.statusPill{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:6px 10px; border-radius:999px;
-  border:1px solid #ececec;
-  font-size:12px; font-weight:950;
-  width:fit-content;
-}
-.statusPill.ok{background:var(--okBg);border-color:var(--okBd);color:var(--ok)}
-.statusPill.mid{background:var(--dangerBg);border-color:#ffd0d7;color:var(--danger)}
-.statusPill.blue{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
-.statusPill.dim{background:#f3f4f6;border-color:#ececec;color:#4b5563}
-
-#fabTop{
-  position:fixed;right:14px;bottom:16px;z-index:50;
-  display:none;border-radius:999px;padding:12px 14px;border:1px solid #ddd;background:#fff;
-  box-shadow:var(--shadow);font-weight:950;
-}
-#fabTop.show{display:inline-flex}
-
-#sentinel{height:1px}
-
-#sheetOverlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.35);display:none}
-#sheetOverlay.show{display:block}
-#bottomSheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:70;background:#fff;border-radius:18px 18px 0 0;
-  box-shadow:var(--shadow);transform:translateY(110%);transition:transform .2s ease;
-  max-height:78vh;display:grid;grid-template-rows:auto 1fr auto;
-}
-#bottomSheet.show{transform:translateY(0)}
-.handle{width:46px;height:5px;border-radius:999px;background:#e5e7eb;margin:8px auto 0 auto}
-.sheetHead{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.sheetTitle{font-weight:950}
-.sheetClose{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff}
-.sheetBody{padding:12px 14px;overflow:auto;display:grid;gap:14px}
-.groupTitle{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
-.sortRow{display:grid;gap:8px}
-.sortChoice{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:10px 10px;border:1px solid #eee;border-radius:14px;background:#fafafa
-}
-.sortChoice.active{border-color:#d7ddff;background:#f4f6ff}
-.sortName{font-weight:900}
-.sortMeta{color:var(--muted);font-size:12px}
-.dirBtns{display:flex;gap:8px}
-.dirBtn{border:1px solid #ddd;border-radius:12px;padding:8px 10px;background:#fff;font-weight:950}
-.dirBtn.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
-.togGrid{display:flex;gap:8px;flex-wrap:wrap}
-.tog{border:1px solid #eee;background:#fafafa;border-radius:999px;padding:8px 10px;font-size:13px;font-weight:900;cursor:pointer;user-select:none}
-.tog.on{background:var(--chipBg);border-color:#d7ddff;color:var(--accent)}
-.sheetFoot{padding:10px 14px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:space-between;align-items:center}
-.ghost{border:1px solid #ddd;background:#fff}
-</style>
+    @media (max-width:520px){
+      .kv{grid-template-columns: 140px 1fr;}
+      .badgeStack{min-width:120px}
+      .btnIcon{min-width:52px;width:52px}
+    }
+  </style>
 </head>
+
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>Spieleliste</h1>
 
-<header id="hdr">
-  <div class="headerShell">
-    <div id="fullHeader">
-      <div class="brand">
-        <h1>Spieleliste</h1>
+      <!-- FULL MENU -->
+      <div id="menuFull" class="panel menuFull">
+        <div class="row">
+          <input id="file" class="grow" type="file" accept=".xlsx,.xls,.csv" />
+          <select id="sheet" class="grow" disabled>
+            <option value="">Sheet wählen…</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <input id="q" class="grow" placeholder="Suche… (z.B. id:643 dev:naughty system:ps4 plus platin 100 delisted)" />
+          <select id="sort" class="grow" disabled>
+            <option value="id">Sort: ID</option>
+            <option value="title">Sort: Spieletitel</option>
+            <option value="system">Sort: System</option>
+            <option value="quelle">Sort: Quelle</option>
+            <option value="genre">Sort: Genre</option>
+            <option value="dev">Sort: Entwickler</option>
+            <option value="main">Sort: Spielzeit (Main)</option>
+            <option value="meta">Sort: Metascore</option>
+            <option value="user">Sort: Userwertung</option>
+            <option value="life">% Lebenszeit</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="sortDir" class="btn" disabled>Aufsteigend</button>
+          <button id="toggleMini" class="btn btnIcon" title="Menü minimieren">▾</button>
+        </div>
+
+        <div class="help">
+          <details>
+            <summary>Suche &amp; Filter kurz erklärt</summary>
+            <div style="margin-top:8px;line-height:1.35">
+              Du kannst frei tippen (Volltext über alle Spalten) oder Tokens nutzen:
+              <div style="margin-top:8px">
+                <span style="font-family:var(--mono)">id:12</span>,
+                <span style="font-family:var(--mono)">title:uncharted</span>,
+                <span style="font-family:var(--mono)">dev:capcom</span>,
+                <span style="font-family:var(--mono)">genre:adventure</span>,
+                <span style="font-family:var(--mono)">system:ps5</span>,
+                <span style="font-family:var(--mono)">quelle:plus</span>,
+                <span style="font-family:var(--mono)">delisted</span>,
+                <span style="font-family:var(--mono)">fav</span>,
+                <span style="font-family:var(--mono)">platin</span>,
+                <span style="font-family:var(--mono)">100</span>,
+                <span style="font-family:var(--mono)">ungespielt</span>,
+                <span style="font-family:var(--mono)">inarbeit</span>
+              </div>
+              <div style="margin-top:8px;color:var(--muted)">Tipp: mehrere Tokens kombinieren, z.B. <span style="font-family:var(--mono)">system:ps4 plus inarbeit</span></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="chips" id="chips"></div>
+
+        <div class="stats" id="stats">
+          <span class="muted">Datei wählen → Sheet wählen → suchen</span>
+        </div>
       </div>
 
-      <div class="row">
-        <input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv" />
-        <select id="sheetSelect" disabled><option>Sheet auswählen…</option></select>
-      </div>
-
-      <div class="row">
-        <input id="search" type="search" placeholder="Suche… (z.B. id:643 dev:capcom completed:1 platform:ps5)" disabled />
-        <button id="openSheetBtn2" class="primary" disabled title="Sort & Filter öffnen"><span style="font-size:18px;font-weight:950">☰</span></button>
-      </div>
-
-      <div class="row" style="justify-content:space-between">
-        <div class="hint" id="sortLabel">Sort: —</div>
-        <div class="counter" id="count"></div>
-      </div>
-
-      <div class="smallHelp">
-        ⓘ Query: <code>id:</code> <code>dev:</code> <code>platform:</code> <code>fav:</code> <code>platin:</code> <code>completed:</code> <code>delisted:</code> <code>psplus:</code> <code>digital:</code> <code>disc:</code>
+      <!-- MINI MENU -->
+      <div id="menuMini" class="panel menuMini">
+        <div class="miniRow">
+          <input id="qMini" class="grow" placeholder="Suche…" />
+          <button id="openFull" class="btn btnIcon" title="Menü öffnen">≡</button>
+        </div>
+        <div class="miniStats" id="miniStats"></div>
       </div>
     </div>
 
-    <div id="compactBar">
-      <input id="compactSearch" type="search" placeholder="Suche…" />
-      <button id="openSheetBtn" class="primary" title="Sort & Filter"><span>☰</span></button>
-    </div>
+    <div class="list" id="list"></div>
+    <div id="sentinel"></div>
+
+    <button id="fabTop" class="fabTop" title="Nach oben">↑ Top</button>
   </div>
-</header>
 
-<main>
-  <div id="status" class="hint" style="margin-bottom:10px">Datei wählen → Sheet wählen → suchen</div>
-  <div id="grid" class="grid"></div>
-  <div id="sentinel"></div>
-</main>
-
-<button id="fabTop" aria-label="Nach oben">↑ Top</button>
-
-<div id="sheetOverlay"></div>
-<div id="bottomSheet" aria-hidden="true">
-  <div class="handle"></div>
-  <div class="sheetHead">
-    <div>
-      <div class="sheetTitle">Sortieren & Filtern</div>
-      <div class="smallHelp" id="sheetMiniInfo">—</div>
-    </div>
-    <button class="sheetClose" id="sheetClose">Schließen</button>
-  </div>
-
-  <div class="sheetBody">
-    <div class="sortRow">
-      <div class="groupTitle">Sortieren nach</div>
-      <div id="sortList"></div>
-    </div>
-
-    <div>
-      <div class="groupTitle">Filter</div>
-      <div class="togGrid" id="filterTogs"></div>
-    </div>
-
-    <div>
-      <div class="groupTitle">System</div>
-      <div class="togGrid" id="platformTogs"></div>
-    </div>
-  </div>
-
-  <div class="sheetFoot">
-    <button id="clearFiltersBtn" class="ghost">Filter löschen</button>
-    <button id="applySheetBtn" class="primary">Übernehmen</button>
-  </div>
-</div>
-
-<script src="xlsx.full.min.js"></script>
 <script>
-const PAGE_SIZE = 40;
-const PLACEHOLDER = "—";
-const STORAGE_KEY = "spieleliste_view_state_v9";
+(() => {
+  // -------------------------
+  // Utilities
+  // -------------------------
+  const $ = (id) => document.getElementById(id);
+  const norm = (v) => (v === null || v === undefined) ? "" : String(v).replace(/\u00A0/g," ").trim();
+  const lower = (v) => norm(v).toLowerCase();
+  const has = (v) => norm(v).length > 0;
+  const toNum = (v) => {
+    const s = norm(v).replace(",", ".").replace(/[^0-9.\-]/g,"");
+    if(!s) return NaN;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  };
+  const deCompare = (a,b) => {
+    const A = norm(a), B = norm(b);
+    return A.localeCompare(B, "de", { sensitivity:"base", numeric:true });
+  };
 
-const COL_ALIASES = {
-  id: ["ID"],
-  title: ["Spieletitel","Spiel","Titel","Name"],
-  system: ["System","Plattform","Platform"],
-  source: ["Quelle","Source"],
-  genre: ["Genre"],
-  dev: ["Entwickler","Developer","Studio"],
-  main: ["Spielzeit (Main)","Spielzeit Main","Main Story (Std.)","Main Story"],
-  meta: ["Metascore","Pressemeinung (Ø)"],
-  user: ["Userwertung","Userwertung (Ø)"],
-  life: ["% Lebenszeit (Humorstatistik)","Humorstatistik – % Lebenszeit","Humorstatistik - % Lebenszeit","% Lebenszeit"],
-  fav: ["Favorit","Favorite"],
-  platinum: ["Platin","Platinum"],
-  trophies: ["Trophäen Fortschritt","Trophäen-Fortschritt","Trophäenfortschritt","Trophies Progress"],
-  availability: ["Verfügbarkeit","Verfuegbarkeit","Availability"],
-  store: ["Store Link","Store-Link","StoreLink","Store"],
-  desc: ["Kurzbeschreibung","Beschreibung","Description"],
-  special: ["Besonderheiten","Highlights"],
-  easter: ["Eastereggs","Easter Eggs"],
-  hours: ["Gesamtstunden (Humorstatistik)","Humorstatistik – Gesamtstunden","Humorstatistik - Gesamtstunden"],
-  years: ["Jahre (Humorstatistik)","Humorstatistik – Jahre","Humorstatistik - Jahre","Jahre"],
-  completedFlag: ["100%","100 %","100% Completed","100 % Completed","Completed (100%)","Komplett (100%)","100% Status"],
-};
-let COL = {};
+  const SYSTEMS = ["PS5","PS4","PS3","Vita"];
+  const SOURCE_KEYS = ["PS Plus","Digital","Disc"];
 
-const PLATFORM_LIST = ["PS5","PS4","PS3","PS2","PS1","PSVita","Vita","PC","Switch","Xbox","Series","One"];
-const PLATFORM_CANON = { "psvita":"vita", "vita":"vita", "ps5":"ps5", "ps4":"ps4", "ps3":"ps3" };
+  function parseSystems(systemCell){
+    const s = norm(systemCell);
+    if(!s) return [];
+    // Excel: "PS3, PS4, Vita" oder "PS4, PS5"
+    return s.split(",").map(x => x.trim()).filter(Boolean);
+  }
+  function inferSingleSystem(systemCell){
+    const arr = parseSystems(systemCell);
+    if(arr.length === 1) return arr[0];
+    return null;
+  }
 
-const els = {
-  hdr: document.getElementById("hdr"),
-  file: document.getElementById("file"),
-  sheet: document.getElementById("sheetSelect"),
-  search: document.getElementById("search"),
-  compactSearch: document.getElementById("compactSearch"),
-  openSheetBtn: document.getElementById("openSheetBtn"),
-  openSheetBtn2: document.getElementById("openSheetBtn2"),
-  sortLabel: document.getElementById("sortLabel"),
-  status: document.getElementById("status"),
-  count: document.getElementById("count"),
-  grid: document.getElementById("grid"),
-  sentinel: document.getElementById("sentinel"),
-  fabTop: document.getElementById("fabTop"),
+  function normalizeQuelle(q){
+    const s = norm(q);
+    if(!s) return "";
+    // Du willst "gekauft" als Digital labeln
+    if(s.toLowerCase() === "gekauft") return "Digital";
+    if(s.toLowerCase().includes("ps plus")) return "PS Plus";
+    if(s.toLowerCase().includes("disc")) return "Disc";
+    return s; // falls später noch mehr kommt
+  }
 
-  overlay: document.getElementById("sheetOverlay"),
-  sheetBox: document.getElementById("bottomSheet"),
-  sheetClose: document.getElementById("sheetClose"),
-  sortList: document.getElementById("sortList"),
-  filterTogs: document.getElementById("filterTogs"),
-  platformTogs: document.getElementById("platformTogs"),
-  clearFiltersBtn: document.getElementById("clearFiltersBtn"),
-  applySheetBtn: document.getElementById("applySheetBtn"),
-  sheetMiniInfo: document.getElementById("sheetMiniInfo"),
-};
+  // Parse multi-platform blocks like:
+  // "PS4\n15 of 15\n\nPS5\n---"
+  // or singleplatform: "15 of 27"
+  // or empty
+  function parsePlatformBlock(text, systemCell){
+    const raw = norm(text);
+    const singleSys = inferSingleSystem(systemCell);
 
-const s = v => (v == null ? "" : String(v).trim());
-
-let workbook = null;
-let allRows = [];
-let matches = [];
-let shown = 0;
-let columns = [];
-let linkMap = new Map();
-let headerRowIndex = 1;
-let io = null;
-let isLoading = false;
-
-const SORT_KEYS = [
-  { key:"__id",   label:"ID",            meta:"numerisch" },
-  { key:"__title",label:"Spieletitel",   meta:"Text" },
-  { key:"__system",label:"System",       meta:"Text" },
-  { key:"__source",label:"Quelle",       meta:"Text" },
-  { key:"__genre",label:"Genre",         meta:"Text" },
-  { key:"__dev",  label:"Entwickler",    meta:"Text" },
-  { key:"__main", label:"Spielzeit (Main)", meta:"numerisch" },
-  { key:"__meta", label:"Metascore",     meta:"numerisch" },
-  { key:"__user", label:"Userwertung",   meta:"numerisch" },
-  { key:"__life", label:"Lebenszeit %",  meta:"numerisch" },
-];
-
-const viewState = {
-  fileMode: "",
-  sheetName: "",
-  search: "",
-  sortKey: "__id",
-  sortDir: "asc",
-  filters: {
-    fav:false, platin:false, completed:false, delisted:false,
-    ps5:false, ps4:false, ps3:false, vita:false,
-    psplus:false, digital:false, disc:false
-  },
-};
-
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const st = JSON.parse(raw);
-    if (st && typeof st === "object"){
-      Object.assign(viewState, st);
-      if (st.filters) Object.assign(viewState.filters, st.filters);
+    const result = {}; // platform -> value string
+    if(!raw){
+      if(singleSys) result[singleSys] = "";
+      return result;
     }
-  }catch(e){}
-}
-function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(viewState)); }catch(e){} }
-loadState();
 
-function normHeader(x){
-  return String(x ?? "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
-}
-function resolveColumns(cols){
-  const byNorm = new Map(cols.map(c => [normHeader(c), c]));
-  const resolved = {};
-  for (const [key, aliases] of Object.entries(COL_ALIASES)) {
-    let found = "";
-    for (const a of aliases) {
-      const hit = byNorm.get(normHeader(a));
-      if (hit) { found = hit; break; }
-    }
-    resolved[key] = found;
-  }
-  return resolved;
-}
-function val(row, colName){
-  if (!colName) return "";
-  const v = row[colName];
-  return v == null ? "" : String(v).trim();
-}
-
-/* Plattform-Utilities */
-function extractPlatformsFromText(text){
-  const t = String(text ?? "");
-  const found = [];
-  const re = /\b(PS5|PS4|PS3|PS2|PS1|PSVita|Vita|PC|Switch|Xbox|Series|One)\b/g;
-  let m;
-  while ((m = re.exec(t)) !== null) found.push(m[1]);
-  return [...new Set(found)];
-}
-function platformsFromSystem(row){
-  return extractPlatformsFromText(val(row, COL.system));
-}
-function rowHasPlatform(row, key){
-  let plats = platformsFromSystem(row).map(p => p.toLowerCase());
-  if (!plats.length){
-    const fallback = [...extractPlatformsFromText(val(row, COL.trophies)), ...extractPlatformsFromText(val(row, COL.platinum)), ...extractPlatformsFromText(val(row, COL.completedFlag))].map(p=>p.toLowerCase());
-    plats = fallback;
-  }
-  return plats.some(p => (PLATFORM_CANON[p] || p) === key);
-}
-
-/* Quelle-Erkennung (PS Plus / Digital / Disc) */
-function sourceText(row){ return val(row, COL.source).toLowerCase(); }
-function isPSPlus(row){
-  const t = sourceText(row);
-  return t.includes("ps plus") || t.includes("ps+") || t.includes("plus");
-}
-function isDigital(row){
-  const t = sourceText(row);
-  return t.includes("gekauft") || t.includes("kauf") || t.includes("buy") || t.includes("purchased");
-}
-function isDisc(row){
-  const t = sourceText(row);
-  return t.includes("disc") || t.includes("disk") || t.includes("retail") || t.includes("blu-ray") || t.includes("bluray");
-}
-function displaySource(row){
-  if (isPSPlus(row)) return "PS Plus";
-  if (isDigital(row)) return "Digital";
-  if (isDisc(row)) return "Disc";
-  const raw = val(row, COL.source);
-  return raw || PLACEHOLDER;
-}
-
-/* XLSX Links */
-function buildLinks(ws){
-  linkMap.clear();
-  const ref = ws["!ref"]; if (!ref) return;
-  const r = XLSX.utils.decode_range(ref);
-
-  const headerR = r.s.r;
-  headerRowIndex = headerR + 1;
-
-  const headerByCol = new Map();
-  for (let c = r.s.c; c <= r.e.c; c++){
-    const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
-    headerByCol.set(c, cell && cell.v != null ? String(cell.v).trim() : "");
-  }
-  for (let rr = headerR + 1; rr <= r.e.r; rr++){
-    const row1 = rr + 1;
-    for (let c = r.s.c; c <= r.e.c; c++){
-      const cell = ws[XLSX.utils.encode_cell({ r: rr, c })];
-      if (cell && cell.l && cell.l.Target){
-        const colName = headerByCol.get(c);
-        if (colName) linkMap.set(`${row1}:${colName}`, String(cell.l.Target));
-      }
-    }
-  }
-}
-function applyDelistedFromStyles(ws){
-  const ref = ws["!ref"]; if (!ref) return;
-  const r = XLSX.utils.decode_range(ref);
-  const titleCol = COL.title;
-  if (!titleCol) return;
-
-  const headerR = r.s.r;
-  let titleC = null;
-  for (let c = r.s.c; c <= r.e.c; c++){
-    const cell = ws[XLSX.utils.encode_cell({ r: headerR, c })];
-    const h = cell && cell.v != null ? String(cell.v).trim() : "";
-    if (h === titleCol) { titleC = c; break; }
-  }
-  if (titleC == null) return;
-
-  for (let i = 0; i < allRows.length; i++){
-    const rr = headerR + 1 + i;
-    const cell = ws[XLSX.utils.encode_cell({ r: rr, c: titleC })];
-    const strike = !!(cell && cell.s && cell.s.font && (cell.s.font.strike || cell.s.font.strikethrough));
-    if (strike) allRows[i].__delisted = true;
-  }
-}
-function isDelistedRow(row){
-  if (row.__delisted) return true;
-  const v = val(row, COL.availability).toLowerCase();
-  return v === "delisted" || v === "removed" || v.includes("store entfernt");
-}
-function getValueWithLink(row, colName, rowIndex1Based){
-  const text = val(row, colName);
-  const href = linkMap.get(`${rowIndex1Based}:${colName}`);
-  if (href) return { text: text || "Store Link", href };
-  return text;
-}
-
-/* Fortschritt: Fractions */
-function parseAllFractions(text){
-  const t = String(text ?? "");
-  const out = [];
-  const re = /(\d+)\s*(?:of|von|\/)\s*(\d+)/ig;
-  let m;
-  while ((m = re.exec(t)) !== null){
-    const a = parseInt(m[1],10);
-    const b = parseInt(m[2],10);
-    if (Number.isFinite(a) && Number.isFinite(b) && b > 0) out.push({a,b});
-  }
-  return out;
-}
-
-/* Fortschritt pro Plattform rausziehen (PS4 15 of 15 / PS5 --- etc.) */
-function parsePlatformPairs(text){
-  const t = String(text ?? "").trim();
-  if (!t) return [];
-  const hits = [];
-  for (const p of PLATFORM_LIST) {
-    const re = new RegExp(`\\b${p}\\b`, "g");
-    let m; while ((m = re.exec(t)) !== null) hits.push({ p, i: m.index });
-  }
-  hits.sort((a,b)=>a.i-b.i);
-  if (!hits.length) return [];
-  const out = [];
-  for (let j=0;j<hits.length;j++){
-    const start = hits[j].i;
-    const end = (j+1<hits.length) ? hits[j+1].i : t.length;
-    const p = hits[j].p;
-    let seg = t.slice(start, end).trim();
-    seg = seg.replace(new RegExp(`^${p}\\s*`), "").trim();
-    out.push({ platform: (p==="PSVita" ? "Vita" : p), text: seg || PLACEHOLDER });
-  }
-  return out;
-}
-
-/* Status-Text (100% / Platin) pro Plattform extrahieren */
-function parsePlatformStatusText(text){
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-  const pairs = parsePlatformPairs(raw);
-  if (pairs.length) return pairs.map(p => ({ platform:p.platform, text:p.text }));
-  return [{ platform:"", text: raw }];
-}
-
-/* Normalisierung */
-function normStatusText(t){
-  const x = String(t ?? "").trim();
-  if (!x) return "";
-  if (x === "---" || x === "-" || x.toLowerCase() === "n/a") return "";
-  return x;
-}
-function isCompletedText(t){
-  const x = normStatusText(t).toLowerCase();
-  return x.includes("completed") || x === "complete" || x === "100%" || x.includes("100");
-}
-function isPlatinumText(t){
-  const x = normStatusText(t).toLowerCase();
-  return x.includes("platinum") || x.includes("platin");
-}
-
-/* Fortschritt-Parsing */
-function parseFraction(text){
-  const s = String(text ?? "");
-  let m = s.match(/(\d+)\s*(?:of|von|\/)\s*(\d+)/i);
-  if (!m) return null;
-  const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
-  if (!b) return null;
-  const pct = Math.max(0, Math.min(1, a / b));
-  return { a, b, pct };
-}
-function progressNode(fr){
-  const wrap = document.createElement("div"); wrap.className="progressWrap";
-  const bar = document.createElement("div"); bar.className="progressBar";
-  const fill = document.createElement("div"); fill.className="progressFill"; fill.style.width = `${Math.round(fr.pct*100)}%`;
-  bar.appendChild(fill);
-  const lab = document.createElement("div"); lab.className="progressLabel"; lab.textContent = `${Math.round(fr.pct*100)}% (${fr.a}/${fr.b})`;
-  wrap.append(bar, lab);
-  return wrap;
-}
-function trophyList(items){
-  const wrap = document.createElement("div"); wrap.className="trophyList";
-  for (const it of items) {
-    const rowEl = document.createElement("div"); rowEl.className="trophyRow";
-    const chip = document.createElement("span"); chip.className="platformChip"; chip.textContent = it.platform || "—";
-    const right = document.createElement("div"); right.className="trophyRight";
-    const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = it.text || PLACEHOLDER;
-    right.appendChild(txt);
-    const fr = parseFraction(it.text);
-    if (fr) right.appendChild(progressNode(fr));
-    rowEl.append(chip, right);
-    wrap.appendChild(rowEl);
-  }
-  return wrap;
-}
-
-/* === NEU: Fortschritt konsistent als Plattformliste ausgeben === */
-function trophyNodeFromTextUnified(row){
-  const raw = String(val(row, COL.trophies) ?? "").trim();
-  const plats = trophyPlatforms(row);
-
-  // 1) Wenn Plattform-Paare vorhanden, normal rendern
-  const pairs = parsePlatformPairs(raw);
-  if (pairs.length) return trophyList(pairs);
-
-  // 2) Wenn Singleplatform UND kein Fortschritt -> "Ungespielt" für diese Plattform
-  if (plats.length === 1){
-    const p = plats[0];
-    const text = raw ? raw : "💤 Ungespielt";
-    const list = [{ platform:p, text }];
-    // Wenn raw ein Fraction ist, wird Bar automatisch ergänzt (ok)
-    // Wenn raw leer ist, bleibt "Ungespielt" ohne Bar (gewollt)
-    return trophyList(list);
-  }
-
-  // 3) Multi-Platform + globaler Text (ohne Marker) -> global anzeigen (wie vorher)
-  if (!raw) return document.createTextNode(PLACEHOLDER);
-
-  const outer = document.createElement("div");
-  outer.style.display="grid"; outer.style.gap="8px";
-  const txt = document.createElement("div"); txt.className="trophyText"; txt.textContent = raw;
-  outer.appendChild(txt);
-  const fr = parseFraction(raw);
-  if (fr) outer.appendChild(progressNode(fr));
-  return outer;
-}
-
-/* Pro Plattform: Fortschritt für Plattform suchen */
-function progressForPlatform(row, platform){
-  const prog = val(row, COL.trophies);
-  if (!prog) return null;
-  const pairs = parsePlatformPairs(prog);
-  if (pairs.length){
-    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
-    if (!hit) return null;
-    return parseFraction(hit.text);
-  }
-  return parseFraction(prog);
-}
-
-/* Plattformliste, die im TROPHÄEN-Bereich benutzt wird */
-function trophyPlatforms(row){
-  let plats = platformsFromSystem(row);
-  if (!plats.length){
-    const p1 = extractPlatformsFromText(val(row, COL.trophies));
-    const p2 = extractPlatformsFromText(val(row, COL.completedFlag));
-    const p3 = extractPlatformsFromText(val(row, COL.platinum));
-    plats = [...new Set([...p1,...p2,...p3])];
-  }
-  plats = plats.map(p => (p === "PSVita" ? "Vita" : p));
-  return plats;
-}
-
-/* Pro Plattform: Status aus 100%-Spalte holen */
-function completedForPlatform(row, platform){
-  const t = val(row, COL.completedFlag);
-  if (!t) return false;
-
-  const hasMarkers = parsePlatformPairs(t).length > 0;
-  const pairs = parsePlatformStatusText(t);
-
-  if (hasMarkers){
-    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
-    return hit ? isCompletedText(hit.text) : false;
-  }
-
-  const sysPlats = trophyPlatforms(row);
-  if (sysPlats.length === 1){
-    return sysPlats[0].toLowerCase() === platform.toLowerCase()
-      ? isCompletedText(pairs[0]?.text || "")
-      : false;
-  }
-  return false;
-}
-
-/* Pro Plattform: Platin-Status aus Platin-Spalte holen */
-function platinumForPlatform(row, platform){
-  const t = val(row, COL.platinum);
-  if (!t) return false;
-
-  const hasMarkers = parsePlatformPairs(t).length > 0;
-  const pairs = parsePlatformStatusText(t);
-
-  if (hasMarkers){
-    const hit = pairs.find(p => p.platform.toLowerCase() === platform.toLowerCase());
-    return hit ? isPlatinumText(hit.text) : false;
-  }
-
-  const sysPlats = trophyPlatforms(row);
-  if (sysPlats.length === 1){
-    return sysPlats[0].toLowerCase() === platform.toLowerCase()
-      ? isPlatinumText(pairs[0]?.text || "")
-      : false;
-  }
-  return false;
-}
-
-/* UI helpers */
-function renderValue(value){
-  if (value && typeof value === "object" && value.href) {
-    const a = document.createElement("a");
-    a.href = value.href;
-    a.textContent = value.text || "Link";
-    a.title = value.href;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    return a;
-  }
-  const t = s(value);
-  return document.createTextNode(t || PLACEHOLDER);
-}
-function kvLine(label, node){
-  const line = document.createElement("div");
-  line.className = "kvLine";
-  const k = document.createElement("div"); k.className="k"; k.textContent=label;
-  const v = document.createElement("div"); v.className="v"; v.appendChild(node);
-  line.append(k,v);
-  return line;
-}
-function makeChip(text){
-  const c = document.createElement("span");
-  c.className = "chip"; c.textContent=text;
-  return c;
-}
-function makeBadge(text, cls=""){
-  const b = document.createElement("span");
-  b.className = "badge" + (cls ? " " + cls : "");
-  b.textContent = text;
-  return b;
-}
-function makeToggleBlock(label, contentText){
-  const d = document.createElement("details");
-  d.className = "subdetails";
-  const sum = document.createElement("summary");
-  const btn = document.createElement("span");
-  btn.className = "summaryBtn";
-  btn.textContent = `${label} anzeigen`;
-  sum.appendChild(btn);
-  d.appendChild(sum);
-
-  const wrap = document.createElement("div"); wrap.className="content";
-  const txt = document.createElement("div"); txt.className="v contentText";
-  txt.textContent = contentText || PLACEHOLDER;
-  wrap.appendChild(txt);
-  d.appendChild(wrap);
-
-  d.addEventListener("toggle", () => btn.textContent = d.open ? `${label} ausblenden` : `${label} anzeigen`);
-  return d;
-}
-
-function makePill(cls, text){
-  const pill = document.createElement("span");
-  pill.className = "statusPill " + cls;
-  pill.textContent = text;
-  return pill;
-}
-
-/* TROPHÄEN: Status-Liste pro Plattform */
-function trophyStatusList(row, kind /* "completion" | "platin" */){
-  const plats = trophyPlatforms(row);
-
-  // Wenn gar keine Plattform ermittelbar: fallback
-  if (!plats.length){
-    const wrap = document.createElement("div");
-    wrap.textContent = PLACEHOLDER;
-    return wrap;
-  }
-
-  const wrap = document.createElement("div");
-  wrap.className = "trophyList";
-
-  for (const plat of plats){
-    const rowEl = document.createElement("div"); rowEl.className="trophyRow";
-    const chip = document.createElement("span"); chip.className="platformChip"; chip.textContent = plat;
-
-    const right = document.createElement("div"); right.className="trophyRight";
-
-    if (kind === "completion"){
-      if (completedForPlatform(row, plat)){
-        right.appendChild(makePill("ok","✅ 100% erreicht"));
-      } else {
-        const fr = progressForPlatform(row, plat);
-        if (fr && fr.a === fr.b && fr.b > 0){
-          right.appendChild(makePill("ok","✅ 100% erreicht"));
-        } else if (fr && fr.a > 0 && fr.a < fr.b){
-          right.appendChild(makePill("mid","⏳ In Arbeit"));
+    // If it contains explicit platform headings
+    const hasHeading = SYSTEMS.some(sys => new RegExp(`\\b${sys}\\b`, "i").test(raw));
+    if(hasHeading){
+      // split into chunks by blank lines, but keep pairing "PS4" + next lines
+      // normalize line breaks
+      const lines = raw.replace(/\r/g,"").split("\n").map(l => l.trim());
+      let cur = null;
+      let buf = [];
+      const flush = () => {
+        if(cur){
+          result[cur] = buf.filter(Boolean).join("\n").trim();
+        }
+        cur = null; buf = [];
+      };
+      for(const line of lines){
+        if(!line){ continue; }
+        const sys = SYSTEMS.find(s => s.toLowerCase() === line.toLowerCase());
+        if(sys){
+          flush();
+          cur = sys;
         } else {
-          right.appendChild(makePill("dim","💤 Ungespielt"));
+          if(!cur && singleSys){
+            // fallback: treat as singleplatform content
+            result[singleSys] = lines.filter(Boolean).join("\n").trim();
+            return result;
+          }
+          buf.push(line);
         }
       }
+      flush();
+      return result;
+    }
+
+    // singleplatform value without platform label
+    if(singleSys){
+      result[singleSys] = raw;
     } else {
-      if (platinumForPlatform(row, plat)){
-        right.appendChild(makePill("blue","💎 Platin erlangt"));
-      } else {
-        const fr = progressForPlatform(row, plat);
-        if (fr && fr.a > 0 && fr.a < fr.b){
-          right.appendChild(makePill("mid","⏳ In Arbeit"));
-        } else {
-          right.appendChild(makePill("dim","💤 Ungespielt"));
-        }
-      }
+      // ambiguous: store under "ALL"
+      result["ALL"] = raw;
+    }
+    return result;
+  }
+
+  function parseProgressValue(v){
+    // "15 of 27" -> {done:15,total:27,pct:55.5}
+    const s = norm(v);
+    if(!s || s === "---") return null;
+    const m = s.match(/(\d+)\s*of\s*(\d+)/i);
+    if(!m) return null;
+    const done = parseInt(m[1],10);
+    const total = parseInt(m[2],10);
+    if(!Number.isFinite(done) || !Number.isFinite(total) || total<=0) return null;
+    const pct = Math.max(0, Math.min(100, (done/total)*100));
+    return { done, total, pct };
+  }
+
+  function isDelisted(row){
+    return lower(row["Verfügbarkeit"]).includes("delisted") || lower(row["Verfügbarkeit"]).includes("entfernt");
+  }
+
+  function getStoreHref(row){
+    // SheetJS may store hyperlink in a separate structure, we attach it during XLSX parsing.
+    // We store it as row.__storeHref
+    return row.__storeHref || "";
+  }
+
+  function computeTrophyState(row){
+    // Returns per platform:
+    // { platform, progress: {done,total,pct}|null, completion: "unplayed|inarbeit|done", platinum:"unplayed|inarbeit|done" }
+    const systems = parseSystems(row["System"]);
+    const singleSys = inferSingleSystem(row["System"]);
+
+    const progMap = parsePlatformBlock(row["Trophäen Fortschritt"], row["System"]);
+    const compMap = parsePlatformBlock(row["100%"], row["System"]);
+    const platMap = parsePlatformBlock(row["Platin"], row["System"]);
+
+    // Ensure at least those systems appear (for consistent UI)
+    const platforms = new Set();
+    systems.forEach(s => platforms.add(s));
+    Object.keys(progMap).forEach(k => platforms.add(k));
+    Object.keys(compMap).forEach(k => platforms.add(k));
+    Object.keys(platMap).forEach(k => platforms.add(k));
+    if(platforms.size === 0 && singleSys) platforms.add(singleSys);
+    if(platforms.size === 0) platforms.add("ALL");
+
+    const out = [];
+    for(const p of platforms){
+      const progRaw = (progMap[p] ?? "").trim();
+      const compRaw = (compMap[p] ?? "").trim();
+      const platRaw = (platMap[p] ?? "").trim();
+
+      const progress = parseProgressValue(progRaw);
+
+      // completion "done" if:
+      // - 100% cell says "Completed" OR
+      // - progress is x of x
+      const compDone = /completed/i.test(compRaw) || (progress && progress.done === progress.total);
+
+      // platinum "done" if:
+      // - platin cell says "Platinum"
+      const platDone = /platinum/i.test(platRaw);
+
+      const hasAny = !!progress || compDone || platDone || /---/.test(progRaw) || /---/.test(compRaw) || /---/.test(platRaw);
+
+      // unplayed vs inarbeit:
+      // If no progress and not done/platinum => unplayed
+      // If progress exists but not done => inarbeit
+      const completion = compDone ? "done" : (progress ? "inarbeit" : "unplayed");
+      const platinum = platDone ? "done" : (progress ? "inarbeit" : "unplayed");
+
+      out.push({ platform:p, progress, completion, platinum, hasAny });
     }
 
-    rowEl.append(chip, right);
-    wrap.appendChild(rowEl);
-  }
-  return wrap;
-}
+    // Sort platforms by known order
+    out.sort((a,b) => {
+      const ai = SYSTEMS.indexOf(a.platform);
+      const bi = SYSTEMS.indexOf(b.platform);
+      if(ai === -1 && bi === -1) return deCompare(a.platform,b.platform);
+      if(ai === -1) return 1;
+      if(bi === -1) return -1;
+      return ai - bi;
+    });
 
-/* Favorit/Platin/100% global (Badges oben nur “erreicht” anzeigen) */
-function formatFavorite(row){
-  const f = val(row, COL.fav).toLowerCase();
-  if (!f) return "";
-  return (f === "x" || f === "1" || f === "true" || f === "yes" || f === "y" || f.includes("⭐")) ? "⭐ Favorit" : "";
-}
-function isCompletedAny(row){
-  const plats = trophyPlatforms(row);
-  if (!plats.length){
-    return isCompletedText(val(row, COL.completedFlag)) || parseAllFractions(val(row, COL.trophies)).some(f=>f.a===f.b);
-  }
-  return plats.some(p => completedForPlatform(row,p) || (()=>{ const fr=progressForPlatform(row,p); return fr && fr.a===fr.b && fr.b>0; })());
-}
-function isPlatinumAny(row){
-  const plats = trophyPlatforms(row);
-  if (!plats.length){
-    return isPlatinumText(val(row, COL.platinum));
-  }
-  return plats.some(p => platinumForPlatform(row,p));
-}
+    // Global flags for badges/filters:
+    const anyProgress = out.some(x => x.progress && x.progress.done > 0);
+    const anyDone100 = out.some(x => x.completion === "done");
+    const anyPlatin = out.some(x => x.platinum === "done");
+    const allUnplayed = out.every(x => x.completion === "unplayed" && x.platinum === "unplayed" && !x.progress);
 
-/* Scores / Sort helpers */
-function parseFloatLoose(text){
-  const t = String(text ?? "").trim();
-  if (!t) return NaN;
-  const m = t.match(/-?\d+(?:[.,]\d+)?/);
-  if (!m) return NaN;
-  return parseFloat(m[0].replace(",", "."));
-}
-function scoreNum(text){ return parseFloatLoose(text); }
+    return { perPlatform: out, anyProgress, anyDone100, anyPlatin, allUnplayed };
+  }
 
-/* Query / Filter */
-function parseQuery(q){
-  const raw = (q || "").trim();
-  const tokens = raw.length ? raw.split(/\s+/) : [];
-  const filters = { text: [], id:"", dev:"", platform:"", fav:null, platin:null, completed:null, delisted:null, psplus:null, digital:null, disc:null };
+  // -------------------------
+  // State
+  // -------------------------
+  const LS_KEY = "spieleliste_ui_state_v3";
+  const state = {
+    rows: [],
+    filtered: [],
+    rendered: 0,
+    batch: 40,
+    sortKey: "id",
+    sortDir: "asc",
+    sheetName: "",
+    fileName: "",
+    q: "",
+    chips: {
+      fav:false,
+      platin:false,
+      done100:false,
+      delisted:false,
+      ps5:false,
+      ps4:false,
+      ps3:false,
+      vita:false,
+      plus:false,
+      digital:false,
+      disc:false,
+      unplayed:false,
+      inarbeit:false
+    },
+    menuMini:false
+  };
 
-  const truthy = v => ["1","true","yes","ja","x"].includes(String(v).toLowerCase());
-  const falsy  = v => ["0","false","no","nein"].includes(String(v).toLowerCase());
+  function saveState(){
+    const payload = {
+      sortKey: state.sortKey,
+      sortDir: state.sortDir,
+      sheetName: state.sheetName,
+      q: state.q,
+      chips: state.chips,
+      menuMini: state.menuMini
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return;
+      const p = JSON.parse(raw);
+      if(p.sortKey) state.sortKey = p.sortKey;
+      if(p.sortDir) state.sortDir = p.sortDir;
+      if(typeof p.sheetName === "string") state.sheetName = p.sheetName;
+      if(typeof p.q === "string") state.q = p.q;
+      if(p.chips) state.chips = {...state.chips, ...p.chips};
+      if(typeof p.menuMini === "boolean") state.menuMini = p.menuMini;
+    }catch(e){}
+  }
 
-  for (const t of tokens){
-    const m = t.match(/^(\w+)\:(.+)$/);
-    if (!m){ filters.text.push(t); continue; }
-    const key = m[1].toLowerCase();
-    const vv = m[2];
+  // -------------------------
+  // UI Init
+  // -------------------------
+  loadState();
 
-    if (key === "id") filters.id = vv;
-    else if (key === "dev") filters.dev = vv;
-    else if (key === "platform" || key === "plat") filters.platform = vv.toLowerCase();
-    else if (key === "fav") filters.fav = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "platin") filters.platin = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "completed") filters.completed = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "delisted") filters.delisted = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "psplus") filters.psplus = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "digital") filters.digital = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else if (key === "disc") filters.disc = truthy(vv) ? true : (falsy(vv) ? false : null);
-    else filters.text.push(t);
-  }
-  return filters;
-}
-function queryMatchesRow(qf, row){
-  const txt = qf.text.join(" ").toLowerCase();
-  if (txt){
-    const hay = Object.values(row).map(v => s(v).toLowerCase()).join(" ");
-    if (!hay.includes(txt)) return false;
-  }
-  if (qf.id && !val(row, COL.id).toLowerCase().includes(qf.id.toLowerCase())) return false;
-  if (qf.dev && !val(row, COL.dev).toLowerCase().includes(qf.dev.toLowerCase())) return false;
-  if (qf.platform){
-    const canon = PLATFORM_CANON[qf.platform] || qf.platform;
-    if (!rowHasPlatform(row, canon)) return false;
-  }
-  if (qf.fav !== null){ if ((!!formatFavorite(row)) !== qf.fav) return false; }
-  if (qf.platin !== null){ if (isPlatinumAny(row) !== qf.platin) return false; }
-  if (qf.completed !== null){ if (isCompletedAny(row) !== qf.completed) return false; }
-  if (qf.delisted !== null){ if (isDelistedRow(row) !== qf.delisted) return false; }
-  if (qf.psplus !== null){ if (isPSPlus(row) !== qf.psplus) return false; }
-  if (qf.digital !== null){ if (isDigital(row) !== qf.digital) return false; }
-  if (qf.disc !== null){ if (isDisc(row) !== qf.disc) return false; }
-  return true;
-}
+  const fileEl = $("file");
+  const sheetEl = $("sheet");
+  const qEl = $("q");
+  const qMiniEl = $("qMini");
+  const sortEl = $("sort");
+  const sortDirEl = $("sortDir");
+  const chipsEl = $("chips");
+  const listEl = $("list");
+  const statsEl = $("stats");
+  const miniStatsEl = $("miniStats");
+  const fabTop = $("fabTop");
 
-function rowPassesFilters(row){
-  const f = viewState.filters;
-  if (f.fav && !formatFavorite(row)) return false;
-  if (f.platin && !isPlatinumAny(row)) return false;
-  if (f.completed && !isCompletedAny(row)) return false;
-  if (f.delisted && !isDelistedRow(row)) return false;
+  const menuFull = $("menuFull");
+  const menuMini = $("menuMini");
+  const toggleMiniBtn = $("toggleMini");
+  const openFullBtn = $("openFull");
+  const sentinel = $("sentinel");
 
-  if (f.psplus && !isPSPlus(row)) return false;
-  if (f.digital && !isDigital(row)) return false;
-  if (f.disc && !isDisc(row)) return false;
+  qEl.value = state.q;
+  qMiniEl.value = state.q;
+  sortEl.value = state.sortKey;
+  sortDirEl.textContent = (state.sortDir === "asc") ? "Aufsteigend" : "Absteigend";
 
-  const platformFilters = ["ps5","ps4","ps3","vita"].filter(k => f[k]);
-  if (platformFilters.length){
-    const ok = platformFilters.some(k => rowHasPlatform(row, k));
-    if (!ok) return false;
-  }
-  return true;
-}
-
-/* Sort */
-function sortValue(row, key){
-  if (key === "__id"){
-    const n = parseFloatLoose(val(row, COL.id));
-    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
-  }
-  if (key === "__title"){
-    const t = val(row, COL.title) || "";
-    return {t:"title", v: t};
-  }
-  if (key === "__system") return {t:"str", v: (val(row, COL.system)||"")};
-  if (key === "__source") return {t:"str", v: (displaySource(row)||"")};
-  if (key === "__genre") return {t:"str", v: (val(row, COL.genre)||"")};
-  if (key === "__dev") return {t:"str", v: (val(row, COL.dev)||"")};
-  if (key === "__main"){
-    const n = parseFloatLoose(val(row, COL.main));
-    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
-  }
-  if (key === "__meta"){
-    const n = scoreNum(val(row, COL.meta));
-    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
-  }
-  if (key === "__user"){
-    const n = scoreNum(val(row, COL.user));
-    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
-  }
-  if (key === "__life"){
-    const n = parseFloatLoose(val(row, COL.life));
-    return {t:"num", v: Number.isFinite(n) ? n : Infinity};
-  }
-  return {t:"str", v:""};
-}
-function sortMatches(arr){
-  const dir = viewState.sortDir === "asc" ? 1 : -1;
-  const key = viewState.sortKey;
-  arr.sort((a,b) => {
-    const av = sortValue(a.row, key);
-    const bv = sortValue(b.row, key);
-
-    if (av.t === "num" && bv.t === "num"){
-      if (av.v === bv.v) return 0;
-      return dir * (av.v < bv.v ? -1 : 1);
+  function setMenuMode(mini){
+    state.menuMini = mini;
+    if(mini){
+      menuFull.classList.add("hidden");
+      menuMini.style.display = "block";
+    } else {
+      menuFull.classList.remove("hidden");
+      menuMini.style.display = "none";
     }
-    if (av.t === "title" && bv.t === "title"){
-      return dir * av.v.localeCompare(bv.v, "de", { sensitivity: "base", numeric: true, ignorePunctuation: true });
-    }
-    const as = String(av.v ?? "");
-    const bs = String(bv.v ?? "");
-    return dir * as.localeCompare(bs, "de", { sensitivity:"base", numeric:true, ignorePunctuation:true });
-  });
-  return arr;
-}
-
-/* Card */
-function createCard(row, rowIndex1Based){
-  const card = document.createElement("div"); card.className="card";
-
-  const titleRow = document.createElement("div"); titleRow.className="titleRow";
-  const title = document.createElement("div"); title.className="title";
-  title.textContent = val(row, COL.title) || "(ohne Titel)";
-  if (isDelistedRow(row)) title.classList.add("delisted");
-
-  const badges = document.createElement("div"); badges.className="badges";
-  if (isDelistedRow(row)) badges.appendChild(makeBadge("Delisted","delisted"));
-  const favLabel = formatFavorite(row);
-  if (favLabel) badges.appendChild(makeBadge(favLabel));
-
-  if (isPlatinumAny(row)) badges.appendChild(makeBadge("💎 Platin erlangt","blue"));
-  if (isCompletedAny(row)) badges.appendChild(makeBadge("✅ 100% erreicht","ok"));
-
-  titleRow.append(title, badges);
-
-  const metaRow = document.createElement("div"); metaRow.className="metaRow";
-  const idB = document.createElement("span"); idB.className="idBadge"; idB.textContent = `ID ${val(row, COL.id) || PLACEHOLDER}`;
-  metaRow.appendChild(idB);
-
-  let plats = platformsFromSystem(row);
-  if (!plats.length){
-    plats = trophyPlatforms(row);
+    saveState();
   }
-  if (plats.length) plats.forEach(p => metaRow.appendChild(makeChip(p === "PSVita" ? "Vita" : p)));
-  else metaRow.appendChild(makeChip(PLACEHOLDER));
-  metaRow.appendChild(makeChip(val(row, COL.availability) || PLACEHOLDER));
+  setMenuMode(state.menuMini);
 
-  const key = document.createElement("div"); key.className="keyFacts";
-  key.appendChild(kvLine("Genre", renderValue(val(row, COL.genre))));
-  key.appendChild(kvLine("Entwickler", renderValue(val(row, COL.dev))));
-  key.appendChild(kvLine("Spielzeit", renderValue(val(row, COL.main))));
-  key.appendChild(kvLine("Metascore", renderValue(val(row, COL.meta))));
-  key.appendChild(kvLine("Userwertung", renderValue(val(row, COL.user))));
+  toggleMiniBtn.addEventListener("click", () => setMenuMode(true));
+  openFullBtn.addEventListener("click", () => setMenuMode(false));
 
-  const detailsWrap = document.createElement("div"); detailsWrap.className="detailsWrap";
-  const details = document.createElement("details");
-  const summary = document.createElement("summary");
-  const sumSpan = document.createElement("span"); sumSpan.className="summaryBtn"; sumSpan.textContent="Mehr Details";
-  summary.appendChild(sumSpan); details.appendChild(summary);
-  details.addEventListener("toggle", ()=> sumSpan.textContent = details.open ? "Weniger Details" : "Mehr Details");
+  // Avoid flicker: we do NOT auto-hide on scroll anymore.
+  // You already have the mini mode button – cleaner and stable.
 
-  function addSection(titleText, nodes){
-    const sec = document.createElement("div"); sec.className="section";
-    const st = document.createElement("div"); st.className="sectionTitle"; st.textContent=titleText;
-    sec.appendChild(st);
-    nodes.forEach(n => sec.appendChild(n));
-    details.appendChild(sec);
-  }
-
-  const storeVal = (viewState.fileMode === "xlsx")
-    ? getValueWithLink(row, COL.store, rowIndex1Based)
-    : val(row, COL.store);
-
-  addSection("Beschreibung", [ makeToggleBlock("Kurzbeschreibung", val(row, COL.desc)) ]);
-
-  addSection("Store", [
-    kvLine("Quelle", renderValue(displaySource(row))),
-    kvLine("Store", renderValue(storeVal)),
-    kvLine("Verfügbarkeit", renderValue(val(row, COL.availability))),
-  ]);
-
-  addSection("Extras", [
-    makeToggleBlock("Besonderheiten", val(row, COL.special)),
-    makeToggleBlock("Eastereggs", val(row, COL.easter)),
-  ]);
-
-  // === Änderung hier: Fortschritt unified + Singleplatform zeigt "PS5 Ungespielt" ===
-  addSection("Trophäen", [
-    kvLine("Fortschritt", trophyNodeFromTextUnified(row)),
-    kvLine("Komplettion", trophyStatusList(row, "completion")),
-    kvLine("Platin", trophyStatusList(row, "platin")),
-  ]);
-
-  addSection("Humorstatistik", [
-    kvLine("Gesamtstunden", renderValue(val(row, COL.hours))),
-    kvLine("% Lebenszeit", renderValue(val(row, COL.life))),
-    kvLine("Jahre", renderValue(val(row, COL.years))),
-  ]);
-
-  detailsWrap.appendChild(details);
-  card.append(titleRow, metaRow, key, detailsWrap);
-  return card;
-}
-
-/* Counters + Infinite */
-function updateCounters(){
-  const total = matches.length;
-  els.count.textContent = total ? `Treffer: ${total} · angezeigt: ${shown}/${total}` : "";
-}
-function renderMore(){
-  if (isLoading) return;
-  const total = matches.length;
-  if (shown >= total) return;
-
-  isLoading = true;
-  const end = Math.min(shown + PAGE_SIZE, total);
-  const frag = document.createDocumentFragment();
-  for (let i = shown; i < end; i++){
-    const { row, idx } = matches[i];
-    frag.appendChild(createCard(row, idx));
-  }
-  els.grid.appendChild(frag);
-  shown = end;
-  els.status.textContent = total ? (shown < total ? "Lade weitere Karten…" : "Alle Karten angezeigt.") : "Keine Treffer.";
-  updateCounters();
-  isLoading = false;
-}
-
-function sortKeyLabel(key){
-  const it = SORT_KEYS.find(x=>x.key===key);
-  return it ? it.label : key;
-}
-function activeFilterCount(){
-  return Object.values(viewState.filters).filter(Boolean).length;
-}
-function updateSortLabel(){
-  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
-  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
-  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${activeFilterCount()}`;
-}
-
-function rebuildMatches(){
-  els.grid.innerHTML = "";
-  shown = 0;
-
-  const q = parseQuery(viewState.search);
-
-  matches = allRows
-    .map((row, i) => ({ row, idx: headerRowIndex + 1 + i }))
-    .filter(o => queryMatchesRow(q, o.row))
-    .filter(o => rowPassesFilters(o.row));
-
-  sortMatches(matches);
-  renderMore();
-
-  requestAnimationFrame(() => {
-    if (io) { io.disconnect(); io.observe(els.sentinel); }
-  });
-
-  els.status.textContent = matches.length ? "Bereit." : "Keine Treffer.";
-  updateCounters();
-  updateSortLabel();
-}
-
-/* Bottom Sheet */
-const sheetDraft = {
-  sortKey: viewState.sortKey,
-  sortDir: viewState.sortDir,
-  filters: {...viewState.filters},
-};
-
-function openSheet(){
-  sheetDraft.sortKey = viewState.sortKey;
-  sheetDraft.sortDir = viewState.sortDir;
-  sheetDraft.filters = {...viewState.filters};
-  renderSheetControls();
-  els.overlay.classList.add("show");
-  els.sheetBox.classList.add("show");
-  els.sheetBox.setAttribute("aria-hidden","false");
-}
-function closeSheet(){
-  els.overlay.classList.remove("show");
-  els.sheetBox.classList.remove("show");
-  els.sheetBox.setAttribute("aria-hidden","true");
-}
-
-function renderSheetControls(){
-  els.sortList.innerHTML = "";
-  for (const it of SORT_KEYS){
-    const row = document.createElement("div");
-    row.className = "sortChoice" + (sheetDraft.sortKey === it.key ? " active" : "");
-    row.addEventListener("click", () => {
-      sheetDraft.sortKey = it.key;
-      renderSheetControls();
-    });
-
-    const left = document.createElement("div");
-    const name = document.createElement("div"); name.className="sortName"; name.textContent = it.label;
-    const meta = document.createElement("div"); meta.className="sortMeta"; meta.textContent = it.meta;
-    left.append(name, meta);
-
-    const right = document.createElement("div"); right.className="dirBtns";
-    const up = document.createElement("button");
-    up.className = "dirBtn" + (sheetDraft.sortDir === "asc" && sheetDraft.sortKey === it.key ? " on" : "");
-    up.textContent = "↑";
-    up.addEventListener("click", (e) => {
-      e.stopPropagation();
-      sheetDraft.sortKey = it.key;
-      sheetDraft.sortDir = "asc";
-      renderSheetControls();
-    });
-
-    const down = document.createElement("button");
-    down.className = "dirBtn" + (sheetDraft.sortDir === "desc" && sheetDraft.sortKey === it.key ? " on" : "");
-    down.textContent = "↓";
-    down.addEventListener("click", (e) => {
-      e.stopPropagation();
-      sheetDraft.sortKey = it.key;
-      sheetDraft.sortDir = "desc";
-      renderSheetControls();
-    });
-
-    right.append(up, down);
-    row.append(left, right);
-    els.sortList.appendChild(row);
-  }
-
-  const filterDefs = [
+  // -------------------------
+  // Chips
+  // -------------------------
+  const CHIP_DEFS = [
     { key:"fav", label:"⭐ Favorit" },
     { key:"platin", label:"💎 Platin" },
-    { key:"completed", label:"✅ 100%" },
+    { key:"done100", label:"✅ 100 %" },
+    { key:"inarbeit", label:"⏳ In Arbeit" },
+    { key:"unplayed", label:"💤 Ungespielt" },
     { key:"delisted", label:"Delisted" },
-    { key:"psplus", label:"PS Plus" },
-    { key:"digital", label:"Digital" },
-    { key:"disc", label:"Disc" },
-  ];
-  els.filterTogs.innerHTML = "";
-  for (const f of filterDefs){
-    const t = document.createElement("div");
-    t.className = "tog" + (sheetDraft.filters[f.key] ? " on" : "");
-    t.textContent = f.label;
-    t.addEventListener("click", () => {
-      sheetDraft.filters[f.key] = !sheetDraft.filters[f.key];
-      renderSheetControls();
-    });
-    els.filterTogs.appendChild(t);
-  }
-
-  const platformDefs = [
     { key:"ps5", label:"PS5" },
     { key:"ps4", label:"PS4" },
     { key:"ps3", label:"PS3" },
     { key:"vita", label:"Vita" },
+    { key:"plus", label:"PS Plus" },
+    { key:"digital", label:"Digital" },
+    { key:"disc", label:"Disc" },
   ];
-  els.platformTogs.innerHTML = "";
-  for (const p of platformDefs){
-    const t = document.createElement("div");
-    t.className = "tog" + (sheetDraft.filters[p.key] ? " on" : "");
-    t.textContent = p.label;
-    t.addEventListener("click", () => {
-      sheetDraft.filters[p.key] = !sheetDraft.filters[p.key];
-      renderSheetControls();
-    });
-    els.platformTogs.appendChild(t);
-  }
 
-  els.sheetMiniInfo.textContent =
-    `${sortKeyLabel(sheetDraft.sortKey)} ${(sheetDraft.sortDir==="asc"?"↑":"↓")} · Filter aktiv: ${Object.values(sheetDraft.filters).filter(Boolean).length}`;
-}
-
-function applySheet(){
-  viewState.sortKey = sheetDraft.sortKey;
-  viewState.sortDir = sheetDraft.sortDir;
-  viewState.filters = {...sheetDraft.filters};
-  saveState();
-  closeSheet();
-  rebuildMatches();
-}
-
-/* IO */
-function setupObserver(){
-  if (io) io.disconnect();
-  io = new IntersectionObserver((entries)=>{
-    const e = entries[0];
-    if (e && e.isIntersecting) renderMore();
-  }, { root:null, threshold:0.1 });
-  io.observe(els.sentinel);
-}
-setupObserver();
-
-/* Loaders */
-function resetUIForNewData(){
-  els.grid.innerHTML = "";
-  els.count.textContent = "";
-  els.status.textContent = "Lese Datei…";
-  els.search.disabled = true;
-  els.openSheetBtn.disabled = true;
-  els.openSheetBtn2.disabled = true;
-  els.sheet.disabled = true;
-  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
-  linkMap.clear();
-  headerRowIndex = 1;
-  allRows = []; matches = []; shown = 0; columns = [];
-  workbook = null;
-}
-
-async function loadXLSX(file){
-  if (typeof XLSX === "undefined") throw new Error("XLSX Library nicht geladen (xlsx.full.min.js fehlt?)");
-  viewState.fileMode = "xlsx";
-
-  const buf = await file.arrayBuffer();
-  workbook = XLSX.read(buf, { type: "array", cellStyles: true });
-
-  els.sheet.innerHTML = "<option>Sheet auswählen…</option>";
-  workbook.SheetNames.forEach(n => {
-    const o = document.createElement("option");
-    o.value = n; o.textContent = n;
-    els.sheet.appendChild(o);
-  });
-
-  els.sheet.disabled = false;
-  els.status.textContent = "Sheet wählen…";
-
-  if (viewState.sheetName && workbook.SheetNames.includes(viewState.sheetName)){
-    els.sheet.value = viewState.sheetName;
-    loadSheet(viewState.sheetName);
-  }
-}
-
-function loadSheet(name){
-  const ws = workbook.Sheets[name];
-  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-
-  allRows = json;
-  columns = json.length ? Object.keys(json[0]) : [];
-  COL = resolveColumns(columns);
-
-  buildLinks(ws);
-  applyDelistedFromStyles(ws);
-
-  viewState.sheetName = name;
-  saveState();
-
-  els.search.disabled = false;
-  els.openSheetBtn.disabled = false;
-  els.openSheetBtn2.disabled = false;
-
-  els.search.value = viewState.search || "";
-  els.compactSearch.value = viewState.search || "";
-
-  els.status.textContent = `Geladen: ${allRows.length} Zeilen`;
-  rebuildMatches();
-}
-
-function detectDelimiter(firstLine){
-  const commas = (firstLine.match(/,/g) || []).length;
-  const semis  = (firstLine.match(/;/g) || []).length;
-  return semis > commas ? ";" : ",";
-}
-function parseCSV(text){
-  const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
-  while (lines.length && !lines[0].trim()) lines.shift();
-  if (!lines.length) return { rows: [], headers: [] };
-  const delim = detectDelimiter(lines[0]);
-
-  function splitLine(line){
-    const out = [];
-    let cur = "", inQ = false;
-    for (let i=0;i<line.length;i++){
-      const ch = line[i];
-      if (ch === '"'){
-        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (ch === delim && !inQ){
-        out.push(cur); cur = "";
-      } else cur += ch;
+  function renderChips(){
+    chipsEl.innerHTML = "";
+    for(const c of CHIP_DEFS){
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.type = "button";
+      btn.textContent = c.label;
+      btn.dataset.on = state.chips[c.key] ? "1" : "0";
+      btn.addEventListener("click", () => {
+        state.chips[c.key] = !state.chips[c.key];
+        saveState();
+        renderChips();
+        applyAll();
+      });
+      chipsEl.appendChild(btn);
     }
-    out.push(cur);
-    return out.map(v => v.trim());
+    const clear = document.createElement("button");
+    clear.className = "chip chipSmall chipClear";
+    clear.type = "button";
+    clear.textContent = "Filter löschen";
+    clear.addEventListener("click", () => {
+      for(const k of Object.keys(state.chips)) state.chips[k] = false;
+      saveState();
+      renderChips();
+      applyAll();
+    });
+    chipsEl.appendChild(clear);
+  }
+  renderChips();
+
+  // -------------------------
+  // Sorting
+  // -------------------------
+  function sortRows(rows){
+    const dir = state.sortDir === "asc" ? 1 : -1;
+    const key = state.sortKey;
+
+    const getVal = (r) => {
+      switch(key){
+        case "id": return toNum(r["ID"]);
+        case "title": return norm(r["Spieletitel"]);
+        case "system": return norm(r["System"]);
+        case "quelle": return normalizeQuelle(r["Quelle"]);
+        case "genre": return norm(r["Genre"]);
+        case "dev": return norm(r["Entwickler"]);
+        case "main": return toNum(r["Spielzeit (Main)"]);
+        case "meta": return toNum(r["Metascore"]);
+        case "user": return toNum(r["Userwertung"]);
+        case "life": return toNum(r["% Lebenszeit (Humorstatistik)"]);
+        default: return norm(r[key] ?? "");
+      }
+    };
+
+    // stable sort: decorate-sort-undecorate
+    return rows
+      .map((r,i)=>({r,i,v:getVal(r)}))
+      .sort((a,b)=>{
+        const av=a.v, bv=b.v;
+
+        // numbers first if both are numbers
+        const an = typeof av === "number" && Number.isFinite(av);
+        const bn = typeof bv === "number" && Number.isFinite(bv);
+
+        let cmp = 0;
+        if(an && bn){
+          cmp = av - bv;
+        } else {
+          // title sorting MUST be stable & locale-correct
+          if(key === "title"){
+            cmp = deCompare(String(av), String(bv));
+          } else {
+            cmp = deCompare(String(av), String(bv));
+          }
+        }
+        if(cmp === 0) cmp = a.i - b.i;
+        return cmp * dir;
+      })
+      .map(x=>x.r);
   }
 
-  const headers = splitLine(lines[0]).map(h => h.replace(/^\uFEFF/, "").trim());
-  const rows = [];
-  for (let r=1; r<lines.length; r++){
-    const line = lines[r];
-    if (!line || !line.trim()) continue;
-    const cells = splitLine(line);
-    const obj = {};
-    for (let c=0; c<headers.length; c++) obj[headers[c]] = cells[c] ?? "";
-    rows.push(obj);
-  }
-  return { rows, headers };
-}
-async function loadCSV(file){
-  viewState.fileMode = "csv";
-  workbook = null;
-  linkMap.clear();
-
-  const buf = await file.arrayBuffer();
-  const text = new TextDecoder("utf-8").decode(buf);
-  const parsed = parseCSV(text);
-
-  allRows = parsed.rows;
-  columns = parsed.headers;
-  COL = resolveColumns(columns);
-
-  els.sheet.disabled = true;
-  els.sheet.innerHTML = "<option>(CSV: kein Sheet)</option>";
-
-  els.search.disabled = false;
-  els.openSheetBtn.disabled = false;
-  els.openSheetBtn2.disabled = false;
-
-  els.search.value = viewState.search || "";
-  els.compactSearch.value = viewState.search || "";
-
-  els.status.textContent = `CSV geladen: ${allRows.length} Zeilen`;
-  saveState();
-  rebuildMatches();
-}
-
-els.file.addEventListener("change", async (e) => {
-  const f = e.target.files?.[0]; if (!f) return;
-  resetUIForNewData();
-  const name = (f.name || "").toLowerCase();
-  try{
-    if (name.endsWith(".csv")) await loadCSV(f);
-    else await loadXLSX(f);
-  }catch(err){
-    els.status.textContent = "Fehler beim Einlesen: " + (err?.message || String(err));
-  }
-});
-els.sheet.addEventListener("change", () => {
-  const name = els.sheet.value;
-  if (!name || name === "Sheet auswählen…") return;
-  loadSheet(name);
-});
-
-function setSearch(q){
-  viewState.search = q || "";
-  els.search.value = viewState.search;
-  els.compactSearch.value = viewState.search;
-  saveState();
-  rebuildMatches();
-}
-els.search.addEventListener("input", (e) => setSearch(e.target.value));
-els.compactSearch.addEventListener("input", (e) => setSearch(e.target.value));
-
-els.openSheetBtn.addEventListener("click", openSheet);
-els.openSheetBtn2.addEventListener("click", openSheet);
-els.overlay.addEventListener("click", closeSheet);
-els.sheetClose.addEventListener("click", closeSheet);
-els.applySheetBtn.addEventListener("click", applySheet);
-els.clearFiltersBtn.addEventListener("click", () => {
-  sheetDraft.filters = {
-    fav:false, platin:false, completed:false, delisted:false,
-    ps5:false, ps4:false, ps3:false, vita:false,
-    psplus:false, digital:false, disc:false
-  };
-  renderSheetControls();
-});
-
-els.fabTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-
-let lastY = 0;
-let isCompact = false;
-let rafPending = false;
-
-function setCompact(next){
-  if (next === isCompact) return;
-  isCompact = next;
-  els.hdr.classList.toggle("compact", isCompact);
-}
-window.addEventListener("scroll", () => {
-  if (rafPending) return;
-  rafPending = true;
-
-  requestAnimationFrame(() => {
-    rafPending = false;
-
-    const y = window.scrollY;
-    const goingDown = y > lastY;
-    lastY = y;
-
-    els.fabTop.classList.toggle("show", y > 500);
-
-    const active = document.activeElement;
-    const typing = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.isContentEditable);
-    if (typing) return;
-
-    if (!isCompact && goingDown && y > 160) setCompact(true);
-    else if (isCompact && !goingDown && y < 220) setCompact(false);
+  sortDirEl.addEventListener("click", () => {
+    state.sortDir = (state.sortDir === "asc") ? "desc" : "asc";
+    sortDirEl.textContent = (state.sortDir === "asc") ? "Aufsteigend" : "Absteigend";
+    saveState();
+    applyAll();
   });
-}, { passive:true });
 
-function updateSortLabel(){
-  const arrow = viewState.sortDir === "asc" ? "↑" : "↓";
-  els.sortLabel.textContent = `Sort: ${sortKeyLabel(viewState.sortKey)} ${arrow}`;
-  els.sheetMiniInfo.textContent = `${sortKeyLabel(viewState.sortKey)} ${arrow} · Filter aktiv: ${activeFilterCount()}`;
-}
-updateSortLabel();
+  sortEl.addEventListener("change", () => {
+    state.sortKey = sortEl.value;
+    saveState();
+    applyAll();
+  });
+
+  // -------------------------
+  // Query parsing
+  // -------------------------
+  function parseQuery(q){
+    const raw = norm(q);
+    if(!raw) return { tokens:[], text:"" };
+
+    const parts = raw.split(/\s+/).filter(Boolean);
+    const tokens = [];
+    const textParts = [];
+
+    for(const p of parts){
+      const m = p.match(/^(\w+):(.*)$/);
+      if(m){
+        tokens.push({k:m[1].toLowerCase(), v:m[2]});
+      } else {
+        // flags
+        const f = p.toLowerCase();
+        if(["delisted","fav","platin","100","ungespielt","inarbeit"].includes(f)){
+          tokens.push({k:f, v:"1"});
+        } else {
+          textParts.push(p);
+        }
+      }
+    }
+    return { tokens, text: textParts.join(" ").trim() };
+  }
+
+  function matchRow(row, q){
+    const {tokens, text} = parseQuery(q);
+
+    // fulltext over all visible columns (cheap but ok for 1200 rows)
+    const hay = Object.keys(row)
+      .filter(k => !k.startsWith("__"))
+      .map(k => norm(row[k]))
+      .join(" • ")
+      .toLowerCase();
+
+    if(text){
+      const t = text.toLowerCase();
+      if(!hay.includes(t)) return false;
+    }
+
+    // Token matches
+    for(const t of tokens){
+      const k = t.k;
+      const v = t.v;
+
+      if(k === "id"){
+        if(!norm(row["ID"]).includes(v)) return false;
+      } else if(k === "title"){
+        if(!lower(row["Spieletitel"]).includes(v.toLowerCase())) return false;
+      } else if(k === "dev"){
+        if(!lower(row["Entwickler"]).includes(v.toLowerCase())) return false;
+      } else if(k === "genre"){
+        if(!lower(row["Genre"]).includes(v.toLowerCase())) return false;
+      } else if(k === "system"){
+        if(!lower(row["System"]).includes(v.toLowerCase())) return false;
+      } else if(k === "quelle"){
+        if(!lower(normalizeQuelle(row["Quelle"])).includes(v.toLowerCase())) return false;
+      } else if(k === "delisted"){
+        if(!isDelisted(row)) return false;
+      } else if(k === "fav"){
+        if(lower(row["Favorit"]) !== "x") return false;
+      } else if(k === "platin"){
+        if(!row.__trophy.anyPlatin) return false;
+      } else if(k === "100"){
+        if(!row.__trophy.anyDone100) return false;
+      } else if(k === "ungespielt"){
+        if(!row.__trophy.allUnplayed) return false;
+      } else if(k === "inarbeit"){
+        if(!(row.__trophy.anyProgress && !row.__trophy.anyDone100)) return false;
+      }
+    }
+
+    return true;
+  }
+
+  // -------------------------
+  // Apply filters + sort + render
+  // -------------------------
+  function applyFilters(rows){
+    return rows.filter(r => {
+      // chips
+      if(state.chips.fav && lower(r["Favorit"]) !== "x") return false;
+      if(state.chips.delisted && !isDelisted(r)) return false;
+
+      const sys = lower(r["System"]);
+      if(state.chips.ps5 && !sys.includes("ps5")) return false;
+      if(state.chips.ps4 && !sys.includes("ps4")) return false;
+      if(state.chips.ps3 && !sys.includes("ps3")) return false;
+      if(state.chips.vita && !sys.includes("vita")) return false;
+
+      const q = lower(normalizeQuelle(r["Quelle"]));
+      if(state.chips.plus && !q.includes("ps plus")) return false;
+      if(state.chips.digital && !q.includes("digital")) return false;
+      if(state.chips.disc && !q.includes("disc")) return false;
+
+      if(state.chips.platin && !r.__trophy.anyPlatin) return false;
+      if(state.chips.done100 && !r.__trophy.anyDone100) return false;
+
+      if(state.chips.unplayed && !r.__trophy.allUnplayed) return false;
+      if(state.chips.inarbeit && !(r.__trophy.anyProgress && !r.__trophy.anyDone100)) return false;
+
+      // query
+      if(state.q && !matchRow(r, state.q)) return false;
+
+      return true;
+    });
+  }
+
+  function updateStats(){
+    const total = state.rows.length;
+    const hits = state.filtered.length;
+    const shown = state.rendered;
+    const msg = (total === 0)
+      ? "Datei wählen → Sheet wählen → suchen"
+      : `Treffer: ${hits} · angezeigt: ${shown}/${hits}`;
+    statsEl.textContent = msg;
+    miniStatsEl.textContent = msg;
+  }
+
+  function clearList(){
+    listEl.innerHTML = "";
+    state.rendered = 0;
+    updateStats();
+  }
+
+  function formatScore(v){
+    const s = norm(v);
+    if(!s) return "—";
+    // already in "xx / 100" but keep safe
+    if(/\//.test(s)) return s;
+    const n = toNum(s);
+    return Number.isFinite(n) ? `${Math.round(n)} / 100` : s;
+  }
+
+  function formatPlaytime(main, full){
+    const m = norm(main), f = norm(full);
+    if(!m && !f) return "—";
+    if(m && f) return `${m}h / ${f}h`;
+    if(m) return `${m}h`;
+    return `— / ${f}h`;
+  }
+
+  function pillForCompletion(stateName){
+    // unplayed / inarbeit / done
+    if(stateName === "done") return {cls:"good", text:"✅ 100% erreicht"};
+    if(stateName === "inarbeit") return {cls:"warn", text:"⏳ In Arbeit"};
+    return {cls:"sleep", text:"💤 Ungespielt"};
+  }
+  function pillForPlatinum(stateName){
+    if(stateName === "done") return {cls:"blue", text:"💎 Platin erlangt"};
+    if(stateName === "inarbeit") return {cls:"warn", text:"⏳ In Arbeit"};
+    return {cls:"sleep", text:"💤 Ungespielt"};
+  }
+
+  function renderTrophies(row){
+    const t = row.__trophy;
+    const wrap = document.createElement("div");
+    wrap.className = "trophyGrid";
+
+    for(const p of t.perPlatform){
+      const tr = document.createElement("div");
+      tr.className = "tRow";
+
+      const sys = document.createElement("div");
+      sys.className = "tSys";
+      sys.textContent = p.platform === "ALL" ? "—" : p.platform;
+
+      const bw = document.createElement("div");
+      bw.className = "barWrap";
+
+      // Progress line
+      const line = document.createElement("div");
+      line.className = "barLine";
+      const left = document.createElement("div");
+      left.style.fontWeight = "900";
+
+      // If no progress and unplayed -> show Ungespielt
+      if(!p.progress){
+        left.textContent = "Ungespielt";
+      } else {
+        left.textContent = `${p.progress.done} of ${p.progress.total}`;
+      }
+
+      const right = document.createElement("div");
+      right.className = "barNote";
+      right.textContent = p.progress ? `${Math.round(p.progress.pct)}%` : "";
+
+      line.appendChild(left);
+      line.appendChild(right);
+
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("div");
+      fill.style.width = p.progress ? `${p.progress.pct}%` : "0%";
+      bar.appendChild(fill);
+
+      const pills = document.createElement("div");
+      pills.className = "tPills";
+
+      const c = pillForCompletion(p.completion);
+      const cp = document.createElement("span");
+      cp.className = `pill ${c.cls}`;
+      cp.textContent = c.text;
+
+      const pl = pillForPlatinum(p.platinum);
+      const pp = document.createElement("span");
+      pp.className = `pill ${pl.cls}`;
+      pp.textContent = pl.text;
+
+      pills.appendChild(cp);
+      pills.appendChild(pp);
+
+      bw.appendChild(line);
+      bw.appendChild(bar);
+      bw.appendChild(pills);
+
+      tr.appendChild(sys);
+      tr.appendChild(bw);
+      wrap.appendChild(tr);
+    }
+
+    return wrap;
+  }
+
+  function card(row){
+    const c = document.createElement("div");
+    c.className = "card" + (isDelisted(row) ? " delisted" : "");
+
+    const head = document.createElement("div");
+    head.className = "cardHead";
+
+    const left = document.createElement("div");
+    left.style.flex = "1";
+
+    const title = document.createElement("h2");
+    title.className = "title";
+    title.textContent = norm(row["Spieletitel"]) || "—";
+    left.appendChild(title);
+
+    const stack = document.createElement("div");
+    stack.className = "badgeStack";
+
+    if(lower(row["Favorit"]) === "x"){
+      const b = document.createElement("span");
+      b.className = "pill";
+      b.textContent = "⭐ Favorit";
+      stack.appendChild(b);
+    }
+
+    // top badges from trophy state
+    if(row.__trophy.anyPlatin){
+      const b = document.createElement("span");
+      b.className = "pill blue";
+      b.textContent = "💎 Platin erlangt";
+      stack.appendChild(b);
+    }
+    if(row.__trophy.anyDone100){
+      const b = document.createElement("span");
+      b.className = "pill good";
+      b.textContent = "✅ 100% erreicht";
+      stack.appendChild(b);
+    }
+
+    head.appendChild(left);
+    head.appendChild(stack);
+    c.appendChild(head);
+
+    // meta row: ID + systems + availability
+    const meta = document.createElement("div");
+    meta.className = "metaRow";
+
+    const id = document.createElement("span");
+    id.className = "pill idPill";
+    id.textContent = `ID ${norm(row["ID"]) || "—"}`;
+    meta.appendChild(id);
+
+    const systems = parseSystems(row["System"]);
+    if(systems.length){
+      for(const s of systems){
+        const p = document.createElement("span");
+        p.className = "pill sysPill";
+        p.textContent = s;
+        meta.appendChild(p);
+      }
+    } else {
+      const p = document.createElement("span");
+      p.className = "pill sysPill";
+      p.textContent = "—";
+      meta.appendChild(p);
+    }
+
+    const av = document.createElement("span");
+    av.className = "pill availPill";
+    av.textContent = isDelisted(row) ? "Delisted" : (norm(row["Verfügbarkeit"]) || "—");
+    meta.appendChild(av);
+
+    c.appendChild(meta);
+
+    // compact fields (always visible)
+    const kv = document.createElement("div");
+    kv.className = "kv";
+
+    const addKV = (k, vNodeOrText) => {
+      const kk = document.createElement("div");
+      kk.className = "k";
+      kk.textContent = k;
+
+      const vv = document.createElement("div");
+      vv.className = "v";
+      if(vNodeOrText instanceof Node) vv.appendChild(vNodeOrText);
+      else vv.textContent = has(vNodeOrText) ? vNodeOrText : "—";
+
+      kv.appendChild(kk);
+      kv.appendChild(vv);
+    };
+
+    addKV("Genre", norm(row["Genre"]) || "—");
+    addKV("Entwickler", norm(row["Entwickler"]) || "—");
+    addKV("Spielzeit", formatPlaytime(row["Spielzeit (Main)"], row["Spielzeit (100%)"]));
+    addKV("Metascore", formatScore(row["Metascore"]));
+    addKV("Userwertung", formatScore(row["Userwertung"]));
+
+    c.appendChild(kv);
+
+    // Details
+    const det = document.createElement("details");
+    det.open = false;
+    const sum = document.createElement("summary");
+    sum.textContent = "Mehr Details";
+    det.appendChild(sum);
+
+    det.addEventListener("toggle", () => {
+      sum.textContent = det.open ? "Weniger Details" : "Mehr Details";
+    });
+
+    const sec = document.createElement("div");
+
+    // Beschreibung (ausklappbar)
+    const sDescTitle = document.createElement("div");
+    sDescTitle.className = "sectionTitle";
+    sDescTitle.textContent = "BESCHREIBUNG";
+    sec.appendChild(sDescTitle);
+
+    const desc = document.createElement("details");
+    desc.className = "subdetails";
+    const s1 = document.createElement("summary");
+    s1.textContent = "Kurzbeschreibung anzeigen";
+    desc.appendChild(s1);
+
+    const descText = document.createElement("div");
+    descText.className = "longText gapTop";
+    descText.textContent = norm(row["Kurzbeschreibung"]) || "—";
+    desc.appendChild(descText);
+    sec.appendChild(desc);
+
+    // STORE
+    const sStoreTitle = document.createElement("div");
+    sStoreTitle.className = "sectionTitle";
+    sStoreTitle.textContent = "STORE";
+    sec.appendChild(sStoreTitle);
+
+    const storeKV = document.createElement("div");
+    storeKV.className = "kv";
+
+    const qNorm = normalizeQuelle(row["Quelle"]);
+    const storeHref = getStoreHref(row);
+
+    const storeLinkNode = (() => {
+      const a = document.createElement("a");
+      a.className = "store";
+      a.textContent = "Store Link";
+      if(storeHref){
+        a.href = storeHref;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.title = storeHref;
+      } else {
+        a.href = "#";
+        a.addEventListener("click", (e)=>e.preventDefault());
+        a.style.color = "#6b7280";
+        a.style.fontWeight = "700";
+        a.textContent = "—";
+      }
+      return a;
+    })();
+
+    const addKV2 = (root, k, vNodeOrText) => {
+      const kk = document.createElement("div");
+      kk.className = "k";
+      kk.textContent = k;
+
+      const vv = document.createElement("div");
+      vv.className = "v";
+      if(vNodeOrText instanceof Node) vv.appendChild(vNodeOrText);
+      else vv.textContent = has(vNodeOrText) ? vNodeOrText : "—";
+
+      root.appendChild(kk);
+      root.appendChild(vv);
+    };
+
+    addKV2(storeKV, "Quelle", qNorm || "—");
+    addKV2(storeKV, "Store", storeLinkNode);
+    addKV2(storeKV, "Verfügbarkeit", norm(row["Verfügbarkeit"]) || "—");
+    sec.appendChild(storeKV);
+
+    // EXTRAS
+    const sExtrasTitle = document.createElement("div");
+    sExtrasTitle.className = "sectionTitle";
+    sExtrasTitle.textContent = "EXTRAS";
+    sec.appendChild(sExtrasTitle);
+
+    const detBes = document.createElement("details");
+    detBes.className = "subdetails";
+    const sBes = document.createElement("summary");
+    sBes.textContent = "Besonderheiten anzeigen";
+    detBes.appendChild(sBes);
+    const besTxt = document.createElement("div");
+    besTxt.className = "longText gapTop";
+    besTxt.textContent = norm(row["Besonderheiten"]) || "—";
+    detBes.appendChild(besTxt);
+    sec.appendChild(detBes);
+
+    const detEgg = document.createElement("details");
+    detEgg.className = "subdetails";
+    const sEgg = document.createElement("summary");
+    sEgg.textContent = "Eastereggs anzeigen";
+    detEgg.appendChild(sEgg);
+    const eggTxt = document.createElement("div");
+    eggTxt.className = "longText gapTop";
+    eggTxt.textContent = norm(row["Eastereggs"]) || "—";
+    detEgg.appendChild(eggTxt);
+    sec.appendChild(detEgg);
+
+    // TROPHÄEN
+    const sTrTitle = document.createElement("div");
+    sTrTitle.className = "sectionTitle";
+    sTrTitle.textContent = "TROPHÄEN";
+    sec.appendChild(sTrTitle);
+
+    sec.appendChild(renderTrophies(row));
+
+    // HUMORSTATISTIK
+    const sHumTitle = document.createElement("div");
+    sHumTitle.className = "sectionTitle";
+    sHumTitle.textContent = "HUMORSTATISTIK";
+    sec.appendChild(sHumTitle);
+
+    const humKV = document.createElement("div");
+    humKV.className = "kv";
+    addKV2(humKV, "Gesamtstunden", norm(row["Gesamtstunden (Humorstatistik)"]) || "—");
+    addKV2(humKV, "% Lebenszeit", norm(row["% Lebenszeit (Humorstatistik)"]) || "—");
+    addKV2(humKV, "Jahre", norm(row["Jahre (Humorstatistik)"]) || "—");
+    sec.appendChild(humKV);
+
+    det.appendChild(sec);
+    c.appendChild(det);
+
+    return c;
+  }
+
+  function renderMore(){
+    const remaining = state.filtered.length - state.rendered;
+    if(remaining <= 0){
+      updateStats();
+      return;
+    }
+    const take = Math.min(state.batch, remaining);
+    const slice = state.filtered.slice(state.rendered, state.rendered + take);
+    for(const r of slice){
+      listEl.appendChild(card(r));
+    }
+    state.rendered += take;
+    updateStats();
+  }
+
+  function applyAll(){
+    clearList();
+    const filtered = applyFilters(state.rows);
+    const sorted = sortRows(filtered);
+    state.filtered = sorted;
+    renderMore();
+  }
+
+  // Infinite scroll
+  const io = new IntersectionObserver((entries) => {
+    for(const e of entries){
+      if(e.isIntersecting){
+        renderMore();
+      }
+    }
+  }, { root:null, threshold:0.1 });
+  io.observe(sentinel);
+
+  // Top button
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY || document.documentElement.scrollTop;
+    fabTop.classList.toggle("show", y > 700);
+  }, {passive:true});
+
+  fabTop.addEventListener("click", () => {
+    window.scrollTo({ top:0, behavior:"smooth" });
+  });
+
+  // Search sync
+  function onQueryInput(v){
+    state.q = v;
+    qEl.value = v;
+    qMiniEl.value = v;
+    saveState();
+    applyAll();
+  }
+  qEl.addEventListener("input", () => onQueryInput(qEl.value));
+  qMiniEl.addEventListener("input", () => onQueryInput(qMiniEl.value));
+
+  // -------------------------
+  // File loading
+  // -------------------------
+  function setDisabled(disabled){
+    sheetEl.disabled = disabled;
+    sortEl.disabled = disabled;
+    sortDirEl.disabled = disabled;
+  }
+
+  async function readFileAsArrayBuffer(file){
+    return new Promise((resolve,reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsArrayBuffer(file);
+    });
+  }
+
+  async function readFileAsText(file){
+    return new Promise((resolve,reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsText(file, "utf-8");
+    });
+  }
+
+  function rowsFromCSV(text){
+    // Basic CSV parser supporting quoted fields
+    const rows = [];
+    const lines = text.replace(/\r/g,"").split("\n").filter(l => l.length>0);
+    if(lines.length === 0) return rows;
+
+    const parseLine = (line) => {
+      const out = [];
+      let cur = "", inQ = false;
+      for(let i=0;i<line.length;i++){
+        const ch = line[i];
+        if(ch === '"'){
+          if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
+          else inQ = !inQ;
+        } else if(ch === "," && !inQ){
+          out.push(cur); cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    };
+
+    const header = parseLine(lines[0]).map(h => h.trim());
+    for(let i=1;i<lines.length;i++){
+      const parts = parseLine(lines[i]);
+      if(parts.every(x => !x)) continue;
+      const r = {};
+      header.forEach((h,idx) => r[h] = parts[idx] ?? "");
+      rows.push(r);
+    }
+    return rows;
+  }
+
+  function attachComputed(row){
+    row.__trophy = computeTrophyState(row);
+    return row;
+  }
+
+  function populateSortOptions(){
+    // only the meaningful ones (as you specified) in that exact order
+    sortEl.innerHTML = "";
+    const opts = [
+      ["id","Sort: ID"],
+      ["title","Sort: Spieletitel"],
+      ["system","Sort: System"],
+      ["quelle","Sort: Quelle"],
+      ["genre","Sort: Genre"],
+      ["dev","Sort: Entwickler"],
+      ["main","Sort: Spielzeit (Main)"],
+      ["meta","Sort: Metascore"],
+      ["user","Sort: Userwertung"],
+      ["life","Sort: Lebenszeit %"],
+    ];
+    for(const [v,t] of opts){
+      const o = document.createElement("option");
+      o.value = v;
+      o.textContent = t;
+      sortEl.appendChild(o);
+    }
+    sortEl.value = state.sortKey || "id";
+  }
+
+  function setSheets(names){
+    sheetEl.innerHTML = "";
+    const o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = "Sheet wählen…";
+    sheetEl.appendChild(o0);
+
+    for(const n of names){
+      const o = document.createElement("option");
+      o.value = n;
+      o.textContent = n;
+      sheetEl.appendChild(o);
+    }
+    // restore last sheet if present
+    if(state.sheetName && names.includes(state.sheetName)){
+      sheetEl.value = state.sheetName;
+    } else if(names.length){
+      sheetEl.value = names[0];
+    }
+  }
+
+  function buildRowsFromSheet(workbook, sheetName){
+    const ws = workbook.Sheets[sheetName];
+    if(!ws) return [];
+
+    // read as objects
+    const json = XLSX.utils.sheet_to_json(ws, { defval:"", raw:false });
+
+    // Extract store hyperlink by reading cell objects:
+    // We locate the "Store Link" column letter via header row.
+    // This is a bit more involved, but it’s worth it for clickable links.
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    const headerRow = range.s.r; // first row
+    const headerMap = {}; // headerName -> colIndex
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const addr = XLSX.utils.encode_cell({r:headerRow,c});
+      const cell = ws[addr];
+      const h = cell ? norm(cell.v) : "";
+      if(h) headerMap[h] = c;
+    }
+    const storeCol = headerMap["Store Link"];
+
+    // attach per-row href if present
+    if(Number.isInteger(storeCol)){
+      for(let i=0;i<json.length;i++){
+        const rIndex = headerRow + 1 + i; // data starts next row
+        const addr = XLSX.utils.encode_cell({r:rIndex,c:storeCol});
+        const cell = ws[addr];
+        if(cell && cell.l && cell.l.Target){
+          json[i].__storeHref = cell.l.Target;
+        } else {
+          // fallback: if cell value looks like URL
+          const v = norm(json[i]["Store Link"]);
+          if(/^https?:\/\//i.test(v)) json[i].__storeHref = v;
+        }
+      }
+    }
+
+    // Normalize "Quelle" to Digital label later in UI, but keep raw in row
+    return json.map(r => attachComputed(r));
+  }
+
+  let currentWorkbook = null;
+
+  fileEl.addEventListener("change", async () => {
+    const f = fileEl.files && fileEl.files[0];
+    if(!f) return;
+
+    state.fileName = f.name;
+    currentWorkbook = null;
+    state.rows = [];
+    clearList();
+    setDisabled(true);
+
+    try{
+      if(f.name.toLowerCase().endsWith(".csv")){
+        const text = await readFileAsText(f);
+        const rows = rowsFromCSV(text).map(r => attachComputed(r));
+        state.rows = rows;
+        setSheets(["CSV"]);
+        sheetEl.disabled = true;
+        populateSortOptions();
+        setDisabled(false);
+        applyAll();
+        return;
+      }
+
+      const buf = await readFileAsArrayBuffer(f);
+      const wb = XLSX.read(buf, { type:"array" });
+      currentWorkbook = wb;
+
+      setSheets(wb.SheetNames);
+      sheetEl.disabled = false;
+      populateSortOptions();
+      setDisabled(false);
+
+      // auto-load selected sheet
+      const pick = sheetEl.value || wb.SheetNames[0];
+      state.sheetName = pick;
+      saveState();
+
+      state.rows = buildRowsFromSheet(wb, pick);
+      applyAll();
+    } catch(err){
+      console.error(err);
+      statsEl.textContent = "Fehler beim Einlesen. Prüfe, ob xlsx.full.min.js korrekt geladen ist.";
+      miniStatsEl.textContent = "Fehler beim Einlesen.";
+    }
+  });
+
+  sheetEl.addEventListener("change", () => {
+    if(!currentWorkbook) return;
+    const pick = sheetEl.value;
+    if(!pick) return;
+    state.sheetName = pick;
+    saveState();
+    state.rows = buildRowsFromSheet(currentWorkbook, pick);
+    applyAll();
+  });
+
+  // Initial disabled until file loaded
+  setDisabled(true);
+
+})();
 </script>
 </body>
 </html>
