@@ -2,52 +2,78 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>Spieleliste</title>
 
-  <!-- SheetJS lokal: xlsx.full.min.js liegt im gleichen Ordner -->
+  <!-- SheetJS: Lege xlsx.full.min.js in den gleichen Ordner -->
   <script src="./xlsx.full.min.js"></script>
 
   <style>
     :root{
       --bg:#f6f7fb;
-      --card:#ffffff;
+      --card:#fff;
       --text:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
-      --chip:#f3f4f6;
-      --chipText:#374151;
-      --shadow:0 10px 25px rgba(17,24,39,.08);
+      --shadow:0 10px 30px rgba(17,24,39,.06);
       --radius:18px;
-      --radius2:14px;
-      --pad:14px;
-      --accent:#1f4cff;
 
-      --goodBg:#e8f7ee; --goodText:#166534; --goodLine:#bfe8cc;
-      --blueBg:#eaf2ff; --blueText:#1d4ed8; --blueLine:#bfd6ff;
-      --warnBg:#ffecec; --warnText:#991b1b; --warnLine:#fecaca;
-      --sleepBg:#f3f4f6; --sleepText:#4b5563; --sleepLine:#e5e7eb;
-      --delBg:#ffecec; --delText:#991b1b;
+      --badge-bg:#eef2ff;
+      --badge-text:#3730a3;
 
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --ok-bg:#e8f7ee;
+      --ok-text:#166534;
+
+      --warn-bg:#ffe8e8;
+      --warn-text:#991b1b;
+
+      --plat-bg:#e8f0ff;
+      --plat-text:#1d4ed8;
+
+      --chip-bg:#f3f4f6;
+      --chip-text:#111827;
+
+      --del-bg:#fff1f2;
+      --del-text:#9f1239;
+
+      --focus:#c7d2fe;
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:var(--bg);
       color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
     }
-    .wrap{max-width:980px;margin:0 auto;padding:16px 14px 80px}
-    h1{margin:8px 2px 10px;font-size:28px;letter-spacing:-.02em}
-    .muted{color:var(--muted)}
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      padding:16px 14px 90px;
+    }
+
+    /* Header / Mini menu */
     .topbar{
-      position:sticky; top:0; z-index:20;
+      position:sticky;
+      top:0;
+      z-index:20;
       background:linear-gradient(to bottom, rgba(246,247,251,.96), rgba(246,247,251,.86));
-      backdrop-filter:saturate(150%) blur(10px);
-      border-bottom:1px solid rgba(229,231,235,.7);
+      backdrop-filter: blur(8px);
       padding:10px 0 12px;
+      transition: transform .18s ease, opacity .18s ease;
+      will-change: transform;
     }
+
+    .title{
+      font-size:26px;
+      font-weight:800;
+      letter-spacing:.2px;
+      margin:4px 0 12px;
+    }
+
     .panel{
       background:var(--card);
       border:1px solid var(--line);
@@ -55,347 +81,580 @@
       box-shadow:var(--shadow);
       padding:12px;
     }
-    .row{display:flex;gap:10px;align-items:center}
-    .col{display:flex;flex-direction:column;gap:8px}
-    .grow{flex:1}
-    .btn, select, input{
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width:720px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .fileRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    @media (max-width:720px){
+      .fileRow{grid-template-columns:1fr}
+    }
+
+    label.small{
+      font-size:12px;
+      color:var(--muted);
+      display:block;
+      margin-bottom:6px;
+    }
+
+    input[type="file"]{width:100%}
+    select, input[type="text"], button{
       width:100%;
       border:1px solid var(--line);
       border-radius:14px;
       padding:12px 12px;
       font-size:16px;
       background:#fff;
+      color:var(--text);
       outline:none;
     }
-    input:focus, select:focus{border-color:#c7d2fe; box-shadow:0 0 0 4px rgba(99,102,241,.12)}
-    .btn{
+
+    input[type="text"]:focus, select:focus, button:focus{
+      border-color:var(--focus);
+      box-shadow:0 0 0 4px rgba(199,210,254,.45);
+    }
+
+    button{
       cursor:pointer;
+      font-weight:700;
+    }
+    button.secondary{
       background:#fff;
-      font-weight:600;
     }
-    .btn:active{transform:translateY(1px)}
-    .btnIcon{
-      width:54px; min-width:54px;
-      display:flex;align-items:center;justify-content:center;
-      font-size:20px;
-      background:#eef2ff;
-      border-color:#dbeafe;
-    }
-    .stats{
-      display:flex;gap:14px;flex-wrap:wrap;
-      padding:8px 2px 0;
-      font-size:14px;
-      color:var(--muted);
-    }
-
-    /* Mini/Full Menu */
-    .menuFull{display:block}
-    .menuMini{
-      display:none;
+    button.icon{
+      width:auto;
       padding:10px 12px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
     }
-    .miniRow{display:flex;gap:10px;align-items:center}
-    .miniRow input{padding:11px 12px}
-    .miniStats{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding-top:8px}
-    .hidden{display:none !important;}
 
-    /* Filter chips */
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .chip{
-      user-select:none;
+    .miniHeader{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .miniHeader .search{
+      flex:1;
+    }
+    .hamburger{
+      width:52px;
+      height:48px;
+      border-radius:14px;
+      background:var(--badge-bg);
+      color:var(--badge-text);
       border:1px solid var(--line);
-      background:var(--chip);
-      color:var(--chipText);
-      padding:8px 10px;
+      font-weight:900;
+    }
+
+    .menu{
+      margin-top:10px;
+      display:none;
+    }
+    .menu.open{display:block}
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .chip{
+      padding:10px 12px;
       border-radius:999px;
-      font-size:14px;
+      border:1px solid var(--line);
+      background:var(--chip-bg);
+      color:var(--chip-text);
+      font-weight:700;
       cursor:pointer;
-      display:inline-flex;align-items:center;gap:8px;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
-    .chip[data-on="1"]{
-      background:#eef2ff;
-      border-color:#c7d2fe;
-      color:#1d4ed8;
-      font-weight:600;
+    .chip.on{
+      border-color:transparent;
+      background:var(--badge-bg);
+      color:var(--badge-text);
     }
-    .chipSmall{padding:7px 10px;font-size:13px}
-    .chipClear{background:#fff}
+    .chip.ok.on{ background:var(--ok-bg); color:var(--ok-text); }
+    .chip.warn.on{ background:var(--warn-bg); color:var(--warn-text); }
+    .chip.plat.on{ background:var(--plat-bg); color:var(--plat-text); }
+    .chip.del.on{ background:var(--del-bg); color:var(--del-text); }
+
+    .meta{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .hint{
+      margin-top:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .hint summary{
+      cursor:pointer;
+      font-weight:800;
+      color:var(--text);
+      outline:none;
+    }
+    .hint p{margin:8px 0 0; line-height:1.45}
 
     /* Cards */
-    .list{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+    .cards{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:22px;
+      border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:14px 14px 10px;
+      overflow:hidden;
     }
+
     .card.delisted{
-      border-color:#fecaca;
-      background:linear-gradient(to bottom, #fff, #fff7f7);
+      border-color:#fecdd3;
+      background:linear-gradient(to bottom, #fff, #fff, #fff, #fff, #fff1f2);
     }
-    .cardHead{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
-    .title{
-      margin:0;
+
+    .cardHead{
+      padding:14px 14px 8px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+
+    .hLeft{
+      min-width:0;
+      flex:1;
+    }
+
+    .titleLine{
       font-size:20px;
-      line-height:1.1;
-      letter-spacing:-.01em;
+      font-weight:900;
+      line-height:1.2;
+      margin:0 0 10px;
+      word-break:break-word;
     }
-    .badgeStack{
+
+    .titleLine.del{
+      color:var(--del-text);
+      text-decoration:line-through;
+      text-decoration-thickness:2px;
+    }
+
+    .badgesCol{
       display:flex;
       flex-direction:column;
       gap:8px;
       align-items:flex-end;
-      min-width:130px;
+      flex:0 0 auto;
     }
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
       border-radius:999px;
+      border:1px solid rgba(17,24,39,.08);
+      background:var(--badge-bg);
+      color:var(--badge-text);
+      font-weight:800;
       font-size:14px;
-      font-weight:700;
-      border:1px solid var(--line);
-      background:#fff;
       white-space:nowrap;
     }
-    .pill.good{background:var(--goodBg);color:var(--goodText);border-color:var(--goodLine)}
-    .pill.blue{background:var(--blueBg);color:var(--blueText);border-color:var(--blueLine)}
-    .pill.warn{background:var(--warnBg);color:var(--warnText);border-color:var(--warnLine)}
-    .pill.sleep{background:var(--sleepBg);color:var(--sleepText);border-color:var(--sleepLine)}
-    .metaRow{
-      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-      margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
-    }
-    .idPill{
-      background:#102a83;
-      color:#fff;
-      border:none;
-      font-weight:800;
-      letter-spacing:.02em;
-      padding:8px 12px;
-    }
-    .sysPill,.availPill{
-      background:#f3f4f6;border-color:#e5e7eb;color:#111827;font-weight:700;
-    }
-    .kv{display:grid;grid-template-columns: 160px 1fr;gap:8px 14px;margin-top:12px}
-    .k{color:var(--muted);font-size:14px}
-    .v{font-size:15px}
-    .v strong{font-weight:800}
-    .hr{height:1px;background:var(--line);margin:10px 0}
+    .badge.ok{ background:var(--ok-bg); color:var(--ok-text); }
+    .badge.warn{ background:var(--warn-bg); color:var(--warn-text); }
+    .badge.plat{ background:var(--plat-bg); color:var(--plat-text); }
+    .badge.del{ background:var(--del-bg); color:var(--del-text); }
 
-    /* Details toggle */
-    details{
-      border-top:1px solid var(--line);
-      margin-top:10px;
-      padding-top:10px;
+    .subBadges{
+      padding:0 14px 10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
     }
-    summary{
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+      border:1px solid var(--line);
+      font-weight:800;
+      color:#111827;
+      font-size:14px;
+    }
+    .pill.id{
+      background:#1f2a74;
+      color:#fff;
+      border-color:transparent;
+    }
+    .pill.avail{
+      background:#eef2ff;
+      color:#3730a3;
+      border-color:transparent;
+    }
+    .pill.avail.del{
+      background:var(--del-bg);
+      color:var(--del-text);
+    }
+
+    .divider{height:1px;background:var(--line);margin:0 14px}
+
+    .kv{
+      padding:10px 14px;
+      display:grid;
+      grid-template-columns: 200px 1fr;
+      gap:10px 14px;
+      align-items:start;
+      font-size:15px;
+    }
+    @media (max-width:720px){
+      .kv{grid-template-columns: 140px 1fr;}
+    }
+    .k{color:var(--muted); font-weight:700;}
+    .v{color:var(--text); font-weight:800; word-break:break-word;}
+    .v.muted{color:var(--muted); font-weight:700;}
+
+    .detailsToggle{
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#1f2a74;
+      font-weight:900;
       cursor:pointer;
       user-select:none;
-      list-style:none;
-      display:flex;align-items:center;gap:8px;
-      color:#1f2a6a;
-      font-weight:800;
-      padding:8px 0;
     }
-    summary::-webkit-details-marker{display:none}
+    .detailsToggle .chev{
+      transition: transform .15s ease;
+    }
+    .detailsToggle.open .chev{transform:rotate(90deg)}
+    .details{
+      display:none;
+      padding:6px 0 14px;
+    }
+    .details.open{display:block}
+
+    .section{
+      padding:8px 14px 4px;
+    }
     .sectionTitle{
       font-size:12px;
       letter-spacing:.12em;
+      font-weight:900;
       color:var(--muted);
-      margin:12px 0 6px;
-      text-transform:uppercase;
+      margin:10px 0 8px;
     }
-    .subdetails{
-      border-top:1px solid var(--line);
-      padding-top:10px;
-      margin-top:10px;
-    }
-    .subdetails summary{
-      color:#111827;
-      font-weight:800;
-      padding:6px 0;
-    }
-    .longText{
-      white-space:pre-wrap;
-      line-height:1.35;
+
+    .expander{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:10px 12px;
       margin-top:8px;
     }
-    .longText.gapTop{margin-top:10px}
+    .expander summary{
+      cursor:pointer;
+      font-weight:900;
+      color:#1f2a74;
+      outline:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .expander .content{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px solid var(--line);
+      color:#111827;
+      font-weight:700;
+      line-height:1.5;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
 
-    /* Store link */
-    a.store{
+    .storeLink{
       color:#1d4ed8;
       text-decoration:none;
-      font-weight:800;
+      font-weight:900;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
     }
-    a.store:hover{text-decoration:underline}
+    .storeLink:visited{color:#1d4ed8}
+    .storeLink small{color:var(--muted); font-weight:700}
 
-    /* Trophy blocks */
-    .trophyGrid{
+    /* Trophies */
+    .trophyBlock{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:8px;
+    }
+    .tRow{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .tTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .tPlat{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .miniPill{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#f3f4f6;
+      font-weight:900;
+      font-size:13px;
+    }
+    .miniPill.ok{background:var(--ok-bg); color:var(--ok-text); border-color:transparent;}
+    .miniPill.warn{background:var(--warn-bg); color:var(--warn-text); border-color:transparent;}
+    .miniPill.plat{background:var(--plat-bg); color:var(--plat-text); border-color:transparent;}
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:#e5e7eb;
+      overflow:hidden;
+      position:relative;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background:#1f2a74;
+      border-radius:999px;
+    }
+    .barNote{
+      margin-top:6px;
+      color:var(--muted);
+      font-weight:800;
+      font-size:13px;
+    }
+
+    /* Table view */
+    .tableWrap{
+      margin-top:14px;
+      display:none;
+    }
+    .tableWrap.open{display:block}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      font-size:14px;
+    }
+    th{
+      text-align:left;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.02em;
+      background:#fafafa;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    tr:last-child td{border-bottom:none}
+    td b{font-weight:900}
+
+    /* Floating buttons */
+    .floatBtns{
+      position:fixed;
+      right:14px;
+      bottom:14px;
       display:flex;
       flex-direction:column;
       gap:10px;
-      margin-top:6px;
-    }
-    .tRow{
-      display:grid;
-      grid-template-columns: 50px 1fr;
-      gap:10px;
-      align-items:center;
-    }
-    .tSys{
-      display:inline-flex;align-items:center;justify-content:center;
-      font-weight:900;
-      border:1px solid var(--line);
-      background:#f3f4f6;
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:13px;
-      width:max-content;
-    }
-    .barWrap{
-      display:flex;flex-direction:column;gap:6px;
-    }
-    .barLine{
-      display:flex;justify-content:space-between;align-items:baseline;
-      gap:10px;
-      font-size:14px;
-    }
-    .bar{
-      height:10px;border-radius:999px;
-      background:#e5e7eb;
-      overflow:hidden;
-      border:1px solid #e5e7eb;
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background:#1d4ed8;
-    }
-    .barNote{font-size:12px;color:var(--muted)}
-    .tPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-
-    /* Floating Top button */
-    .fabTop{
-      position:fixed;
-      right:14px;
-      bottom:18px;
       z-index:30;
+    }
+    .fab{
       border:none;
       border-radius:999px;
       padding:12px 14px;
-      box-shadow:0 14px 30px rgba(17,24,39,.18);
-      background:#ffffff;
-      border:1px solid var(--line);
       font-weight:900;
-      cursor:pointer;
-      display:none;
-    }
-    .fabTop.show{display:block}
-
-    /* Sentinel */
-    #sentinel{height:1px}
-
-    /* Small helper */
-    .help{
+      box-shadow: var(--shadow);
       background:#fff;
-      border:1px dashed #d1d5db;
-      border-radius:16px;
-      padding:10px 12px;
-      margin-top:10px;
-      color:#374151;
-      font-size:14px;
+      border:1px solid var(--line);
+      cursor:pointer;
+      width:auto;
+    }
+    .fab.primary{
+      background:#1f2a74;
+      color:#fff;
+      border-color:transparent;
     }
 
-    @media (max-width:520px){
-      .kv{grid-template-columns: 140px 1fr;}
-      .badgeStack{min-width:120px}
-      .btnIcon{min-width:52px;width:52px}
-    }
+    .mutedSmall{color:var(--muted); font-size:12px; font-weight:800}
+    .statusLine{margin-top:8px;color:var(--muted);font-size:14px;font-weight:800}
+    .hidden{display:none !important}
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <h1>Spieleliste</h1>
+    <div class="topbar" id="topbar">
+      <div class="title">Spieleliste</div>
 
-      <!-- FULL MENU -->
-      <div id="menuFull" class="panel menuFull">
-        <div class="row">
-          <input id="file" class="grow" type="file" accept=".xlsx,.xls,.csv" />
-          <select id="sheet" class="grow" disabled>
-            <option value="">Sheet wählen…</option>
-          </select>
+      <div class="panel">
+        <!-- Mini header: search + hamburger -->
+        <div class="miniHeader">
+          <input class="search" id="q" type="text" placeholder="Suche… (z.B. id:643, capcom, delisted)" autocomplete="off" />
+          <button class="hamburger" id="btnMenu" title="Menü">☰</button>
         </div>
 
-        <div class="row" style="margin-top:10px">
-          <input id="q" class="grow" placeholder="Suche… (z.B. id:643 dev:naughty system:ps4 plus platin 100 delisted)" />
-          <select id="sort" class="grow" disabled>
-            <option value="id">Sort: ID</option>
-            <option value="title">Sort: Spieletitel</option>
-            <option value="system">Sort: System</option>
-            <option value="quelle">Sort: Quelle</option>
-            <option value="genre">Sort: Genre</option>
-            <option value="dev">Sort: Entwickler</option>
-            <option value="main">Sort: Spielzeit (Main)</option>
-            <option value="meta">Sort: Metascore</option>
-            <option value="user">Sort: Userwertung</option>
-            <option value="life">% Lebenszeit</option>
-          </select>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <button id="sortDir" class="btn" disabled>Aufsteigend</button>
-          <button id="toggleMini" class="btn btnIcon" title="Menü minimieren">▾</button>
-        </div>
-
-        <div class="help">
-          <details>
-            <summary>Suche &amp; Filter kurz erklärt</summary>
-            <div style="margin-top:8px;line-height:1.35">
-              Du kannst frei tippen (Volltext über alle Spalten) oder Tokens nutzen:
-              <div style="margin-top:8px">
-                <span style="font-family:var(--mono)">id:12</span>,
-                <span style="font-family:var(--mono)">title:uncharted</span>,
-                <span style="font-family:var(--mono)">dev:capcom</span>,
-                <span style="font-family:var(--mono)">genre:adventure</span>,
-                <span style="font-family:var(--mono)">system:ps5</span>,
-                <span style="font-family:var(--mono)">quelle:plus</span>,
-                <span style="font-family:var(--mono)">delisted</span>,
-                <span style="font-family:var(--mono)">fav</span>,
-                <span style="font-family:var(--mono)">platin</span>,
-                <span style="font-family:var(--mono)">100</span>,
-                <span style="font-family:var(--mono)">ungespielt</span>,
-                <span style="font-family:var(--mono)">inarbeit</span>
-              </div>
-              <div style="margin-top:8px;color:var(--muted)">Tipp: mehrere Tokens kombinieren, z.B. <span style="font-family:var(--mono)">system:ps4 plus inarbeit</span></div>
+        <div class="menu" id="menu">
+          <div class="fileRow" style="margin-top:10px;">
+            <div>
+              <label class="small">Datei (XLSX oder CSV)</label>
+              <input id="file" type="file" accept=".xlsx,.xls,.csv" />
+              <div class="mutedSmall" style="margin-top:6px;">Alles läuft lokal im Browser (keine Uploads).</div>
             </div>
+            <div>
+              <label class="small">Sheet auswählen</label>
+              <select id="sheet" disabled>
+                <option value="">—</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:10px;">
+            <div>
+              <label class="small">Ansicht</label>
+              <select id="viewMode">
+                <option value="cards">Kartenansicht</option>
+                <option value="table">Tabellenansicht</option>
+              </select>
+            </div>
+            <div>
+              <label class="small">Sortierung</label>
+              <select id="sortKey">
+                <option value="id">ID</option>
+                <option value="title">Spieletitel (Text, stabil)</option>
+                <option value="system">System</option>
+                <option value="quelle">Quelle</option>
+                <option value="genre">Genre</option>
+                <option value="dev">Entwickler</option>
+                <option value="main">Spielzeit (Main)</option>
+                <option value="meta">Metascore</option>
+                <option value="user">Userwertung</option>
+                <option value="life">Lebenszeit %</option>
+              </select>
+              <div class="row" style="margin-top:10px;">
+                <button class="secondary icon" id="sortAsc" title="Aufsteigend">A→Z</button>
+                <button class="secondary icon" id="sortDesc" title="Absteigend">Z→A</button>
+              </div>
+            </div>
+          </div>
+
+          <details class="hint">
+            <summary>Suche & Filter kurz erklärt</summary>
+            <p>
+              Suche findet in allen Spalten. Extra: <b>id:123</b> für genaue ID, <b>delisted</b>, <b>ps4</b>, <b>ps plus</b> etc.
+              Filter bauen auf deinen eindeutigen Werten (Quelle) und den abgeleiteten Trophäen-Zuständen auf.
+            </p>
           </details>
+
+          <div class="chips" id="chips">
+            <!-- Platforms -->
+            <div class="chip" data-filter="p:PS5">PS5</div>
+            <div class="chip" data-filter="p:PS4">PS4</div>
+            <div class="chip" data-filter="p:PS3">PS3</div>
+            <div class="chip" data-filter="p:Vita">Vita</div>
+
+            <!-- Source -->
+            <div class="chip" data-filter="src:Digital">Digital</div>
+            <div class="chip" data-filter="src:PS Plus">PS Plus</div>
+            <div class="chip" data-filter="src:Retail-Disc">Retail-Disc</div>
+
+            <!-- Flags -->
+            <div class="chip" data-filter="fav" title="Nur Favoriten">⭐ Favorit</div>
+            <div class="chip plat" data-filter="plat" title="Platin erlangt (mind. eine Plattform)">💎 Platin</div>
+            <div class="chip ok" data-filter="comp" title="100% erreicht (mind. eine Plattform)">✅ 100%</div>
+            <div class="chip warn" data-filter="work" title="In Arbeit (gestartet, aber noch nicht 100%)">⏳ In Arbeit</div>
+            <div class="chip" data-filter="unplayed" title="Noch nicht gestartet (alle Trophäen-Felder leer)">💤 Ungespielt</div>
+            <div class="chip del" data-filter="del" title="Delisted">🟥 Delisted</div>
+
+            <div class="chip" id="clearFilters">Filter löschen</div>
+          </div>
         </div>
 
-        <div class="chips" id="chips"></div>
-
-        <div class="stats" id="stats">
-          <span class="muted">Datei wählen → Sheet wählen → suchen</span>
+        <div class="meta">
+          <div id="statusText">Datei wählen → Sheet wählen → suchen</div>
+          <div style="flex:1"></div>
+          <div id="countText"></div>
         </div>
-      </div>
-
-      <!-- MINI MENU -->
-      <div id="menuMini" class="panel menuMini">
-        <div class="miniRow">
-          <input id="qMini" class="grow" placeholder="Suche…" />
-          <button id="openFull" class="btn btnIcon" title="Menü öffnen">≡</button>
-        </div>
-        <div class="miniStats" id="miniStats"></div>
       </div>
     </div>
 
-    <div class="list" id="list"></div>
-    <div id="sentinel"></div>
+    <div class="tableWrap" id="tableWrap"></div>
+    <div class="cards" id="cards"></div>
 
-    <button id="fabTop" class="fabTop" title="Nach oben">↑ Top</button>
+    <!-- sentinel for infinite scroll -->
+    <div id="sentinel" style="height:1px;"></div>
+  </div>
+
+  <div class="floatBtns">
+    <button class="fab" id="btnTop" title="Nach oben">↑ Top</button>
   </div>
 
 <script>
@@ -404,1138 +663,1070 @@
   // Utilities
   // -------------------------
   const $ = (id) => document.getElementById(id);
-  const norm = (v) => (v === null || v === undefined) ? "" : String(v).replace(/\u00A0/g," ").trim();
-  const lower = (v) => norm(v).toLowerCase();
-  const has = (v) => norm(v).length > 0;
-  const toNum = (v) => {
-    const s = norm(v).replace(",", ".").replace(/[^0-9.\-]/g,"");
-    if(!s) return NaN;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
-  };
-  const deCompare = (a,b) => {
-    const A = norm(a), B = norm(b);
-    return A.localeCompare(B, "de", { sensitivity:"base", numeric:true });
-  };
 
-  const SYSTEMS = ["PS5","PS4","PS3","Vita"];
-  const SOURCE_KEYS = ["PS Plus","Digital","Disc"];
+  const LS_KEY = "spieleliste_v1";
+  const PLATFORMS = ["PS3","PS4","PS5","Vita"];
 
-  function parseSystems(systemCell){
-    const s = norm(systemCell);
-    if(!s) return [];
-    // Excel: "PS3, PS4, Vita" oder "PS4, PS5"
-    return s.split(",").map(x => x.trim()).filter(Boolean);
-  }
-  function inferSingleSystem(systemCell){
-    const arr = parseSystems(systemCell);
-    if(arr.length === 1) return arr[0];
-    return null;
-  }
-
-  function normalizeQuelle(q){
-    const s = norm(q);
-    if(!s) return "";
-    // Du willst "gekauft" als Digital labeln
-    if(s.toLowerCase() === "gekauft") return "Digital";
-    if(s.toLowerCase().includes("ps plus")) return "PS Plus";
-    if(s.toLowerCase().includes("disc")) return "Disc";
-    return s; // falls später noch mehr kommt
-  }
-
-  // Parse multi-platform blocks like:
-  // "PS4\n15 of 15\n\nPS5\n---"
-  // or singleplatform: "15 of 27"
-  // or empty
-  function parsePlatformBlock(text, systemCell){
-    const raw = norm(text);
-    const singleSys = inferSingleSystem(systemCell);
-
-    const result = {}; // platform -> value string
-    if(!raw){
-      if(singleSys) result[singleSys] = "";
-      return result;
-    }
-
-    // If it contains explicit platform headings
-    const hasHeading = SYSTEMS.some(sys => new RegExp(`\\b${sys}\\b`, "i").test(raw));
-    if(hasHeading){
-      // split into chunks by blank lines, but keep pairing "PS4" + next lines
-      // normalize line breaks
-      const lines = raw.replace(/\r/g,"").split("\n").map(l => l.trim());
-      let cur = null;
-      let buf = [];
-      const flush = () => {
-        if(cur){
-          result[cur] = buf.filter(Boolean).join("\n").trim();
-        }
-        cur = null; buf = [];
-      };
-      for(const line of lines){
-        if(!line){ continue; }
-        const sys = SYSTEMS.find(s => s.toLowerCase() === line.toLowerCase());
-        if(sys){
-          flush();
-          cur = sys;
-        } else {
-          if(!cur && singleSys){
-            // fallback: treat as singleplatform content
-            result[singleSys] = lines.filter(Boolean).join("\n").trim();
-            return result;
-          }
-          buf.push(line);
-        }
-      }
-      flush();
-      return result;
-    }
-
-    // singleplatform value without platform label
-    if(singleSys){
-      result[singleSys] = raw;
-    } else {
-      // ambiguous: store under "ALL"
-      result["ALL"] = raw;
-    }
-    return result;
-  }
-
-  function parseProgressValue(v){
-    // "15 of 27" -> {done:15,total:27,pct:55.5}
-    const s = norm(v);
-    if(!s || s === "---") return null;
-    const m = s.match(/(\d+)\s*of\s*(\d+)/i);
-    if(!m) return null;
-    const done = parseInt(m[1],10);
-    const total = parseInt(m[2],10);
-    if(!Number.isFinite(done) || !Number.isFinite(total) || total<=0) return null;
-    const pct = Math.max(0, Math.min(100, (done/total)*100));
-    return { done, total, pct };
-  }
-
-  function isDelisted(row){
-    return lower(row["Verfügbarkeit"]).includes("delisted") || lower(row["Verfügbarkeit"]).includes("entfernt");
-  }
-
-  function getStoreHref(row){
-    // SheetJS may store hyperlink in a separate structure, we attach it during XLSX parsing.
-    // We store it as row.__storeHref
-    return row.__storeHref || "";
-  }
-
-  function computeTrophyState(row){
-    // Returns per platform:
-    // { platform, progress: {done,total,pct}|null, completion: "unplayed|inarbeit|done", platinum:"unplayed|inarbeit|done" }
-    const systems = parseSystems(row["System"]);
-    const singleSys = inferSingleSystem(row["System"]);
-
-    const progMap = parsePlatformBlock(row["Trophäen Fortschritt"], row["System"]);
-    const compMap = parsePlatformBlock(row["100%"], row["System"]);
-    const platMap = parsePlatformBlock(row["Platin"], row["System"]);
-
-    // Ensure at least those systems appear (for consistent UI)
-    const platforms = new Set();
-    systems.forEach(s => platforms.add(s));
-    Object.keys(progMap).forEach(k => platforms.add(k));
-    Object.keys(compMap).forEach(k => platforms.add(k));
-    Object.keys(platMap).forEach(k => platforms.add(k));
-    if(platforms.size === 0 && singleSys) platforms.add(singleSys);
-    if(platforms.size === 0) platforms.add("ALL");
-
-    const out = [];
-    for(const p of platforms){
-      const progRaw = (progMap[p] ?? "").trim();
-      const compRaw = (compMap[p] ?? "").trim();
-      const platRaw = (platMap[p] ?? "").trim();
-
-      const progress = parseProgressValue(progRaw);
-
-      // completion "done" if:
-      // - 100% cell says "Completed" OR
-      // - progress is x of x
-      const compDone = /completed/i.test(compRaw) || (progress && progress.done === progress.total);
-
-      // platinum "done" if:
-      // - platin cell says "Platinum"
-      const platDone = /platinum/i.test(platRaw);
-
-      const hasAny = !!progress || compDone || platDone || /---/.test(progRaw) || /---/.test(compRaw) || /---/.test(platRaw);
-
-      // unplayed vs inarbeit:
-      // If no progress and not done/platinum => unplayed
-      // If progress exists but not done => inarbeit
-      const completion = compDone ? "done" : (progress ? "inarbeit" : "unplayed");
-      const platinum = platDone ? "done" : (progress ? "inarbeit" : "unplayed");
-
-      out.push({ platform:p, progress, completion, platinum, hasAny });
-    }
-
-    // Sort platforms by known order
-    out.sort((a,b) => {
-      const ai = SYSTEMS.indexOf(a.platform);
-      const bi = SYSTEMS.indexOf(b.platform);
-      if(ai === -1 && bi === -1) return deCompare(a.platform,b.platform);
-      if(ai === -1) return 1;
-      if(bi === -1) return -1;
-      return ai - bi;
-    });
-
-    // Global flags for badges/filters:
-    const anyProgress = out.some(x => x.progress && x.progress.done > 0);
-    const anyDone100 = out.some(x => x.completion === "done");
-    const anyPlatin = out.some(x => x.platinum === "done");
-    const allUnplayed = out.every(x => x.completion === "unplayed" && x.platinum === "unplayed" && !x.progress);
-
-    return { perPlatform: out, anyProgress, anyDone100, anyPlatin, allUnplayed };
-  }
-
-  // -------------------------
-  // State
-  // -------------------------
-  const LS_KEY = "spieleliste_ui_state_v3";
   const state = {
+    wb: null,
+    fileName: "",
+    sheetName: "",
     rows: [],
-    filtered: [],
+    rowsView: [],
     rendered: 0,
     batch: 40,
     sortKey: "id",
     sortDir: "asc",
-    sheetName: "",
-    fileName: "",
+    viewMode: "cards",
     q: "",
-    chips: {
-      fav:false,
-      platin:false,
-      done100:false,
-      delisted:false,
-      ps5:false,
-      ps4:false,
-      ps3:false,
-      vita:false,
-      plus:false,
-      digital:false,
-      disc:false,
-      unplayed:false,
-      inarbeit:false
-    },
-    menuMini:false
+    filters: new Set(),
+    menuOpen: false
   };
 
   function saveState(){
-    const payload = {
+    const obj = {
+      sheetName: state.sheetName,
       sortKey: state.sortKey,
       sortDir: state.sortDir,
-      sheetName: state.sheetName,
+      viewMode: state.viewMode,
       q: state.q,
-      chips: state.chips,
-      menuMini: state.menuMini
+      filters: Array.from(state.filters),
+      menuOpen: state.menuOpen
     };
-    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    localStorage.setItem(LS_KEY, JSON.stringify(obj));
   }
+
   function loadState(){
     try{
       const raw = localStorage.getItem(LS_KEY);
       if(!raw) return;
-      const p = JSON.parse(raw);
-      if(p.sortKey) state.sortKey = p.sortKey;
-      if(p.sortDir) state.sortDir = p.sortDir;
-      if(typeof p.sheetName === "string") state.sheetName = p.sheetName;
-      if(typeof p.q === "string") state.q = p.q;
-      if(p.chips) state.chips = {...state.chips, ...p.chips};
-      if(typeof p.menuMini === "boolean") state.menuMini = p.menuMini;
+      const obj = JSON.parse(raw);
+      state.sheetName = obj.sheetName || "";
+      state.sortKey = obj.sortKey || "id";
+      state.sortDir = obj.sortDir || "asc";
+      state.viewMode = obj.viewMode || "cards";
+      state.q = obj.q || "";
+      state.filters = new Set(obj.filters || []);
+      state.menuOpen = !!obj.menuOpen;
     }catch(e){}
   }
 
-  // -------------------------
-  // UI Init
-  // -------------------------
-  loadState();
-
-  const fileEl = $("file");
-  const sheetEl = $("sheet");
-  const qEl = $("q");
-  const qMiniEl = $("qMini");
-  const sortEl = $("sort");
-  const sortDirEl = $("sortDir");
-  const chipsEl = $("chips");
-  const listEl = $("list");
-  const statsEl = $("stats");
-  const miniStatsEl = $("miniStats");
-  const fabTop = $("fabTop");
-
-  const menuFull = $("menuFull");
-  const menuMini = $("menuMini");
-  const toggleMiniBtn = $("toggleMini");
-  const openFullBtn = $("openFull");
-  const sentinel = $("sentinel");
-
-  qEl.value = state.q;
-  qMiniEl.value = state.q;
-  sortEl.value = state.sortKey;
-  sortDirEl.textContent = (state.sortDir === "asc") ? "Aufsteigend" : "Absteigend";
-
-  function setMenuMode(mini){
-    state.menuMini = mini;
-    if(mini){
-      menuFull.classList.add("hidden");
-      menuMini.style.display = "block";
-    } else {
-      menuFull.classList.remove("hidden");
-      menuMini.style.display = "none";
-    }
-    saveState();
+  function normStr(x){
+    return String(x ?? "").replace(/\u00A0/g," ").replace(/\s+/g," ").trim();
   }
-  setMenuMode(state.menuMini);
 
-  toggleMiniBtn.addEventListener("click", () => setMenuMode(true));
-  openFullBtn.addEventListener("click", () => setMenuMode(false));
-
-  // Avoid flicker: we do NOT auto-hide on scroll anymore.
-  // You already have the mini mode button – cleaner and stable.
-
-  // -------------------------
-  // Chips
-  // -------------------------
-  const CHIP_DEFS = [
-    { key:"fav", label:"⭐ Favorit" },
-    { key:"platin", label:"💎 Platin" },
-    { key:"done100", label:"✅ 100 %" },
-    { key:"inarbeit", label:"⏳ In Arbeit" },
-    { key:"unplayed", label:"💤 Ungespielt" },
-    { key:"delisted", label:"Delisted" },
-    { key:"ps5", label:"PS5" },
-    { key:"ps4", label:"PS4" },
-    { key:"ps3", label:"PS3" },
-    { key:"vita", label:"Vita" },
-    { key:"plus", label:"PS Plus" },
-    { key:"digital", label:"Digital" },
-    { key:"disc", label:"Disc" },
-  ];
-
-  function renderChips(){
-    chipsEl.innerHTML = "";
-    for(const c of CHIP_DEFS){
-      const btn = document.createElement("button");
-      btn.className = "chip";
-      btn.type = "button";
-      btn.textContent = c.label;
-      btn.dataset.on = state.chips[c.key] ? "1" : "0";
-      btn.addEventListener("click", () => {
-        state.chips[c.key] = !state.chips[c.key];
-        saveState();
-        renderChips();
-        applyAll();
-      });
-      chipsEl.appendChild(btn);
-    }
-    const clear = document.createElement("button");
-    clear.className = "chip chipSmall chipClear";
-    clear.type = "button";
-    clear.textContent = "Filter löschen";
-    clear.addEventListener("click", () => {
-      for(const k of Object.keys(state.chips)) state.chips[k] = false;
-      saveState();
-      renderChips();
-      applyAll();
-    });
-    chipsEl.appendChild(clear);
+  function normQuelle(raw){
+    const s = normStr(raw);
+    if(!s) return "";
+    if(/^gekauft$/i.test(s)) return "Digital"; // legacy
+    if(/^disc$/i.test(s)) return "Retail-Disc"; // legacy
+    if(/^digital$/i.test(s)) return "Digital";
+    if(/^ps\s*plus$/i.test(s)) return "PS Plus";
+    if(/^retail[-\s]*disc$/i.test(s)) return "Retail-Disc";
+    return s;
   }
-  renderChips();
 
-  // -------------------------
-  // Sorting
-  // -------------------------
-  function sortRows(rows){
-    const dir = state.sortDir === "asc" ? 1 : -1;
-    const key = state.sortKey;
+  function parseNum(x){
+    const s = normStr(x).replace(",", ".");
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
 
-    const getVal = (r) => {
-      switch(key){
-        case "id": return toNum(r["ID"]);
-        case "title": return norm(r["Spieletitel"]);
-        case "system": return norm(r["System"]);
-        case "quelle": return normalizeQuelle(r["Quelle"]);
-        case "genre": return norm(r["Genre"]);
-        case "dev": return norm(r["Entwickler"]);
-        case "main": return toNum(r["Spielzeit (Main)"]);
-        case "meta": return toNum(r["Metascore"]);
-        case "user": return toNum(r["Userwertung"]);
-        case "life": return toNum(r["% Lebenszeit (Humorstatistik)"]);
-        default: return norm(r[key] ?? "");
+  function parseScore(x){
+    // "79 / 100" -> 79
+    const s = normStr(x);
+    const m = s.match(/(\d+(?:[.,]\d+)?)/);
+    if(!m) return NaN;
+    return parseNum(m[1]);
+  }
+
+  function parsePlatformsFromSystem(systemRaw){
+    const s = normStr(systemRaw);
+    return PLATFORMS.filter(p => new RegExp(`\\b${p}\\b`,"i").test(s));
+  }
+
+  function splitByPlatformBlocks(textRaw){
+    const text = String(textRaw ?? "").replace(/\r/g,"\n").trim();
+    if(!text) return [];
+    const re = /\b(PS3|PS4|PS5|Vita)\b/gi;
+    const matches = [];
+    let m;
+    while((m = re.exec(text)) !== null){
+      matches.push({ p: m[1], i: m.index });
+    }
+    if(!matches.length) return [];
+    const blocks = [];
+    for(let k=0;k<matches.length;k++){
+      const start = matches[k].i;
+      const end = (k+1<matches.length) ? matches[k+1].i : text.length;
+      blocks.push(text.slice(start,end).trim());
+    }
+    return blocks;
+  }
+
+  function parseProgressCell(raw){
+    // "PS4 06 of 21" possibly with linebreaks and multiple platforms
+    const out = {}; // {PS4:{cur,total}}
+    for(const block of splitByPlatformBlocks(raw)){
+      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+      const nums = block.match(/(\d+)\s*of\s*(\d+)/i);
+      if(!plat) continue;
+      if(nums){
+        out[plat] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
       }
+    }
+    return out;
+  }
+
+  function parseCompletionCell(raw){
+    // "PS4 In Progress" / "PS4 Completed"
+    const out = {}; // {PS4:"In Progress"|"Completed"}
+    for(const block of splitByPlatformBlocks(raw)){
+      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+      if(!plat) continue;
+      if(/completed/i.test(block)) out[plat] = "Completed";
+      else if(/in\s*progress/i.test(block)) out[plat] = "In Progress";
+    }
+    return out;
+  }
+
+  function parsePlatinumCell(raw){
+    // "PS4 Platinum" / "PS4 No Platinum" / "PS4 In Progress"
+    const out = {}; // {PS4:"Platinum"|"No Platinum"|"In Progress"}
+    for(const block of splitByPlatformBlocks(raw)){
+      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+      if(!plat) continue;
+      if(/no\s*platinum/i.test(block)) out[plat] = "No Platinum";
+      else if(/\bplatinum\b/i.test(block)) out[plat] = "Platinum";
+      else if(/in\s*progress/i.test(block)) out[plat] = "In Progress";
+    }
+    return out;
+  }
+
+  function isTruthyFavorite(x){
+    const s = normStr(x).toLowerCase();
+    return s === "x" || s === "1" || s === "true" || s === "yes" || s === "y";
+  }
+
+  function isDelisted(row){
+    const v = normStr(row["Verfügbarkeit"]).toLowerCase();
+    return v.includes("delisted") || v.includes("dellist") || v.includes("aus store entfernt");
+  }
+
+  function buildTrophyModel(row){
+    const platforms = parsePlatformsFromSystem(row["System"]);
+    const pMap = parseProgressCell(row["Trophäen Fortschritt"]);
+    const cMap = parseCompletionCell(row["100%"]);
+    const plMap = parsePlatinumCell(row["Platin"]);
+
+    const anyStarted = Object.keys(pMap).length || Object.keys(cMap).length || Object.keys(plMap).length;
+
+    const perPlatform = {};
+    for(const p of platforms){
+      if(!anyStarted){
+        perPlatform[p] = { started:false, state:"Ungespielt", progress:null, completion:null, platinum:null };
+        continue;
+      }
+      const hasAny = (p in pMap) || (p in cMap) || (p in plMap);
+      if(!hasAny){
+        perPlatform[p] = { started:false, state:"Ungespielt", progress:null, completion:null, platinum:null };
+      }else{
+        perPlatform[p] = { started:true, state:"Gespielt", progress:pMap[p]||null, completion:cMap[p]||null, platinum:plMap[p]||null };
+      }
+    }
+
+    const hasCompleted = Object.values(cMap).some(v => v === "Completed");
+    const hasCompletionWork = Object.values(cMap).some(v => v === "In Progress");
+    const hasPlatinum = Object.values(plMap).some(v => v === "Platinum");
+    const hasPlatinumWork = Object.values(plMap).some(v => v === "In Progress");
+    const hasAnyWork = !!anyStarted && (!hasCompleted || hasCompletionWork || hasPlatinumWork) && !hasPlatinum; // simple signal
+
+    return {
+      platforms,
+      anyStarted: !!anyStarted,
+      perPlatform,
+      hasCompleted,
+      hasCompletionWork,
+      hasPlatinum,
+      hasPlatinumWork,
+      hasAnyWork
     };
+  }
 
-    // stable sort: decorate-sort-undecorate
-    return rows
-      .map((r,i)=>({r,i,v:getVal(r)}))
-      .sort((a,b)=>{
-        const av=a.v, bv=b.v;
+  function cellToLink(wb, sheetName, rowObj){
+    // Prefer a hyperlink if present in "Store Link" cell.
+    // Because we read rows via sheet_to_json, we might lose the link.
+    // Workaround: if Store Link looks like URL -> use it.
+    const raw = normStr(rowObj["Store Link"]);
+    if(!raw) return { href:"", label:"—", title:"" };
+    const looksUrl = /^https?:\/\//i.test(raw);
+    if(looksUrl) return { href: raw, label: "Store Link", title: raw };
 
-        // numbers first if both are numbers
-        const an = typeof av === "number" && Number.isFinite(av);
-        const bn = typeof bv === "number" && Number.isFinite(bv);
+    // If the cell contains just "Store Link" (Excel label), try to locate a hyperlink in the sheet cell object.
+    try{
+      const ws = wb.Sheets[sheetName];
+      if(!ws) throw 0;
 
-        let cmp = 0;
-        if(an && bn){
-          cmp = av - bv;
-        } else {
-          // title sorting MUST be stable & locale-correct
-          if(key === "title"){
-            cmp = deCompare(String(av), String(bv));
-          } else {
-            cmp = deCompare(String(av), String(bv));
-          }
+      // Find row index by matching ID in column "ID"
+      // We'll scan a small window by reading the sheet range and checking the ID column values.
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      // Find header row (assume first row)
+      const headerRow = range.s.r;
+      const colCount = range.e.c - range.s.c + 1;
+
+      // Map headers to columns
+      const headerMap = {};
+      for(let c=range.s.c; c<=range.e.c; c++){
+        const addr = XLSX.utils.encode_cell({r: headerRow, c});
+        const cell = ws[addr];
+        const txt = normStr(cell ? cell.v : "");
+        if(txt) headerMap[txt] = c;
+      }
+      const idCol = headerMap["ID"];
+      const linkCol = headerMap["Store Link"];
+      if(idCol == null || linkCol == null) throw 0;
+
+      const targetId = normStr(rowObj["ID"]);
+      // scan down until match (reasonable for your sheet size)
+      for(let r=headerRow+1; r<=range.e.r; r++){
+        const idAddr = XLSX.utils.encode_cell({r, c:idCol});
+        const idCell = ws[idAddr];
+        const idVal = normStr(idCell ? idCell.v : "");
+        if(idVal && idVal === targetId){
+          const lAddr = XLSX.utils.encode_cell({r, c:linkCol});
+          const lCell = ws[lAddr];
+          // SheetJS stores hyperlinks at cell.l.Target sometimes
+          const href = lCell && lCell.l && lCell.l.Target ? String(lCell.l.Target) : "";
+          if(href) return { href, label:"Store Link", title: href };
+          break;
         }
-        if(cmp === 0) cmp = a.i - b.i;
-        return cmp * dir;
-      })
-      .map(x=>x.r);
-  }
-
-  sortDirEl.addEventListener("click", () => {
-    state.sortDir = (state.sortDir === "asc") ? "desc" : "asc";
-    sortDirEl.textContent = (state.sortDir === "asc") ? "Aufsteigend" : "Absteigend";
-    saveState();
-    applyAll();
-  });
-
-  sortEl.addEventListener("change", () => {
-    state.sortKey = sortEl.value;
-    saveState();
-    applyAll();
-  });
-
-  // -------------------------
-  // Query parsing
-  // -------------------------
-  function parseQuery(q){
-    const raw = norm(q);
-    if(!raw) return { tokens:[], text:"" };
-
-    const parts = raw.split(/\s+/).filter(Boolean);
-    const tokens = [];
-    const textParts = [];
-
-    for(const p of parts){
-      const m = p.match(/^(\w+):(.*)$/);
-      if(m){
-        tokens.push({k:m[1].toLowerCase(), v:m[2]});
-      } else {
-        // flags
-        const f = p.toLowerCase();
-        if(["delisted","fav","platin","100","ungespielt","inarbeit"].includes(f)){
-          tokens.push({k:f, v:"1"});
-        } else {
-          textParts.push(p);
-        }
       }
-    }
-    return { tokens, text: textParts.join(" ").trim() };
-  }
+    }catch(e){}
 
-  function matchRow(row, q){
-    const {tokens, text} = parseQuery(q);
-
-    // fulltext over all visible columns (cheap but ok for 1200 rows)
-    const hay = Object.keys(row)
-      .filter(k => !k.startsWith("__"))
-      .map(k => norm(row[k]))
-      .join(" • ")
-      .toLowerCase();
-
-    if(text){
-      const t = text.toLowerCase();
-      if(!hay.includes(t)) return false;
-    }
-
-    // Token matches
-    for(const t of tokens){
-      const k = t.k;
-      const v = t.v;
-
-      if(k === "id"){
-        if(!norm(row["ID"]).includes(v)) return false;
-      } else if(k === "title"){
-        if(!lower(row["Spieletitel"]).includes(v.toLowerCase())) return false;
-      } else if(k === "dev"){
-        if(!lower(row["Entwickler"]).includes(v.toLowerCase())) return false;
-      } else if(k === "genre"){
-        if(!lower(row["Genre"]).includes(v.toLowerCase())) return false;
-      } else if(k === "system"){
-        if(!lower(row["System"]).includes(v.toLowerCase())) return false;
-      } else if(k === "quelle"){
-        if(!lower(normalizeQuelle(row["Quelle"])).includes(v.toLowerCase())) return false;
-      } else if(k === "delisted"){
-        if(!isDelisted(row)) return false;
-      } else if(k === "fav"){
-        if(lower(row["Favorit"]) !== "x") return false;
-      } else if(k === "platin"){
-        if(!row.__trophy.anyPlatin) return false;
-      } else if(k === "100"){
-        if(!row.__trophy.anyDone100) return false;
-      } else if(k === "ungespielt"){
-        if(!row.__trophy.allUnplayed) return false;
-      } else if(k === "inarbeit"){
-        if(!(row.__trophy.anyProgress && !row.__trophy.anyDone100)) return false;
-      }
-    }
-
-    return true;
+    // fallback: show non-clickable
+    return { href:"", label: raw, title:"" };
   }
 
   // -------------------------
-  // Apply filters + sort + render
+  // Data loading
   // -------------------------
-  function applyFilters(rows){
-    return rows.filter(r => {
-      // chips
-      if(state.chips.fav && lower(r["Favorit"]) !== "x") return false;
-      if(state.chips.delisted && !isDelisted(r)) return false;
-
-      const sys = lower(r["System"]);
-      if(state.chips.ps5 && !sys.includes("ps5")) return false;
-      if(state.chips.ps4 && !sys.includes("ps4")) return false;
-      if(state.chips.ps3 && !sys.includes("ps3")) return false;
-      if(state.chips.vita && !sys.includes("vita")) return false;
-
-      const q = lower(normalizeQuelle(r["Quelle"]));
-      if(state.chips.plus && !q.includes("ps plus")) return false;
-      if(state.chips.digital && !q.includes("digital")) return false;
-      if(state.chips.disc && !q.includes("disc")) return false;
-
-      if(state.chips.platin && !r.__trophy.anyPlatin) return false;
-      if(state.chips.done100 && !r.__trophy.anyDone100) return false;
-
-      if(state.chips.unplayed && !r.__trophy.allUnplayed) return false;
-      if(state.chips.inarbeit && !(r.__trophy.anyProgress && !r.__trophy.anyDone100)) return false;
-
-      // query
-      if(state.q && !matchRow(r, state.q)) return false;
-
-      return true;
-    });
+  function setStatus(msg){
+    $("statusText").textContent = msg;
   }
 
-  function updateStats(){
-    const total = state.rows.length;
-    const hits = state.filtered.length;
-    const shown = state.rendered;
-    const msg = (total === 0)
-      ? "Datei wählen → Sheet wählen → suchen"
-      : `Treffer: ${hits} · angezeigt: ${shown}/${hits}`;
-    statsEl.textContent = msg;
-    miniStatsEl.textContent = msg;
+  function setCount(msg){
+    $("countText").textContent = msg || "";
   }
 
-  function clearList(){
-    listEl.innerHTML = "";
-    state.rendered = 0;
-    updateStats();
-  }
+  function fillSheetSelect(wb){
+    const sel = $("sheet");
+    sel.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "Sheet auswählen…";
+    sel.appendChild(opt0);
 
-  function formatScore(v){
-    const s = norm(v);
-    if(!s) return "—";
-    // already in "xx / 100" but keep safe
-    if(/\//.test(s)) return s;
-    const n = toNum(s);
-    return Number.isFinite(n) ? `${Math.round(n)} / 100` : s;
-  }
-
-  function formatPlaytime(main, full){
-    const m = norm(main), f = norm(full);
-    if(!m && !f) return "—";
-    if(m && f) return `${m}h / ${f}h`;
-    if(m) return `${m}h`;
-    return `— / ${f}h`;
-  }
-
-  function pillForCompletion(stateName){
-    // unplayed / inarbeit / done
-    if(stateName === "done") return {cls:"good", text:"✅ 100% erreicht"};
-    if(stateName === "inarbeit") return {cls:"warn", text:"⏳ In Arbeit"};
-    return {cls:"sleep", text:"💤 Ungespielt"};
-  }
-  function pillForPlatinum(stateName){
-    if(stateName === "done") return {cls:"blue", text:"💎 Platin erlangt"};
-    if(stateName === "inarbeit") return {cls:"warn", text:"⏳ In Arbeit"};
-    return {cls:"sleep", text:"💤 Ungespielt"};
-  }
-
-  function renderTrophies(row){
-    const t = row.__trophy;
-    const wrap = document.createElement("div");
-    wrap.className = "trophyGrid";
-
-    for(const p of t.perPlatform){
-      const tr = document.createElement("div");
-      tr.className = "tRow";
-
-      const sys = document.createElement("div");
-      sys.className = "tSys";
-      sys.textContent = p.platform === "ALL" ? "—" : p.platform;
-
-      const bw = document.createElement("div");
-      bw.className = "barWrap";
-
-      // Progress line
-      const line = document.createElement("div");
-      line.className = "barLine";
-      const left = document.createElement("div");
-      left.style.fontWeight = "900";
-
-      // If no progress and unplayed -> show Ungespielt
-      if(!p.progress){
-        left.textContent = "Ungespielt";
-      } else {
-        left.textContent = `${p.progress.done} of ${p.progress.total}`;
-      }
-
-      const right = document.createElement("div");
-      right.className = "barNote";
-      right.textContent = p.progress ? `${Math.round(p.progress.pct)}%` : "";
-
-      line.appendChild(left);
-      line.appendChild(right);
-
-      const bar = document.createElement("div");
-      bar.className = "bar";
-      const fill = document.createElement("div");
-      fill.style.width = p.progress ? `${p.progress.pct}%` : "0%";
-      bar.appendChild(fill);
-
-      const pills = document.createElement("div");
-      pills.className = "tPills";
-
-      const c = pillForCompletion(p.completion);
-      const cp = document.createElement("span");
-      cp.className = `pill ${c.cls}`;
-      cp.textContent = c.text;
-
-      const pl = pillForPlatinum(p.platinum);
-      const pp = document.createElement("span");
-      pp.className = `pill ${pl.cls}`;
-      pp.textContent = pl.text;
-
-      pills.appendChild(cp);
-      pills.appendChild(pp);
-
-      bw.appendChild(line);
-      bw.appendChild(bar);
-      bw.appendChild(pills);
-
-      tr.appendChild(sys);
-      tr.appendChild(bw);
-      wrap.appendChild(tr);
-    }
-
-    return wrap;
-  }
-
-  function card(row){
-    const c = document.createElement("div");
-    c.className = "card" + (isDelisted(row) ? " delisted" : "");
-
-    const head = document.createElement("div");
-    head.className = "cardHead";
-
-    const left = document.createElement("div");
-    left.style.flex = "1";
-
-    const title = document.createElement("h2");
-    title.className = "title";
-    title.textContent = norm(row["Spieletitel"]) || "—";
-    left.appendChild(title);
-
-    const stack = document.createElement("div");
-    stack.className = "badgeStack";
-
-    if(lower(row["Favorit"]) === "x"){
-      const b = document.createElement("span");
-      b.className = "pill";
-      b.textContent = "⭐ Favorit";
-      stack.appendChild(b);
-    }
-
-    // top badges from trophy state
-    if(row.__trophy.anyPlatin){
-      const b = document.createElement("span");
-      b.className = "pill blue";
-      b.textContent = "💎 Platin erlangt";
-      stack.appendChild(b);
-    }
-    if(row.__trophy.anyDone100){
-      const b = document.createElement("span");
-      b.className = "pill good";
-      b.textContent = "✅ 100% erreicht";
-      stack.appendChild(b);
-    }
-
-    head.appendChild(left);
-    head.appendChild(stack);
-    c.appendChild(head);
-
-    // meta row: ID + systems + availability
-    const meta = document.createElement("div");
-    meta.className = "metaRow";
-
-    const id = document.createElement("span");
-    id.className = "pill idPill";
-    id.textContent = `ID ${norm(row["ID"]) || "—"}`;
-    meta.appendChild(id);
-
-    const systems = parseSystems(row["System"]);
-    if(systems.length){
-      for(const s of systems){
-        const p = document.createElement("span");
-        p.className = "pill sysPill";
-        p.textContent = s;
-        meta.appendChild(p);
-      }
-    } else {
-      const p = document.createElement("span");
-      p.className = "pill sysPill";
-      p.textContent = "—";
-      meta.appendChild(p);
-    }
-
-    const av = document.createElement("span");
-    av.className = "pill availPill";
-    av.textContent = isDelisted(row) ? "Delisted" : (norm(row["Verfügbarkeit"]) || "—");
-    meta.appendChild(av);
-
-    c.appendChild(meta);
-
-    // compact fields (always visible)
-    const kv = document.createElement("div");
-    kv.className = "kv";
-
-    const addKV = (k, vNodeOrText) => {
-      const kk = document.createElement("div");
-      kk.className = "k";
-      kk.textContent = k;
-
-      const vv = document.createElement("div");
-      vv.className = "v";
-      if(vNodeOrText instanceof Node) vv.appendChild(vNodeOrText);
-      else vv.textContent = has(vNodeOrText) ? vNodeOrText : "—";
-
-      kv.appendChild(kk);
-      kv.appendChild(vv);
-    };
-
-    addKV("Genre", norm(row["Genre"]) || "—");
-    addKV("Entwickler", norm(row["Entwickler"]) || "—");
-    addKV("Spielzeit", formatPlaytime(row["Spielzeit (Main)"], row["Spielzeit (100%)"]));
-    addKV("Metascore", formatScore(row["Metascore"]));
-    addKV("Userwertung", formatScore(row["Userwertung"]));
-
-    c.appendChild(kv);
-
-    // Details
-    const det = document.createElement("details");
-    det.open = false;
-    const sum = document.createElement("summary");
-    sum.textContent = "Mehr Details";
-    det.appendChild(sum);
-
-    det.addEventListener("toggle", () => {
-      sum.textContent = det.open ? "Weniger Details" : "Mehr Details";
+    wb.SheetNames.forEach(name=>{
+      const o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      sel.appendChild(o);
     });
 
-    const sec = document.createElement("div");
+    sel.disabled = false;
 
-    // Beschreibung (ausklappbar)
-    const sDescTitle = document.createElement("div");
-    sDescTitle.className = "sectionTitle";
-    sDescTitle.textContent = "BESCHREIBUNG";
-    sec.appendChild(sDescTitle);
-
-    const desc = document.createElement("details");
-    desc.className = "subdetails";
-    const s1 = document.createElement("summary");
-    s1.textContent = "Kurzbeschreibung anzeigen";
-    desc.appendChild(s1);
-
-    const descText = document.createElement("div");
-    descText.className = "longText gapTop";
-    descText.textContent = norm(row["Kurzbeschreibung"]) || "—";
-    desc.appendChild(descText);
-    sec.appendChild(desc);
-
-    // STORE
-    const sStoreTitle = document.createElement("div");
-    sStoreTitle.className = "sectionTitle";
-    sStoreTitle.textContent = "STORE";
-    sec.appendChild(sStoreTitle);
-
-    const storeKV = document.createElement("div");
-    storeKV.className = "kv";
-
-    const qNorm = normalizeQuelle(row["Quelle"]);
-    const storeHref = getStoreHref(row);
-
-    const storeLinkNode = (() => {
-      const a = document.createElement("a");
-      a.className = "store";
-      a.textContent = "Store Link";
-      if(storeHref){
-        a.href = storeHref;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = storeHref;
-      } else {
-        a.href = "#";
-        a.addEventListener("click", (e)=>e.preventDefault());
-        a.style.color = "#6b7280";
-        a.style.fontWeight = "700";
-        a.textContent = "—";
-      }
-      return a;
-    })();
-
-    const addKV2 = (root, k, vNodeOrText) => {
-      const kk = document.createElement("div");
-      kk.className = "k";
-      kk.textContent = k;
-
-      const vv = document.createElement("div");
-      vv.className = "v";
-      if(vNodeOrText instanceof Node) vv.appendChild(vNodeOrText);
-      else vv.textContent = has(vNodeOrText) ? vNodeOrText : "—";
-
-      root.appendChild(kk);
-      root.appendChild(vv);
-    };
-
-    addKV2(storeKV, "Quelle", qNorm || "—");
-    addKV2(storeKV, "Store", storeLinkNode);
-    addKV2(storeKV, "Verfügbarkeit", norm(row["Verfügbarkeit"]) || "—");
-    sec.appendChild(storeKV);
-
-    // EXTRAS
-    const sExtrasTitle = document.createElement("div");
-    sExtrasTitle.className = "sectionTitle";
-    sExtrasTitle.textContent = "EXTRAS";
-    sec.appendChild(sExtrasTitle);
-
-    const detBes = document.createElement("details");
-    detBes.className = "subdetails";
-    const sBes = document.createElement("summary");
-    sBes.textContent = "Besonderheiten anzeigen";
-    detBes.appendChild(sBes);
-    const besTxt = document.createElement("div");
-    besTxt.className = "longText gapTop";
-    besTxt.textContent = norm(row["Besonderheiten"]) || "—";
-    detBes.appendChild(besTxt);
-    sec.appendChild(detBes);
-
-    const detEgg = document.createElement("details");
-    detEgg.className = "subdetails";
-    const sEgg = document.createElement("summary");
-    sEgg.textContent = "Eastereggs anzeigen";
-    detEgg.appendChild(sEgg);
-    const eggTxt = document.createElement("div");
-    eggTxt.className = "longText gapTop";
-    eggTxt.textContent = norm(row["Eastereggs"]) || "—";
-    detEgg.appendChild(eggTxt);
-    sec.appendChild(detEgg);
-
-    // TROPHÄEN
-    const sTrTitle = document.createElement("div");
-    sTrTitle.className = "sectionTitle";
-    sTrTitle.textContent = "TROPHÄEN";
-    sec.appendChild(sTrTitle);
-
-    sec.appendChild(renderTrophies(row));
-
-    // HUMORSTATISTIK
-    const sHumTitle = document.createElement("div");
-    sHumTitle.className = "sectionTitle";
-    sHumTitle.textContent = "HUMORSTATISTIK";
-    sec.appendChild(sHumTitle);
-
-    const humKV = document.createElement("div");
-    humKV.className = "kv";
-    addKV2(humKV, "Gesamtstunden", norm(row["Gesamtstunden (Humorstatistik)"]) || "—");
-    addKV2(humKV, "% Lebenszeit", norm(row["% Lebenszeit (Humorstatistik)"]) || "—");
-    addKV2(humKV, "Jahre", norm(row["Jahre (Humorstatistik)"]) || "—");
-    sec.appendChild(humKV);
-
-    det.appendChild(sec);
-    c.appendChild(det);
-
-    return c;
-  }
-
-  function renderMore(){
-    const remaining = state.filtered.length - state.rendered;
-    if(remaining <= 0){
-      updateStats();
-      return;
+    if(state.sheetName && wb.SheetNames.includes(state.sheetName)){
+      sel.value = state.sheetName;
+      loadSheet(state.sheetName);
     }
-    const take = Math.min(state.batch, remaining);
-    const slice = state.filtered.slice(state.rendered, state.rendered + take);
-    for(const r of slice){
-      listEl.appendChild(card(r));
-    }
-    state.rendered += take;
-    updateStats();
   }
 
-  function applyAll(){
-    clearList();
-    const filtered = applyFilters(state.rows);
-    const sorted = sortRows(filtered);
-    state.filtered = sorted;
-    renderMore();
-  }
-
-  // Infinite scroll
-  const io = new IntersectionObserver((entries) => {
-    for(const e of entries){
-      if(e.isIntersecting){
-        renderMore();
-      }
-    }
-  }, { root:null, threshold:0.1 });
-  io.observe(sentinel);
-
-  // Top button
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY || document.documentElement.scrollTop;
-    fabTop.classList.toggle("show", y > 700);
-  }, {passive:true});
-
-  fabTop.addEventListener("click", () => {
-    window.scrollTo({ top:0, behavior:"smooth" });
-  });
-
-  // Search sync
-  function onQueryInput(v){
-    state.q = v;
-    qEl.value = v;
-    qMiniEl.value = v;
-    saveState();
-    applyAll();
-  }
-  qEl.addEventListener("input", () => onQueryInput(qEl.value));
-  qMiniEl.addEventListener("input", () => onQueryInput(qMiniEl.value));
-
-  // -------------------------
-  // File loading
-  // -------------------------
-  function setDisabled(disabled){
-    sheetEl.disabled = disabled;
-    sortEl.disabled = disabled;
-    sortDirEl.disabled = disabled;
-  }
-
-  async function readFileAsArrayBuffer(file){
+  function readFileAsArrayBuffer(file){
     return new Promise((resolve,reject)=>{
       const fr = new FileReader();
+      fr.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
       fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
       fr.readAsArrayBuffer(file);
     });
   }
 
-  async function readFileAsText(file){
-    return new Promise((resolve,reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
-      fr.readAsText(file, "utf-8");
+  async function handleFile(file){
+    if(!file) return;
+
+    state.fileName = file.name;
+    setStatus("Lese Datei…");
+    setCount("");
+
+    try{
+      const buf = await readFileAsArrayBuffer(file);
+      const wb = XLSX.read(buf, { type:"array", cellStyles:false, cellHTML:false });
+      state.wb = wb;
+      fillSheetSelect(wb);
+      setStatus(`Datei geladen: ${file.name}`);
+    }catch(e){
+      console.error(e);
+      setStatus("Fehler beim Einlesen. (Tipp: xlsx.full.min.js korrekt eingebunden?)");
+    }
+  }
+
+  function sheetToRows(wb, sheetName){
+    const ws = wb.Sheets[sheetName];
+    if(!ws) return [];
+    // defval ensures empty fields are preserved
+    return XLSX.utils.sheet_to_json(ws, { defval:"", raw:false });
+  }
+
+  function loadSheet(sheetName){
+    if(!state.wb || !sheetName) return;
+    state.sheetName = sheetName;
+
+    setStatus("Lade Sheet…");
+    const rows = sheetToRows(state.wb, sheetName);
+
+    // Normalize and enrich rows once (fast later)
+    state.rows = rows.map(r=>{
+      const row = Object.assign({}, r);
+
+      row["Quelle"] = normQuelle(row["Quelle"]);
+      row.__id = normStr(row["ID"]);
+      row.__title = normStr(row["Spieletitel"]);
+      row.__system = normStr(row["System"]);
+      row.__genre = normStr(row["Genre"]);
+      row.__dev = normStr(row["Entwickler"]);
+      row.__fav = isTruthyFavorite(row["Favorit"]);
+      row.__del = isDelisted(row);
+      row.__trophy = buildTrophyModel(row);
+      row.__src = row["Quelle"];
+
+      // numeric helpers for sorting
+      row.__main = parseNum(row["Spielzeit (Main)"]);
+      row.__meta = parseScore(row["Metascore"]);
+      row.__user = parseScore(row["Userwertung"]);
+      row.__life = parseNum(row["% Lebenszeit (Humorstatistik)"]);
+
+      // cache store link if possible
+      row.__store = null;
+
+      // fast search blob
+      row.__blob = Object.keys(row)
+        .filter(k => !k.startsWith("__"))
+        .map(k => normStr(row[k]))
+        .join(" | ")
+        .toLowerCase();
+
+      return row;
+    });
+
+    applyAll();
+    setStatus(`Sheet geladen: ${sheetName}`);
+    saveState();
+  }
+
+  // -------------------------
+  // Filtering / sorting / search
+  // -------------------------
+  function queryMatch(row, q){
+    q = normStr(q).toLowerCase();
+    if(!q) return true;
+
+    // id:123
+    const m = q.match(/\bid\s*:\s*(\d+)\b/);
+    if(m){
+      return normStr(row.__id) === m[1];
+    }
+    return row.__blob.includes(q);
+  }
+
+  function filtersMatch(row){
+    const f = state.filters;
+    if(!f.size) return true;
+
+    // platform filters: if any p:... active, require that platform to be present
+    const pFilters = Array.from(f).filter(x => x.startsWith("p:")).map(x => x.slice(2));
+    if(pFilters.length){
+      const platforms = parsePlatformsFromSystem(row["System"]);
+      for(const p of pFilters){
+        if(!platforms.includes(p)) return false;
+      }
+    }
+
+    // source filters: if any src active, require match
+    const sFilters = Array.from(f).filter(x => x.startsWith("src:")).map(x => x.slice(4));
+    if(sFilters.length){
+      if(!sFilters.includes(row.__src)) return false;
+    }
+
+    if(f.has("fav") && !row.__fav) return false;
+    if(f.has("del") && !row.__del) return false;
+
+    const t = row.__trophy;
+
+    if(f.has("unplayed") && t.anyStarted) return false;
+    if(f.has("work") && (!t.anyStarted || t.hasCompleted)) return false; // started but not 100%
+    if(f.has("comp") && !t.hasCompleted) return false;
+    if(f.has("plat") && !t.hasPlatinum) return false;
+
+    return true;
+  }
+
+  function sortRows(rows){
+    const dir = state.sortDir === "asc" ? 1 : -1;
+    const key = state.sortKey;
+
+    const collator = new Intl.Collator("de-DE", { sensitivity:"base", numeric:true });
+
+    function cmp(a,b){
+      if(key === "id"){
+        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
+        if(Number.isFinite(ai) && Number.isFinite(bi)) return (ai-bi)*dir;
+        return collator.compare(a.__id, b.__id)*dir;
+      }
+      if(key === "title"){
+        // stable: fallback to ID
+        const c = collator.compare(a.__title, b.__title);
+        if(c !== 0) return c*dir;
+        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
+        return (ai-bi)*dir;
+      }
+      const map = {
+        system: "__system",
+        quelle: "__src",
+        genre: "__genre",
+        dev: "__dev"
+      };
+      if(map[key]){
+        const c = collator.compare(a[map[key]] || "", b[map[key]] || "");
+        if(c !== 0) return c*dir;
+        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
+        return (ai-bi)*dir;
+      }
+      const nmap = {
+        main: "__main",
+        meta: "__meta",
+        user: "__user",
+        life: "__life"
+      };
+      if(nmap[key]){
+        const av = a[nmap[key]], bv = b[nmap[key]];
+        const an = Number.isFinite(av) ? av : -Infinity;
+        const bn = Number.isFinite(bv) ? bv : -Infinity;
+        if(an !== bn) return (an-bn)*dir;
+        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
+        return (ai-bi)*dir;
+      }
+      return 0;
+    }
+
+    // copy for stable-ish sorting
+    const copy = rows.slice();
+    copy.sort(cmp);
+    return copy;
+  }
+
+  function applyAll(){
+    const q = $("q").value;
+    state.q = q;
+
+    const filtered = state.rows.filter(r => queryMatch(r, q) && filtersMatch(r));
+    const sorted = sortRows(filtered);
+
+    state.rowsView = sorted;
+    state.rendered = 0;
+
+    // view toggles
+    if(state.viewMode === "table"){
+      $("cards").innerHTML = "";
+      $("tableWrap").classList.add("open");
+      renderTable(sorted);
+    }else{
+      $("tableWrap").classList.remove("open");
+      $("tableWrap").innerHTML = "";
+      $("cards").innerHTML = "";
+      renderNextBatch(true);
+    }
+
+    setCount(`Treffer: ${filtered.length} · angezeigt: ${Math.min(state.rendered, filtered.length)}/${filtered.length}`);
+    saveState();
+  }
+
+  // -------------------------
+  // Rendering
+  // -------------------------
+  function fmtVal(v){
+    const s = normStr(v);
+    return s ? s : "—";
+  }
+
+  function buildRowKV(label, value){
+    const k = document.createElement("div");
+    k.className = "k";
+    k.textContent = label;
+
+    const v = document.createElement("div");
+    const txt = fmtVal(value);
+    v.className = "v" + (txt === "—" ? " muted" : "");
+    v.textContent = txt;
+
+    return [k,v];
+  }
+
+  function makeExpander(title, text){
+    const d = document.createElement("details");
+    d.className = "expander";
+    const s = document.createElement("summary");
+    s.innerHTML = `<span>${title}</span><span class="mutedSmall">▾</span>`;
+    const c = document.createElement("div");
+    c.className = "content";
+    c.textContent = fmtVal(text);
+    d.appendChild(s);
+    d.appendChild(c);
+    return d;
+  }
+
+  function ensureStoreLink(row){
+    if(row.__store) return row.__store;
+    row.__store = cellToLink(state.wb, state.sheetName, row);
+    return row.__store;
+  }
+
+  function badgeEl(text, cls){
+    const b = document.createElement("div");
+    b.className = "badge " + (cls || "");
+    b.textContent = text;
+    return b;
+  }
+
+  function cardEl(row){
+    const del = row.__del;
+    const t = row.__trophy;
+
+    const card = document.createElement("div");
+    card.className = "card" + (del ? " delisted" : "");
+
+    // header
+    const head = document.createElement("div");
+    head.className = "cardHead";
+
+    const left = document.createElement("div");
+    left.className = "hLeft";
+
+    const title = document.createElement("div");
+    title.className = "titleLine" + (del ? " del" : "");
+    title.textContent = fmtVal(row["Spieletitel"]);
+    left.appendChild(title);
+
+    head.appendChild(left);
+
+    const right = document.createElement("div");
+    right.className = "badgesCol";
+
+    // Favorit / Platin / 100%
+    if(row.__fav) right.appendChild(badgeEl("⭐ Favorit", ""));
+    if(t.hasPlatinum) right.appendChild(badgeEl("💎 Platin erlangt", "plat"));
+    else if(t.anyStarted && (t.hasPlatinumWork)) right.appendChild(badgeEl("⏳ Platin in Arbeit", "warn"));
+
+    if(t.hasCompleted) right.appendChild(badgeEl("✅ 100% erreicht", "ok"));
+    else if(t.anyStarted) right.appendChild(badgeEl("⏳ In Arbeit", "warn"));
+
+    head.appendChild(right);
+    card.appendChild(head);
+
+    // pills row
+    const pills = document.createElement("div");
+    pills.className = "subBadges";
+
+    const idP = document.createElement("div");
+    idP.className = "pill id";
+    idP.textContent = "ID " + fmtVal(row["ID"]);
+    pills.appendChild(idP);
+
+    // platforms from System
+    const plats = parsePlatformsFromSystem(row["System"]);
+    for(const p of plats){
+      const pEl = document.createElement("div");
+      pEl.className = "pill";
+      pEl.textContent = p;
+      pills.appendChild(pEl);
+    }
+
+    const avail = normStr(row["Verfügbarkeit"]);
+    const av = document.createElement("div");
+    av.className = "pill avail" + (del ? " del" : "");
+    av.textContent = avail ? avail : "—";
+    pills.appendChild(av);
+
+    card.appendChild(pills);
+
+    const div = document.createElement("div");
+    div.className = "divider";
+    card.appendChild(div);
+
+    // reduced info (always visible)
+    const kv = document.createElement("div");
+    kv.className = "kv";
+
+    // Reduced set: Genre, Entwickler, Spielzeit, Metascore, Userwertung (as you requested)
+    const pairs = [
+      ["Genre", row["Genre"]],
+      ["Entwickler", row["Entwickler"]],
+      ["Spielzeit", buildPlaytime(row)],
+      ["Metascore", row["Metascore"]],
+      ["Userwertung", row["Userwertung"]],
+    ];
+    for(const [k,v] of pairs){
+      const [ke, ve] = buildRowKV(k, v);
+      kv.appendChild(ke);
+      kv.appendChild(ve);
+    }
+    card.appendChild(kv);
+
+    // details toggle
+    const tog = document.createElement("div");
+    tog.className = "detailsToggle";
+    tog.innerHTML = `<span class="chev">▶</span><span class="txt">Mehr Details</span><span style="margin-left:auto" class="mutedSmall">Tippen</span>`;
+    card.appendChild(tog);
+
+    const details = document.createElement("div");
+    details.className = "details";
+
+    // Beschreibung
+    const s1 = document.createElement("div");
+    s1.className = "section";
+    const st1 = document.createElement("div");
+    st1.className = "sectionTitle";
+    st1.textContent = "BESCHREIBUNG";
+    s1.appendChild(st1);
+
+    const expDesc = makeExpander("Kurzbeschreibung anzeigen", row["Kurzbeschreibung"]);
+    s1.appendChild(expDesc);
+
+    details.appendChild(s1);
+
+    // STORE: Quelle, Store, Verfügbarkeit (as you requested)
+    const sStore = document.createElement("div");
+    sStore.className = "section";
+    const stS = document.createElement("div");
+    stS.className = "sectionTitle";
+    stS.textContent = "STORE";
+    sStore.appendChild(stS);
+
+    const kvS = document.createElement("div");
+    kvS.className = "kv";
+    // Quelle
+    {
+      const [ke, ve] = buildRowKV("Quelle", row["Quelle"]);
+      kvS.appendChild(ke); kvS.appendChild(ve);
+    }
+    // Store Link (clickable)
+    {
+      const k = document.createElement("div");
+      k.className = "k";
+      k.textContent = "Store";
+
+      const v = document.createElement("div");
+      const link = ensureStoreLink(row);
+      if(link.href){
+        const a = document.createElement("a");
+        a.className = "storeLink";
+        a.href = link.href;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.title = link.title || link.href;
+        a.innerHTML = `Store Link <small>↗</small>`;
+        v.appendChild(a);
+      }else{
+        v.className = "v muted";
+        v.textContent = fmtVal(row["Store Link"]);
+      }
+      kvS.appendChild(k); kvS.appendChild(v);
+    }
+    // Verfügbarkeit
+    {
+      const [ke, ve] = buildRowKV("Verfügbarkeit", row["Verfügbarkeit"]);
+      kvS.appendChild(ke); kvS.appendChild(ve);
+    }
+    sStore.appendChild(kvS);
+    details.appendChild(sStore);
+
+    // ENTWICKLER (keep section for structure)
+    const sDev = document.createElement("div");
+    sDev.className = "section";
+    const stD = document.createElement("div");
+    stD.className = "sectionTitle";
+    stD.textContent = "ENTWICKLER";
+    sDev.appendChild(stD);
+    const kvD = document.createElement("div");
+    kvD.className = "kv";
+    const [dk, dv] = buildRowKV("Entwickler", row["Entwickler"]);
+    kvD.appendChild(dk); kvD.appendChild(dv);
+    sDev.appendChild(kvD);
+    details.appendChild(sDev);
+
+    // EXTRAS: collapsible Besonderheiten / Eastereggs
+    const sEx = document.createElement("div");
+    sEx.className = "section";
+    const stE = document.createElement("div");
+    stE.className = "sectionTitle";
+    stE.textContent = "EXTRAS";
+    sEx.appendChild(stE);
+
+    sEx.appendChild(makeExpander("Besonderheiten anzeigen", row["Besonderheiten"]));
+    sEx.appendChild(makeExpander("Eastereggs anzeigen", row["Eastereggs"]));
+    details.appendChild(sEx);
+
+    // TROPHÄEN: Fortschritt + Komplettion + Platin, pro Plattform inkl Ungespielt
+    const sT = document.createElement("div");
+    sT.className = "section";
+    const stT = document.createElement("div");
+    stT.className = "sectionTitle";
+    stT.textContent = "TROPHÄEN";
+    sT.appendChild(stT);
+
+    const tWrap = document.createElement("div");
+    tWrap.className = "trophyBlock";
+
+    const platforms = t.platforms;
+    if(!platforms.length){
+      const note = document.createElement("div");
+      note.className = "mutedSmall";
+      note.textContent = "Keine Plattform im System-Feld erkannt.";
+      tWrap.appendChild(note);
+    }else{
+      for(const p of platforms){
+        const info = t.perPlatform[p] || { state:"Ungespielt", started:false };
+
+        const tr = document.createElement("div");
+        tr.className = "tRow";
+
+        const top = document.createElement("div");
+        top.className = "tTop";
+
+        const leftP = document.createElement("div");
+        leftP.style.display = "flex";
+        leftP.style.gap = "8px";
+        leftP.style.alignItems = "center";
+
+        const pill = document.createElement("div");
+        pill.className = "miniPill";
+        pill.textContent = p;
+        leftP.appendChild(pill);
+
+        const rightP = document.createElement("div");
+        rightP.className = "tPlat";
+
+        // Status badges in details:
+        // If unplayed: show Ungespielt for Fortschritt, Komplettion, Platin as you requested earlier
+        if(!info.started){
+          rightP.appendChild(miniBadge("💤 Ungespielt", ""));
+        }else{
+          // Completion
+          if(info.completion === "Completed") rightP.appendChild(miniBadge("✅ 100% erreicht", "ok"));
+          else if(info.completion === "In Progress") rightP.appendChild(miniBadge("⏳ In Arbeit", "warn"));
+          else rightP.appendChild(miniBadge("⏳ In Arbeit", "warn"));
+
+          // Platinum
+          if(info.platinum === "Platinum") rightP.appendChild(miniBadge("💎 Platin erlangt", "plat"));
+          else if(info.platinum === "No Platinum") rightP.appendChild(miniBadge("— Kein Platin", ""));
+          else if(info.platinum === "In Progress") rightP.appendChild(miniBadge("⏳ Platin in Arbeit", "warn"));
+          else rightP.appendChild(miniBadge("⏳ Platin in Arbeit", "warn"));
+        }
+
+        top.appendChild(leftP);
+        top.appendChild(rightP);
+        tr.appendChild(top);
+
+        // Progress display
+        if(!info.started){
+          const note = document.createElement("div");
+          note.className = "mutedSmall";
+          note.textContent = "Fortschritt: Ungespielt · Komplettion: Ungespielt · Platin: Ungespielt";
+          tr.appendChild(note);
+        }else{
+          const pr = info.progress;
+          if(pr && Number.isFinite(pr.cur) && Number.isFinite(pr.total) && pr.total > 0){
+            const line = document.createElement("div");
+            line.style.display = "flex";
+            line.style.justifyContent = "space-between";
+            line.style.gap = "10px";
+            line.style.alignItems = "baseline";
+
+            const b = document.createElement("div");
+            b.style.fontWeight = "900";
+            b.textContent = `${String(pr.cur).padStart(2,"0")} of ${pr.total}`;
+            line.appendChild(b);
+
+            const pct = Math.max(0, Math.min(100, (pr.cur/pr.total)*100));
+            const bar = document.createElement("div");
+            bar.className = "bar";
+            const fill = document.createElement("i");
+            fill.style.width = pct.toFixed(1) + "%";
+            bar.appendChild(fill);
+
+            const note = document.createElement("div");
+            note.className = "barNote";
+            note.textContent = `${pct.toFixed(0)}% (${pr.cur}/${pr.total})`;
+
+            tr.appendChild(line);
+            tr.appendChild(bar);
+            tr.appendChild(note);
+          }else{
+            const note = document.createElement("div");
+            note.className = "mutedSmall";
+            note.textContent = "Fortschritt: —";
+            tr.appendChild(note);
+          }
+        }
+
+        tWrap.appendChild(tr);
+      }
+    }
+
+    sT.appendChild(tWrap);
+    details.appendChild(sT);
+
+    // HUMORSTATISTIK
+    const sH = document.createElement("div");
+    sH.className = "section";
+    const stH = document.createElement("div");
+    stH.className = "sectionTitle";
+    stH.textContent = "HUMORSTATISTIK";
+    sH.appendChild(stH);
+
+    const kvH = document.createElement("div");
+    kvH.className = "kv";
+    let [hk, hv] = buildRowKV("Gesamtstunden", row["Gesamtstunden (Humorstatistik)"]);
+    kvH.appendChild(hk); kvH.appendChild(hv);
+    [hk, hv] = buildRowKV("% Lebenszeit", row["% Lebenszeit (Humorstatistik)"]);
+    kvH.appendChild(hk); kvH.appendChild(hv);
+    [hk, hv] = buildRowKV("Jahre", row["Jahre (Humorstatistik)"]);
+    kvH.appendChild(hk); kvH.appendChild(hv);
+
+    sH.appendChild(kvH);
+    details.appendChild(sH);
+
+    card.appendChild(details);
+
+    // toggle logic
+    tog.addEventListener("click", () => {
+      const open = details.classList.toggle("open");
+      tog.classList.toggle("open", open);
+      tog.querySelector(".txt").textContent = open ? "Weniger Details" : "Mehr Details";
+    });
+
+    return card;
+  }
+
+  function miniBadge(text, cls){
+    const d = document.createElement("div");
+    d.className = "miniPill " + (cls || "");
+    d.textContent = text;
+    return d;
+  }
+
+  function buildPlaytime(row){
+    const m = fmtVal(row["Spielzeit (Main)"]);
+    const c = fmtVal(row["Spielzeit (100%)"]);
+    // show "12h / 16h" if both numeric-ish; keep simple
+    if(m !== "—" || c !== "—"){
+      const mm = m === "—" ? "—" : `${m}`;
+      const cc = c === "—" ? "—" : `${c}`;
+      return `${mm} / ${cc}`;
+    }
+    return "—";
+  }
+
+  function renderNextBatch(initial){
+    const list = $("cards");
+    const total = state.rowsView.length;
+    if(state.rendered >= total){
+      setCount(`Treffer: ${total} · angezeigt: ${total}/${total}`);
+      return;
+    }
+
+    const end = Math.min(total, state.rendered + state.batch);
+    for(let i=state.rendered;i<end;i++){
+      list.appendChild(cardEl(state.rowsView[i]));
+    }
+    state.rendered = end;
+    setCount(`Treffer: ${total} · angezeigt: ${state.rendered}/${total}`);
+  }
+
+  function renderTable(rows){
+    const wrap = $("tableWrap");
+    wrap.innerHTML = "";
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const trh = document.createElement("tr");
+
+    const cols = ["ID","Spieletitel","System","Quelle","Genre","Entwickler","Spielzeit (Main)","Metascore","Userwertung","% Lebenszeit (Humorstatistik)"];
+    for(const c of cols){
+      const th = document.createElement("th");
+      th.textContent = c === "% Lebenszeit (Humorstatistik)" ? "Lebenszeit %" : c;
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    // Keep table reasonably sized for mobile: show up to 250 rows
+    const max = Math.min(rows.length, 250);
+    for(let i=0;i<max;i++){
+      const r = rows[i];
+      const tr = document.createElement("tr");
+      for(const c of cols){
+        const td = document.createElement("td");
+        const val = fmtVal(r[c]);
+        if(c === "Spieletitel"){
+          td.innerHTML = `<b>${escapeHtml(val)}</b>`;
+        }else{
+          td.textContent = val;
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+
+    const note = document.createElement("div");
+    note.className = "statusLine";
+    note.textContent = `Tabellenansicht zeigt aus Performance-Gründen max. ${max} Zeilen (Kartenansicht hat Infinite Scroll).`;
+    wrap.appendChild(note);
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  // -------------------------
+  // Infinite scroll observer
+  // -------------------------
+  let io = null;
+  function setupInfiniteScroll(){
+    if(io) io.disconnect();
+    io = new IntersectionObserver((entries) => {
+      const hit = entries.some(e => e.isIntersecting);
+      if(hit && state.viewMode === "cards"){
+        renderNextBatch(false);
+      }
+    }, { root:null, rootMargin:"900px 0px", threshold:0.01 });
+
+    io.observe($("sentinel"));
+  }
+
+  // -------------------------
+  // Menu + header collapse (no flicker)
+  // -------------------------
+  let lastScrollY = 0;
+  let ticking = false;
+  function onScroll(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY || 0;
+      const dy = y - lastScrollY;
+      lastScrollY = y;
+
+      // show/hide "Top" button
+      $("btnTop").style.display = y > 400 ? "block" : "none";
+
+      ticking = false;
     });
   }
 
-  function rowsFromCSV(text){
-    // Basic CSV parser supporting quoted fields
-    const rows = [];
-    const lines = text.replace(/\r/g,"").split("\n").filter(l => l.length>0);
-    if(lines.length === 0) return rows;
+  // -------------------------
+  // Event wiring
+  // -------------------------
+  function syncUIFromState(){
+    $("q").value = state.q;
+    $("sortKey").value = state.sortKey;
+    $("viewMode").value = state.viewMode;
 
-    const parseLine = (line) => {
-      const out = [];
-      let cur = "", inQ = false;
-      for(let i=0;i<line.length;i++){
-        const ch = line[i];
-        if(ch === '"'){
-          if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
-          else inQ = !inQ;
-        } else if(ch === "," && !inQ){
-          out.push(cur); cur = "";
-        } else {
-          cur += ch;
-        }
-      }
-      out.push(cur);
-      return out;
-    };
+    // chips
+    const chips = $("chips").querySelectorAll(".chip[data-filter]");
+    chips.forEach(ch => {
+      const f = ch.getAttribute("data-filter");
+      ch.classList.toggle("on", state.filters.has(f));
+    });
 
-    const header = parseLine(lines[0]).map(h => h.trim());
-    for(let i=1;i<lines.length;i++){
-      const parts = parseLine(lines[i]);
-      if(parts.every(x => !x)) continue;
-      const r = {};
-      header.forEach((h,idx) => r[h] = parts[idx] ?? "");
-      rows.push(r);
-    }
-    return rows;
+    // menu
+    $("menu").classList.toggle("open", state.menuOpen);
   }
 
-  function attachComputed(row){
-    row.__trophy = computeTrophyState(row);
-    return row;
-  }
+  function init(){
+    loadState();
+    syncUIFromState();
 
-  function populateSortOptions(){
-    // only the meaningful ones (as you specified) in that exact order
-    sortEl.innerHTML = "";
-    const opts = [
-      ["id","Sort: ID"],
-      ["title","Sort: Spieletitel"],
-      ["system","Sort: System"],
-      ["quelle","Sort: Quelle"],
-      ["genre","Sort: Genre"],
-      ["dev","Sort: Entwickler"],
-      ["main","Sort: Spielzeit (Main)"],
-      ["meta","Sort: Metascore"],
-      ["user","Sort: Userwertung"],
-      ["life","Sort: Lebenszeit %"],
-    ];
-    for(const [v,t] of opts){
-      const o = document.createElement("option");
-      o.value = v;
-      o.textContent = t;
-      sortEl.appendChild(o);
-    }
-    sortEl.value = state.sortKey || "id";
-  }
+    $("file").addEventListener("change", e => handleFile(e.target.files[0]));
+    $("sheet").addEventListener("change", e => loadSheet(e.target.value));
 
-  function setSheets(names){
-    sheetEl.innerHTML = "";
-    const o0 = document.createElement("option");
-    o0.value = "";
-    o0.textContent = "Sheet wählen…";
-    sheetEl.appendChild(o0);
+    $("q").addEventListener("input", () => {
+      // tiny debounce
+      clearTimeout(window.__qT);
+      window.__qT = setTimeout(applyAll, 120);
+    });
 
-    for(const n of names){
-      const o = document.createElement("option");
-      o.value = n;
-      o.textContent = n;
-      sheetEl.appendChild(o);
-    }
-    // restore last sheet if present
-    if(state.sheetName && names.includes(state.sheetName)){
-      sheetEl.value = state.sheetName;
-    } else if(names.length){
-      sheetEl.value = names[0];
-    }
-  }
+    $("btnMenu").addEventListener("click", () => {
+      state.menuOpen = !state.menuOpen;
+      $("menu").classList.toggle("open", state.menuOpen);
+      saveState();
+    });
 
-  function buildRowsFromSheet(workbook, sheetName){
-    const ws = workbook.Sheets[sheetName];
-    if(!ws) return [];
+    $("viewMode").addEventListener("change", (e) => {
+      state.viewMode = e.target.value;
+      applyAll();
+    });
 
-    // read as objects
-    const json = XLSX.utils.sheet_to_json(ws, { defval:"", raw:false });
+    $("sortKey").addEventListener("change", (e) => {
+      state.sortKey = e.target.value;
+      applyAll();
+    });
 
-    // Extract store hyperlink by reading cell objects:
-    // We locate the "Store Link" column letter via header row.
-    // This is a bit more involved, but it’s worth it for clickable links.
-    const range = XLSX.utils.decode_range(ws["!ref"]);
-    const headerRow = range.s.r; // first row
-    const headerMap = {}; // headerName -> colIndex
-    for(let c=range.s.c;c<=range.e.c;c++){
-      const addr = XLSX.utils.encode_cell({r:headerRow,c});
-      const cell = ws[addr];
-      const h = cell ? norm(cell.v) : "";
-      if(h) headerMap[h] = c;
-    }
-    const storeCol = headerMap["Store Link"];
+    $("sortAsc").addEventListener("click", () => {
+      state.sortDir = "asc";
+      applyAll();
+    });
 
-    // attach per-row href if present
-    if(Number.isInteger(storeCol)){
-      for(let i=0;i<json.length;i++){
-        const rIndex = headerRow + 1 + i; // data starts next row
-        const addr = XLSX.utils.encode_cell({r:rIndex,c:storeCol});
-        const cell = ws[addr];
-        if(cell && cell.l && cell.l.Target){
-          json[i].__storeHref = cell.l.Target;
-        } else {
-          // fallback: if cell value looks like URL
-          const v = norm(json[i]["Store Link"]);
-          if(/^https?:\/\//i.test(v)) json[i].__storeHref = v;
-        }
-      }
-    }
+    $("sortDesc").addEventListener("click", () => {
+      state.sortDir = "desc";
+      applyAll();
+    });
 
-    // Normalize "Quelle" to Digital label later in UI, but keep raw in row
-    return json.map(r => attachComputed(r));
-  }
+    $("chips").addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if(!chip) return;
 
-  let currentWorkbook = null;
-
-  fileEl.addEventListener("change", async () => {
-    const f = fileEl.files && fileEl.files[0];
-    if(!f) return;
-
-    state.fileName = f.name;
-    currentWorkbook = null;
-    state.rows = [];
-    clearList();
-    setDisabled(true);
-
-    try{
-      if(f.name.toLowerCase().endsWith(".csv")){
-        const text = await readFileAsText(f);
-        const rows = rowsFromCSV(text).map(r => attachComputed(r));
-        state.rows = rows;
-        setSheets(["CSV"]);
-        sheetEl.disabled = true;
-        populateSortOptions();
-        setDisabled(false);
+      if(chip.id === "clearFilters"){
+        state.filters.clear();
+        syncUIFromState();
         applyAll();
         return;
       }
 
-      const buf = await readFileAsArrayBuffer(f);
-      const wb = XLSX.read(buf, { type:"array" });
-      currentWorkbook = wb;
+      const f = chip.getAttribute("data-filter");
+      if(!f) return;
 
-      setSheets(wb.SheetNames);
-      sheetEl.disabled = false;
-      populateSortOptions();
-      setDisabled(false);
+      if(state.filters.has(f)) state.filters.delete(f);
+      else state.filters.add(f);
 
-      // auto-load selected sheet
-      const pick = sheetEl.value || wb.SheetNames[0];
-      state.sheetName = pick;
-      saveState();
-
-      state.rows = buildRowsFromSheet(wb, pick);
+      chip.classList.toggle("on", state.filters.has(f));
       applyAll();
-    } catch(err){
-      console.error(err);
-      statsEl.textContent = "Fehler beim Einlesen. Prüfe, ob xlsx.full.min.js korrekt geladen ist.";
-      miniStatsEl.textContent = "Fehler beim Einlesen.";
-    }
-  });
+    });
 
-  sheetEl.addEventListener("change", () => {
-    if(!currentWorkbook) return;
-    const pick = sheetEl.value;
-    if(!pick) return;
-    state.sheetName = pick;
-    saveState();
-    state.rows = buildRowsFromSheet(currentWorkbook, pick);
-    applyAll();
-  });
+    $("btnTop").addEventListener("click", () => {
+      window.scrollTo({ top:0, behavior:"smooth" });
+    });
 
-  // Initial disabled until file loaded
-  setDisabled(true);
+    window.addEventListener("scroll", onScroll, { passive:true });
+    setupInfiniteScroll();
 
+    // initialize button state
+    $("btnTop").style.display = "none";
+    setStatus("Datei wählen → Sheet wählen → suchen");
+  }
+
+  init();
 })();
 </script>
 </body>
