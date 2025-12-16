@@ -2,12 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-
-  <!-- SheetJS: Lege xlsx.full.min.js in den gleichen Ordner -->
-  <script src="./xlsx.full.min.js"></script>
-
   <style>
     :root{
       --bg:#f6f7fb;
@@ -15,1447 +11,1465 @@
       --text:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
-      --shadow:0 10px 30px rgba(17,24,39,.06);
+      --shadow: 0 10px 30px rgba(17,24,39,.08);
+      --shadow2: 0 6px 18px rgba(17,24,39,.08);
       --radius:18px;
+      --radius2:14px;
 
-      --badge-bg:#eef2ff;
-      --badge-text:#3730a3;
+      --blue:#1d4ed8;
+      --blueBg:#e8efff;
 
-      --ok-bg:#e8f7ee;
-      --ok-text:#166534;
+      --ok:#16a34a;
+      --okBg:#e8f8ee;
 
-      --warn-bg:#ffe8e8;
-      --warn-text:#991b1b;
+      --warn:#b45309;
+      --warnBg:#fff2e0;
 
-      --plat-bg:#e8f0ff;
-      --plat-text:#1d4ed8;
+      --bad:#dc2626;
+      --badBg:#ffe9e9;
 
-      --chip-bg:#f3f4f6;
-      --chip-text:#111827;
+      --plat:#2563eb;
+      --platBg:#e7f0ff;
 
-      --del-bg:#fff1f2;
-      --del-text:#9f1239;
+      --sleep:#334155;
+      --sleepBg:#edf2f7;
 
-      --focus:#c7d2fe;
+      --chip:#f3f4f6;
+      --chipText:#111827;
     }
 
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg);
       color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
     }
 
     .wrap{
       max-width:980px;
       margin:0 auto;
-      padding:16px 14px 90px;
+      padding:18px 14px 40px;
     }
 
-    /* Header / Mini menu */
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:20;
-      background:linear-gradient(to bottom, rgba(246,247,251,.96), rgba(246,247,251,.86));
-      backdrop-filter: blur(8px);
-      padding:10px 0 12px;
-      transition: transform .18s ease, opacity .18s ease;
-      will-change: transform;
-    }
-
-    .title{
+    h1{
+      margin:6px 0 12px;
       font-size:26px;
-      font-weight:800;
-      letter-spacing:.2px;
-      margin:4px 0 12px;
+      letter-spacing:-.02em;
     }
 
-    .panel{
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index:50;
+      padding:10px 0 10px;
+      background: linear-gradient(to bottom, rgba(246,247,251,.98), rgba(246,247,251,.92));
+      backdrop-filter: blur(10px);
+    }
+
+    .controls{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+      box-shadow: var(--shadow2);
+      border-radius: var(--radius);
       padding:12px;
     }
 
-    .grid{
+    .grid2{
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.1fr 1fr;
       gap:10px;
     }
     @media (max-width:720px){
-      .grid{grid-template-columns:1fr}
+      .grid2{ grid-template-columns: 1fr; }
     }
 
     .row{
       display:flex;
       gap:10px;
       align-items:center;
-    }
-
-    .fileRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      align-items:center;
-    }
-    @media (max-width:720px){
-      .fileRow{grid-template-columns:1fr}
+      flex-wrap:wrap;
     }
 
     label.small{
       font-size:12px;
       color:var(--muted);
       display:block;
-      margin-bottom:6px;
+      margin:0 0 6px;
     }
 
-    input[type="file"]{width:100%}
-    select, input[type="text"], button{
+    input[type="file"]{
       width:100%;
+      padding:9px 10px;
       border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 12px;
-      font-size:16px;
+      border-radius:12px;
       background:#fff;
-      color:var(--text);
+    }
+
+    select, input[type="text"]{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      font-size:16px;
       outline:none;
     }
-
-    input[type="text"]:focus, select:focus, button:focus{
-      border-color:var(--focus);
-      box-shadow:0 0 0 4px rgba(199,210,254,.45);
+    input[type="text"]:focus, select:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 4px rgba(99,102,241,.12);
     }
 
-    button{
-      cursor:pointer;
-      font-weight:700;
-    }
-    button.secondary{
-      background:#fff;
-    }
-    button.icon{
-      width:auto;
-      padding:10px 12px;
-      border-radius:14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-
-    .miniHeader{
+    .miniRow{
       display:flex;
       gap:10px;
       align-items:center;
     }
-    .miniHeader .search{
-      flex:1;
-    }
-    .hamburger{
-      width:52px;
-      height:48px;
+
+    .btnIcon{
+      min-width:48px;
+      height:44px;
       border-radius:14px;
-      background:var(--badge-bg);
-      color:var(--badge-text);
       border:1px solid var(--line);
-      font-weight:900;
-    }
-
-    .menu{
-      margin-top:10px;
-      display:none;
-    }
-    .menu.open{display:block}
-
-    .chips{
+      background:#eef2ff;
       display:flex;
-      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btnIcon:active{ transform: translateY(1px); }
+
+    .pillRow{
+      display:flex;
       gap:8px;
+      flex-wrap:wrap;
       margin-top:10px;
     }
 
     .chip{
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--chip-bg);
-      color:var(--chip-text);
-      font-weight:700;
-      cursor:pointer;
-      user-select:none;
-      display:flex;
+      display:inline-flex;
       align-items:center;
       gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--chip);
+      color:var(--chipText);
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
     }
     .chip.on{
-      border-color:transparent;
-      background:var(--badge-bg);
-      color:var(--badge-text);
+      border-color:#c7d2fe;
+      background:#eef2ff;
     }
-    .chip.ok.on{ background:var(--ok-bg); color:var(--ok-text); }
-    .chip.warn.on{ background:var(--warn-bg); color:var(--warn-text); }
-    .chip.plat.on{ background:var(--plat-bg); color:var(--plat-text); }
-    .chip.del.on{ background:var(--del-bg); color:var(--del-text); }
+    .chip .dot{
+      width:8px;height:8px;border-radius:999px;
+      background:#9ca3af;
+    }
 
-    .meta{
+    .chip.ok .dot{ background:var(--ok); }
+    .chip.warn .dot{ background:var(--warn); }
+    .chip.bad .dot{ background:var(--bad); }
+    .chip.plat .dot{ background:var(--plat); }
+    .chip.sleep .dot{ background:var(--sleep); }
+
+    .chipGroupTitle{
       margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .stats{
+      margin-top:10px;
+      font-size:13px;
+      color:var(--muted);
       display:flex;
+      gap:12px;
       flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      color:var(--muted);
-      font-size:14px;
     }
 
-    .hint{
-      margin-top:10px;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      color:var(--muted);
-      font-size:14px;
-    }
-    .hint summary{
-      cursor:pointer;
-      font-weight:800;
-      color:var(--text);
-      outline:none;
-    }
-    .hint p{margin:8px 0 0; line-height:1.45}
-
-    /* Cards */
     .cards{
-      margin-top:14px;
+      margin-top:12px;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:12px;
     }
 
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px 14px 12px;
       overflow:hidden;
     }
 
-    .card.delisted{
-      border-color:#fecdd3;
-      background:linear-gradient(to bottom, #fff, #fff, #fff, #fff, #fff1f2);
-    }
-
     .cardHead{
-      padding:14px 14px 8px;
       display:flex;
-      gap:12px;
       align-items:flex-start;
       justify-content:space-between;
+      gap:10px;
     }
 
-    .hLeft{
-      min-width:0;
-      flex:1;
-    }
-
-    .titleLine{
+    .title{
+      font-weight:800;
       font-size:20px;
-      font-weight:900;
-      line-height:1.2;
-      margin:0 0 10px;
-      word-break:break-word;
+      line-height:1.15;
+      letter-spacing:-.01em;
     }
 
-    .titleLine.del{
-      color:var(--del-text);
-      text-decoration:line-through;
-      text-decoration-thickness:2px;
-    }
-
-    .badgesCol{
+    .badgeCol{
       display:flex;
       flex-direction:column;
       gap:8px;
       align-items:flex-end;
-      flex:0 0 auto;
+      min-width: 140px;
     }
 
     .badge{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 10px;
+      padding:7px 10px;
       border-radius:999px;
-      border:1px solid rgba(17,24,39,.08);
-      background:var(--badge-bg);
-      color:var(--badge-text);
-      font-weight:800;
-      font-size:14px;
+      font-weight:700;
+      font-size:13px;
+      border:1px solid var(--line);
+      background:#f8fafc;
       white-space:nowrap;
     }
-    .badge.ok{ background:var(--ok-bg); color:var(--ok-text); }
-    .badge.warn{ background:var(--warn-bg); color:var(--warn-text); }
-    .badge.plat{ background:var(--plat-bg); color:var(--plat-text); }
-    .badge.del{ background:var(--del-bg); color:var(--del-text); }
 
-    .subBadges{
-      padding:0 14px 10px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .badge.fav{ background:#fff7ed; border-color:#fed7aa; }
+    .badge.del{ background:#ffe9e9; border-color:#fecaca; color:var(--bad); text-decoration: line-through; }
+    .badge.ok{ background:var(--okBg); border-color:#bbf7d0; color:#14532d; }
+    .badge.warn{ background:var(--warnBg); border-color:#fed7aa; color:#7c2d12; }
+    .badge.plat{ background:var(--platBg); border-color:#bfdbfe; color:#1e40af; }
+    .badge.sleep{ background:var(--sleepBg); border-color:#cbd5e1; color:#0f172a; }
 
-    .pill{
-      padding:8px 10px;
-      border-radius:999px;
-      background:#f3f4f6;
-      border:1px solid var(--line);
-      font-weight:800;
-      color:#111827;
-      font-size:14px;
-    }
-    .pill.id{
-      background:#1f2a74;
-      color:#fff;
-      border-color:transparent;
-    }
-    .pill.avail{
-      background:#eef2ff;
-      color:#3730a3;
-      border-color:transparent;
-    }
-    .pill.avail.del{
-      background:var(--del-bg);
-      color:var(--del-text);
-    }
-
-    .divider{height:1px;background:var(--line);margin:0 14px}
-
-    .kv{
-      padding:10px 14px;
-      display:grid;
-      grid-template-columns: 200px 1fr;
-      gap:10px 14px;
-      align-items:start;
-      font-size:15px;
-    }
-    @media (max-width:720px){
-      .kv{grid-template-columns: 140px 1fr;}
-    }
-    .k{color:var(--muted); font-weight:700;}
-    .v{color:var(--text); font-weight:800; word-break:break-word;}
-    .v.muted{color:var(--muted); font-weight:700;}
-
-    .detailsToggle{
-      padding:12px 14px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:#1f2a74;
-      font-weight:900;
-      cursor:pointer;
-      user-select:none;
-    }
-    .detailsToggle .chev{
-      transition: transform .15s ease;
-    }
-    .detailsToggle.open .chev{transform:rotate(90deg)}
-    .details{
-      display:none;
-      padding:6px 0 14px;
-    }
-    .details.open{display:block}
-
-    .section{
-      padding:8px 14px 4px;
-    }
-    .sectionTitle{
-      font-size:12px;
-      letter-spacing:.12em;
-      font-weight:900;
-      color:var(--muted);
-      margin:10px 0 8px;
-    }
-
-    .expander{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#fff;
-      padding:10px 12px;
-      margin-top:8px;
-    }
-    .expander summary{
-      cursor:pointer;
-      font-weight:900;
-      color:#1f2a74;
-      outline:none;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .expander .content{
-      margin-top:10px;
-      padding-top:10px;
-      border-top:1px solid var(--line);
-      color:#111827;
-      font-weight:700;
-      line-height:1.5;
-      white-space:pre-wrap;
-      word-break:break-word;
-    }
-
-    .storeLink{
-      color:#1d4ed8;
-      text-decoration:none;
-      font-weight:900;
+    .idPill{
       display:inline-flex;
       align-items:center;
       gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:var(--blue);
+      color:#fff;
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.02em;
     }
-    .storeLink:visited{color:#1d4ed8}
-    .storeLink small{color:var(--muted); font-weight:700}
 
-    /* Trophies */
-    .trophyBlock{
+    .subBadges{
       display:flex;
-      flex-direction:column;
-      gap:12px;
-      margin-top:8px;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+      align-items:center;
     }
-    .tRow{
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
       border:1px solid var(--line);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
+      font-weight:700;
+      font-size:13px;
+      color:#111827;
+      white-space:nowrap;
     }
-    .tTop{
+    .tag.gray{ color:var(--muted); font-weight:700; }
+    .tag.avail{ background:#f8fafc; }
+    .tag.sys{ background:#f3f4f6; }
+
+    .kv{
+      margin-top:10px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+      display:grid;
+      grid-template-columns: 190px 1fr;
+      gap:8px 10px;
+    }
+    @media (max-width:520px){
+      .kv{ grid-template-columns: 1fr; }
+      .k{ font-size:12px; }
+    }
+    .k{ color:var(--muted); font-size:13px; }
+    .v{ font-weight:700; font-size:14px; }
+    .v.mono{ font-variant-numeric: tabular-nums; }
+    .v a{ color:#2563eb; text-decoration:none; font-weight:800; }
+    .v a:hover{ text-decoration:underline; }
+
+    .detailsToggle{
+      margin-top:10px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#1e3a8a;
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .section{
+      margin-top:10px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+    }
+    .secTitle{
+      font-size:12px;
+      letter-spacing:.12em;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .subToggle{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      margin-bottom:8px;
+      padding:8px 0;
+      cursor:pointer;
+      user-select:none;
+      color:#1f2937;
+      font-weight:900;
     }
-    .tPlat{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+    .subBody{
+      padding:6px 0 10px;
+      color:#111827;
+      font-weight:650;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .mutedSmall{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .trophyGrid{
+      display:grid;
+      grid-template-columns: 62px 1fr;
+      gap:10px 10px;
+      align-items:start;
+    }
+    .platChip{
+      display:inline-flex;
       align-items:center;
-      justify-content:flex-end;
-    }
-    .miniPill{
+      justify-content:center;
       padding:6px 10px;
       border-radius:999px;
       border:1px solid var(--line);
       background:#f3f4f6;
+      font-size:12px;
       font-weight:900;
-      font-size:13px;
+      width:max-content;
     }
-    .miniPill.ok{background:var(--ok-bg); color:var(--ok-text); border-color:transparent;}
-    .miniPill.warn{background:var(--warn-bg); color:var(--warn-text); border-color:transparent;}
-    .miniPill.plat{background:var(--plat-bg); color:var(--plat-text); border-color:transparent;}
 
-    .bar{
-      height:10px;
-      border-radius:999px;
-      background:#e5e7eb;
-      overflow:hidden;
-      position:relative;
+    .tLines{
+      display:grid;
+      gap:8px;
     }
-    .bar > i{
+    .tLine{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .bar{
+      height:8px;
+      background:#eef2ff;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #dbeafe;
+      margin-top:6px;
+    }
+    .bar i{
       display:block;
       height:100%;
+      background:#1d4ed8;
       width:0%;
-      background:#1f2a74;
       border-radius:999px;
     }
     .barNote{
       margin-top:6px;
+      font-size:12px;
       color:var(--muted);
       font-weight:800;
-      font-size:13px;
     }
 
-    /* Table view */
-    .tableWrap{
-      margin-top:14px;
-      display:none;
-    }
-    .tableWrap.open{display:block}
-    table{
-      width:100%;
-      border-collapse:collapse;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      overflow:hidden;
-      box-shadow:var(--shadow);
-    }
-    th, td{
-      padding:10px 10px;
-      border-bottom:1px solid var(--line);
-      vertical-align:top;
-      font-size:14px;
-    }
-    th{
-      text-align:left;
-      color:var(--muted);
-      font-weight:900;
-      letter-spacing:.02em;
-      background:#fafafa;
-      position:sticky;
-      top:0;
-      z-index:1;
-    }
-    tr:last-child td{border-bottom:none}
-    td b{font-weight:900}
-
-    /* Floating buttons */
-    .floatBtns{
-      position:fixed;
+    .fabTop{
+      position: fixed;
       right:14px;
       bottom:14px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      z-index:30;
+      z-index:60;
+      display:none;
     }
-    .fab{
-      border:none;
-      border-radius:999px;
-      padding:12px 14px;
-      font-weight:900;
-      box-shadow: var(--shadow);
-      background:#fff;
+    .fabTop button{
       border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:10px 12px;
+      font-weight:900;
+      box-shadow: var(--shadow2);
       cursor:pointer;
-      width:auto;
-    }
-    .fab.primary{
-      background:#1f2a74;
-      color:#fff;
-      border-color:transparent;
     }
 
-    .mutedSmall{color:var(--muted); font-size:12px; font-weight:800}
-    .statusLine{margin-top:8px;color:var(--muted);font-size:14px;font-weight:800}
-    .hidden{display:none !important}
+    .drawerOverlay{
+      position: fixed;
+      inset:0;
+      background: rgba(17,24,39,.35);
+      backdrop-filter: blur(3px);
+      z-index:80;
+      display:none;
+    }
+    .drawer{
+      position: fixed;
+      inset: 0 0 auto 0;
+      max-height: 86vh;
+      background:#fff;
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      box-shadow: 0 -12px 30px rgba(17,24,39,.18);
+      z-index:90;
+      transform: translateY(110%);
+      transition: transform .22s ease;
+      padding:14px 14px 18px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .drawer.open{ transform: translateY(0); }
+    .drawerOverlay.open{ display:block; }
+
+    .drawerHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .drawerTitle{
+      font-weight:950;
+      font-size:16px;
+    }
+    .drawerClose{
+      border:1px solid var(--line);
+      background:#f3f4f6;
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .hint{
+      margin-top:8px;
+      border:1px dashed var(--line);
+      background:#f8fafc;
+      border-radius:14px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:650;
+      line-height:1.35;
+    }
+
+    .sentinel{
+      height:1px;
+    }
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="topbar" id="topbar">
-      <div class="title">Spieleliste</div>
+      <h1>Spieleliste</h1>
 
-      <div class="panel">
-        <!-- Mini header: search + hamburger -->
-        <div class="miniHeader">
-          <input class="search" id="q" type="text" placeholder="Suche… (z.B. id:643, capcom, delisted)" autocomplete="off" />
-          <button class="hamburger" id="btnMenu" title="Menü">☰</button>
-        </div>
-
-        <div class="menu" id="menu">
-          <div class="fileRow" style="margin-top:10px;">
-            <div>
-              <label class="small">Datei (XLSX oder CSV)</label>
-              <input id="file" type="file" accept=".xlsx,.xls,.csv" />
-              <div class="mutedSmall" style="margin-top:6px;">Alles läuft lokal im Browser (keine Uploads).</div>
-            </div>
-            <div>
-              <label class="small">Sheet auswählen</label>
-              <select id="sheet" disabled>
-                <option value="">—</option>
-              </select>
-            </div>
+      <div class="controls">
+        <div class="grid2">
+          <div>
+            <label class="small">Datei auswählen (XLSX)</label>
+            <input id="file" type="file" accept=".xlsx,.xls" />
           </div>
-
-          <div class="grid" style="margin-top:10px;">
-            <div>
-              <label class="small">Ansicht</label>
-              <select id="viewMode">
-                <option value="cards">Kartenansicht</option>
-                <option value="table">Tabellenansicht</option>
-              </select>
-            </div>
-            <div>
-              <label class="small">Sortierung</label>
-              <select id="sortKey">
-                <option value="id">ID</option>
-                <option value="title">Spieletitel (Text, stabil)</option>
-                <option value="system">System</option>
-                <option value="quelle">Quelle</option>
-                <option value="genre">Genre</option>
-                <option value="dev">Entwickler</option>
-                <option value="main">Spielzeit (Main)</option>
-                <option value="meta">Metascore</option>
-                <option value="user">Userwertung</option>
-                <option value="life">Lebenszeit %</option>
-              </select>
-              <div class="row" style="margin-top:10px;">
-                <button class="secondary icon" id="sortAsc" title="Aufsteigend">A→Z</button>
-                <button class="secondary icon" id="sortDesc" title="Absteigend">Z→A</button>
-              </div>
-            </div>
-          </div>
-
-          <details class="hint">
-            <summary>Suche & Filter kurz erklärt</summary>
-            <p>
-              Suche findet in allen Spalten. Extra: <b>id:123</b> für genaue ID, <b>delisted</b>, <b>ps4</b>, <b>ps plus</b> etc.
-              Filter bauen auf deinen eindeutigen Werten (Quelle) und den abgeleiteten Trophäen-Zuständen auf.
-            </p>
-          </details>
-
-          <div class="chips" id="chips">
-            <!-- Platforms -->
-            <div class="chip" data-filter="p:PS5">PS5</div>
-            <div class="chip" data-filter="p:PS4">PS4</div>
-            <div class="chip" data-filter="p:PS3">PS3</div>
-            <div class="chip" data-filter="p:Vita">Vita</div>
-
-            <!-- Source -->
-            <div class="chip" data-filter="src:Digital">Digital</div>
-            <div class="chip" data-filter="src:PS Plus">PS Plus</div>
-            <div class="chip" data-filter="src:Retail-Disc">Retail-Disc</div>
-
-            <!-- Flags -->
-            <div class="chip" data-filter="fav" title="Nur Favoriten">⭐ Favorit</div>
-            <div class="chip plat" data-filter="plat" title="Platin erlangt (mind. eine Plattform)">💎 Platin</div>
-            <div class="chip ok" data-filter="comp" title="100% erreicht (mind. eine Plattform)">✅ 100%</div>
-            <div class="chip warn" data-filter="work" title="In Arbeit (gestartet, aber noch nicht 100%)">⏳ In Arbeit</div>
-            <div class="chip" data-filter="unplayed" title="Noch nicht gestartet (alle Trophäen-Felder leer)">💤 Ungespielt</div>
-            <div class="chip del" data-filter="del" title="Delisted">🟥 Delisted</div>
-
-            <div class="chip" id="clearFilters">Filter löschen</div>
+          <div>
+            <label class="small">Sheet</label>
+            <select id="sheet" disabled>
+              <option value="">Sheet auswählen…</option>
+            </select>
           </div>
         </div>
 
-        <div class="meta">
-          <div id="statusText">Datei wählen → Sheet wählen → suchen</div>
-          <div style="flex:1"></div>
-          <div id="countText"></div>
+        <div class="grid2" style="margin-top:10px;">
+          <div class="miniRow">
+            <input id="q" type="text" placeholder='Suche… (z.B. id:643 delisted favoritlevel)' />
+          </div>
+          <div class="miniRow">
+            <select id="sort">
+              <option value="id_asc">Sort: ID ↑</option>
+              <option value="id_desc">Sort: ID ↓</option>
+              <option value="title_asc">Sort: Spieletitel (Text) ↑</option>
+              <option value="title_desc">Sort: Spieletitel (Text) ↓</option>
+              <option value="system_asc">Sort: System ↑</option>
+              <option value="system_desc">Sort: System ↓</option>
+              <option value="source_asc">Sort: Quelle ↑</option>
+              <option value="source_desc">Sort: Quelle ↓</option>
+              <option value="genre_asc">Sort: Genre ↑</option>
+              <option value="genre_desc">Sort: Genre ↓</option>
+              <option value="dev_asc">Sort: Entwickler ↑</option>
+              <option value="dev_desc">Sort: Entwickler ↓</option>
+              <option value="main_asc">Sort: Spielzeit (Main) ↑</option>
+              <option value="main_desc">Sort: Spielzeit (Main) ↓</option>
+              <option value="meta_desc">Sort: Metascore ↓</option>
+              <option value="meta_asc">Sort: Metascore ↑</option>
+              <option value="user_desc">Sort: Userwertung ↓</option>
+              <option value="user_asc">Sort: Userwertung ↑</option>
+              <option value="life_desc">Sort: Lebenszeit % ↓</option>
+              <option value="life_asc">Sort: Lebenszeit % ↑</option>
+            </select>
+
+            <div class="btnIcon" id="openFilters" title="Filter & Sort">
+              ☰
+            </div>
+          </div>
         </div>
+
+        <div class="stats" id="stats">Datei wählen → Sheet wählen → los</div>
       </div>
     </div>
 
-    <div class="tableWrap" id="tableWrap"></div>
     <div class="cards" id="cards"></div>
-
-    <!-- sentinel for infinite scroll -->
-    <div id="sentinel" style="height:1px;"></div>
+    <div class="sentinel" id="sentinel"></div>
   </div>
 
-  <div class="floatBtns">
-    <button class="fab" id="btnTop" title="Nach oben">↑ Top</button>
+  <div class="fabTop" id="fabTop">
+    <button id="btnTop">↑ Top</button>
   </div>
 
-<script>
-(() => {
-  // -------------------------
-  // Utilities
-  // -------------------------
-  const $ = (id) => document.getElementById(id);
+  <div class="drawerOverlay" id="overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawerHead">
+      <div class="drawerTitle">Sortieren & Filtern</div>
+      <button class="drawerClose" id="closeDrawer">Schließen</button>
+    </div>
 
-  const LS_KEY = "spieleliste_v1";
-  const PLATFORMS = ["PS3","PS4","PS5","Vita"];
+    <div class="hint">
+      <b>Suche:</b> normaler Text durchsucht Titel/Genre/Subgenre/Entwickler/Quelle. <br>
+      <b>Query:</b> <code>id:12</code>, <code>system:ps5</code>, <code>source:digital</code>, <code>delisted</code>, <code>favorite</code>, <code>plat</code>, <code>completed</code>, <code>inprogress</code>, <code>unplayed</code> (auch kombinierbar).
+    </div>
 
-  const state = {
-    wb: null,
-    fileName: "",
-    sheetName: "",
-    rows: [],
-    rowsView: [],
-    rendered: 0,
-    batch: 40,
-    sortKey: "id",
-    sortDir: "asc",
-    viewMode: "cards",
-    q: "",
-    filters: new Set(),
-    menuOpen: false
-  };
+    <div class="chipGroupTitle">Status</div>
+    <div class="pillRow" id="filterStatus"></div>
 
-  function saveState(){
-    const obj = {
-      sheetName: state.sheetName,
-      sortKey: state.sortKey,
-      sortDir: state.sortDir,
-      viewMode: state.viewMode,
-      q: state.q,
-      filters: Array.from(state.filters),
-      menuOpen: state.menuOpen
+    <div class="chipGroupTitle">System</div>
+    <div class="pillRow" id="filterSystem"></div>
+
+    <div class="chipGroupTitle">Quelle</div>
+    <div class="pillRow" id="filterSource"></div>
+
+    <div class="chipGroupTitle">Trophäen</div>
+    <div class="pillRow" id="filterTrophy"></div>
+
+    <div class="pillRow" style="margin-top:14px;">
+      <div class="chip" id="clearFilters"><span class="dot"></span>Filter löschen</div>
+    </div>
+  </div>
+
+  <script src="xlsx.full.min.js"></script>
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    const state = {
+      wb: null,
+      rows: [],
+      sheetName: "",
+      filtered: [],
+      renderedCount: 0,
+      batch: 50,
+      // filters
+      f: {
+        status: new Set(),     // favorite, delisted
+        system: new Set(),     // PS3/PS4/PS5/Vita
+        source: new Set(),     // Digital, PS Plus, Retail-Disc
+        trophy: new Set(),     // unplayed, inprogress, completed, plat, noplatform? (not used)
+      },
+      q: "",
+      sort: "id_asc",
+      expanded: new Set(),      // row id -> expanded
+      subOpen: new Map(),       // row id -> {desc:true, extras:true, eggs:true}
     };
-    localStorage.setItem(LS_KEY, JSON.stringify(obj));
-  }
 
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw) return;
-      const obj = JSON.parse(raw);
-      state.sheetName = obj.sheetName || "";
-      state.sortKey = obj.sortKey || "id";
-      state.sortDir = obj.sortDir || "asc";
-      state.viewMode = obj.viewMode || "cards";
-      state.q = obj.q || "";
-      state.filters = new Set(obj.filters || []);
-      state.menuOpen = !!obj.menuOpen;
-    }catch(e){}
-  }
+    const LS_KEY = "spieleliste_ui_v9";
+    loadPersist();
 
-  function normStr(x){
-    return String(x ?? "").replace(/\u00A0/g," ").replace(/\s+/g," ").trim();
-  }
+    // -----------------------------
+    // Utils
+    // -----------------------------
+    const norm = (s) => String(s ?? "").replace(/\u00A0/g," ").trim();
+    const toLower = (s) => norm(s).toLowerCase();
 
-  function normQuelle(raw){
-    const s = normStr(raw);
-    if(!s) return "";
-    if(/^gekauft$/i.test(s)) return "Digital"; // legacy
-    if(/^disc$/i.test(s)) return "Retail-Disc"; // legacy
-    if(/^digital$/i.test(s)) return "Digital";
-    if(/^ps\s*plus$/i.test(s)) return "PS Plus";
-    if(/^retail[-\s]*disc$/i.test(s)) return "Retail-Disc";
-    return s;
-  }
-
-  function parseNum(x){
-    const s = normStr(x).replace(",", ".");
-    const n = parseFloat(s);
-    return Number.isFinite(n) ? n : NaN;
-  }
-
-  function parseScore(x){
-    // "79 / 100" -> 79
-    const s = normStr(x);
-    const m = s.match(/(\d+(?:[.,]\d+)?)/);
-    if(!m) return NaN;
-    return parseNum(m[1]);
-  }
-
-  function parsePlatformsFromSystem(systemRaw){
-    const s = normStr(systemRaw);
-    return PLATFORMS.filter(p => new RegExp(`\\b${p}\\b`,"i").test(s));
-  }
-
-  function splitByPlatformBlocks(textRaw){
-    const text = String(textRaw ?? "").replace(/\r/g,"\n").trim();
-    if(!text) return [];
-    const re = /\b(PS3|PS4|PS5|Vita)\b/gi;
-    const matches = [];
-    let m;
-    while((m = re.exec(text)) !== null){
-      matches.push({ p: m[1], i: m.index });
+    function parseNumberLoose(s){
+      const t = norm(s);
+      if(!t) return NaN;
+      // handles "79 / 100" or "79/100"
+      const m = t.match(/(-?\d+(?:[.,]\d+)?)/);
+      if(!m) return NaN;
+      return parseFloat(m[1].replace(",", "."));
     }
-    if(!matches.length) return [];
-    const blocks = [];
-    for(let k=0;k<matches.length;k++){
-      const start = matches[k].i;
-      const end = (k+1<matches.length) ? matches[k+1].i : text.length;
-      blocks.push(text.slice(start,end).trim());
-    }
-    return blocks;
-  }
 
-  function parseProgressCell(raw){
-    // "PS4 06 of 21" possibly with linebreaks and multiple platforms
-    const out = {}; // {PS4:{cur,total}}
-    for(const block of splitByPlatformBlocks(raw)){
-      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-      const nums = block.match(/(\d+)\s*of\s*(\d+)/i);
-      if(!plat) continue;
-      if(nums){
-        out[plat] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
+    function parseLifePercent(s){
+      // Lebenszeit % can be "0.0012" or "0,0012"
+      const t = norm(s);
+      if(!t) return NaN;
+      const m = t.match(/(-?\d+(?:[.,]\d+)?)/);
+      if(!m) return NaN;
+      return parseFloat(m[1].replace(",", "."));
+    }
+
+    function parsePlatformsFromSystem(raw){
+      const t = norm(raw);
+      if(!t) return [];
+      const found = [];
+      ["PS3","PS4","PS5","Vita"].forEach(p=>{
+        if(new RegExp("\\b"+p+"\\b","i").test(t)) found.push(p);
+      });
+      return found;
+    }
+
+    function splitByPlatformBlocks(text){
+      // returns array of blocks each containing a platform label and following content
+      const t = String(text ?? "").replace(/\r/g,"\n");
+      const re = /\b(PS3|PS4|PS5|Vita)\b/ig;
+      const idx = [];
+      let m;
+      while((m = re.exec(t)) !== null){
+        idx.push({i:m.index, p:m[1]});
       }
-    }
-    return out;
-  }
+      if(!idx.length) return [];
 
-  function parseCompletionCell(raw){
-    // "PS4 In Progress" / "PS4 Completed"
-    const out = {}; // {PS4:"In Progress"|"Completed"}
-    for(const block of splitByPlatformBlocks(raw)){
-      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-      if(!plat) continue;
-      if(/completed/i.test(block)) out[plat] = "Completed";
-      else if(/in\s*progress/i.test(block)) out[plat] = "In Progress";
-    }
-    return out;
-  }
-
-  function parsePlatinumCell(raw){
-    // "PS4 Platinum" / "PS4 No Platinum" / "PS4 In Progress"
-    const out = {}; // {PS4:"Platinum"|"No Platinum"|"In Progress"}
-    for(const block of splitByPlatformBlocks(raw)){
-      const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-      if(!plat) continue;
-      if(/no\s*platinum/i.test(block)) out[plat] = "No Platinum";
-      else if(/\bplatinum\b/i.test(block)) out[plat] = "Platinum";
-      else if(/in\s*progress/i.test(block)) out[plat] = "In Progress";
-    }
-    return out;
-  }
-
-  function isTruthyFavorite(x){
-    const s = normStr(x).toLowerCase();
-    return s === "x" || s === "1" || s === "true" || s === "yes" || s === "y";
-  }
-
-  function isDelisted(row){
-    const v = normStr(row["Verfügbarkeit"]).toLowerCase();
-    return v.includes("delisted") || v.includes("dellist") || v.includes("aus store entfernt");
-  }
-
-  function buildTrophyModel(row){
-    const platforms = parsePlatformsFromSystem(row["System"]);
-    const pMap = parseProgressCell(row["Trophäen Fortschritt"]);
-    const cMap = parseCompletionCell(row["100%"]);
-    const plMap = parsePlatinumCell(row["Platin"]);
-
-    const anyStarted = Object.keys(pMap).length || Object.keys(cMap).length || Object.keys(plMap).length;
-
-    const perPlatform = {};
-    for(const p of platforms){
-      if(!anyStarted){
-        perPlatform[p] = { started:false, state:"Ungespielt", progress:null, completion:null, platinum:null };
-        continue;
+      const blocks = [];
+      for(let k=0;k<idx.length;k++){
+        const start = idx[k].i;
+        const end = (k+1<idx.length) ? idx[k+1].i : t.length;
+        blocks.push(t.slice(start, end).trim());
       }
-      const hasAny = (p in pMap) || (p in cMap) || (p in plMap);
-      if(!hasAny){
-        perPlatform[p] = { started:false, state:"Ungespielt", progress:null, completion:null, platinum:null };
-      }else{
-        perPlatform[p] = { started:true, state:"Gespielt", progress:pMap[p]||null, completion:cMap[p]||null, platinum:plMap[p]||null };
-      }
+      return blocks;
     }
 
-    const hasCompleted = Object.values(cMap).some(v => v === "Completed");
-    const hasCompletionWork = Object.values(cMap).some(v => v === "In Progress");
-    const hasPlatinum = Object.values(plMap).some(v => v === "Platinum");
-    const hasPlatinumWork = Object.values(plMap).some(v => v === "In Progress");
-    const hasAnyWork = !!anyStarted && (!hasCompleted || hasCompletionWork || hasPlatinumWork) && !hasPlatinum; // simple signal
+    function parseProgressCell(raw, systemPlatforms){
+      // returns {PS4:{cur,total}}
+      const out = {};
+      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
+      if(!text) return out;
 
-    return {
-      platforms,
-      anyStarted: !!anyStarted,
-      perPlatform,
-      hasCompleted,
-      hasCompletionWork,
-      hasPlatinum,
-      hasPlatinumWork,
-      hasAnyWork
-    };
-  }
-
-  function cellToLink(wb, sheetName, rowObj){
-    // Prefer a hyperlink if present in "Store Link" cell.
-    // Because we read rows via sheet_to_json, we might lose the link.
-    // Workaround: if Store Link looks like URL -> use it.
-    const raw = normStr(rowObj["Store Link"]);
-    if(!raw) return { href:"", label:"—", title:"" };
-    const looksUrl = /^https?:\/\//i.test(raw);
-    if(looksUrl) return { href: raw, label: "Store Link", title: raw };
-
-    // If the cell contains just "Store Link" (Excel label), try to locate a hyperlink in the sheet cell object.
-    try{
-      const ws = wb.Sheets[sheetName];
-      if(!ws) throw 0;
-
-      // Find row index by matching ID in column "ID"
-      // We'll scan a small window by reading the sheet range and checking the ID column values.
-      const range = XLSX.utils.decode_range(ws["!ref"]);
-      // Find header row (assume first row)
-      const headerRow = range.s.r;
-      const colCount = range.e.c - range.s.c + 1;
-
-      // Map headers to columns
-      const headerMap = {};
-      for(let c=range.s.c; c<=range.e.c; c++){
-        const addr = XLSX.utils.encode_cell({r: headerRow, c});
-        const cell = ws[addr];
-        const txt = normStr(cell ? cell.v : "");
-        if(txt) headerMap[txt] = c;
+      const blocks = splitByPlatformBlocks(text);
+      if(blocks.length){
+        for(const block of blocks){
+          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+          const nums = block.match(/(\d+)\s*of\s*(\d+)/i);
+          if(plat && nums){
+            out[plat] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
+          }
+        }
+        return out;
       }
-      const idCol = headerMap["ID"];
-      const linkCol = headerMap["Store Link"];
-      if(idCol == null || linkCol == null) throw 0;
 
-      const targetId = normStr(rowObj["ID"]);
-      // scan down until match (reasonable for your sheet size)
-      for(let r=headerRow+1; r<=range.e.r; r++){
-        const idAddr = XLSX.utils.encode_cell({r, c:idCol});
-        const idCell = ws[idAddr];
-        const idVal = normStr(idCell ? idCell.v : "");
-        if(idVal && idVal === targetId){
-          const lAddr = XLSX.utils.encode_cell({r, c:linkCol});
-          const lCell = ws[lAddr];
-          // SheetJS stores hyperlinks at cell.l.Target sometimes
-          const href = lCell && lCell.l && lCell.l.Target ? String(lCell.l.Target) : "";
-          if(href) return { href, label:"Store Link", title: href };
-          break;
+      // Singleplatform fallback: "18 of 18" (ohne Plattform)
+      if(systemPlatforms && systemPlatforms.length === 1){
+        const nums = text.match(/(\d+)\s*of\s*(\d+)/i);
+        if(nums){
+          out[systemPlatforms[0]] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
         }
       }
-    }catch(e){}
-
-    // fallback: show non-clickable
-    return { href:"", label: raw, title:"" };
-  }
-
-  // -------------------------
-  // Data loading
-  // -------------------------
-  function setStatus(msg){
-    $("statusText").textContent = msg;
-  }
-
-  function setCount(msg){
-    $("countText").textContent = msg || "";
-  }
-
-  function fillSheetSelect(wb){
-    const sel = $("sheet");
-    sel.innerHTML = "";
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "Sheet auswählen…";
-    sel.appendChild(opt0);
-
-    wb.SheetNames.forEach(name=>{
-      const o = document.createElement("option");
-      o.value = name;
-      o.textContent = name;
-      sel.appendChild(o);
-    });
-
-    sel.disabled = false;
-
-    if(state.sheetName && wb.SheetNames.includes(state.sheetName)){
-      sel.value = state.sheetName;
-      loadSheet(state.sheetName);
+      return out;
     }
-  }
 
-  function readFileAsArrayBuffer(file){
-    return new Promise((resolve,reject)=>{
-      const fr = new FileReader();
-      fr.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
-      fr.onload = () => resolve(fr.result);
-      fr.readAsArrayBuffer(file);
-    });
-  }
+    function parseCompletionCell(raw, systemPlatforms){
+      // returns {PS4:"Completed"|"In Progress"}
+      const out = {};
+      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
+      if(!text) return out;
 
-  async function handleFile(file){
-    if(!file) return;
+      const blocks = splitByPlatformBlocks(text);
+      if(blocks.length){
+        for(const block of blocks){
+          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+          if(!plat) continue;
 
-    state.fileName = file.name;
-    setStatus("Lese Datei…");
-    setCount("");
+          if(/\bcompleted\b/i.test(block)) out[plat] = "Completed";
+          else if(/\bin\s*progress\b/i.test(block)) out[plat] = "In Progress";
+        }
+        return out;
+      }
 
-    try{
-      const buf = await readFileAsArrayBuffer(file);
-      const wb = XLSX.read(buf, { type:"array", cellStyles:false, cellHTML:false });
-      state.wb = wb;
-      fillSheetSelect(wb);
-      setStatus(`Datei geladen: ${file.name}`);
-    }catch(e){
-      console.error(e);
-      setStatus("Fehler beim Einlesen. (Tipp: xlsx.full.min.js korrekt eingebunden?)");
+      // Singleplatform fallback: "Completed" / "In Progress"
+      if(systemPlatforms && systemPlatforms.length === 1){
+        if(/\bcompleted\b/i.test(text)) out[systemPlatforms[0]] = "Completed";
+        else if(/\bin\s*progress\b/i.test(text)) out[systemPlatforms[0]] = "In Progress";
+      }
+      return out;
     }
-  }
 
-  function sheetToRows(wb, sheetName){
-    const ws = wb.Sheets[sheetName];
-    if(!ws) return [];
-    // defval ensures empty fields are preserved
-    return XLSX.utils.sheet_to_json(ws, { defval:"", raw:false });
-  }
+    function parsePlatinumCell(raw, systemPlatforms){
+      // returns {PS4:"Platinum"|"No Platinum"|"In Progress"}
+      const out = {};
+      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
+      if(!text) return out;
 
-  function loadSheet(sheetName){
-    if(!state.wb || !sheetName) return;
-    state.sheetName = sheetName;
+      const blocks = splitByPlatformBlocks(text);
+      const readStatus = (s) => {
+        // No Platinum muss vor Platinum kommen
+        if(/\bno\b[\s\-]*\bplatinum\b/i.test(s)) return "No Platinum";
+        if(/\bkein\b[\s\-]*\bplatin(um)?\b/i.test(s)) return "No Platinum";
+        if(/\bplatinum\b/i.test(s)) return "Platinum";
+        if(/\bin\s*progress\b/i.test(s)) return "In Progress";
+        return null;
+      };
 
-    setStatus("Lade Sheet…");
-    const rows = sheetToRows(state.wb, sheetName);
+      if(blocks.length){
+        for(const block of blocks){
+          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
+          if(!plat) continue;
+          const st = readStatus(block);
+          if(st) out[plat] = st;
+        }
+        return out;
+      }
 
-    // Normalize and enrich rows once (fast later)
-    state.rows = rows.map(r=>{
-      const row = Object.assign({}, r);
-
-      row["Quelle"] = normQuelle(row["Quelle"]);
-      row.__id = normStr(row["ID"]);
-      row.__title = normStr(row["Spieletitel"]);
-      row.__system = normStr(row["System"]);
-      row.__genre = normStr(row["Genre"]);
-      row.__dev = normStr(row["Entwickler"]);
-      row.__fav = isTruthyFavorite(row["Favorit"]);
-      row.__del = isDelisted(row);
-      row.__trophy = buildTrophyModel(row);
-      row.__src = row["Quelle"];
-
-      // numeric helpers for sorting
-      row.__main = parseNum(row["Spielzeit (Main)"]);
-      row.__meta = parseScore(row["Metascore"]);
-      row.__user = parseScore(row["Userwertung"]);
-      row.__life = parseNum(row["% Lebenszeit (Humorstatistik)"]);
-
-      // cache store link if possible
-      row.__store = null;
-
-      // fast search blob
-      row.__blob = Object.keys(row)
-        .filter(k => !k.startsWith("__"))
-        .map(k => normStr(row[k]))
-        .join(" | ")
-        .toLowerCase();
-
-      return row;
-    });
-
-    applyAll();
-    setStatus(`Sheet geladen: ${sheetName}`);
-    saveState();
-  }
-
-  // -------------------------
-  // Filtering / sorting / search
-  // -------------------------
-  function queryMatch(row, q){
-    q = normStr(q).toLowerCase();
-    if(!q) return true;
-
-    // id:123
-    const m = q.match(/\bid\s*:\s*(\d+)\b/);
-    if(m){
-      return normStr(row.__id) === m[1];
+      // Singleplatform fallback
+      if(systemPlatforms && systemPlatforms.length === 1){
+        const st = readStatus(text);
+        if(st) out[systemPlatforms[0]] = st;
+      }
+      return out;
     }
-    return row.__blob.includes(q);
-  }
 
-  function filtersMatch(row){
-    const f = state.filters;
-    if(!f.size) return true;
-
-    // platform filters: if any p:... active, require that platform to be present
-    const pFilters = Array.from(f).filter(x => x.startsWith("p:")).map(x => x.slice(2));
-    if(pFilters.length){
+    function buildTrophyModel(row){
       const platforms = parsePlatformsFromSystem(row["System"]);
-      for(const p of pFilters){
-        if(!platforms.includes(p)) return false;
-      }
-    }
+      const pMap = parseProgressCell(row["Trophäen Fortschritt"], platforms);
+      const cMap = parseCompletionCell(row["100%"], platforms);
+      const plMap = parsePlatinumCell(row["Platin"], platforms);
 
-    // source filters: if any src active, require match
-    const sFilters = Array.from(f).filter(x => x.startsWith("src:")).map(x => x.slice(4));
-    if(sFilters.length){
-      if(!sFilters.includes(row.__src)) return false;
-    }
-
-    if(f.has("fav") && !row.__fav) return false;
-    if(f.has("del") && !row.__del) return false;
-
-    const t = row.__trophy;
-
-    if(f.has("unplayed") && t.anyStarted) return false;
-    if(f.has("work") && (!t.anyStarted || t.hasCompleted)) return false; // started but not 100%
-    if(f.has("comp") && !t.hasCompleted) return false;
-    if(f.has("plat") && !t.hasPlatinum) return false;
-
-    return true;
-  }
-
-  function sortRows(rows){
-    const dir = state.sortDir === "asc" ? 1 : -1;
-    const key = state.sortKey;
-
-    const collator = new Intl.Collator("de-DE", { sensitivity:"base", numeric:true });
-
-    function cmp(a,b){
-      if(key === "id"){
-        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
-        if(Number.isFinite(ai) && Number.isFinite(bi)) return (ai-bi)*dir;
-        return collator.compare(a.__id, b.__id)*dir;
-      }
-      if(key === "title"){
-        // stable: fallback to ID
-        const c = collator.compare(a.__title, b.__title);
-        if(c !== 0) return c*dir;
-        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
-        return (ai-bi)*dir;
-      }
-      const map = {
-        system: "__system",
-        quelle: "__src",
-        genre: "__genre",
-        dev: "__dev"
-      };
-      if(map[key]){
-        const c = collator.compare(a[map[key]] || "", b[map[key]] || "");
-        if(c !== 0) return c*dir;
-        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
-        return (ai-bi)*dir;
-      }
-      const nmap = {
-        main: "__main",
-        meta: "__meta",
-        user: "__user",
-        life: "__life"
-      };
-      if(nmap[key]){
-        const av = a[nmap[key]], bv = b[nmap[key]];
-        const an = Number.isFinite(av) ? av : -Infinity;
-        const bn = Number.isFinite(bv) ? bv : -Infinity;
-        if(an !== bn) return (an-bn)*dir;
-        const ai = parseInt(a.__id,10); const bi = parseInt(b.__id,10);
-        return (ai-bi)*dir;
-      }
-      return 0;
-    }
-
-    // copy for stable-ish sorting
-    const copy = rows.slice();
-    copy.sort(cmp);
-    return copy;
-  }
-
-  function applyAll(){
-    const q = $("q").value;
-    state.q = q;
-
-    const filtered = state.rows.filter(r => queryMatch(r, q) && filtersMatch(r));
-    const sorted = sortRows(filtered);
-
-    state.rowsView = sorted;
-    state.rendered = 0;
-
-    // view toggles
-    if(state.viewMode === "table"){
-      $("cards").innerHTML = "";
-      $("tableWrap").classList.add("open");
-      renderTable(sorted);
-    }else{
-      $("tableWrap").classList.remove("open");
-      $("tableWrap").innerHTML = "";
-      $("cards").innerHTML = "";
-      renderNextBatch(true);
-    }
-
-    setCount(`Treffer: ${filtered.length} · angezeigt: ${Math.min(state.rendered, filtered.length)}/${filtered.length}`);
-    saveState();
-  }
-
-  // -------------------------
-  // Rendering
-  // -------------------------
-  function fmtVal(v){
-    const s = normStr(v);
-    return s ? s : "—";
-  }
-
-  function buildRowKV(label, value){
-    const k = document.createElement("div");
-    k.className = "k";
-    k.textContent = label;
-
-    const v = document.createElement("div");
-    const txt = fmtVal(value);
-    v.className = "v" + (txt === "—" ? " muted" : "");
-    v.textContent = txt;
-
-    return [k,v];
-  }
-
-  function makeExpander(title, text){
-    const d = document.createElement("details");
-    d.className = "expander";
-    const s = document.createElement("summary");
-    s.innerHTML = `<span>${title}</span><span class="mutedSmall">▾</span>`;
-    const c = document.createElement("div");
-    c.className = "content";
-    c.textContent = fmtVal(text);
-    d.appendChild(s);
-    d.appendChild(c);
-    return d;
-  }
-
-  function ensureStoreLink(row){
-    if(row.__store) return row.__store;
-    row.__store = cellToLink(state.wb, state.sheetName, row);
-    return row.__store;
-  }
-
-  function badgeEl(text, cls){
-    const b = document.createElement("div");
-    b.className = "badge " + (cls || "");
-    b.textContent = text;
-    return b;
-  }
-
-  function cardEl(row){
-    const del = row.__del;
-    const t = row.__trophy;
-
-    const card = document.createElement("div");
-    card.className = "card" + (del ? " delisted" : "");
-
-    // header
-    const head = document.createElement("div");
-    head.className = "cardHead";
-
-    const left = document.createElement("div");
-    left.className = "hLeft";
-
-    const title = document.createElement("div");
-    title.className = "titleLine" + (del ? " del" : "");
-    title.textContent = fmtVal(row["Spieletitel"]);
-    left.appendChild(title);
-
-    head.appendChild(left);
-
-    const right = document.createElement("div");
-    right.className = "badgesCol";
-
-    // Favorit / Platin / 100%
-    if(row.__fav) right.appendChild(badgeEl("⭐ Favorit", ""));
-    if(t.hasPlatinum) right.appendChild(badgeEl("💎 Platin erlangt", "plat"));
-    else if(t.anyStarted && (t.hasPlatinumWork)) right.appendChild(badgeEl("⏳ Platin in Arbeit", "warn"));
-
-    if(t.hasCompleted) right.appendChild(badgeEl("✅ 100% erreicht", "ok"));
-    else if(t.anyStarted) right.appendChild(badgeEl("⏳ In Arbeit", "warn"));
-
-    head.appendChild(right);
-    card.appendChild(head);
-
-    // pills row
-    const pills = document.createElement("div");
-    pills.className = "subBadges";
-
-    const idP = document.createElement("div");
-    idP.className = "pill id";
-    idP.textContent = "ID " + fmtVal(row["ID"]);
-    pills.appendChild(idP);
-
-    // platforms from System
-    const plats = parsePlatformsFromSystem(row["System"]);
-    for(const p of plats){
-      const pEl = document.createElement("div");
-      pEl.className = "pill";
-      pEl.textContent = p;
-      pills.appendChild(pEl);
-    }
-
-    const avail = normStr(row["Verfügbarkeit"]);
-    const av = document.createElement("div");
-    av.className = "pill avail" + (del ? " del" : "");
-    av.textContent = avail ? avail : "—";
-    pills.appendChild(av);
-
-    card.appendChild(pills);
-
-    const div = document.createElement("div");
-    div.className = "divider";
-    card.appendChild(div);
-
-    // reduced info (always visible)
-    const kv = document.createElement("div");
-    kv.className = "kv";
-
-    // Reduced set: Genre, Entwickler, Spielzeit, Metascore, Userwertung (as you requested)
-    const pairs = [
-      ["Genre", row["Genre"]],
-      ["Entwickler", row["Entwickler"]],
-      ["Spielzeit", buildPlaytime(row)],
-      ["Metascore", row["Metascore"]],
-      ["Userwertung", row["Userwertung"]],
-    ];
-    for(const [k,v] of pairs){
-      const [ke, ve] = buildRowKV(k, v);
-      kv.appendChild(ke);
-      kv.appendChild(ve);
-    }
-    card.appendChild(kv);
-
-    // details toggle
-    const tog = document.createElement("div");
-    tog.className = "detailsToggle";
-    tog.innerHTML = `<span class="chev">▶</span><span class="txt">Mehr Details</span><span style="margin-left:auto" class="mutedSmall">Tippen</span>`;
-    card.appendChild(tog);
-
-    const details = document.createElement("div");
-    details.className = "details";
-
-    // Beschreibung
-    const s1 = document.createElement("div");
-    s1.className = "section";
-    const st1 = document.createElement("div");
-    st1.className = "sectionTitle";
-    st1.textContent = "BESCHREIBUNG";
-    s1.appendChild(st1);
-
-    const expDesc = makeExpander("Kurzbeschreibung anzeigen", row["Kurzbeschreibung"]);
-    s1.appendChild(expDesc);
-
-    details.appendChild(s1);
-
-    // STORE: Quelle, Store, Verfügbarkeit (as you requested)
-    const sStore = document.createElement("div");
-    sStore.className = "section";
-    const stS = document.createElement("div");
-    stS.className = "sectionTitle";
-    stS.textContent = "STORE";
-    sStore.appendChild(stS);
-
-    const kvS = document.createElement("div");
-    kvS.className = "kv";
-    // Quelle
-    {
-      const [ke, ve] = buildRowKV("Quelle", row["Quelle"]);
-      kvS.appendChild(ke); kvS.appendChild(ve);
-    }
-    // Store Link (clickable)
-    {
-      const k = document.createElement("div");
-      k.className = "k";
-      k.textContent = "Store";
-
-      const v = document.createElement("div");
-      const link = ensureStoreLink(row);
-      if(link.href){
-        const a = document.createElement("a");
-        a.className = "storeLink";
-        a.href = link.href;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = link.title || link.href;
-        a.innerHTML = `Store Link <small>↗</small>`;
-        v.appendChild(a);
-      }else{
-        v.className = "v muted";
-        v.textContent = fmtVal(row["Store Link"]);
-      }
-      kvS.appendChild(k); kvS.appendChild(v);
-    }
-    // Verfügbarkeit
-    {
-      const [ke, ve] = buildRowKV("Verfügbarkeit", row["Verfügbarkeit"]);
-      kvS.appendChild(ke); kvS.appendChild(ve);
-    }
-    sStore.appendChild(kvS);
-    details.appendChild(sStore);
-
-    // ENTWICKLER (keep section for structure)
-    const sDev = document.createElement("div");
-    sDev.className = "section";
-    const stD = document.createElement("div");
-    stD.className = "sectionTitle";
-    stD.textContent = "ENTWICKLER";
-    sDev.appendChild(stD);
-    const kvD = document.createElement("div");
-    kvD.className = "kv";
-    const [dk, dv] = buildRowKV("Entwickler", row["Entwickler"]);
-    kvD.appendChild(dk); kvD.appendChild(dv);
-    sDev.appendChild(kvD);
-    details.appendChild(sDev);
-
-    // EXTRAS: collapsible Besonderheiten / Eastereggs
-    const sEx = document.createElement("div");
-    sEx.className = "section";
-    const stE = document.createElement("div");
-    stE.className = "sectionTitle";
-    stE.textContent = "EXTRAS";
-    sEx.appendChild(stE);
-
-    sEx.appendChild(makeExpander("Besonderheiten anzeigen", row["Besonderheiten"]));
-    sEx.appendChild(makeExpander("Eastereggs anzeigen", row["Eastereggs"]));
-    details.appendChild(sEx);
-
-    // TROPHÄEN: Fortschritt + Komplettion + Platin, pro Plattform inkl Ungespielt
-    const sT = document.createElement("div");
-    sT.className = "section";
-    const stT = document.createElement("div");
-    stT.className = "sectionTitle";
-    stT.textContent = "TROPHÄEN";
-    sT.appendChild(stT);
-
-    const tWrap = document.createElement("div");
-    tWrap.className = "trophyBlock";
-
-    const platforms = t.platforms;
-    if(!platforms.length){
-      const note = document.createElement("div");
-      note.className = "mutedSmall";
-      note.textContent = "Keine Plattform im System-Feld erkannt.";
-      tWrap.appendChild(note);
-    }else{
+      // "started" pro Plattform: sobald irgendeine der drei Spalten für diese Plattform existiert
+      const perPlatform = {};
       for(const p of platforms){
-        const info = t.perPlatform[p] || { state:"Ungespielt", started:false };
+        const hasAny = !!pMap[p] || !!cMap[p] || !!plMap[p];
+        perPlatform[p] = {
+          started: hasAny,
+          progress: pMap[p] || null,
+          completion: cMap[p] || null,
+          platinum: plMap[p] || null
+        };
+      }
 
-        const tr = document.createElement("div");
-        tr.className = "tRow";
+      // Global summary badges:
+      const anyStarted = Object.values(perPlatform).some(x=>x.started);
 
-        const top = document.createElement("div");
-        top.className = "tTop";
+      const anyCompleted = Object.values(perPlatform).some(x=>x.completion === "Completed");
+      const anyInProgress = Object.values(perPlatform).some(x=>x.completion === "In Progress" || x.platinum === "In Progress");
+      const anyPlatinum = Object.values(perPlatform).some(x=>x.platinum === "Platinum");
+      const anyNoPlatinum = anyStarted && Object.values(perPlatform).some(x=>x.platinum === "No Platinum");
 
-        const leftP = document.createElement("div");
-        leftP.style.display = "flex";
-        leftP.style.gap = "8px";
-        leftP.style.alignItems = "center";
+      // "Kein Platin" global: gestartet UND nirgends Platinum UND mindestens ein "No Platinum" UND nirgends "In Progress" für Platin
+      const allPlatKnown = anyStarted && Object.values(perPlatform).every(x=> !x.started || x.platinum !== null);
+      const globalNoPlatinum = anyStarted && !anyPlatinum && anyNoPlatinum && allPlatKnown && !Object.values(perPlatform).some(x=>x.platinum === "In Progress");
 
-        const pill = document.createElement("div");
-        pill.className = "miniPill";
-        pill.textContent = p;
-        leftP.appendChild(pill);
+      const completionState =
+        !anyStarted ? "Unplayed" :
+        anyCompleted ? "Completed" :
+        "In Progress";
 
-        const rightP = document.createElement("div");
-        rightP.className = "tPlat";
+      const platinumState =
+        !anyStarted ? "Unplayed" :
+        anyPlatinum ? "Platinum" :
+        globalNoPlatinum ? "No Platinum" :
+        "In Progress";
 
-        // Status badges in details:
-        // If unplayed: show Ungespielt for Fortschritt, Komplettion, Platin as you requested earlier
-        if(!info.started){
-          rightP.appendChild(miniBadge("💤 Ungespielt", ""));
-        }else{
-          // Completion
-          if(info.completion === "Completed") rightP.appendChild(miniBadge("✅ 100% erreicht", "ok"));
-          else if(info.completion === "In Progress") rightP.appendChild(miniBadge("⏳ In Arbeit", "warn"));
-          else rightP.appendChild(miniBadge("⏳ In Arbeit", "warn"));
+      return { platforms, perPlatform, anyStarted, completionState, platinumState };
+    }
 
-          // Platinum
-          if(info.platinum === "Platinum") rightP.appendChild(miniBadge("💎 Platin erlangt", "plat"));
-          else if(info.platinum === "No Platinum") rightP.appendChild(miniBadge("— Kein Platin", ""));
-          else if(info.platinum === "In Progress") rightP.appendChild(miniBadge("⏳ Platin in Arbeit", "warn"));
-          else rightP.appendChild(miniBadge("⏳ Platin in Arbeit", "warn"));
+    function isDelisted(row){
+      // Availability column names may vary; you used "Verfügbarkeit"
+      const v = toLower(row["Verfügbarkeit"]);
+      return v.includes("delisted") || v.includes("deli");
+    }
+
+    function isFavorite(row){
+      return toLower(row["Favorit"]) === "x";
+    }
+
+    function getTitle(row){
+      return norm(row["Spieletitel"]) || norm(row["Spiel"]) || "—";
+    }
+
+    function getId(row){
+      const v = norm(row["ID"]);
+      const n = parseInt(v,10);
+      return Number.isFinite(n) ? n : v;
+    }
+
+    function getSource(row){
+      // now: Digital | PS Plus | Retail-Disc
+      const s = norm(row["Quelle"]);
+      return s || "—";
+    }
+
+    function storeLink(row){
+      const s = norm(row["Store Link"]);
+      if(!s || s === "-" ) return "";
+      // if it is not a URL, just show text
+      if(!/^https?:\/\//i.test(s)) return s;
+      return s;
+    }
+
+    function formatField(val){
+      const t = norm(val);
+      return t ? t : "—";
+    }
+
+    function miniBadge(text, kind){
+      const b = document.createElement("span");
+      b.className = "badge";
+      if(kind === "ok") b.classList.add("ok");
+      if(kind === "warn") b.classList.add("warn");
+      if(kind === "bad") b.classList.add("del");
+      if(kind === "plat") b.classList.add("plat");
+      if(kind === "sleep") b.classList.add("sleep");
+      b.textContent = text;
+      return b;
+    }
+
+    function localeTextCompare(a,b){
+      // stable german-ish + numeric sorting
+      return String(a).localeCompare(String(b), "de", { sensitivity:"base", numeric:true });
+    }
+
+    // -----------------------------
+    // UI elements
+    // -----------------------------
+    const elFile = document.getElementById("file");
+    const elSheet = document.getElementById("sheet");
+    const elQ = document.getElementById("q");
+    const elSort = document.getElementById("sort");
+    const elCards = document.getElementById("cards");
+    const elStats = document.getElementById("stats");
+    const sentinel = document.getElementById("sentinel");
+
+    const drawer = document.getElementById("drawer");
+    const overlay = document.getElementById("overlay");
+    const openFilters = document.getElementById("openFilters");
+    const closeDrawer = document.getElementById("closeDrawer");
+    const clearFilters = document.getElementById("clearFilters");
+
+    const filterStatus = document.getElementById("filterStatus");
+    const filterSystem = document.getElementById("filterSystem");
+    const filterSource = document.getElementById("filterSource");
+    const filterTrophy = document.getElementById("filterTrophy");
+
+    const fabTop = document.getElementById("fabTop");
+    const btnTop = document.getElementById("btnTop");
+
+    // -----------------------------
+    // Drawer open/close
+    // -----------------------------
+    function openDrawer(){
+      overlay.classList.add("open");
+      drawer.classList.add("open");
+    }
+    function closeDrawerFn(){
+      drawer.classList.remove("open");
+      overlay.classList.remove("open");
+    }
+    openFilters.addEventListener("click", openDrawer);
+    closeDrawer.addEventListener("click", closeDrawerFn);
+    overlay.addEventListener("click", closeDrawerFn);
+
+    // -----------------------------
+    // Top button
+    // -----------------------------
+    btnTop.addEventListener("click", ()=> window.scrollTo({top:0, behavior:"smooth"}));
+
+    window.addEventListener("scroll", ()=>{
+      fabTop.style.display = (window.scrollY > 800) ? "block" : "none";
+    }, {passive:true});
+
+    // -----------------------------
+    // Infinite scroll
+    // -----------------------------
+    let io = null;
+    function setupIO(){
+      if(io) io.disconnect();
+      io = new IntersectionObserver((entries)=>{
+        for(const e of entries){
+          if(e.isIntersecting){
+            renderMore();
+          }
+        }
+      }, { root:null, rootMargin:"1200px 0px 1200px 0px", threshold:0 });
+      io.observe(sentinel);
+    }
+
+    // -----------------------------
+    // Filters chips builder
+    // -----------------------------
+    function mkChip(text, key, set, kind){
+      const c = document.createElement("div");
+      c.className = "chip";
+      if(kind) c.classList.add(kind);
+      c.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+      const on = set.has(key);
+      if(on) c.classList.add("on");
+      c.addEventListener("click", ()=>{
+        if(set.has(key)) set.delete(key); else set.add(key);
+        savePersist();
+        applyAll();
+        // update chip visual
+        rebuildFilterChips();
+      });
+      return c;
+    }
+
+    function rebuildFilterChips(){
+      filterStatus.innerHTML = "";
+      filterSystem.innerHTML = "";
+      filterSource.innerHTML = "";
+      filterTrophy.innerHTML = "";
+
+      filterStatus.appendChild(mkChip("⭐ Favorit", "favorite", state.f.status, null));
+      filterStatus.appendChild(mkChip("Delisted", "delisted", state.f.status, "bad"));
+
+      ["PS5","PS4","PS3","Vita"].forEach(p=>{
+        filterSystem.appendChild(mkChip(p, p, state.f.system, null));
+      });
+
+      ["Digital","PS Plus","Retail-Disc"].forEach(s=>{
+        filterSource.appendChild(mkChip(s, s, state.f.source, null));
+      });
+
+      filterTrophy.appendChild(mkChip("💤 Ungespielt", "unplayed", state.f.trophy, "sleep"));
+      filterTrophy.appendChild(mkChip("⏳ In Arbeit", "inprogress", state.f.trophy, "warn"));
+      filterTrophy.appendChild(mkChip("✅ 100% erreicht", "completed", state.f.trophy, "ok"));
+      filterTrophy.appendChild(mkChip("💎 Platin erlangt", "plat", state.f.trophy, "plat"));
+      filterTrophy.appendChild(mkChip("— Kein Platin", "nopl", state.f.trophy, null));
+    }
+
+    clearFilters.addEventListener("click", ()=>{
+      state.f.status.clear();
+      state.f.system.clear();
+      state.f.source.clear();
+      state.f.trophy.clear();
+      savePersist();
+      applyAll();
+      rebuildFilterChips();
+    });
+
+    // -----------------------------
+    // Persist (query/sort/filters)
+    // -----------------------------
+    function savePersist(){
+      try{
+        const payload = {
+          q: state.q,
+          sort: state.sort,
+          f: {
+            status:[...state.f.status],
+            system:[...state.f.system],
+            source:[...state.f.source],
+            trophy:[...state.f.trophy],
+          }
+        };
+        localStorage.setItem(LS_KEY, JSON.stringify(payload));
+      }catch(e){}
+    }
+
+    function loadPersist(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return;
+        const p = JSON.parse(raw);
+        state.q = p.q ?? "";
+        state.sort = p.sort ?? "id_asc";
+        state.f.status = new Set(p.f?.status ?? []);
+        state.f.system = new Set(p.f?.system ?? []);
+        state.f.source = new Set(p.f?.source ?? []);
+        state.f.trophy = new Set(p.f?.trophy ?? []);
+      }catch(e){}
+    }
+
+    // -----------------------------
+    // XLSX load
+    // -----------------------------
+    elFile.addEventListener("change", async (ev)=>{
+      const f = ev.target.files?.[0];
+      if(!f) return;
+      const buf = await f.arrayBuffer();
+      state.wb = XLSX.read(buf, {type:"array"});
+      const names = state.wb.SheetNames || [];
+      elSheet.innerHTML = `<option value="">Sheet auswählen…</option>` + names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+      elSheet.disabled = false;
+
+      // auto-select if previous was "Spieleliste Komplett"
+      const prefer = names.find(n=> n.toLowerCase().includes("spieleliste komplett")) || names[0];
+      elSheet.value = prefer;
+      state.sheetName = prefer;
+      loadSheet();
+    });
+
+    elSheet.addEventListener("change", ()=>{
+      state.sheetName = elSheet.value;
+      loadSheet();
+    });
+
+    function loadSheet(){
+      if(!state.wb || !state.sheetName) return;
+      const ws = state.wb.Sheets[state.sheetName];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:"", raw:false});
+      state.rows = json;
+      state.expanded.clear();
+      state.subOpen.clear();
+      applyAll(true);
+      setupIO();
+    }
+
+    // -----------------------------
+    // Search / Sort handlers
+    // -----------------------------
+    elQ.value = state.q;
+    elSort.value = state.sort;
+
+    elQ.addEventListener("input", ()=>{
+      state.q = elQ.value;
+      savePersist();
+      applyAll(true);
+    });
+    elSort.addEventListener("change", ()=>{
+      state.sort = elSort.value;
+      savePersist();
+      applyAll(true);
+    });
+
+    // -----------------------------
+    // Filtering core
+    // -----------------------------
+    function applyAll(resetRender=false){
+      if(!state.rows.length){
+        elCards.innerHTML = "";
+        elStats.textContent = "Keine Daten geladen.";
+        return;
+      }
+      state.filtered = state.rows.filter(row => matchRow(row));
+      sortRows(state.filtered);
+      if(resetRender){
+        state.renderedCount = 0;
+        elCards.innerHTML = "";
+      }
+      renderMore(true);
+      updateStats();
+    }
+
+    function matchRow(row){
+      const title = getTitle(row);
+      const id = getId(row);
+      const sys = norm(row["System"]);
+      const src = getSource(row);
+      const del = isDelisted(row);
+      const fav = isFavorite(row);
+
+      const tModel = buildTrophyModel(row);
+
+      // query parsing
+      const q = norm(state.q);
+      if(q){
+        const parts = q.split(/\s+/).filter(Boolean);
+        let ok = true;
+        for(const p of parts){
+          const pl = p.toLowerCase();
+
+          if(pl.startsWith("id:")){
+            const want = pl.slice(3).trim();
+            if(String(id) !== want) ok = false;
+          } else if(pl.startsWith("system:")){
+            const want = pl.slice(7).trim();
+            if(!toLower(sys).includes(want)) ok = false;
+          } else if(pl.startsWith("source:")){
+            const want = pl.slice(7).trim();
+            if(!toLower(src).includes(want)) ok = false;
+          } else if(pl === "delisted"){
+            if(!del) ok = false;
+          } else if(pl === "favorite" || pl === "fav"){
+            if(!fav) ok = false;
+          } else if(pl === "completed"){
+            if(tModel.completionState !== "Completed") ok = false;
+          } else if(pl === "inprogress"){
+            if(tModel.completionState !== "In Progress" && tModel.platinumState !== "In Progress") ok = false;
+          } else if(pl === "unplayed"){
+            if(tModel.completionState !== "Unplayed") ok = false;
+          } else if(pl === "plat"){
+            if(tModel.platinumState !== "Platinum") ok = false;
+          } else {
+            // free text
+            const hay = [
+              title,
+              norm(row["Genre"]),
+              norm(row["Subgenre"]),
+              norm(row["Entwickler"]),
+              norm(row["Quelle"]),
+              norm(row["Kurzbeschreibung"]),
+            ].join(" ").toLowerCase();
+            if(!hay.includes(pl)) ok = false;
+          }
+
+          if(!ok) break;
+        }
+        if(!ok) return false;
+      }
+
+      // chip filters
+      if(state.f.status.has("delisted") && !del) return false;
+      if(state.f.status.has("favorite") && !fav) return false;
+
+      if(state.f.system.size){
+        const plats = parsePlatformsFromSystem(sys);
+        const hasAny = [...state.f.system].some(p=> plats.includes(p));
+        if(!hasAny) return false;
+      }
+
+      if(state.f.source.size){
+        if(!state.f.source.has(src)) return false;
+      }
+
+      if(state.f.trophy.size){
+        // OR semantics among selected trophy filters
+        let pass = false;
+        for(const f of state.f.trophy){
+          if(f === "unplayed" && tModel.completionState === "Unplayed") pass = true;
+          if(f === "completed" && tModel.completionState === "Completed") pass = true;
+          if(f === "inprogress" && (tModel.completionState === "In Progress" || tModel.platinumState === "In Progress")) pass = true;
+          if(f === "plat" && tModel.platinumState === "Platinum") pass = true;
+          if(f === "nopl" && tModel.platinumState === "No Platinum") pass = true;
+        }
+        if(!pass) return false;
+      }
+
+      return true;
+    }
+
+    function sortRows(arr){
+      const s = state.sort;
+      const dir = s.endsWith("_desc") ? -1 : 1;
+      const key = s.replace(/_(asc|desc)$/,"");
+
+      arr.sort((a,b)=>{
+        let A, B;
+
+        if(key === "id"){
+          A = parseInt(norm(a["ID"]),10);
+          B = parseInt(norm(b["ID"]),10);
+          if(!Number.isFinite(A)) A = 1e18;
+          if(!Number.isFinite(B)) B = 1e18;
+          return (A-B)*dir;
         }
 
-        top.appendChild(leftP);
-        top.appendChild(rightP);
-        tr.appendChild(top);
+        if(key === "title"){
+          A = getTitle(a);
+          B = getTitle(b);
+          return localeTextCompare(A,B)*dir;
+        }
 
-        // Progress display
-        if(!info.started){
-          const note = document.createElement("div");
-          note.className = "mutedSmall";
-          note.textContent = "Fortschritt: Ungespielt · Komplettion: Ungespielt · Platin: Ungespielt";
-          tr.appendChild(note);
-        }else{
-          const pr = info.progress;
-          if(pr && Number.isFinite(pr.cur) && Number.isFinite(pr.total) && pr.total > 0){
-            const line = document.createElement("div");
-            line.style.display = "flex";
-            line.style.justifyContent = "space-between";
-            line.style.gap = "10px";
-            line.style.alignItems = "baseline";
+        if(key === "system"){
+          A = norm(a["System"]);
+          B = norm(b["System"]);
+          return localeTextCompare(A,B)*dir;
+        }
 
-            const b = document.createElement("div");
-            b.style.fontWeight = "900";
-            b.textContent = `${String(pr.cur).padStart(2,"0")} of ${pr.total}`;
-            line.appendChild(b);
+        if(key === "source"){
+          A = getSource(a);
+          B = getSource(b);
+          return localeTextCompare(A,B)*dir;
+        }
 
-            const pct = Math.max(0, Math.min(100, (pr.cur/pr.total)*100));
+        if(key === "genre"){
+          A = norm(a["Genre"]);
+          B = norm(b["Genre"]);
+          return localeTextCompare(A,B)*dir;
+        }
+
+        if(key === "dev"){
+          A = norm(a["Entwickler"]);
+          B = norm(b["Entwickler"]);
+          return localeTextCompare(A,B)*dir;
+        }
+
+        if(key === "main"){
+          A = parseNumberLoose(a["Spielzeit (Main)"]);
+          B = parseNumberLoose(b["Spielzeit (Main)"]);
+          if(!Number.isFinite(A)) A = (dir>0? 1e18 : -1e18);
+          if(!Number.isFinite(B)) B = (dir>0? 1e18 : -1e18);
+          return (A-B)*dir;
+        }
+
+        if(key === "meta"){
+          A = parseNumberLoose(a["Metascore"]);
+          B = parseNumberLoose(b["Metascore"]);
+          if(!Number.isFinite(A)) A = -1;
+          if(!Number.isFinite(B)) B = -1;
+          return (A-B)*dir;
+        }
+
+        if(key === "user"){
+          A = parseNumberLoose(a["Userwertung"]);
+          B = parseNumberLoose(b["Userwertung"]);
+          if(!Number.isFinite(A)) A = -1;
+          if(!Number.isFinite(B)) B = -1;
+          return (A-B)*dir;
+        }
+
+        if(key === "life"){
+          A = parseLifePercent(a["% Lebenszeit"]);
+          B = parseLifePercent(b["% Lebenszeit"]);
+          if(!Number.isFinite(A)) A = -1;
+          if(!Number.isFinite(B)) B = -1;
+          return (A-B)*dir;
+        }
+
+        return 0;
+      });
+    }
+
+    // -----------------------------
+    // Rendering
+    // -----------------------------
+    function renderMore(force=false){
+      if(!state.filtered.length) {
+        if(force) elCards.innerHTML = "";
+        updateStats();
+        return;
+      }
+      const next = Math.min(state.filtered.length, state.renderedCount + state.batch);
+      if(next <= state.renderedCount && !force) return;
+
+      const frag = document.createDocumentFragment();
+      for(let i=state.renderedCount;i<next;i++){
+        frag.appendChild(cardEl(state.filtered[i]));
+      }
+      elCards.appendChild(frag);
+      state.renderedCount = next;
+      updateStats();
+    }
+
+    function updateStats(){
+      const total = state.rows.length;
+      const hits = state.filtered.length;
+      const shown = state.renderedCount;
+
+      if(!state.rows.length){
+        elStats.textContent = "Datei wählen → Sheet wählen → los";
+        return;
+      }
+      elStats.textContent = `Treffer: ${hits} · angezeigt: ${shown}/${hits} · Gesamt: ${total}`;
+    }
+
+    function cardEl(row){
+      const id = getId(row);
+      const title = getTitle(row);
+      const sys = norm(row["System"]);
+      const plats = parsePlatformsFromSystem(sys);
+      const src = getSource(row);
+      const del = isDelisted(row);
+      const fav = isFavorite(row);
+
+      const trophy = buildTrophyModel(row);
+
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const head = document.createElement("div");
+      head.className = "cardHead";
+
+      const left = document.createElement("div");
+      const t = document.createElement("div");
+      t.className = "title";
+      t.textContent = title;
+      left.appendChild(t);
+
+      head.appendChild(left);
+
+      const badgeCol = document.createElement("div");
+      badgeCol.className = "badgeCol";
+
+      if(fav) badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge fav", textContent:"⭐ Favorit"}));
+
+      // BONUS: Platin/Completion als saubere Zustände
+      // Completion badge
+      if(trophy.completionState === "Completed"){
+        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge ok", textContent:"✅ 100% erreicht"}));
+      } else if(trophy.completionState === "In Progress"){
+        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge warn", textContent:"⏳ In Arbeit"}));
+      } else {
+        // unplayed: nicht im Header nötig (du wolltest ungespielt eher im Detail) – aber ok wenn du willst:
+        // badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge sleep", textContent:"💤 Ungespielt"}));
+      }
+
+      // Platinum badge (inkl. Kein Platin)
+      if(trophy.platinumState === "Platinum"){
+        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge plat", textContent:"💎 Platin erlangt"}));
+      } else if(trophy.platinumState === "No Platinum"){
+        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge", textContent:"— Kein Platin"}));
+      } else if(trophy.platinumState === "In Progress" && trophy.anyStarted){
+        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge warn", textContent:"⏳ Platin in Arbeit"}));
+      }
+
+      if(del) badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge del", textContent:"Delisted"}));
+
+      head.appendChild(badgeCol);
+      card.appendChild(head);
+
+      // ID + System badges row
+      const subBadges = document.createElement("div");
+      subBadges.className = "subBadges";
+
+      const idPill = document.createElement("span");
+      idPill.className = "idPill";
+      idPill.textContent = `ID ${id}`;
+      subBadges.appendChild(idPill);
+
+      // system badges
+      plats.forEach(p=>{
+        const s = document.createElement("span");
+        s.className = "tag sys";
+        s.textContent = p;
+        subBadges.appendChild(s);
+      });
+
+      // availability
+      const avail = formatField(row["Verfügbarkeit"]);
+      const av = document.createElement("span");
+      av.className = "tag avail";
+      av.textContent = avail;
+      subBadges.appendChild(av);
+
+      card.appendChild(subBadges);
+
+      // Reduced view fields
+      const kv = document.createElement("div");
+      kv.className = "kv";
+
+      // show exactly: Genre, Entwickler, Spielzeit, Metascore, Userwertung
+      addKV(kv, "Genre", formatField(row["Genre"]));
+      addKV(kv, "Entwickler", formatField(row["Entwickler"]));
+
+      // Spielzeit compact: "Main / 100%"
+      const main = formatField(row["Spielzeit (Main)"]);
+      const h100 = formatField(row["Spielzeit (100%)"]);
+      addKV(kv, "Spielzeit", `${main} / ${h100}`.replace("— / —","—"));
+
+      addKV(kv, "Metascore", formatField(row["Metascore"]), true);
+      addKV(kv, "Userwertung", formatField(row["Userwertung"]), true);
+
+      card.appendChild(kv);
+
+      // Details toggle
+      const toggle = document.createElement("div");
+      toggle.className = "detailsToggle";
+      const isOpen = state.expanded.has(String(id));
+      toggle.textContent = isOpen ? "▼ Weniger Details" : "▶ Mehr Details";
+      toggle.addEventListener("click", ()=>{
+        if(state.expanded.has(String(id))) state.expanded.delete(String(id));
+        else state.expanded.add(String(id));
+        // rerender full list slice for simplicity (still fast with 1200)
+        rerenderAllVisible();
+      });
+      card.appendChild(toggle);
+
+      if(isOpen){
+        // DESCRIPTION
+        card.appendChild(sectionCollapsible(
+          String(id), "BESCHREIBUNG", "Kurzbeschreibung anzeigen",
+          formatField(row["Kurzbeschreibung"]),
+          "desc"
+        ));
+
+        // STORE
+        const storeSec = document.createElement("div");
+        storeSec.className = "section";
+        storeSec.appendChild(secTitle("STORE"));
+
+        const kv2 = document.createElement("div");
+        kv2.className = "kv";
+        addKV(kv2, "Quelle", formatField(row["Quelle"]));
+        addKV(kv2, "Store", renderStoreLink(row));
+        addKV(kv2, "Verfügbarkeit", formatField(row["Verfügbarkeit"]));
+        storeSec.appendChild(kv2);
+        card.appendChild(storeSec);
+
+        // EXTRAS
+        const extras = document.createElement("div");
+        extras.className = "section";
+        extras.appendChild(secTitle("EXTRAS"));
+        extras.appendChild(subCollapsible(String(id), "Besonderheiten anzeigen", formatField(row["Besonderheiten"]), "extras"));
+        extras.appendChild(subCollapsible(String(id), "Eastereggs anzeigen", formatField(row["Eastereggs"]), "eggs"));
+        card.appendChild(extras);
+
+        // TROPHÄEN
+        const tro = document.createElement("div");
+        tro.className = "section";
+        tro.appendChild(secTitle("TROPHÄEN"));
+
+        const tg = document.createElement("div");
+        tg.className = "trophyGrid";
+
+        // Per platform: always show system platforms and fill missing as Ungespielt
+        for(const p of trophy.platforms){
+          const platChip = document.createElement("div");
+          platChip.className = "platChip";
+          platChip.textContent = p;
+
+          const info = trophy.perPlatform[p] || {started:false, progress:null, completion:null, platinum:null};
+
+          const right = document.createElement("div");
+          right.className = "tLines";
+
+          // Line builder
+          const linesWrap = document.createElement("div");
+          linesWrap.className = "tLines";
+
+          // Fortschritt line + optional bar
+          linesWrap.appendChild(tLine("Fortschritt", (()=> {
+            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
+            if(info.progress && Number.isFinite(info.progress.cur) && Number.isFinite(info.progress.total) && info.progress.total>0){
+              return miniBadge(`${String(info.progress.cur).padStart(2,"0")} of ${info.progress.total}`,"");
+            }
+            return miniBadge("—","");
+          })()));
+
+          // completion line
+          linesWrap.appendChild(tLine("Komplettion", (()=> {
+            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
+            if(info.completion === "Completed") return miniBadge("✅ 100% erreicht","ok");
+            if(info.completion === "In Progress") return miniBadge("⏳ In Arbeit","warn");
+            return miniBadge("⏳ In Arbeit","warn");
+          })()));
+
+          // platinum line
+          linesWrap.appendChild(tLine("Platin", (()=> {
+            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
+            if(info.platinum === "Platinum") return miniBadge("💎 Platin erlangt","plat");
+            if(info.platinum === "No Platinum") return miniBadge("— Kein Platin","");
+            if(info.platinum === "In Progress") return miniBadge("⏳ In Arbeit","warn");
+            return miniBadge("⏳ In Arbeit","warn");
+          })()));
+
+          right.appendChild(linesWrap);
+
+          // progress bar only if numbers exist
+          if(info.started && info.progress && Number.isFinite(info.progress.cur) && Number.isFinite(info.progress.total) && info.progress.total>0){
+            const pct = Math.max(0, Math.min(100, (info.progress.cur/info.progress.total)*100));
             const bar = document.createElement("div");
             bar.className = "bar";
             const fill = document.createElement("i");
@@ -1464,270 +1478,158 @@
 
             const note = document.createElement("div");
             note.className = "barNote";
-            note.textContent = `${pct.toFixed(0)}% (${pr.cur}/${pr.total})`;
+            note.textContent = `${pct.toFixed(0)}% (${info.progress.cur}/${info.progress.total})`;
 
-            tr.appendChild(line);
-            tr.appendChild(bar);
-            tr.appendChild(note);
-          }else{
-            const note = document.createElement("div");
-            note.className = "mutedSmall";
-            note.textContent = "Fortschritt: —";
-            tr.appendChild(note);
+            right.appendChild(bar);
+            right.appendChild(note);
           }
+
+          tg.appendChild(platChip);
+          tg.appendChild(right);
         }
 
-        tWrap.appendChild(tr);
-      }
-    }
+        tro.appendChild(tg);
+        card.appendChild(tro);
 
-    sT.appendChild(tWrap);
-    details.appendChild(sT);
+        // HUMORSTATISTIK
+        const hu = document.createElement("div");
+        hu.className = "section";
+        hu.appendChild(secTitle("HUMORSTATISTIK"));
 
-    // HUMORSTATISTIK
-    const sH = document.createElement("div");
-    sH.className = "section";
-    const stH = document.createElement("div");
-    stH.className = "sectionTitle";
-    stH.textContent = "HUMORSTATISTIK";
-    sH.appendChild(stH);
+        const kv3 = document.createElement("div");
+        kv3.className = "kv";
+        addKV(kv3, "Gesamtstunden", formatField(row["Gesamtstunden (Humorstatistik)"]), true);
+        addKV(kv3, "% Lebenszeit", formatField(row["% Lebenszeit (Humorstatistik)"]), true);
+        addKV(kv3, "Jahre", formatField(row["Jahre (Humorstatistik)"]), true);
 
-    const kvH = document.createElement("div");
-    kvH.className = "kv";
-    let [hk, hv] = buildRowKV("Gesamtstunden", row["Gesamtstunden (Humorstatistik)"]);
-    kvH.appendChild(hk); kvH.appendChild(hv);
-    [hk, hv] = buildRowKV("% Lebenszeit", row["% Lebenszeit (Humorstatistik)"]);
-    kvH.appendChild(hk); kvH.appendChild(hv);
-    [hk, hv] = buildRowKV("Jahre", row["Jahre (Humorstatistik)"]);
-    kvH.appendChild(hk); kvH.appendChild(hv);
-
-    sH.appendChild(kvH);
-    details.appendChild(sH);
-
-    card.appendChild(details);
-
-    // toggle logic
-    tog.addEventListener("click", () => {
-      const open = details.classList.toggle("open");
-      tog.classList.toggle("open", open);
-      tog.querySelector(".txt").textContent = open ? "Weniger Details" : "Mehr Details";
-    });
-
-    return card;
-  }
-
-  function miniBadge(text, cls){
-    const d = document.createElement("div");
-    d.className = "miniPill " + (cls || "");
-    d.textContent = text;
-    return d;
-  }
-
-  function buildPlaytime(row){
-    const m = fmtVal(row["Spielzeit (Main)"]);
-    const c = fmtVal(row["Spielzeit (100%)"]);
-    // show "12h / 16h" if both numeric-ish; keep simple
-    if(m !== "—" || c !== "—"){
-      const mm = m === "—" ? "—" : `${m}`;
-      const cc = c === "—" ? "—" : `${c}`;
-      return `${mm} / ${cc}`;
-    }
-    return "—";
-  }
-
-  function renderNextBatch(initial){
-    const list = $("cards");
-    const total = state.rowsView.length;
-    if(state.rendered >= total){
-      setCount(`Treffer: ${total} · angezeigt: ${total}/${total}`);
-      return;
-    }
-
-    const end = Math.min(total, state.rendered + state.batch);
-    for(let i=state.rendered;i<end;i++){
-      list.appendChild(cardEl(state.rowsView[i]));
-    }
-    state.rendered = end;
-    setCount(`Treffer: ${total} · angezeigt: ${state.rendered}/${total}`);
-  }
-
-  function renderTable(rows){
-    const wrap = $("tableWrap");
-    wrap.innerHTML = "";
-
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    const trh = document.createElement("tr");
-
-    const cols = ["ID","Spieletitel","System","Quelle","Genre","Entwickler","Spielzeit (Main)","Metascore","Userwertung","% Lebenszeit (Humorstatistik)"];
-    for(const c of cols){
-      const th = document.createElement("th");
-      th.textContent = c === "% Lebenszeit (Humorstatistik)" ? "Lebenszeit %" : c;
-      trh.appendChild(th);
-    }
-    thead.appendChild(trh);
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    // Keep table reasonably sized for mobile: show up to 250 rows
-    const max = Math.min(rows.length, 250);
-    for(let i=0;i<max;i++){
-      const r = rows[i];
-      const tr = document.createElement("tr");
-      for(const c of cols){
-        const td = document.createElement("td");
-        const val = fmtVal(r[c]);
-        if(c === "Spieletitel"){
-          td.innerHTML = `<b>${escapeHtml(val)}</b>`;
-        }else{
-          td.textContent = val;
-        }
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-
-    const note = document.createElement("div");
-    note.className = "statusLine";
-    note.textContent = `Tabellenansicht zeigt aus Performance-Gründen max. ${max} Zeilen (Kartenansicht hat Infinite Scroll).`;
-    wrap.appendChild(note);
-  }
-
-  function escapeHtml(s){
-    return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-  }
-
-  // -------------------------
-  // Infinite scroll observer
-  // -------------------------
-  let io = null;
-  function setupInfiniteScroll(){
-    if(io) io.disconnect();
-    io = new IntersectionObserver((entries) => {
-      const hit = entries.some(e => e.isIntersecting);
-      if(hit && state.viewMode === "cards"){
-        renderNextBatch(false);
-      }
-    }, { root:null, rootMargin:"900px 0px", threshold:0.01 });
-
-    io.observe($("sentinel"));
-  }
-
-  // -------------------------
-  // Menu + header collapse (no flicker)
-  // -------------------------
-  let lastScrollY = 0;
-  let ticking = false;
-  function onScroll(){
-    if(ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const y = window.scrollY || 0;
-      const dy = y - lastScrollY;
-      lastScrollY = y;
-
-      // show/hide "Top" button
-      $("btnTop").style.display = y > 400 ? "block" : "none";
-
-      ticking = false;
-    });
-  }
-
-  // -------------------------
-  // Event wiring
-  // -------------------------
-  function syncUIFromState(){
-    $("q").value = state.q;
-    $("sortKey").value = state.sortKey;
-    $("viewMode").value = state.viewMode;
-
-    // chips
-    const chips = $("chips").querySelectorAll(".chip[data-filter]");
-    chips.forEach(ch => {
-      const f = ch.getAttribute("data-filter");
-      ch.classList.toggle("on", state.filters.has(f));
-    });
-
-    // menu
-    $("menu").classList.toggle("open", state.menuOpen);
-  }
-
-  function init(){
-    loadState();
-    syncUIFromState();
-
-    $("file").addEventListener("change", e => handleFile(e.target.files[0]));
-    $("sheet").addEventListener("change", e => loadSheet(e.target.value));
-
-    $("q").addEventListener("input", () => {
-      // tiny debounce
-      clearTimeout(window.__qT);
-      window.__qT = setTimeout(applyAll, 120);
-    });
-
-    $("btnMenu").addEventListener("click", () => {
-      state.menuOpen = !state.menuOpen;
-      $("menu").classList.toggle("open", state.menuOpen);
-      saveState();
-    });
-
-    $("viewMode").addEventListener("change", (e) => {
-      state.viewMode = e.target.value;
-      applyAll();
-    });
-
-    $("sortKey").addEventListener("change", (e) => {
-      state.sortKey = e.target.value;
-      applyAll();
-    });
-
-    $("sortAsc").addEventListener("click", () => {
-      state.sortDir = "asc";
-      applyAll();
-    });
-
-    $("sortDesc").addEventListener("click", () => {
-      state.sortDir = "desc";
-      applyAll();
-    });
-
-    $("chips").addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip");
-      if(!chip) return;
-
-      if(chip.id === "clearFilters"){
-        state.filters.clear();
-        syncUIFromState();
-        applyAll();
-        return;
+        hu.appendChild(kv3);
+        card.appendChild(hu);
       }
 
-      const f = chip.getAttribute("data-filter");
-      if(!f) return;
+      return card;
+    }
 
-      if(state.filters.has(f)) state.filters.delete(f);
-      else state.filters.add(f);
+    function addKV(kv, k, v, mono=false){
+      const kk = document.createElement("div");
+      kk.className = "k";
+      kk.textContent = k;
 
-      chip.classList.toggle("on", state.filters.has(f));
-      applyAll();
-    });
+      const vv = document.createElement("div");
+      vv.className = "v" + (mono ? " mono" : "");
+      if(v instanceof Node){
+        vv.appendChild(v);
+      } else {
+        vv.textContent = String(v);
+      }
+      kv.appendChild(kk);
+      kv.appendChild(vv);
+    }
 
-    $("btnTop").addEventListener("click", () => {
-      window.scrollTo({ top:0, behavior:"smooth" });
-    });
+    function secTitle(s){
+      const d = document.createElement("div");
+      d.className = "secTitle";
+      d.textContent = s;
+      return d;
+    }
 
-    window.addEventListener("scroll", onScroll, { passive:true });
-    setupInfiniteScroll();
+    function tLine(label, contentEl){
+      const wrap = document.createElement("div");
+      wrap.className = "tLine";
+      const l = document.createElement("div");
+      l.className = "mutedSmall";
+      l.textContent = label;
+      wrap.appendChild(l);
+      wrap.appendChild(contentEl);
+      return wrap;
+    }
 
-    // initialize button state
-    $("btnTop").style.display = "none";
-    setStatus("Datei wählen → Sheet wählen → suchen");
-  }
+    function renderStoreLink(row){
+      const url = storeLink(row);
+      if(!url || url === "—"){
+        const span = document.createElement("span");
+        span.textContent = "—";
+        return span;
+      }
+      if(/^https?:\/\//i.test(url)){
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "Store Link";
+        a.title = url;
+        return a;
+      }
+      // plain text
+      const span = document.createElement("span");
+      span.textContent = url;
+      return span;
+    }
 
-  init();
-})();
-</script>
+    function sectionCollapsible(rowId, secName, toggleText, bodyText, key){
+      const sec = document.createElement("div");
+      sec.className = "section";
+      sec.appendChild(secTitle(secName));
+      sec.appendChild(subCollapsible(rowId, toggleText, bodyText, key, true));
+      return sec;
+    }
+
+    function subCollapsible(rowId, label, body, key, withGap=false){
+      const box = document.createElement("div");
+      const open = !!(state.subOpen.get(rowId)?.[key]);
+
+      const t = document.createElement("div");
+      t.className = "subToggle";
+      t.innerHTML = `<span>${open ? "▼" : "▶"} ${escapeHtml(label)}</span><span class="mutedSmall">${open ? " " : ""}</span>`;
+      t.addEventListener("click", ()=>{
+        const cur = state.subOpen.get(rowId) || {};
+        cur[key] = !cur[key];
+        state.subOpen.set(rowId, cur);
+        rerenderAllVisible();
+      });
+
+      const b = document.createElement("div");
+      b.className = "subBody";
+      b.style.display = open ? "block" : "none";
+      if(withGap && open){
+        b.style.marginTop = "6px";
+      }
+      b.textContent = body;
+
+      box.appendChild(t);
+      box.appendChild(b);
+      return box;
+    }
+
+    function rerenderAllVisible(){
+      // Rebuild currently shown list (keeps infinite feel, still lightweight at 1200)
+      const keep = state.renderedCount;
+      elCards.innerHTML = "";
+      state.renderedCount = 0;
+      const next = Math.min(state.filtered.length, keep);
+      const frag = document.createDocumentFragment();
+      for(let i=0;i<next;i++){
+        frag.appendChild(cardEl(state.filtered[i]));
+      }
+      elCards.appendChild(frag);
+      state.renderedCount = next;
+      updateStats();
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "").replace(/[&<>"']/g, c=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    // -----------------------------
+    // Init chips + IO
+    // -----------------------------
+    rebuildFilterChips();
+    setupIO();
+
+    // apply persisted controls
+    elQ.value = state.q || "";
+    elSort.value = state.sort || "id_asc";
+  </script>
 </body>
 </html>
