@@ -2,1634 +2,1686 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spieleliste</title>
+
+  <!-- SheetJS (xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+
   <style>
     :root{
       --bg:#f6f7fb;
-      --card:#fff;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --shadow: 0 10px 30px rgba(17,24,39,.08);
-      --shadow2: 0 6px 18px rgba(17,24,39,.08);
-      --radius:18px;
-      --radius2:14px;
+      --card:#ffffff;
+      --text:#101828;
+      --muted:#667085;
+      --line:#eaecf0;
+      --chip:#f2f4f7;
 
       --blue:#1d4ed8;
-      --blueBg:#e8efff;
+      --blueBg:#eff6ff;
+      --blueBd:#bfdbfe;
 
-      --ok:#16a34a;
-      --okBg:#e8f8ee;
+      --green:#166534;
+      --greenBg:#ecfdf5;
+      --greenBd:#bbf7d0;
 
-      --warn:#b45309;
-      --warnBg:#fff2e0;
+      --orange:#9a3412;       /* dezenter als knallrot */
+      --orangeBg:#fff7ed;
+      --orangeBd:#fed7aa;
 
-      --bad:#dc2626;
-      --badBg:#ffe9e9;
+      --gray:#344054;
+      --grayBg:#f2f4f7;
+      --grayBd:#e4e7ec;
 
-      --plat:#2563eb;
-      --platBg:#e7f0ff;
+      --danger:#b42318;
+      --dangerBg:#fef3f2;
+      --dangerBd:#fecdca;
 
-      --sleep:#334155;
-      --sleepBg:#edf2f7;
-
-      --chip:#f3f4f6;
-      --chipText:#111827;
+      --shadow: 0 8px 30px rgba(16,24,40,.08);
+      --radius: 18px;
     }
 
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:var(--bg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
+      background:var(--bg);
     }
+    a{color:var(--blue); text-decoration:none}
+    a:hover{text-decoration:underline}
 
     .wrap{
-      max-width:980px;
-      margin:0 auto;
-      padding:18px 14px 40px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 14px 80px;
     }
 
     h1{
-      margin:6px 0 12px;
-      font-size:26px;
-      letter-spacing:-.02em;
+      margin: 6px 0 14px;
+      font-size: 42px;
+      letter-spacing: -0.02em;
     }
 
-    .topbar{
-      position: sticky;
-      top:0;
-      z-index:50;
-      padding:10px 0 10px;
-      background: linear-gradient(to bottom, rgba(246,247,251,.98), rgba(246,247,251,.92));
-      backdrop-filter: blur(10px);
-    }
-
-    .controls{
-      background:var(--card);
-      border:1px solid var(--line);
-      box-shadow: var(--shadow2);
+    /* Header / Controls */
+    .controlsCard{
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding:12px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      transition: transform .22s ease;
     }
-
-    .grid2{
-      display:grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width:720px){
-      .grid2{ grid-template-columns: 1fr; }
+    .controlsCard.isHidden{
+      transform: translateY(-92px);
     }
 
     .row{
       display:flex;
-      gap:10px;
+      gap:12px;
       align-items:center;
       flex-wrap:wrap;
     }
 
-    label.small{
-      font-size:12px;
-      color:var(--muted);
-      display:block;
-      margin:0 0 6px;
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex: 1 1 260px;
+      min-width: 240px;
     }
-
-    input[type="file"]{
+    .label{
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .input, select{
       width:100%;
-      padding:9px 10px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
+      padding: 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      font-size: 16px;
+      background: #fff;
+      outline: none;
     }
-
-    select, input[type="text"]{
-      width:100%;
-      padding:10px 12px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-      font-size:16px;
-      outline:none;
-    }
-    input[type="text"]:focus, select:focus{
+    .input:focus, select:focus{
       border-color:#c7d2fe;
-      box-shadow:0 0 0 4px rgba(99,102,241,.12);
+      box-shadow: 0 0 0 4px rgba(99,102,241,.12);
     }
 
     .miniRow{
       display:flex;
-      gap:10px;
+      gap:12px;
       align-items:center;
+      flex-wrap:wrap;
     }
+    .miniRow .field{flex: 1 1 260px}
 
-    .btnIcon{
-      min-width:48px;
-      height:44px;
-      border-radius:14px;
+    .menuBtn{
+      width: 52px;
+      height: 48px;
+      border-radius: 14px;
       border:1px solid var(--line);
-      background:#eef2ff;
+      background: #eef2ff;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:20px;
+      font-size: 22px;
       cursor:pointer;
       user-select:none;
-    }
-    .btnIcon:active{ transform: translateY(1px); }
-
-    .pillRow{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--chip);
-      color:var(--chipText);
-      font-size:13px;
-      cursor:pointer;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .chip.on{
-      border-color:#c7d2fe;
-      background:#eef2ff;
-    }
-    .chip .dot{
-      width:8px;height:8px;border-radius:999px;
-      background:#9ca3af;
-    }
-
-    .chip.ok .dot{ background:var(--ok); }
-    .chip.warn .dot{ background:var(--warn); }
-    .chip.bad .dot{ background:var(--bad); }
-    .chip.plat .dot{ background:var(--plat); }
-    .chip.sleep .dot{ background:var(--sleep); }
-
-    .chipGroupTitle{
-      margin-top:10px;
-      font-size:12px;
-      color:var(--muted);
+      flex: 0 0 auto;
     }
 
     .stats{
-      margin-top:10px;
-      font-size:13px;
-      color:var(--muted);
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
     }
 
-    .cards{
-      margin-top:12px;
+    /* Cards */
+    .list{
+      margin-top: 14px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap: 14px;
     }
 
     .card{
-      background:var(--card);
-      border:1px solid var(--line);
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding:14px 14px 12px;
-      overflow:hidden;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .cardHead{
+    .cardHeader{
       display:flex;
       align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .title{
-      font-weight:800;
-      font-size:20px;
-      line-height:1.15;
-      letter-spacing:-.01em;
+      font-size: 30px;
+      line-height: 1.08;
+      font-weight: 800;
+      margin:0;
+      letter-spacing: -0.01em;
     }
 
-    .badgeCol{
+    .badges{
       display:flex;
       flex-direction:column;
-      gap:8px;
       align-items:flex-end;
-      min-width: 140px;
+      gap: 8px;
+      flex: 0 0 auto;
     }
 
     .badge{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      font-weight:700;
-      font-size:13px;
-      border:1px solid var(--line);
-      background:#f8fafc;
-      white-space:nowrap;
+      justify-content:center;
+      text-align:center;
+      min-width: min(170px, 54vw);
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      line-height:1;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      user-select:none;
     }
+    .badge--fav{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+    .badge--delisted{ background: var(--dangerBg); border-color: var(--dangerBd); color: var(--danger); }
 
-    .badge.fav{ background:#fff7ed; border-color:#fed7aa; }
-    .badge.del{ background:#ffe9e9; border-color:#fecaca; color:var(--bad); text-decoration: line-through; }
-    .badge.ok{ background:var(--okBg); border-color:#bbf7d0; color:#14532d; }
-    .badge.warn{ background:var(--warnBg); border-color:#fed7aa; color:#7c2d12; }
-    .badge.plat{ background:var(--platBg); border-color:#bfdbfe; color:#1e40af; }
-    .badge.sleep{ background:var(--sleepBg); border-color:#cbd5e1; color:#0f172a; }
+    .badge--progress{ background: var(--orangeBg); border-color: var(--orangeBd); color: var(--orange); }
+    .badge--unplayed{ background: var(--grayBg); border-color: var(--grayBd); color: var(--gray); }
 
-    .idPill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      background:var(--blue);
-      color:#fff;
-      font-weight:900;
-      font-size:13px;
-      letter-spacing:.02em;
-    }
+    .badge--done{ background: var(--greenBg); border-color: var(--greenBd); color: var(--green); }
+    .badge--plat{ background: var(--blueBg); border-color: var(--blueBd); color: var(--blue); }
+    .badge--nopl{ background: #ffffff; border-color: var(--line); color: var(--gray); }
 
-    .subBadges{
+    .chipRow{
       display:flex;
+      gap:10px;
+      margin-top: 12px;
+      align-items:center;
       flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-      align-items:center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
     }
-    .tag{
+
+    .chip{
       display:inline-flex;
-      align-items:center;
       gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      background:#f3f4f6;
-      border:1px solid var(--line);
-      font-weight:700;
-      font-size:13px;
-      color:#111827;
-      white-space:nowrap;
-    }
-    .tag.gray{ color:var(--muted); font-weight:700; }
-    .tag.avail{ background:#f8fafc; }
-    .tag.sys{ background:#f3f4f6; }
-
-    .kv{
-      margin-top:10px;
-      border-top:1px solid var(--line);
-      padding-top:10px;
-      display:grid;
-      grid-template-columns: 190px 1fr;
-      gap:8px 10px;
-    }
-    @media (max-width:520px){
-      .kv{ grid-template-columns: 1fr; }
-      .k{ font-size:12px; }
-    }
-    .k{ color:var(--muted); font-size:13px; }
-    .v{ font-weight:700; font-size:14px; }
-    .v.mono{ font-variant-numeric: tabular-nums; }
-    .v a{ color:#2563eb; text-decoration:none; font-weight:800; }
-    .v a:hover{ text-decoration:underline; }
-
-    .detailsToggle{
-      margin-top:10px;
-      border-top:1px solid var(--line);
-      padding-top:10px;
-      display:flex;
-      justify-content:space-between;
       align-items:center;
-      color:#1e3a8a;
-      font-weight:800;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 700;
+      user-select:none;
+    }
+    .chip.id{
+      background: #1e3a8a;
+      color:#fff;
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 180px 1fr;
+      gap: 10px 14px;
+      margin-top: 14px;
+      align-items:start;
+    }
+    .k{ color: var(--muted); font-weight: 600; }
+    .v{ color: var(--text); font-weight: 650; }
+
+    .toggle{
+      margin-top: 14px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color:#1f2a37;
+      font-weight: 800;
+      font-size: 18px;
       cursor:pointer;
       user-select:none;
     }
+    .toggle .arrow{ color:#1f2a37; }
+
+    .details{
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display:none;
+    }
+    .card.isOpen .details{ display:block; }
 
     .section{
-      margin-top:10px;
-      border-top:1px solid var(--line);
-      padding-top:10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
     }
-    .secTitle{
-      font-size:12px;
-      letter-spacing:.12em;
-      color:var(--muted);
-      font-weight:900;
-      margin-bottom:8px;
+    .section:last-child{ border-bottom:none; }
+    .sectionTitle{
+      color: var(--muted);
+      font-weight: 900;
+      letter-spacing: .12em;
+      font-size: 12px;
+      margin: 0 0 10px;
     }
 
     .subToggle{
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:8px 0;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
       cursor:pointer;
       user-select:none;
-      color:#1f2937;
-      font-weight:900;
+      font-weight: 900;
+      font-size: 20px;
     }
     .subBody{
-      padding:6px 0 10px;
-      color:#111827;
-      font-weight:650;
-      line-height:1.45;
-      white-space:pre-wrap;
+      display:none;
+      padding-top: 8px;
+      color: var(--text);
+      font-weight: 600;
+      line-height: 1.5;
+      white-space: pre-wrap;
     }
-    .mutedSmall{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:700;
-    }
+    .subWrap.isOpen .subBody{ display:block; }
 
-    .trophyGrid{
+    /* Trophy layout */
+    .tRow{
       display:grid;
-      grid-template-columns: 62px 1fr;
-      gap:10px 10px;
-      align-items:start;
+      grid-template-columns: 74px 1fr;
+      gap: 10px 12px;
+      align-items:center;
+      margin: 10px 0;
     }
-    .platChip{
+    .platTag{
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#f3f4f6;
-      font-size:12px;
-      font-weight:900;
-      width:max-content;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      font-weight: 900;
+      width: 74px;
+      color:#111827;
     }
-
-    .tLines{
-      display:grid;
-      gap:8px;
-    }
-    .tLine{
+    .barWrap{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      flex-direction:column;
+      gap: 7px;
     }
+    .barTop{
+      display:flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-weight: 900;
+    }
+    .barTop .pct{ color: var(--muted); font-weight: 800; }
     .bar{
-      height:8px;
-      background:#eef2ff;
-      border-radius:999px;
+      height: 12px;
+      border-radius: 999px;
+      background: #e5e7eb;
       overflow:hidden;
-      border:1px solid #dbeafe;
-      margin-top:6px;
+      border: 1px solid #d1d5db;
     }
-    .bar i{
-      display:block;
-      height:100%;
-      background:#1d4ed8;
-      width:0%;
-      border-radius:999px;
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: #1e40af;
+      border-radius: 999px;
     }
-    .barNote{
-      margin-top:6px;
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
+    .tBadges{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 8px;
+    }
+    .tiny{
+      font-size: 13px;
+      font-weight: 800;
+      padding: 7px 10px;
+      min-width: unset;
     }
 
-    .fabTop{
+    /* Floating Top button */
+    .floatTop{
       position: fixed;
-      right:14px;
-      bottom:14px;
-      z-index:60;
+      right: 14px;
+      bottom: 16px;
+      z-index: 30;
       display:none;
-    }
-    .fabTop button{
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:999px;
-      padding:10px 12px;
-      font-weight:900;
-      box-shadow: var(--shadow2);
+      align-items:center;
+      justify-content:center;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      font-weight: 900;
       cursor:pointer;
+      user-select:none;
     }
+    .floatTop.show{ display:flex; }
 
-    .drawerOverlay{
+    /* Modal */
+    .modalBackdrop{
       position: fixed;
-      inset:0;
-      background: rgba(17,24,39,.35);
-      backdrop-filter: blur(3px);
-      z-index:80;
+      inset: 0;
+      background: rgba(16,24,40,.45);
       display:none;
-    }
-    .drawer{
-      position: fixed;
-      inset: 0 0 auto 0;
-      max-height: 86vh;
-      background:#fff;
-      border-top-left-radius: 22px;
-      border-top-right-radius: 22px;
-      box-shadow: 0 -12px 30px rgba(17,24,39,.18);
-      z-index:90;
-      transform: translateY(110%);
-      transition: transform .22s ease;
-      padding:14px 14px 18px;
+      z-index: 50;
+      padding: 18px 14px;
       overflow:auto;
-      -webkit-overflow-scrolling: touch;
     }
-    .drawer.open{ transform: translateY(0); }
-    .drawerOverlay.open{ display:block; }
-
-    .drawerHead{
+    .modalBackdrop.show{ display:block; }
+    .modal{
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .modalHead{
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
     }
-    .drawerTitle{
-      font-weight:950;
-      font-size:16px;
+    .modalHead h2{
+      margin:0;
+      font-size: 26px;
+      letter-spacing: -0.01em;
     }
-    .drawerClose{
-      border:1px solid var(--line);
-      background:#f3f4f6;
-      border-radius:999px;
-      padding:8px 12px;
-      font-weight:900;
+    .closeBtn{
+      border: 1px solid var(--line);
+      background:#fff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
       cursor:pointer;
     }
 
-    .hint{
-      margin-top:8px;
-      border:1px dashed var(--line);
-      background:#f8fafc;
-      border-radius:14px;
-      padding:10px 12px;
-      font-size:13px;
-      color:var(--muted);
-      font-weight:650;
-      line-height:1.35;
+    .help{
+      background:#f2f4f7;
+      border: 1px dashed #d0d5dd;
+      border-radius: 14px;
+      padding: 12px;
+      color:#344054;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 10px 0 14px;
+      white-space: pre-wrap;
+    }
+    .fGroup{
+      margin: 14px 0;
+    }
+    .fTitle{
+      color: var(--muted);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .pillGrid{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .dot{
+      width: 10px; height:10px; border-radius:999px;
+      background:#9ca3af;
+    }
+    .pill.on{ background: #eef2ff; border-color:#c7d2fe; }
+    .pill.on .dot{ background:#1d4ed8; }
+
+    .pill.gray.on{ background: #f2f4f7; border-color:#d0d5dd; }
+    .pill.gray.on .dot{ background:#475467; }
+
+    .pill.green.on{ background: var(--greenBg); border-color: var(--greenBd); }
+    .pill.green.on .dot{ background: #16a34a; }
+
+    .pill.blue.on{ background: var(--blueBg); border-color: var(--blueBd); }
+    .pill.blue.on .dot{ background: #2563eb; }
+
+    .pill.orange.on{ background: var(--orangeBg); border-color: var(--orangeBd); }
+    .pill.orange.on .dot{ background: #d97706; }
+
+    .pill.red.on{ background: var(--dangerBg); border-color: var(--dangerBd); }
+    .pill.red.on .dot{ background: #ef4444; }
+
+    .actionsRow{
+      margin-top: 16px;
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border: 1px solid var(--line);
+      background:#fff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:#111827;
+      color:#fff;
+      border-color:#111827;
     }
 
-    .sentinel{
-      height:1px;
+    @media (max-width: 640px){
+      h1{ font-size: 36px; }
+      .grid{ grid-template-columns: 150px 1fr; }
+      .title{ font-size: 28px; }
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="topbar" id="topbar">
-      <h1>Spieleliste</h1>
+    <h1>Spieleliste</h1>
 
-      <div class="controls">
-        <div class="grid2">
-          <div>
-            <label class="small">Datei auswählen (XLSX)</label>
-            <input id="file" type="file" accept=".xlsx,.xls" />
-          </div>
-          <div>
-            <label class="small">Sheet</label>
-            <select id="sheet" disabled>
-              <option value="">Sheet auswählen…</option>
-            </select>
-          </div>
+    <div id="controls" class="controlsCard">
+      <div class="row">
+        <div class="field">
+          <div class="label">Datei auswählen (XLSX)</div>
+          <input id="file" class="input" type="file" accept=".xlsx,.xls" />
+        </div>
+        <div class="field">
+          <div class="label">Sheet</div>
+          <select id="sheet" disabled>
+            <option value="">Bitte zuerst eine Datei laden…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="miniRow" style="margin-top:12px">
+        <div class="field">
+          <input id="search" class="input" placeholder="Suche… (z.B. id:643 delisted favorite plat completed inprogress unplayed source:digital system:ps5)" />
         </div>
 
-        <div class="grid2" style="margin-top:10px;">
-          <div class="miniRow">
-            <input id="q" type="text" placeholder='Suche… (z.B. id:643 delisted favoritlevel)' />
-          </div>
-          <div class="miniRow">
-            <select id="sort">
-              <option value="id_asc">Sort: ID ↑</option>
-              <option value="id_desc">Sort: ID ↓</option>
-              <option value="title_asc">Sort: Spieletitel (Text) ↑</option>
-              <option value="title_desc">Sort: Spieletitel (Text) ↓</option>
-              <option value="system_asc">Sort: System ↑</option>
-              <option value="system_desc">Sort: System ↓</option>
-              <option value="source_asc">Sort: Quelle ↑</option>
-              <option value="source_desc">Sort: Quelle ↓</option>
-              <option value="genre_asc">Sort: Genre ↑</option>
-              <option value="genre_desc">Sort: Genre ↓</option>
-              <option value="dev_asc">Sort: Entwickler ↑</option>
-              <option value="dev_desc">Sort: Entwickler ↓</option>
-              <option value="main_asc">Sort: Spielzeit (Main) ↑</option>
-              <option value="main_desc">Sort: Spielzeit (Main) ↓</option>
-              <option value="meta_desc">Sort: Metascore ↓</option>
-              <option value="meta_asc">Sort: Metascore ↑</option>
-              <option value="user_desc">Sort: Userwertung ↓</option>
-              <option value="user_asc">Sort: Userwertung ↑</option>
-              <option value="life_desc">Sort: Lebenszeit % ↓</option>
-              <option value="life_asc">Sort: Lebenszeit % ↑</option>
-            </select>
-
-            <div class="btnIcon" id="openFilters" title="Filter & Sort">
-              ☰
-            </div>
-          </div>
+        <div class="field" style="flex: 0 0 290px; min-width: 240px;">
+          <select id="sort">
+            <!-- wird per JS gefüllt -->
+          </select>
         </div>
 
-        <div class="stats" id="stats">Datei wählen → Sheet wählen → los</div>
+        <div class="menuBtn" id="openMenu" title="Sortieren & Filtern">≡</div>
+      </div>
+
+      <div id="stats" class="stats">Noch keine Datei geladen.</div>
+    </div>
+
+    <div id="list" class="list"></div>
+    <div id="sentinel" style="height: 1px;"></div>
+
+    <div id="topBtn" class="floatTop">↑ Top</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="backdrop" class="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Sortieren und Filtern">
+      <div class="modalHead">
+        <h2>Sortieren & Filtern</h2>
+        <button class="closeBtn" id="closeMenu">Schließen</button>
+      </div>
+
+      <div class="help">
+Suche: normaler Text durchsucht Titel/Genre/Subgenre/Entwickler/Quelle.
+Query:
+- id:12
+- system:ps5
+- source:digital | source:psplus | source:retail
+- delisted, favorite
+- plat, completed, inprogress, unplayed, nopl
+(auch kombinierbar)
+      </div>
+
+      <div class="fGroup">
+        <div class="fTitle">Status</div>
+        <div class="pillGrid" id="fgStatus"></div>
+      </div>
+
+      <div class="fGroup">
+        <div class="fTitle">System</div>
+        <div class="pillGrid" id="fgSystem"></div>
+      </div>
+
+      <div class="fGroup">
+        <div class="fTitle">Quelle</div>
+        <div class="pillGrid" id="fgSource"></div>
+      </div>
+
+      <div class="fGroup">
+        <div class="fTitle">Trophäen</div>
+        <div class="pillGrid" id="fgTrophy"></div>
+      </div>
+
+      <div class="actionsRow">
+        <button class="btn" id="clearFilters">Filter löschen</button>
+        <button class="btn primary" id="applyMenu">Übernehmen</button>
       </div>
     </div>
-
-    <div class="cards" id="cards"></div>
-    <div class="sentinel" id="sentinel"></div>
   </div>
 
-  <div class="fabTop" id="fabTop">
-    <button id="btnTop">↑ Top</button>
-  </div>
+<script>
+(() => {
+  /***********************
+   * Robust state (versioned)
+   ***********************/
+  const LS_KEY = "spieleliste_ui_state_v4";
+  const STATE_VERSION = 4;
 
-  <div class="drawerOverlay" id="overlay"></div>
-  <div class="drawer" id="drawer">
-    <div class="drawerHead">
-      <div class="drawerTitle">Sortieren & Filtern</div>
-      <button class="drawerClose" id="closeDrawer">Schließen</button>
-    </div>
+  const defaultState = () => ({
+    v: STATE_VERSION,
+    sheetName: "",
+    search: "",
+    sortKey: "id",
+    sortDir: "asc",
+    filters: {
+      favorite: false,
+      delisted: false,
+      system: new Set(),      // PS3/PS4/PS5/Vita
+      source: new Set(),      // Digital/PS Plus/Retail-Disc
+      trophy: new Set(),      // unplayed/inprogress/completed/plat/nopl
+    }
+  });
 
-    <div class="hint">
-      <b>Suche:</b> normaler Text durchsucht Titel/Genre/Subgenre/Entwickler/Quelle. <br>
-      <b>Query:</b> <code>id:12</code>, <code>system:ps5</code>, <code>source:digital</code>, <code>delisted</code>, <code>favorite</code>, <code>plat</code>, <code>completed</code>, <code>inprogress</code>, <code>unplayed</code> (auch kombinierbar).
-    </div>
+  let state = defaultState();
 
-    <div class="chipGroupTitle">Status</div>
-    <div class="pillRow" id="filterStatus"></div>
-
-    <div class="chipGroupTitle">System</div>
-    <div class="pillRow" id="filterSystem"></div>
-
-    <div class="chipGroupTitle">Quelle</div>
-    <div class="pillRow" id="filterSource"></div>
-
-    <div class="chipGroupTitle">Trophäen</div>
-    <div class="pillRow" id="filterTrophy"></div>
-
-    <div class="pillRow" style="margin-top:14px;">
-      <div class="chip" id="clearFilters"><span class="dot"></span>Filter löschen</div>
-    </div>
-  </div>
-
-  <script src="xlsx.full.min.js"></script>
-  <script>
-    // -----------------------------
-    // State
-    // -----------------------------
-    const state = {
-      wb: null,
-      rows: [],
-      sheetName: "",
-      filtered: [],
-      renderedCount: 0,
-      batch: 50,
-      // filters
-      f: {
-        status: new Set(),     // favorite, delisted
-        system: new Set(),     // PS3/PS4/PS5/Vita
-        source: new Set(),     // Digital, PS Plus, Retail-Disc
-        trophy: new Set(),     // unplayed, inprogress, completed, plat, noplatform? (not used)
-      },
-      q: "",
-      sort: "id_asc",
-      expanded: new Set(),      // row id -> expanded
-      subOpen: new Map(),       // row id -> {desc:true, extras:true, eggs:true}
+  function saveState(){
+    const safe = {
+      v: state.v,
+      sheetName: state.sheetName,
+      search: state.search,
+      sortKey: state.sortKey,
+      sortDir: state.sortDir,
+      filters: {
+        favorite: state.filters.favorite,
+        delisted: state.filters.delisted,
+        system: Array.from(state.filters.system),
+        source: Array.from(state.filters.source),
+        trophy: Array.from(state.filters.trophy),
+      }
     };
+    localStorage.setItem(LS_KEY, JSON.stringify(safe));
+  }
 
-    const LS_KEY = "spieleliste_ui_v9";
-    loadPersist();
-
-    // -----------------------------
-    // Utils
-    // -----------------------------
-    const norm = (s) => String(s ?? "").replace(/\u00A0/g," ").trim();
-    const toLower = (s) => norm(s).toLowerCase();
-
-    function parseNumberLoose(s){
-      const t = norm(s);
-      if(!t) return NaN;
-      // handles "79 / 100" or "79/100"
-      const m = t.match(/(-?\d+(?:[.,]\d+)?)/);
-      if(!m) return NaN;
-      return parseFloat(m[1].replace(",", "."));
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(!parsed || parsed.v !== STATE_VERSION) return; // version mismatch => ignore old broken state
+      state.sheetName = parsed.sheetName || "";
+      state.search = parsed.search || "";
+      state.sortKey = parsed.sortKey || "id";
+      state.sortDir = parsed.sortDir || "asc";
+      state.filters.favorite = !!parsed.filters?.favorite;
+      state.filters.delisted = !!parsed.filters?.delisted;
+      state.filters.system = new Set(parsed.filters?.system || []);
+      state.filters.source = new Set(parsed.filters?.source || []);
+      state.filters.trophy = new Set(parsed.filters?.trophy || []);
+    }catch(e){
+      // ignore broken storage
     }
+  }
 
-    function parseLifePercent(s){
-      // Lebenszeit % can be "0.0012" or "0,0012"
-      const t = norm(s);
-      if(!t) return NaN;
-      const m = t.match(/(-?\d+(?:[.,]\d+)?)/);
-      if(!m) return NaN;
-      return parseFloat(m[1].replace(",", "."));
+  loadState();
+
+  /***********************
+   * Helpers
+   ***********************/
+  const $ = (id) => document.getElementById(id);
+  const norm = (v) => String(v ?? "").replace(/\u00A0/g," ").trim();
+  const lower = (v) => norm(v).toLowerCase();
+
+  function splitSystems(sys){
+    // "PS4, PS5" / "PS3, Vita" / "PS4" ...
+    const s = norm(sys);
+    if(!s) return [];
+    return s.split(",").map(x => x.trim()).filter(Boolean);
+  }
+
+  function parsePairsByPlatform(cell){
+    // cell like: "PS4\n18 of 18  PS5\n17 of 18" or "PS4 Completed\nPS5 In Progress"
+    // We normalize newlines/spaces and then parse platform blocks.
+    const txt = norm(cell);
+    if(!txt) return [];
+
+    const cleaned = txt
+      .replace(/\r/g, "\n")
+      .replace(/\t/g, " ")
+      .replace(/[ ]{2,}/g, " ")
+      .replace(/\n{2,}/g, "\n")
+      .trim();
+
+    // Split into tokens but preserve platform + value
+    // Strategy: find occurrences of (PS3|PS4|PS5|Vita) and take following text until next platform.
+    const re = /(PS3|PS4|PS5|Vita)\s*\n?\s*/gi;
+    const parts = [];
+    let m, idxs = [];
+    while((m = re.exec(cleaned)) !== null){
+      idxs.push({ i: m.index, plat: m[1].toUpperCase() });
     }
+    if(idxs.length === 0) return [];
 
-    function parsePlatformsFromSystem(raw){
-      const t = norm(raw);
-      if(!t) return [];
-      const found = [];
-      ["PS3","PS4","PS5","Vita"].forEach(p=>{
-        if(new RegExp("\\b"+p+"\\b","i").test(t)) found.push(p);
-      });
-      return found;
+    for(let i=0;i<idxs.length;i++){
+      const start = idxs[i].i;
+      const end = (i+1<idxs.length) ? idxs[i+1].i : cleaned.length;
+      const plat = idxs[i].plat;
+      const chunk = cleaned.slice(start, end);
+
+      // remove platform label
+      const value = chunk.replace(new RegExp("^" + plat + "\\s*\\n?\\s*", "i"), "").trim();
+      if(value) parts.push({ plat, value });
     }
+    return parts;
+  }
 
-    function splitByPlatformBlocks(text){
-      // returns array of blocks each containing a platform label and following content
-      const t = String(text ?? "").replace(/\r/g,"\n");
-      const re = /\b(PS3|PS4|PS5|Vita)\b/ig;
-      const idx = [];
-      let m;
-      while((m = re.exec(t)) !== null){
-        idx.push({i:m.index, p:m[1]});
-      }
-      if(!idx.length) return [];
+  function parseProgressValue(value){
+    // "18 of 18"
+    const v = norm(value);
+    const m = v.match(/(\d+)\s*of\s*(\d+)/i);
+    if(!m) return null;
+    const a = parseInt(m[1],10), b = parseInt(m[2],10);
+    if(!Number.isFinite(a) || !Number.isFinite(b) || b<=0) return null;
+    return { cur:a, total:b, pct: Math.max(0, Math.min(100, Math.round((a/b)*100))) };
+  }
 
-      const blocks = [];
-      for(let k=0;k<idx.length;k++){
-        const start = idx[k].i;
-        const end = (k+1<idx.length) ? idx[k+1].i : t.length;
-        blocks.push(t.slice(start, end).trim());
-      }
-      return blocks;
-    }
+  function parse100Token(value){
+    // "Completed" / "In Progress"
+    const t = lower(value);
+    if(!t) return "";
+    if(t.includes("completed")) return "COMPLETED";
+    if(t.includes("in progress")) return "IN_PROGRESS";
+    return "";
+  }
 
-    function parseProgressCell(raw, systemPlatforms){
-      // returns {PS4:{cur,total}}
-      const out = {};
-      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
-      if(!text) return out;
+  function parsePlatinumToken(value){
+    // IMPORTANT: No-Platinum-Title FIRST
+    const t = lower(value);
+    if(!t) return "";
+    if(t.includes("no-platinum-title") || /no[\s-]*platinum/.test(t)) return "NO_PLAT";
+    if(t.includes("platinum")) return "PLAT";
+    if(t.includes("in progress")) return "IN_PROGRESS";
+    return "";
+  }
 
-      const blocks = splitByPlatformBlocks(text);
-      if(blocks.length){
-        for(const block of blocks){
-          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-          const nums = block.match(/(\d+)\s*of\s*(\d+)/i);
-          if(plat && nums){
-            out[plat] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
-          }
-        }
-        return out;
-      }
+  function parseMetascore(v){
+    const s = norm(v);
+    const m = s.match(/(\d+(?:[.,]\d+)?)\s*\/\s*100/);
+    if(m) return parseFloat(m[1].replace(",", "."));
+    const n = parseFloat(s.replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
 
-      // Singleplatform fallback: "18 of 18" (ohne Plattform)
-      if(systemPlatforms && systemPlatforms.length === 1){
-        const nums = text.match(/(\d+)\s*of\s*(\d+)/i);
-        if(nums){
-          out[systemPlatforms[0]] = { cur: parseInt(nums[1],10), total: parseInt(nums[2],10) };
-        }
-      }
-      return out;
-    }
+  function parseLifePct(v){
+    const n = parseFloat(norm(v).replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
 
-    function parseCompletionCell(raw, systemPlatforms){
-      // returns {PS4:"Completed"|"In Progress"}
-      const out = {};
-      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
-      if(!text) return out;
+  function textForSortTitle(title){
+    // stable alpha sort: ignore leading articles, normalize whitespace
+    let t = norm(title);
+    t = t.replace(/^(the|a|an)\s+/i, ""); // optional
+    return t;
+  }
 
-      const blocks = splitByPlatformBlocks(text);
-      if(blocks.length){
-        for(const block of blocks){
-          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-          if(!plat) continue;
-
-          if(/\bcompleted\b/i.test(block)) out[plat] = "Completed";
-          else if(/\bin\s*progress\b/i.test(block)) out[plat] = "In Progress";
-        }
-        return out;
-      }
-
-      // Singleplatform fallback: "Completed" / "In Progress"
-      if(systemPlatforms && systemPlatforms.length === 1){
-        if(/\bcompleted\b/i.test(text)) out[systemPlatforms[0]] = "Completed";
-        else if(/\bin\s*progress\b/i.test(text)) out[systemPlatforms[0]] = "In Progress";
-      }
-      return out;
-    }
-
-    function parsePlatinumCell(raw, systemPlatforms){
-      // returns {PS4:"Platinum"|"No Platinum"|"In Progress"}
-      const out = {};
-      const text = String(raw ?? "").replace(/\r/g, "\n").trim();
-      if(!text) return out;
-
-      const blocks = splitByPlatformBlocks(text);
-      const readStatus = (s) => {
-        // No Platinum muss vor Platinum kommen
-        if(/\bno\b[\s\-]*\bplatinum\b/i.test(s)) return "No Platinum";
-        if(/\bkein\b[\s\-]*\bplatin(um)?\b/i.test(s)) return "No Platinum";
-        if(/\bplatinum\b/i.test(s)) return "Platinum";
-        if(/\bin\s*progress\b/i.test(s)) return "In Progress";
-        return null;
-      };
-
-      if(blocks.length){
-        for(const block of blocks){
-          const plat = (block.match(/\b(PS3|PS4|PS5|Vita)\b/i) || [])[1];
-          if(!plat) continue;
-          const st = readStatus(block);
-          if(st) out[plat] = st;
-        }
-        return out;
-      }
-
-      // Singleplatform fallback
-      if(systemPlatforms && systemPlatforms.length === 1){
-        const st = readStatus(text);
-        if(st) out[systemPlatforms[0]] = st;
-      }
-      return out;
-    }
-
-    function buildTrophyModel(row){
-      const platforms = parsePlatformsFromSystem(row["System"]);
-      const pMap = parseProgressCell(row["Trophäen Fortschritt"], platforms);
-      const cMap = parseCompletionCell(row["100%"], platforms);
-      const plMap = parsePlatinumCell(row["Platin"], platforms);
-
-      // "started" pro Plattform: sobald irgendeine der drei Spalten für diese Plattform existiert
-      const perPlatform = {};
-      for(const p of platforms){
-        const hasAny = !!pMap[p] || !!cMap[p] || !!plMap[p];
-        perPlatform[p] = {
-          started: hasAny,
-          progress: pMap[p] || null,
-          completion: cMap[p] || null,
-          platinum: plMap[p] || null
-        };
-      }
-
-      // Global summary badges:
-      const anyStarted = Object.values(perPlatform).some(x=>x.started);
-
-      const anyCompleted = Object.values(perPlatform).some(x=>x.completion === "Completed");
-      const anyInProgress = Object.values(perPlatform).some(x=>x.completion === "In Progress" || x.platinum === "In Progress");
-      const anyPlatinum = Object.values(perPlatform).some(x=>x.platinum === "Platinum");
-      const anyNoPlatinum = anyStarted && Object.values(perPlatform).some(x=>x.platinum === "No Platinum");
-
-      // "Kein Platin" global: gestartet UND nirgends Platinum UND mindestens ein "No Platinum" UND nirgends "In Progress" für Platin
-      const allPlatKnown = anyStarted && Object.values(perPlatform).every(x=> !x.started || x.platinum !== null);
-      const globalNoPlatinum = anyStarted && !anyPlatinum && anyNoPlatinum && allPlatKnown && !Object.values(perPlatform).some(x=>x.platinum === "In Progress");
-
-      const completionState =
-        !anyStarted ? "Unplayed" :
-        anyCompleted ? "Completed" :
-        "In Progress";
-
-      const platinumState =
-        !anyStarted ? "Unplayed" :
-        anyPlatinum ? "Platinum" :
-        globalNoPlatinum ? "No Platinum" :
-        "In Progress";
-
-      return { platforms, perPlatform, anyStarted, completionState, platinumState };
-    }
-
-    function isDelisted(row){
-      // Availability column names may vary; you used "Verfügbarkeit"
-      const v = toLower(row["Verfügbarkeit"]);
-      return v.includes("delisted") || v.includes("deli");
-    }
-
-    function isFavorite(row){
-      return toLower(row["Favorit"]) === "x";
-    }
-
-    function getTitle(row){
-      return norm(row["Spieletitel"]) || norm(row["Spiel"]) || "—";
-    }
-
-    function getId(row){
-      const v = norm(row["ID"]);
-      const n = parseInt(v,10);
-      return Number.isFinite(n) ? n : v;
-    }
-
-    function getSource(row){
-      // now: Digital | PS Plus | Retail-Disc
-      const s = norm(row["Quelle"]);
-      return s || "—";
-    }
-
-    function storeLink(row){
-      const s = norm(row["Store Link"]);
-      if(!s || s === "-" ) return "";
-      // if it is not a URL, just show text
-      if(!/^https?:\/\//i.test(s)) return s;
-      return s;
-    }
-
-    function formatField(val){
-      const t = norm(val);
-      return t ? t : "—";
-    }
-
-    function miniBadge(text, kind){
-      const b = document.createElement("span");
-      b.className = "badge";
-      if(kind === "ok") b.classList.add("ok");
-      if(kind === "warn") b.classList.add("warn");
-      if(kind === "bad") b.classList.add("del");
-      if(kind === "plat") b.classList.add("plat");
-      if(kind === "sleep") b.classList.add("sleep");
-      b.textContent = text;
-      return b;
-    }
-
-    function localeTextCompare(a,b){
-      // stable german-ish + numeric sorting
-      return String(a).localeCompare(String(b), "de", { sensitivity:"base", numeric:true });
-    }
-
-    // -----------------------------
-    // UI elements
-    // -----------------------------
-    const elFile = document.getElementById("file");
-    const elSheet = document.getElementById("sheet");
-    const elQ = document.getElementById("q");
-    const elSort = document.getElementById("sort");
-    const elCards = document.getElementById("cards");
-    const elStats = document.getElementById("stats");
-    const sentinel = document.getElementById("sentinel");
-
-    const drawer = document.getElementById("drawer");
-    const overlay = document.getElementById("overlay");
-    const openFilters = document.getElementById("openFilters");
-    const closeDrawer = document.getElementById("closeDrawer");
-    const clearFilters = document.getElementById("clearFilters");
-
-    const filterStatus = document.getElementById("filterStatus");
-    const filterSystem = document.getElementById("filterSystem");
-    const filterSource = document.getElementById("filterSource");
-    const filterTrophy = document.getElementById("filterTrophy");
-
-    const fabTop = document.getElementById("fabTop");
-    const btnTop = document.getElementById("btnTop");
-
-    // -----------------------------
-    // Drawer open/close
-    // -----------------------------
-    function openDrawer(){
-      overlay.classList.add("open");
-      drawer.classList.add("open");
-    }
-    function closeDrawerFn(){
-      drawer.classList.remove("open");
-      overlay.classList.remove("open");
-    }
-    openFilters.addEventListener("click", openDrawer);
-    closeDrawer.addEventListener("click", closeDrawerFn);
-    overlay.addEventListener("click", closeDrawerFn);
-
-    // -----------------------------
-    // Top button
-    // -----------------------------
-    btnTop.addEventListener("click", ()=> window.scrollTo({top:0, behavior:"smooth"}));
-
-    window.addEventListener("scroll", ()=>{
-      fabTop.style.display = (window.scrollY > 800) ? "block" : "none";
-    }, {passive:true});
-
-    // -----------------------------
-    // Infinite scroll
-    // -----------------------------
-    let io = null;
-    function setupIO(){
-      if(io) io.disconnect();
-      io = new IntersectionObserver((entries)=>{
-        for(const e of entries){
-          if(e.isIntersecting){
-            renderMore();
-          }
-        }
-      }, { root:null, rootMargin:"1200px 0px 1200px 0px", threshold:0 });
-      io.observe(sentinel);
-    }
-
-    // -----------------------------
-    // Filters chips builder
-    // -----------------------------
-    function mkChip(text, key, set, kind){
-      const c = document.createElement("div");
-      c.className = "chip";
-      if(kind) c.classList.add(kind);
-      c.innerHTML = `<span class="dot"></span><span>${text}</span>`;
-      const on = set.has(key);
-      if(on) c.classList.add("on");
-      c.addEventListener("click", ()=>{
-        if(set.has(key)) set.delete(key); else set.add(key);
-        savePersist();
-        applyAll();
-        // update chip visual
-        rebuildFilterChips();
-      });
+  function stableCompare(a, b, mode){
+    // mode: "text" uses localeCompare; fallback by id
+    if(mode === "text"){
+      const A = textForSortTitle(a).toLocaleLowerCase("de-DE");
+      const B = textForSortTitle(b).toLocaleLowerCase("de-DE");
+      const c = A.localeCompare(B, "de-DE", { sensitivity:"base", numeric:true });
       return c;
     }
+    if(mode === "num"){
+      const A = (a==null ? Number.NEGATIVE_INFINITY : a);
+      const B = (b==null ? Number.NEGATIVE_INFINITY : b);
+      if(A < B) return -1;
+      if(A > B) return 1;
+      return 0;
+    }
+    // default
+    return String(a).localeCompare(String(b), "de-DE", { sensitivity:"base", numeric:true });
+  }
 
-    function rebuildFilterChips(){
-      filterStatus.innerHTML = "";
-      filterSystem.innerHTML = "";
-      filterSource.innerHTML = "";
-      filterTrophy.innerHTML = "";
+  /***********************
+   * Column mapping (your sheet)
+   ***********************/
+  const COL = {
+    id: "ID",
+    title: "Spieletitel",
+    system: "System",
+    source: "Quelle",
+    genre: "Genre",
+    dev: "Entwickler",
+    subgenre: "Subgenre",
+    desc: "Kurzbeschreibung",
+    store: "Store Link",
+    avail: "Verfügbarkeit",
+    meta: "Metascore",
+    user: "Userwertung",
+    main: "Spielzeit (Main)",
+    hundred: "Spielzeit (100%)",
+    fav: "Favorit",
+    special: "Besonderheiten",
+    eggs: "Eastereggs",
+    trophiesProgress: "Trophäen Fortschritt",
+    trophies100: "100%",
+    trophiesPlat: "Platin",
+    humorHours: "Gesamtstunden (Humorstatistik)",
+    humorLife: "% Lebenszeit (Humorstatistik)",
+    humorYears: "Jahre (Humorstatistik)",
+  };
 
-      filterStatus.appendChild(mkChip("⭐ Favorit", "favorite", state.f.status, null));
-      filterStatus.appendChild(mkChip("Delisted", "delisted", state.f.status, "bad"));
+  /***********************
+   * Data
+   ***********************/
+  let workbook = null;
+  let rows = [];
+  let filtered = [];
+  let renderCount = 0;
+  const PAGE_SIZE = 40;
 
-      ["PS5","PS4","PS3","Vita"].forEach(p=>{
-        filterSystem.appendChild(mkChip(p, p, state.f.system, null));
-      });
+  function setStats(){
+    const shown = Math.min(renderCount, filtered.length);
+    $("stats").textContent = `Treffer: ${filtered.length} · angezeigt: ${shown}/${filtered.length} · Gesamt: ${rows.length}`;
+  }
 
-      ["Digital","PS Plus","Retail-Disc"].forEach(s=>{
-        filterSource.appendChild(mkChip(s, s, state.f.source, null));
-      });
+  /***********************
+   * Sort options (limited, in your order)
+   ***********************/
+  const SORTS = [
+    { key:"id",        label:"Sort: ID", mode:"num"  },
+    { key:"title",     label:"Sort: Spieletitel (Text)", mode:"text" },
+    { key:"system",    label:"Sort: System", mode:"text" },
+    { key:"source",    label:"Sort: Quelle", mode:"text" },
+    { key:"genre",     label:"Sort: Genre", mode:"text" },
+    { key:"dev",       label:"Sort: Entwickler", mode:"text" },
+    { key:"main",      label:"Sort: Spielzeit (Main)", mode:"num" },
+    { key:"meta",      label:"Sort: Metascore", mode:"num" },
+    { key:"user",      label:"Sort: Userwertung", mode:"num" },
+    { key:"life",      label:"Sort: Lebenszeit %", mode:"num" },
+  ];
 
-      filterTrophy.appendChild(mkChip("💤 Ungespielt", "unplayed", state.f.trophy, "sleep"));
-      filterTrophy.appendChild(mkChip("⏳ In Arbeit", "inprogress", state.f.trophy, "warn"));
-      filterTrophy.appendChild(mkChip("✅ 100% erreicht", "completed", state.f.trophy, "ok"));
-      filterTrophy.appendChild(mkChip("💎 Platin erlangt", "plat", state.f.trophy, "plat"));
-      filterTrophy.appendChild(mkChip("— Kein Platin", "nopl", state.f.trophy, null));
+  function fillSortSelect(){
+    const sel = $("sort");
+    sel.innerHTML = "";
+    for(const s of SORTS){
+      const o1 = document.createElement("option");
+      o1.value = `${s.key}:asc`;
+      o1.textContent = `${s.label} ↑`;
+      sel.appendChild(o1);
+
+      const o2 = document.createElement("option");
+      o2.value = `${s.key}:desc`;
+      o2.textContent = `${s.label} ↓`;
+      sel.appendChild(o2);
+    }
+    sel.value = `${state.sortKey}:${state.sortDir}`;
+  }
+
+  fillSortSelect();
+
+  /***********************
+   * Query parse
+   ***********************/
+  function parseQuery(q){
+    const txt = norm(q);
+    const out = {
+      text: "",
+      id: null,
+      system: null,
+      source: null,
+      delisted: null,
+      favorite: null,
+      plat: null,
+      completed: null,
+      inprogress: null,
+      unplayed: null,
+      nopl: null,
+    };
+
+    if(!txt) return out;
+
+    const tokens = txt.split(/\s+/).filter(Boolean);
+    const free = [];
+
+    for(const tok of tokens){
+      const t = tok.trim();
+      const m = t.match(/^([a-z]+):(.*)$/i);
+      if(m){
+        const k = m[1].toLowerCase();
+        const v = m[2].toLowerCase();
+        if(k === "id") out.id = v;
+        else if(k === "system") out.system = v;
+        else if(k === "source") out.source = v;
+        else free.push(t);
+      }else{
+        const tt = t.toLowerCase();
+        if(tt === "delisted") out.delisted = true;
+        else if(tt === "favorite") out.favorite = true;
+        else if(tt === "plat") out.plat = true;
+        else if(tt === "completed") out.completed = true;
+        else if(tt === "inprogress") out.inprogress = true;
+        else if(tt === "unplayed") out.unplayed = true;
+        else if(tt === "nopl") out.nopl = true;
+        else free.push(t);
+      }
     }
 
-    clearFilters.addEventListener("click", ()=>{
-      state.f.status.clear();
-      state.f.system.clear();
-      state.f.source.clear();
-      state.f.trophy.clear();
-      savePersist();
-      applyAll();
-      rebuildFilterChips();
+    out.text = free.join(" ").trim().toLowerCase();
+    return out;
+  }
+
+  /***********************
+   * Trophy derivation (from your new schema)
+   ***********************/
+  function buildTrophyModel(r){
+    const systems = splitSystems(r[COL.system]);
+
+    const progPairs = parsePairsByPlatform(r[COL.trophiesProgress]);
+    const c100Pairs = parsePairsByPlatform(r[COL.trophies100]);
+    const platPairs = parsePairsByPlatform(r[COL.trophiesPlat]);
+
+    const progMap = new Map();
+    for(const p of progPairs){
+      const pv = parseProgressValue(p.value);
+      if(pv) progMap.set(p.plat, pv);
+    }
+
+    const c100Map = new Map();
+    for(const p of c100Pairs){
+      const tok = parse100Token(p.value);
+      if(tok) c100Map.set(p.plat, tok);
+    }
+
+    const platMap = new Map();
+    for(const p of platPairs){
+      const tok = parsePlatinumToken(p.value);
+      if(tok) platMap.set(p.plat, tok);
+    }
+
+    // Determine per-system status
+    const per = systems.map(plat => {
+      const progress = progMap.get(plat) || null;
+      const c100 = c100Map.get(plat) || "";
+      const platTok = platMap.get(plat) || "";
+
+      const played = !!(progress || c100 || platTok);
+      const unplayed = !played;
+
+      return { plat, progress, c100, platTok, unplayed };
     });
 
-    // -----------------------------
-    // Persist (query/sort/filters)
-    // -----------------------------
-    function savePersist(){
-      try{
-        const payload = {
-          q: state.q,
-          sort: state.sort,
-          f: {
-            status:[...state.f.status],
-            system:[...state.f.system],
-            source:[...state.f.source],
-            trophy:[...state.f.trophy],
-          }
-        };
-        localStorage.setItem(LS_KEY, JSON.stringify(payload));
-      }catch(e){}
+    // Global tags for filtering/badges:
+    const anyUnplayed = per.some(x => x.unplayed);
+    const anyInProgress = per.some(x => x.c100 === "IN_PROGRESS" || x.platTok === "IN_PROGRESS" || (x.progress && x.progress.pct < 100));
+    const anyCompleted = per.some(x => x.c100 === "COMPLETED" || (x.progress && x.progress.pct === 100));
+    const anyPlat = per.some(x => x.platTok === "PLAT");
+    const anyNoPlat = per.some(x => x.platTok === "NO_PLAT");
+
+    // Game-level unplayed = ALL unplayed (i.e. trophy cells empty)
+    const allUnplayed = per.length ? per.every(x => x.unplayed) : true;
+
+    return { systems, per, anyUnplayed, allUnplayed, anyInProgress, anyCompleted, anyPlat, anyNoPlat };
+  }
+
+  /***********************
+   * Normalize row into view-model fields
+   ***********************/
+  function toVM(r){
+    const id = Number(norm(r[COL.id]));
+    const title = norm(r[COL.title]) || "—";
+    const system = norm(r[COL.system]);
+    const source = norm(r[COL.source]);
+    const genre = norm(r[COL.genre]);
+    const dev = norm(r[COL.dev]);
+    const sub = norm(r[COL.subgenre]);
+    const main = norm(r[COL.main]);
+    const hundred = norm(r[COL.hundred]);
+
+    const metaNum = parseMetascore(r[COL.meta]);
+    const userNum = parseMetascore(r[COL.user]);
+    const lifeNum = parseLifePct(r[COL.humorLife]);
+
+    const fav = lower(r[COL.fav]) === "x";
+    const delisted = lower(r[COL.avail]).includes("entfernt") || lower(r[COL.avail]).includes("delisted");
+
+    const trophies = buildTrophyModel(r);
+
+    return {
+      r,
+      id,
+      title,
+      system,
+      source,
+      genre,
+      dev,
+      sub,
+      main,
+      hundred,
+      metaNum,
+      userNum,
+      lifeNum,
+      fav,
+      delisted,
+      trophies,
+    };
+  }
+
+  /***********************
+   * Filtering
+   ***********************/
+  function passesFilters(vm, q){
+    // Query id
+    if(q.id){
+      if(String(vm.id) !== String(q.id)) return false;
     }
 
-    function loadPersist(){
-      try{
-        const raw = localStorage.getItem(LS_KEY);
-        if(!raw) return;
-        const p = JSON.parse(raw);
-        state.q = p.q ?? "";
-        state.sort = p.sort ?? "id_asc";
-        state.f.status = new Set(p.f?.status ?? []);
-        state.f.system = new Set(p.f?.system ?? []);
-        state.f.source = new Set(p.f?.source ?? []);
-        state.f.trophy = new Set(p.f?.trophy ?? []);
-      }catch(e){}
+    // Modal filters
+    if(state.filters.favorite && !vm.fav) return false;
+    if(state.filters.delisted && !vm.delisted) return false;
+
+    if(state.filters.system.size){
+      const sysSet = new Set(splitSystems(vm.system));
+      let ok = false;
+      for(const s of state.filters.system){
+        if(sysSet.has(s)) { ok = true; break; }
+      }
+      if(!ok) return false;
     }
 
-    // -----------------------------
-    // XLSX load
-    // -----------------------------
-    elFile.addEventListener("change", async (ev)=>{
-      const f = ev.target.files?.[0];
-      if(!f) return;
-      const buf = await f.arrayBuffer();
-      state.wb = XLSX.read(buf, {type:"array"});
-      const names = state.wb.SheetNames || [];
-      elSheet.innerHTML = `<option value="">Sheet auswählen…</option>` + names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-      elSheet.disabled = false;
-
-      // auto-select if previous was "Spieleliste Komplett"
-      const prefer = names.find(n=> n.toLowerCase().includes("spieleliste komplett")) || names[0];
-      elSheet.value = prefer;
-      state.sheetName = prefer;
-      loadSheet();
-    });
-
-    elSheet.addEventListener("change", ()=>{
-      state.sheetName = elSheet.value;
-      loadSheet();
-    });
-
-    function loadSheet(){
-      if(!state.wb || !state.sheetName) return;
-      const ws = state.wb.Sheets[state.sheetName];
-      const json = XLSX.utils.sheet_to_json(ws, {defval:"", raw:false});
-      state.rows = json;
-      state.expanded.clear();
-      state.subOpen.clear();
-      applyAll(true);
-      setupIO();
+    if(state.filters.source.size){
+      if(!state.filters.source.has(vm.source)) return false;
     }
 
-    // -----------------------------
-    // Search / Sort handlers
-    // -----------------------------
-    elQ.value = state.q;
-    elSort.value = state.sort;
+    if(state.filters.trophy.size){
+      const t = vm.trophies;
 
-    elQ.addEventListener("input", ()=>{
-      state.q = elQ.value;
-      savePersist();
-      applyAll(true);
-    });
-    elSort.addEventListener("change", ()=>{
-      state.sort = elSort.value;
-      savePersist();
-      applyAll(true);
-    });
+      const want = state.filters.trophy;
+      const ok =
+        (!want.has("unplayed") || t.allUnplayed) &&
+        (!want.has("inprogress") || t.anyInProgress) &&
+        (!want.has("completed") || t.anyCompleted) &&
+        (!want.has("plat") || t.anyPlat) &&
+        (!want.has("nopl") || t.anyNoPlat);
 
-    // -----------------------------
-    // Filtering core
-    // -----------------------------
-    function applyAll(resetRender=false){
-      if(!state.rows.length){
-        elCards.innerHTML = "";
-        elStats.textContent = "Keine Daten geladen.";
-        return;
-      }
-      state.filtered = state.rows.filter(row => matchRow(row));
-      sortRows(state.filtered);
-      if(resetRender){
-        state.renderedCount = 0;
-        elCards.innerHTML = "";
-      }
-      renderMore(true);
-      updateStats();
+      if(!ok) return false;
     }
 
-    function matchRow(row){
-      const title = getTitle(row);
-      const id = getId(row);
-      const sys = norm(row["System"]);
-      const src = getSource(row);
-      const del = isDelisted(row);
-      const fav = isFavorite(row);
-
-      const tModel = buildTrophyModel(row);
-
-      // query parsing
-      const q = norm(state.q);
-      if(q){
-        const parts = q.split(/\s+/).filter(Boolean);
-        let ok = true;
-        for(const p of parts){
-          const pl = p.toLowerCase();
-
-          if(pl.startsWith("id:")){
-            const want = pl.slice(3).trim();
-            if(String(id) !== want) ok = false;
-          } else if(pl.startsWith("system:")){
-            const want = pl.slice(7).trim();
-            if(!toLower(sys).includes(want)) ok = false;
-          } else if(pl.startsWith("source:")){
-            const want = pl.slice(7).trim();
-            if(!toLower(src).includes(want)) ok = false;
-          } else if(pl === "delisted"){
-            if(!del) ok = false;
-          } else if(pl === "favorite" || pl === "fav"){
-            if(!fav) ok = false;
-          } else if(pl === "completed"){
-            if(tModel.completionState !== "Completed") ok = false;
-          } else if(pl === "inprogress"){
-            if(tModel.completionState !== "In Progress" && tModel.platinumState !== "In Progress") ok = false;
-          } else if(pl === "unplayed"){
-            if(tModel.completionState !== "Unplayed") ok = false;
-          } else if(pl === "plat"){
-            if(tModel.platinumState !== "Platinum") ok = false;
-          } else {
-            // free text
-            const hay = [
-              title,
-              norm(row["Genre"]),
-              norm(row["Subgenre"]),
-              norm(row["Entwickler"]),
-              norm(row["Quelle"]),
-              norm(row["Kurzbeschreibung"]),
-            ].join(" ").toLowerCase();
-            if(!hay.includes(pl)) ok = false;
-          }
-
-          if(!ok) break;
-        }
-        if(!ok) return false;
-      }
-
-      // chip filters
-      if(state.f.status.has("delisted") && !del) return false;
-      if(state.f.status.has("favorite") && !fav) return false;
-
-      if(state.f.system.size){
-        const plats = parsePlatformsFromSystem(sys);
-        const hasAny = [...state.f.system].some(p=> plats.includes(p));
-        if(!hasAny) return false;
-      }
-
-      if(state.f.source.size){
-        if(!state.f.source.has(src)) return false;
-      }
-
-      if(state.f.trophy.size){
-        // OR semantics among selected trophy filters
-        let pass = false;
-        for(const f of state.f.trophy){
-          if(f === "unplayed" && tModel.completionState === "Unplayed") pass = true;
-          if(f === "completed" && tModel.completionState === "Completed") pass = true;
-          if(f === "inprogress" && (tModel.completionState === "In Progress" || tModel.platinumState === "In Progress")) pass = true;
-          if(f === "plat" && tModel.platinumState === "Platinum") pass = true;
-          if(f === "nopl" && tModel.platinumState === "No Platinum") pass = true;
-        }
-        if(!pass) return false;
-      }
-
-      return true;
+    // Query tokens
+    if(q.system){
+      if(!lower(vm.system).includes(q.system)) return false;
+    }
+    if(q.source){
+      if(!lower(vm.source).includes(q.source)) return false;
+    }
+    if(q.delisted){
+      if(!vm.delisted) return false;
+    }
+    if(q.favorite){
+      if(!vm.fav) return false;
+    }
+    if(q.plat){
+      if(!vm.trophies.anyPlat) return false;
+    }
+    if(q.completed){
+      if(!vm.trophies.anyCompleted) return false;
+    }
+    if(q.inprogress){
+      if(!vm.trophies.anyInProgress) return false;
+    }
+    if(q.unplayed){
+      if(!vm.trophies.allUnplayed) return false;
+    }
+    if(q.nopl){
+      if(!vm.trophies.anyNoPlat) return false;
     }
 
-    function sortRows(arr){
-      const s = state.sort;
-      const dir = s.endsWith("_desc") ? -1 : 1;
-      const key = s.replace(/_(asc|desc)$/,"");
-
-      arr.sort((a,b)=>{
-        let A, B;
-
-        if(key === "id"){
-          A = parseInt(norm(a["ID"]),10);
-          B = parseInt(norm(b["ID"]),10);
-          if(!Number.isFinite(A)) A = 1e18;
-          if(!Number.isFinite(B)) B = 1e18;
-          return (A-B)*dir;
-        }
-
-        if(key === "title"){
-          A = getTitle(a);
-          B = getTitle(b);
-          return localeTextCompare(A,B)*dir;
-        }
-
-        if(key === "system"){
-          A = norm(a["System"]);
-          B = norm(b["System"]);
-          return localeTextCompare(A,B)*dir;
-        }
-
-        if(key === "source"){
-          A = getSource(a);
-          B = getSource(b);
-          return localeTextCompare(A,B)*dir;
-        }
-
-        if(key === "genre"){
-          A = norm(a["Genre"]);
-          B = norm(b["Genre"]);
-          return localeTextCompare(A,B)*dir;
-        }
-
-        if(key === "dev"){
-          A = norm(a["Entwickler"]);
-          B = norm(b["Entwickler"]);
-          return localeTextCompare(A,B)*dir;
-        }
-
-        if(key === "main"){
-          A = parseNumberLoose(a["Spielzeit (Main)"]);
-          B = parseNumberLoose(b["Spielzeit (Main)"]);
-          if(!Number.isFinite(A)) A = (dir>0? 1e18 : -1e18);
-          if(!Number.isFinite(B)) B = (dir>0? 1e18 : -1e18);
-          return (A-B)*dir;
-        }
-
-        if(key === "meta"){
-          A = parseNumberLoose(a["Metascore"]);
-          B = parseNumberLoose(b["Metascore"]);
-          if(!Number.isFinite(A)) A = -1;
-          if(!Number.isFinite(B)) B = -1;
-          return (A-B)*dir;
-        }
-
-        if(key === "user"){
-          A = parseNumberLoose(a["Userwertung"]);
-          B = parseNumberLoose(b["Userwertung"]);
-          if(!Number.isFinite(A)) A = -1;
-          if(!Number.isFinite(B)) B = -1;
-          return (A-B)*dir;
-        }
-
-        if(key === "life"){
-          A = parseLifePercent(a["% Lebenszeit"]);
-          B = parseLifePercent(b["% Lebenszeit"]);
-          if(!Number.isFinite(A)) A = -1;
-          if(!Number.isFinite(B)) B = -1;
-          return (A-B)*dir;
-        }
-
-        return 0;
-      });
+    // Free text search
+    if(q.text){
+      const hay = [
+        vm.title, vm.genre, vm.sub, vm.dev, vm.source
+      ].map(lower).join(" | ");
+      if(!hay.includes(q.text)) return false;
     }
 
-    // -----------------------------
-    // Rendering
-    // -----------------------------
-    function renderMore(force=false){
-      if(!state.filtered.length) {
-        if(force) elCards.innerHTML = "";
-        updateStats();
-        return;
+    return true;
+  }
+
+  /***********************
+   * Sorting
+   ***********************/
+  function sortVM(a, b){
+    const spec = SORTS.find(s => s.key === state.sortKey) || SORTS[0];
+    const dir = state.sortDir === "desc" ? -1 : 1;
+
+    const get = (vm) => {
+      switch(spec.key){
+        case "id": return vm.id;
+        case "title": return vm.title;
+        case "system": return vm.system;
+        case "source": return vm.source;
+        case "genre": return vm.genre;
+        case "dev": return vm.dev;
+        case "main": {
+          const n = parseFloat(norm(vm.main).replace(",", "."));
+          return Number.isFinite(n) ? n : null;
+        }
+        case "meta": return vm.metaNum;
+        case "user": return vm.userNum;
+        case "life": return vm.lifeNum;
+        default: return vm[spec.key];
       }
-      const next = Math.min(state.filtered.length, state.renderedCount + state.batch);
-      if(next <= state.renderedCount && !force) return;
+    };
 
-      const frag = document.createDocumentFragment();
-      for(let i=state.renderedCount;i<next;i++){
-        frag.appendChild(cardEl(state.filtered[i]));
+    const A = get(a), B = get(b);
+    let c = stableCompare(A, B, spec.mode);
+    if(c === 0) c = stableCompare(a.id, b.id, "num"); // stable fallback
+    return c * dir;
+  }
+
+  /***********************
+   * Rendering
+   ***********************/
+  function makeBadge(text, cls){
+    const s = document.createElement("span");
+    s.className = `badge ${cls || ""}`.trim();
+    s.textContent = text;
+    return s;
+  }
+
+  function makeTinyBadge(text, cls){
+    const s = makeBadge(text, cls);
+    s.classList.add("tiny");
+    return s;
+  }
+
+  function renderTrophies(vm){
+    const t = vm.trophies;
+
+    const wrap = document.createElement("div");
+
+    // Fortschritt (with bars)
+    const sec = document.createElement("div");
+    sec.className = "section";
+    sec.innerHTML = `<div class="sectionTitle">TROPHÄEN</div>`;
+
+    // Fortschritt title
+    const fTitle = document.createElement("div");
+    fTitle.className = "k";
+    fTitle.textContent = "Fortschritt";
+    sec.appendChild(fTitle);
+
+    for(const p of t.per){
+      const row = document.createElement("div");
+      row.className = "tRow";
+
+      const tag = document.createElement("div");
+      tag.className = "platTag";
+      tag.textContent = p.plat;
+
+      const barWrap = document.createElement("div");
+      barWrap.className = "barWrap";
+
+      if(p.unplayed){
+        const badges = document.createElement("div");
+        badges.className = "tBadges";
+        badges.appendChild(makeTinyBadge("💤 Ungespielt", "badge--unplayed"));
+        barWrap.appendChild(badges);
+      }else{
+        // if progress missing but played: show placeholder
+        const pr = p.progress;
+        if(pr){
+          const top = document.createElement("div");
+          top.className = "barTop";
+          top.innerHTML = `<div>${pr.cur} of ${pr.total}</div><div class="pct">${pr.pct}%</div>`;
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          const fill = document.createElement("div");
+          fill.style.width = pr.pct + "%";
+          bar.appendChild(fill);
+
+          barWrap.appendChild(top);
+          barWrap.appendChild(bar);
+        }else{
+          const top = document.createElement("div");
+          top.className = "barTop";
+          top.innerHTML = `<div>—</div><div class="pct">—</div>`;
+          barWrap.appendChild(top);
+
+          const badges = document.createElement("div");
+          badges.className = "tBadges";
+          badges.appendChild(makeTinyBadge("⏳ In Arbeit", "badge--progress"));
+          barWrap.appendChild(badges);
+        }
       }
-      elCards.appendChild(frag);
-      state.renderedCount = next;
-      updateStats();
-    }
 
-    function updateStats(){
-      const total = state.rows.length;
-      const hits = state.filtered.length;
-      const shown = state.renderedCount;
+      row.appendChild(tag);
+      row.appendChild(barWrap);
+      sec.appendChild(row);
 
-      if(!state.rows.length){
-        elStats.textContent = "Datei wählen → Sheet wählen → los";
-        return;
-      }
-      elStats.textContent = `Treffer: ${hits} · angezeigt: ${shown}/${hits} · Gesamt: ${total}`;
-    }
+      // Completion / Platinum badges for this platform
+      const sub = document.createElement("div");
+      sub.style.margin = "6px 0 10px 86px";
+      const bWrap = document.createElement("div");
+      bWrap.className = "tBadges";
 
-    function cardEl(row){
-      const id = getId(row);
-      const title = getTitle(row);
-      const sys = norm(row["System"]);
-      const plats = parsePlatformsFromSystem(sys);
-      const src = getSource(row);
-      const del = isDelisted(row);
-      const fav = isFavorite(row);
-
-      const trophy = buildTrophyModel(row);
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const head = document.createElement("div");
-      head.className = "cardHead";
-
-      const left = document.createElement("div");
-      const t = document.createElement("div");
-      t.className = "title";
-      t.textContent = title;
-      left.appendChild(t);
-
-      head.appendChild(left);
-
-      const badgeCol = document.createElement("div");
-      badgeCol.className = "badgeCol";
-
-      if(fav) badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge fav", textContent:"⭐ Favorit"}));
-
-      // BONUS: Platin/Completion als saubere Zustände
       // Completion badge
-      if(trophy.completionState === "Completed"){
-        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge ok", textContent:"✅ 100% erreicht"}));
-      } else if(trophy.completionState === "In Progress"){
-        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge warn", textContent:"⏳ In Arbeit"}));
-      } else {
-        // unplayed: nicht im Header nötig (du wolltest ungespielt eher im Detail) – aber ok wenn du willst:
-        // badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge sleep", textContent:"💤 Ungespielt"}));
+      if(p.unplayed){
+        bWrap.appendChild(makeTinyBadge("💤 Ungespielt", "badge--unplayed"));
+      }else if(p.c100 === "COMPLETED" || (p.progress && p.progress.pct === 100)){
+        bWrap.appendChild(makeTinyBadge("✅ 100% erreicht", "badge--done"));
+      }else{
+        bWrap.appendChild(makeTinyBadge("⏳ In Arbeit", "badge--progress"));
       }
 
-      // Platinum badge (inkl. Kein Platin)
-      if(trophy.platinumState === "Platinum"){
-        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge plat", textContent:"💎 Platin erlangt"}));
-      } else if(trophy.platinumState === "No Platinum"){
-        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge", textContent:"— Kein Platin"}));
-      } else if(trophy.platinumState === "In Progress" && trophy.anyStarted){
-        badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge warn", textContent:"⏳ Platin in Arbeit"}));
+      // Platinum badge
+      if(p.unplayed){
+        // show unplayed in platinum row too (your wish)
+        bWrap.appendChild(makeTinyBadge("💤 Ungespielt", "badge--unplayed"));
+      }else if(p.platTok === "NO_PLAT"){
+        bWrap.appendChild(makeTinyBadge("— Kein Platin", "badge--nopl"));
+      }else if(p.platTok === "PLAT"){
+        bWrap.appendChild(makeTinyBadge("💎 Platin erlangt", "badge--plat"));
+      }else{
+        bWrap.appendChild(makeTinyBadge("⏳ In Arbeit", "badge--progress"));
       }
 
-      if(del) badgeCol.appendChild(Object.assign(document.createElement("span"), {className:"badge del", textContent:"Delisted"}));
-
-      head.appendChild(badgeCol);
-      card.appendChild(head);
-
-      // ID + System badges row
-      const subBadges = document.createElement("div");
-      subBadges.className = "subBadges";
-
-      const idPill = document.createElement("span");
-      idPill.className = "idPill";
-      idPill.textContent = `ID ${id}`;
-      subBadges.appendChild(idPill);
-
-      // system badges
-      plats.forEach(p=>{
-        const s = document.createElement("span");
-        s.className = "tag sys";
-        s.textContent = p;
-        subBadges.appendChild(s);
-      });
-
-      // availability
-      const avail = formatField(row["Verfügbarkeit"]);
-      const av = document.createElement("span");
-      av.className = "tag avail";
-      av.textContent = avail;
-      subBadges.appendChild(av);
-
-      card.appendChild(subBadges);
-
-      // Reduced view fields
-      const kv = document.createElement("div");
-      kv.className = "kv";
-
-      // show exactly: Genre, Entwickler, Spielzeit, Metascore, Userwertung
-      addKV(kv, "Genre", formatField(row["Genre"]));
-      addKV(kv, "Entwickler", formatField(row["Entwickler"]));
-
-      // Spielzeit compact: "Main / 100%"
-      const main = formatField(row["Spielzeit (Main)"]);
-      const h100 = formatField(row["Spielzeit (100%)"]);
-      addKV(kv, "Spielzeit", `${main} / ${h100}`.replace("— / —","—"));
-
-      addKV(kv, "Metascore", formatField(row["Metascore"]), true);
-      addKV(kv, "Userwertung", formatField(row["Userwertung"]), true);
-
-      card.appendChild(kv);
-
-      // Details toggle
-      const toggle = document.createElement("div");
-      toggle.className = "detailsToggle";
-      const isOpen = state.expanded.has(String(id));
-      toggle.textContent = isOpen ? "▼ Weniger Details" : "▶ Mehr Details";
-      toggle.addEventListener("click", ()=>{
-        if(state.expanded.has(String(id))) state.expanded.delete(String(id));
-        else state.expanded.add(String(id));
-        // rerender full list slice for simplicity (still fast with 1200)
-        rerenderAllVisible();
-      });
-      card.appendChild(toggle);
-
-      if(isOpen){
-        // DESCRIPTION
-        card.appendChild(sectionCollapsible(
-          String(id), "BESCHREIBUNG", "Kurzbeschreibung anzeigen",
-          formatField(row["Kurzbeschreibung"]),
-          "desc"
-        ));
-
-        // STORE
-        const storeSec = document.createElement("div");
-        storeSec.className = "section";
-        storeSec.appendChild(secTitle("STORE"));
-
-        const kv2 = document.createElement("div");
-        kv2.className = "kv";
-        addKV(kv2, "Quelle", formatField(row["Quelle"]));
-        addKV(kv2, "Store", renderStoreLink(row));
-        addKV(kv2, "Verfügbarkeit", formatField(row["Verfügbarkeit"]));
-        storeSec.appendChild(kv2);
-        card.appendChild(storeSec);
-
-        // EXTRAS
-        const extras = document.createElement("div");
-        extras.className = "section";
-        extras.appendChild(secTitle("EXTRAS"));
-        extras.appendChild(subCollapsible(String(id), "Besonderheiten anzeigen", formatField(row["Besonderheiten"]), "extras"));
-        extras.appendChild(subCollapsible(String(id), "Eastereggs anzeigen", formatField(row["Eastereggs"]), "eggs"));
-        card.appendChild(extras);
-
-        // TROPHÄEN
-        const tro = document.createElement("div");
-        tro.className = "section";
-        tro.appendChild(secTitle("TROPHÄEN"));
-
-        const tg = document.createElement("div");
-        tg.className = "trophyGrid";
-
-        // Per platform: always show system platforms and fill missing as Ungespielt
-        for(const p of trophy.platforms){
-          const platChip = document.createElement("div");
-          platChip.className = "platChip";
-          platChip.textContent = p;
-
-          const info = trophy.perPlatform[p] || {started:false, progress:null, completion:null, platinum:null};
-
-          const right = document.createElement("div");
-          right.className = "tLines";
-
-          // Line builder
-          const linesWrap = document.createElement("div");
-          linesWrap.className = "tLines";
-
-          // Fortschritt line + optional bar
-          linesWrap.appendChild(tLine("Fortschritt", (()=> {
-            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
-            if(info.progress && Number.isFinite(info.progress.cur) && Number.isFinite(info.progress.total) && info.progress.total>0){
-              return miniBadge(`${String(info.progress.cur).padStart(2,"0")} of ${info.progress.total}`,"");
-            }
-            return miniBadge("—","");
-          })()));
-
-          // completion line
-          linesWrap.appendChild(tLine("Komplettion", (()=> {
-            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
-            if(info.completion === "Completed") return miniBadge("✅ 100% erreicht","ok");
-            if(info.completion === "In Progress") return miniBadge("⏳ In Arbeit","warn");
-            return miniBadge("⏳ In Arbeit","warn");
-          })()));
-
-          // platinum line
-          linesWrap.appendChild(tLine("Platin", (()=> {
-            if(!info.started) return miniBadge("💤 Ungespielt","sleep");
-            if(info.platinum === "Platinum") return miniBadge("💎 Platin erlangt","plat");
-            if(info.platinum === "No Platinum") return miniBadge("— Kein Platin","");
-            if(info.platinum === "In Progress") return miniBadge("⏳ In Arbeit","warn");
-            return miniBadge("⏳ In Arbeit","warn");
-          })()));
-
-          right.appendChild(linesWrap);
-
-          // progress bar only if numbers exist
-          if(info.started && info.progress && Number.isFinite(info.progress.cur) && Number.isFinite(info.progress.total) && info.progress.total>0){
-            const pct = Math.max(0, Math.min(100, (info.progress.cur/info.progress.total)*100));
-            const bar = document.createElement("div");
-            bar.className = "bar";
-            const fill = document.createElement("i");
-            fill.style.width = pct.toFixed(1) + "%";
-            bar.appendChild(fill);
-
-            const note = document.createElement("div");
-            note.className = "barNote";
-            note.textContent = `${pct.toFixed(0)}% (${info.progress.cur}/${info.progress.total})`;
-
-            right.appendChild(bar);
-            right.appendChild(note);
-          }
-
-          tg.appendChild(platChip);
-          tg.appendChild(right);
-        }
-
-        tro.appendChild(tg);
-        card.appendChild(tro);
-
-        // HUMORSTATISTIK
-        const hu = document.createElement("div");
-        hu.className = "section";
-        hu.appendChild(secTitle("HUMORSTATISTIK"));
-
-        const kv3 = document.createElement("div");
-        kv3.className = "kv";
-        addKV(kv3, "Gesamtstunden", formatField(row["Gesamtstunden (Humorstatistik)"]), true);
-        addKV(kv3, "% Lebenszeit", formatField(row["% Lebenszeit (Humorstatistik)"]), true);
-        addKV(kv3, "Jahre", formatField(row["Jahre (Humorstatistik)"]), true);
-
-        hu.appendChild(kv3);
-        card.appendChild(hu);
-      }
-
-      return card;
+      sub.appendChild(bWrap);
+      sec.appendChild(sub);
     }
 
-    function addKV(kv, k, v, mono=false){
+    wrap.appendChild(sec);
+    return wrap;
+  }
+
+  function renderCard(vm){
+    const r = vm.r;
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const header = document.createElement("div");
+    header.className = "cardHeader";
+
+    const hLeft = document.createElement("div");
+    const title = document.createElement("h3");
+    title.className = "title";
+    title.textContent = vm.title;
+    hLeft.appendChild(title);
+
+    const hRight = document.createElement("div");
+    hRight.className = "badges";
+
+    if(vm.fav) hRight.appendChild(makeBadge("⭐ Favorit", "badge--fav"));
+
+    // Top-right trophy summary (game-level)
+    if(vm.trophies.anyPlat) hRight.appendChild(makeBadge("💎 Platin erlangt", "badge--plat"));
+    if(vm.trophies.anyCompleted) hRight.appendChild(makeBadge("✅ 100% erreicht", "badge--done"));
+    if(!vm.trophies.anyCompleted && vm.trophies.anyInProgress) hRight.appendChild(makeBadge("⏳ In Arbeit", "badge--progress"));
+    if(vm.trophies.anyNoPlat) hRight.appendChild(makeBadge("— Kein Platin", "badge--nopl"));
+
+    header.appendChild(hLeft);
+    header.appendChild(hRight);
+
+    const chipRow = document.createElement("div");
+    chipRow.className = "chipRow";
+    chipRow.appendChild(Object.assign(document.createElement("span"), { className:"chip id", textContent:`ID ${vm.id}` }));
+
+    // System chips
+    for(const s of splitSystems(vm.system)){
+      chipRow.appendChild(Object.assign(document.createElement("span"), { className:"chip", textContent:s }));
+    }
+
+    // Availability chip
+    const avail = norm(r[COL.avail]) || "—";
+    chipRow.appendChild(Object.assign(document.createElement("span"), { className:"chip", textContent:avail }));
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    const compactPairs = [
+      ["Genre", vm.genre || "—"],
+      ["Entwickler", vm.dev || "—"],
+      ["Spielzeit", (vm.main || "—") + (vm.hundred ? `h / ${vm.hundred}h` : "")].replace(/hh/g,"h"),
+      ["Metascore", norm(r[COL.meta]) || "—"],
+      ["Userwertung", norm(r[COL.user]) || "—"],
+    ];
+
+    for(const [k,v] of compactPairs){
       const kk = document.createElement("div");
       kk.className = "k";
       kk.textContent = k;
-
       const vv = document.createElement("div");
-      vv.className = "v" + (mono ? " mono" : "");
-      if(v instanceof Node){
-        vv.appendChild(v);
-      } else {
-        vv.textContent = String(v);
-      }
-      kv.appendChild(kk);
-      kv.appendChild(vv);
+      vv.className = "v";
+      vv.textContent = v;
+      grid.appendChild(kk);
+      grid.appendChild(vv);
     }
 
-    function secTitle(s){
-      const d = document.createElement("div");
-      d.className = "secTitle";
-      d.textContent = s;
-      return d;
-    }
+    const toggle = document.createElement("div");
+    toggle.className = "toggle";
+    toggle.innerHTML = `<span class="arrow">▶</span><span class="txt">Mehr Details</span>`;
 
-    function tLine(label, contentEl){
-      const wrap = document.createElement("div");
-      wrap.className = "tLine";
-      const l = document.createElement("div");
-      l.className = "mutedSmall";
-      l.textContent = label;
-      wrap.appendChild(l);
-      wrap.appendChild(contentEl);
-      return wrap;
-    }
+    toggle.addEventListener("click", () => {
+      const open = card.classList.toggle("isOpen");
+      toggle.querySelector(".arrow").textContent = open ? "▼" : "▶";
+      toggle.querySelector(".txt").textContent = open ? "Weniger Details" : "Mehr Details";
+    });
 
-    function renderStoreLink(row){
-      const url = storeLink(row);
-      if(!url || url === "—"){
-        const span = document.createElement("span");
-        span.textContent = "—";
-        return span;
-      }
-      if(/^https?:\/\//i.test(url)){
+    const details = document.createElement("div");
+    details.className = "details";
+
+    // Beschreibung (collapsible)
+    const secDesc = document.createElement("div");
+    secDesc.className = "section";
+    secDesc.innerHTML = `<div class="sectionTitle">BESCHREIBUNG</div>`;
+    const descWrap = document.createElement("div");
+    descWrap.className = "subWrap";
+    const st = document.createElement("div");
+    st.className = "subToggle";
+    st.innerHTML = `<span>Kurzbeschreibung anzeigen</span><span>▸</span>`;
+    const sb = document.createElement("div");
+    sb.className = "subBody";
+    sb.textContent = norm(r[COL.desc]) || "—";
+    st.addEventListener("click", () => {
+      const open = descWrap.classList.toggle("isOpen");
+      st.lastChild.textContent = open ? "▾" : "▸";
+    });
+    descWrap.appendChild(st);
+    descWrap.appendChild(sb);
+    secDesc.appendChild(descWrap);
+
+    // STORE section
+    const secStore = document.createElement("div");
+    secStore.className = "section";
+    secStore.innerHTML = `<div class="sectionTitle">STORE</div>`;
+    const storeGrid = document.createElement("div");
+    storeGrid.className = "grid";
+    const storePairs = [
+      ["Quelle", norm(r[COL.source]) || "—"],
+      ["Store", (norm(r[COL.store]) ? "Store Link" : "—")],
+      ["Verfügbarkeit", norm(r[COL.avail]) || "—"],
+    ];
+    for(const [k,v] of storePairs){
+      const kk = document.createElement("div"); kk.className="k"; kk.textContent=k;
+      const vv = document.createElement("div"); vv.className="v";
+      if(k === "Store" && norm(r[COL.store])){
         const a = document.createElement("a");
-        a.href = url;
+        a.href = norm(r[COL.store]);
         a.target = "_blank";
-        a.rel = "noopener";
+        a.rel = "noopener noreferrer";
         a.textContent = "Store Link";
-        a.title = url;
-        return a;
+        vv.appendChild(a);
+      }else{
+        vv.textContent = v;
       }
-      // plain text
-      const span = document.createElement("span");
-      span.textContent = url;
-      return span;
+      storeGrid.appendChild(kk); storeGrid.appendChild(vv);
     }
+    secStore.appendChild(storeGrid);
 
-    function sectionCollapsible(rowId, secName, toggleText, bodyText, key){
-      const sec = document.createElement("div");
-      sec.className = "section";
-      sec.appendChild(secTitle(secName));
-      sec.appendChild(subCollapsible(rowId, toggleText, bodyText, key, true));
-      return sec;
-    }
+    // EXTRAS section (Besonderheiten + Eastereggs collapsible)
+    const secExtras = document.createElement("div");
+    secExtras.className = "section";
+    secExtras.innerHTML = `<div class="sectionTitle">EXTRAS</div>`;
 
-    function subCollapsible(rowId, label, body, key, withGap=false){
-      const box = document.createElement("div");
-      const open = !!(state.subOpen.get(rowId)?.[key]);
-
+    function makeExtrasToggle(label, text){
+      const w = document.createElement("div");
+      w.className = "subWrap";
       const t = document.createElement("div");
       t.className = "subToggle";
-      t.innerHTML = `<span>${open ? "▼" : "▶"} ${escapeHtml(label)}</span><span class="mutedSmall">${open ? " " : ""}</span>`;
-      t.addEventListener("click", ()=>{
-        const cur = state.subOpen.get(rowId) || {};
-        cur[key] = !cur[key];
-        state.subOpen.set(rowId, cur);
-        rerenderAllVisible();
-      });
-
+      t.innerHTML = `<span>${label} anzeigen</span><span>▸</span>`;
       const b = document.createElement("div");
       b.className = "subBody";
-      b.style.display = open ? "block" : "none";
-      if(withGap && open){
-        b.style.marginTop = "6px";
+      b.textContent = norm(text) || "—";
+      t.addEventListener("click", () => {
+        const open = w.classList.toggle("isOpen");
+        t.lastChild.textContent = open ? "▾" : "▸";
+      });
+      w.appendChild(t);
+      w.appendChild(b);
+      return w;
+    }
+
+    secExtras.appendChild(makeExtrasToggle("Besonderheiten", r[COL.special]));
+    secExtras.appendChild(makeExtrasToggle("Eastereggs", r[COL.eggs]));
+
+    // TROPHÄEN section (your new logic)
+    const secT = renderTrophies(vm);
+
+    // HUMORSTATISTIK section
+    const secHum = document.createElement("div");
+    secHum.className = "section";
+    secHum.innerHTML = `<div class="sectionTitle">HUMORSTATISTIK</div>`;
+    const humGrid = document.createElement("div");
+    humGrid.className = "grid";
+    const humPairs = [
+      ["Gesamtstunden", norm(r[COL.humorHours]) || "—"],
+      ["% Lebenszeit", norm(r[COL.humorLife]) || "—"],
+      ["Jahre", norm(r[COL.humorYears]) || "—"],
+    ];
+    for(const [k,v] of humPairs){
+      const kk = document.createElement("div"); kk.className="k"; kk.textContent=k;
+      const vv = document.createElement("div"); vv.className="v"; vv.textContent=v;
+      humGrid.appendChild(kk); humGrid.appendChild(vv);
+    }
+    secHum.appendChild(humGrid);
+
+    details.appendChild(secDesc);
+    details.appendChild(secStore);
+    details.appendChild(secExtras);
+    details.appendChild(secT);
+    details.appendChild(secHum);
+
+    card.appendChild(header);
+    card.appendChild(chipRow);
+    card.appendChild(grid);
+    card.appendChild(toggle);
+    card.appendChild(details);
+
+    return card;
+  }
+
+  function rerender(reset=true){
+    if(reset){
+      $("list").innerHTML = "";
+      renderCount = 0;
+    }
+    const frag = document.createDocumentFragment();
+    const slice = filtered.slice(renderCount, renderCount + PAGE_SIZE);
+    for(const vm of slice){
+      frag.appendChild(renderCard(vm));
+    }
+    $("list").appendChild(frag);
+    renderCount += slice.length;
+    setStats();
+  }
+
+  function applyAll(){
+    const q = parseQuery(state.search);
+
+    // Build VM list
+    const vms = rows.map(toVM);
+
+    filtered = vms.filter(vm => passesFilters(vm, q));
+    filtered.sort(sortVM);
+
+    rerender(true);
+    saveState();
+  }
+
+  /***********************
+   * Modal (filters UI)
+   ***********************/
+  const backdrop = $("backdrop");
+
+  function openMenu(){
+    // sync UI
+    syncPills();
+    backdrop.classList.add("show");
+    backdrop.setAttribute("aria-hidden","false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeMenu(){
+    backdrop.classList.remove("show");
+    backdrop.setAttribute("aria-hidden","true");
+    document.body.style.overflow = "";
+  }
+
+  $("openMenu").addEventListener("click", openMenu);
+  $("closeMenu").addEventListener("click", closeMenu);
+  $("applyMenu").addEventListener("click", () => { closeMenu(); applyAll(); });
+  backdrop.addEventListener("click", (e) => {
+    if(e.target === backdrop) closeMenu();
+  });
+  window.addEventListener("keydown", (e) => {
+    if(e.key === "Escape" && backdrop.classList.contains("show")) closeMenu();
+  });
+
+  function pill(label, on, cls, onToggle){
+    const p = document.createElement("div");
+    p.className = `pill ${cls || ""} ${on ? "on" : ""}`.trim();
+    p.innerHTML = `<span class="dot"></span><span>${label}</span>`;
+    p.addEventListener("click", () => onToggle(p));
+    return p;
+  }
+
+  function syncPills(){
+    const fgStatus = $("fgStatus");
+    const fgSystem = $("fgSystem");
+    const fgSource = $("fgSource");
+    const fgTrophy = $("fgTrophy");
+    fgStatus.innerHTML = fgSystem.innerHTML = fgSource.innerHTML = fgTrophy.innerHTML = "";
+
+    // Status
+    fgStatus.appendChild(pill("⭐ Favorit", state.filters.favorite, "gray", (el)=>{
+      state.filters.favorite = !state.filters.favorite;
+      el.classList.toggle("on", state.filters.favorite);
+    }));
+    fgStatus.appendChild(pill("🔴 Delisted", state.filters.delisted, "red", (el)=>{
+      state.filters.delisted = !state.filters.delisted;
+      el.classList.toggle("on", state.filters.delisted);
+    }));
+
+    // System
+    for(const s of ["PS5","PS4","PS3","Vita"]){
+      fgSystem.appendChild(pill(s, state.filters.system.has(s), "", (el)=>{
+        if(state.filters.system.has(s)) state.filters.system.delete(s);
+        else state.filters.system.add(s);
+        el.classList.toggle("on", state.filters.system.has(s));
+      }));
+    }
+
+    // Source
+    for(const s of ["Digital","PS Plus","Retail-Disc"]){
+      fgSource.appendChild(pill(s, state.filters.source.has(s), "", (el)=>{
+        if(state.filters.source.has(s)) state.filters.source.delete(s);
+        else state.filters.source.add(s);
+        el.classList.toggle("on", state.filters.source.has(s));
+      }));
+    }
+
+    // Trophy
+    fgTrophy.appendChild(pill("💤 Ungespielt", state.filters.trophy.has("unplayed"), "gray", (el)=>{
+      toggleSet(state.filters.trophy, "unplayed", el);
+    }));
+    fgTrophy.appendChild(pill("⏳ In Arbeit", state.filters.trophy.has("inprogress"), "orange", (el)=>{
+      toggleSet(state.filters.trophy, "inprogress", el);
+    }));
+    fgTrophy.appendChild(pill("✅ 100% erreicht", state.filters.trophy.has("completed"), "green", (el)=>{
+      toggleSet(state.filters.trophy, "completed", el);
+    }));
+    fgTrophy.appendChild(pill("💎 Platin erlangt", state.filters.trophy.has("plat"), "blue", (el)=>{
+      toggleSet(state.filters.trophy, "plat", el);
+    }));
+    fgTrophy.appendChild(pill("— Kein Platin", state.filters.trophy.has("nopl"), "gray", (el)=>{
+      toggleSet(state.filters.trophy, "nopl", el);
+    }));
+  }
+
+  function toggleSet(set, key, el){
+    if(set.has(key)) set.delete(key);
+    else set.add(key);
+    el.classList.toggle("on", set.has(key));
+  }
+
+  $("clearFilters").addEventListener("click", () => {
+    state.filters.favorite = false;
+    state.filters.delisted = false;
+    state.filters.system.clear();
+    state.filters.source.clear();
+    state.filters.trophy.clear();
+    syncPills();
+  });
+
+  /***********************
+   * Controls events
+   ***********************/
+  $("search").value = state.search;
+  $("search").addEventListener("input", (e) => {
+    state.search = e.target.value;
+    applyAll();
+  });
+
+  $("sort").addEventListener("change", (e) => {
+    const [k,d] = e.target.value.split(":");
+    state.sortKey = k;
+    state.sortDir = d;
+    applyAll();
+  });
+
+  /***********************
+   * File load
+   ***********************/
+  $("file").addEventListener("change", async (e) => {
+    const f = e.target.files?.[0];
+    if(!f) return;
+
+    const buf = await f.arrayBuffer();
+    workbook = XLSX.read(buf, { type:"array" });
+
+    // fill sheets
+    const sel = $("sheet");
+    sel.innerHTML = "";
+    for(const name of workbook.SheetNames){
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    }
+    sel.disabled = false;
+
+    // restore last sheet if exists, else first
+    if(state.sheetName && workbook.SheetNames.includes(state.sheetName)){
+      sel.value = state.sheetName;
+    }else{
+      sel.value = workbook.SheetNames[0];
+      state.sheetName = sel.value;
+    }
+
+    loadSheet(sel.value);
+  });
+
+  $("sheet").addEventListener("change", (e) => {
+    state.sheetName = e.target.value;
+    loadSheet(state.sheetName);
+  });
+
+  function loadSheet(name){
+    if(!workbook) return;
+    const ws = workbook.Sheets[name];
+    const json = XLSX.utils.sheet_to_json(ws, { defval:"" });
+    rows = json;
+
+    // ensure sort select matches persisted state
+    fillSortSelect();
+
+    applyAll();
+  }
+
+  /***********************
+   * Infinite scroll
+   ***********************/
+  const observer = new IntersectionObserver((entries)=>{
+    for(const ent of entries){
+      if(ent.isIntersecting){
+        if(renderCount < filtered.length){
+          rerender(false);
+        }
       }
-      b.textContent = body;
-
-      box.appendChild(t);
-      box.appendChild(b);
-      return box;
     }
+  }, { root:null, rootMargin:"800px 0px", threshold:0.01 });
 
-    function rerenderAllVisible(){
-      // Rebuild currently shown list (keeps infinite feel, still lightweight at 1200)
-      const keep = state.renderedCount;
-      elCards.innerHTML = "";
-      state.renderedCount = 0;
-      const next = Math.min(state.filtered.length, keep);
-      const frag = document.createDocumentFragment();
-      for(let i=0;i<next;i++){
-        frag.appendChild(cardEl(state.filtered[i]));
+  observer.observe($("sentinel"));
+
+  /***********************
+   * Floating Top button
+   ***********************/
+  const topBtn = $("topBtn");
+  topBtn.addEventListener("click", ()=> window.scrollTo({ top:0, behavior:"smooth" }));
+
+  window.addEventListener("scroll", ()=>{
+    if(window.scrollY > 700) topBtn.classList.add("show");
+    else topBtn.classList.remove("show");
+  }, { passive:true });
+
+  /***********************
+   * Hide header on scroll (no flicker)
+   ***********************/
+  const controls = $("controls");
+  let lastY = window.scrollY;
+  let ticking = false;
+  let hidden = false;
+
+  window.addEventListener("scroll", ()=>{
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(()=>{
+      const y = window.scrollY;
+      const dy = y - lastY;
+
+      // do not hide if modal open
+      if(backdrop.classList.contains("show")){
+        controls.classList.remove("isHidden");
+        hidden = false;
+        lastY = y;
+        ticking = false;
+        return;
       }
-      elCards.appendChild(frag);
-      state.renderedCount = next;
-      updateStats();
-    }
 
-    function escapeHtml(s){
-      return String(s ?? "").replace(/[&<>"']/g, c=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[c]));
-    }
+      if(y < 60){
+        controls.classList.remove("isHidden");
+        hidden = false;
+      }else if(dy > 14 && !hidden){
+        controls.classList.add("isHidden");
+        hidden = true;
+      }else if(dy < -14 && hidden){
+        controls.classList.remove("isHidden");
+        hidden = false;
+      }
 
-    // -----------------------------
-    // Init chips + IO
-    // -----------------------------
-    rebuildFilterChips();
-    setupIO();
+      lastY = y;
+      ticking = false;
+    });
+  }, { passive:true });
 
-    // apply persisted controls
-    elQ.value = state.q || "";
-    elSort.value = state.sort || "id_asc";
-  </script>
+  /***********************
+   * Boot: if user already had file loaded -> can't auto reload file (browser limitation)
+   ***********************/
+  setStats();
+})();
+</script>
+
 </body>
 </html>
