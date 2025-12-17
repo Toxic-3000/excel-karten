@@ -276,6 +276,11 @@
       border-top: 1px solid var(--border);
       padding-top: 10px;
     }
+    
+    summary .openText{ display:none; }
+    details[open] > summary .openText{ display:inline; }
+    details[open] > summary .closedText{ display:none; }
+
     summary{
       cursor:pointer;
       list-style:none;
@@ -992,7 +997,6 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
-        syncToggleSummaries(el.list);
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1065,7 +1069,7 @@
 
         const store = (row.source || row.storeLink || row.availability) ? `
           <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
-            <summary>Store anzeigen</summary>
+            <summary><span class="closedText">Store anzeigen</span><span class="openText">Store verbergen</span></summary>
             <div class="sectionLabel">STORE</div>
             <div class="metaGrid">
               ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
@@ -1077,7 +1081,7 @@
 
         const desc = row.desc ? `
           <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
-            <summary>Beschreibung anzeigen</summary>
+            <summary><span class="closedText">Beschreibung anzeigen</span><span class="openText">Beschreibung verbergen</span></summary>
             <div class="sectionLabel">BESCHREIBUNG</div>
             <div class="textBlock">${escapeHtml(row.desc)}</div>
           </details>
@@ -1101,38 +1105,38 @@
         const compactToggle = (state.view === 'compact')
           ? `
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary>Mehr Details</summary>
+              <summary><span class="closedText">Mehr Details</span><span class="openText">Weniger Details</span></summary>
               ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
               ${desc}
               ${store}
               ${features}
               ${easter}
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary>Trophäen anzeigen</summary>
+                <summary><span class="closedText">Trophäen anzeigen</span><span class="openText">Trophäen verbergen</span></summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
+                <summary><span class="closedText">Humorstatistik anzeigen</span><span class="openText">Humorstatistik verbergen</span></summary>
                 ${humor}
               </details>
             </details>
           `
           : `
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
-              <summary>Weniger Details</summary>
+              <summary><span class="closedText">Mehr Details</span><span class="openText">Weniger Details</span></summary>
               ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
               ${desc}
               ${store}
               ${features}
               ${easter}
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
-                <summary>Trophäen verbergen</summary>
+                <summary><span class="closedText">Trophäen anzeigen</span><span class="openText">Trophäen verbergen</span></summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
+                <summary><span class="closedText">Humorstatistik anzeigen</span><span class="openText">Humorstatistik verbergen</span></summary>
                 ${humor}
               </details>
             </details>
@@ -1264,23 +1268,7 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
-
-
-      function syncToggleSummaries(root=document){
-        const nodes = root.querySelectorAll('details.toggleDetails');
-        for (const d of nodes){
-          const sum = d.querySelector(':scope > summary');
-          if (!sum) continue;
-          const more = d.getAttribute('data-more') || 'Mehr Details';
-          const less = d.getAttribute('data-less') || 'Weniger Details';
-          sum.textContent = d.open ? less : more;
-        }
       }
-
-      document.addEventListener('toggle', (e)=>{
-        const d = e.target;
-        if (d && d.matches && d.matches('details.toggleDetails')){
-          syncToggleSummaries(d.parentElement || document);
         }
       }, true);
 
