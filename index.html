@@ -1119,13 +1119,13 @@
             </details>
           `
           : `
-            ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
-            ${desc}
-            ${store}
-            ${features}
-            ${easter}
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
               <summary>Weniger Details</summary>
+              ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
+              ${desc}
+              ${store}
+              ${features}
+              ${easter}
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
                 <summary>Trophäen verbergen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
