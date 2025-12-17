@@ -457,12 +457,12 @@
         <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">TROPHÄEN</div>
         <select id="trophy" disabled>
           <option value="ALL">Alle</option>
-          <option value="Platinum">💎 Platin erlangt</option>
+          <option value="Platinum">Platin erlangt</option>
           <option value="No-Platinum-Title">Kein Platin</option>
-          <option value="Progress">⏳ In Arbeit</option>
-          <option value="Completed">✅ 100% erreicht</option>
+          <option value="Progress">In Arbeit</option>
+          <option value="Completed">100% erreicht</option>
           <option value="Started">Gestartet</option>
-          <option value="Unplayed">💤 Ungespielt</option>
+          <option value="Unplayed">Ungespielt</option>
         </select>
       </label>
 
@@ -715,44 +715,20 @@
           const vHund = hund.get(key) || '';
           const vPlat = plat.get(key) || '';
 
-          // Platinum flag is independent from progress
-          let platFlag = '';
-          if (vPlat === 'Platinum') platFlag = 'Platinum';
-          else if (vPlat === 'No-Platinum-Title') platFlag = 'No-Platinum-Title';
-
-          // Progress status from counts / 100% column
           let status = 'Unplayed';
+          if (vPlat === 'Platinum') status = 'Platinum';
+          else if (vPlat === 'No-Platinum-Title') status = 'No-Platinum-Title';
+
           const c = parseCount(vProg) || parseCount(vHund);
           const got = c ? c.got : 0;
           const total = c ? c.total : null;
           const percent = c ? c.percent : 0;
 
           const hundLower = vHund.toLowerCase();
-          if (hundLower.includes('completed')) status = 'Completed';
-          else if (hundLower.includes('in progress')) status = 'Progress';
-          else if (total != null && got >= total) status = 'Completed';
-          else if (got > 0) status = 'Progress';
-          else status = 'Unplayed';
-
-          const missing = !prog.has(key) && !hund.has(key) && !plat.has(key);
-          return { platform:key, status, platFlag, got, total, percent, missing };
-        });
-
-        const anyPlat = per.some(x => x.platFlag === 'Platinum');
-        const anyNoPlat = per.some(x => x.platFlag === 'No-Platinum-Title');
-        const anyCompleted = per.some(x => x.status === 'Completed');
-        const anyProgress = per.some(x => x.status === 'Progress');
-        const allUnplayed = per.every(x => x.status === 'Unplayed');
-
-        return {
-          per,
-          anyPlatinum: anyPlat,
-          anyNoPlat: anyNoPlat,
-          anyCompleted: anyCompleted,
-          anyProgress: anyProgress,
-          allUnplayed
-        };
-      }
+          if (status !== 'Platinum' && status !== 'No-Platinum-Title'){
+            if (hundLower.includes('completed')) status = 'Completed';
+            else if (hundLower.includes('in progress')) status = 'Progress';
+          }
 
           if (status !== 'Platinum' && status !== 'No-Platinum-Title'){
             if (total != null && got >= total) status = 'Completed';
@@ -780,11 +756,11 @@
 
       function primaryBadges(t){
         const badges = [];
-        if (t.anyPlatinum) badges.push({ label:'💎 Platin erlangt', cls:'badge--ok' });
-        if (t.anyCompleted) badges.push({ label:'✅ 100% erreicht', cls:'badge--ok' });
-        if (t.anyNoPlat) badges.push({ label:'Kein Platin', cls:'badge--warn' });
-        if (t.anyProgress) badges.push({ label:'⏳ In Arbeit', cls:'badge--progress' });
-        if (t.allUnplayed) badges.push({ label:'💤 Ungespielt', cls:'' });
+        if (t.anyPlatinum) badges.push({ label:'Platin erlangt', cls:'badge--ok' });
+        if (t.anyCompleted) badges.push({ label:'100% erreicht', cls:'badge--ok' });
+        if (!t.anyPlatinum && t.anyNoPlat) badges.push({ label:'Kein Platin', cls:'badge--warn' });
+        if (t.anyProgress || t.anyStarted) badges.push({ label:'In Arbeit', cls:'badge--progress' });
+        if (t.allUnplayed) badges.push({ label:'Ungespielt', cls:'' });
         return badges;
       }
 
@@ -893,9 +869,9 @@
           const t = row.trophy;
           if (state.trophy === 'Platinum' && !t.anyPlatinum) return false;
           if (state.trophy === 'No-Platinum-Title' && !t.anyNoPlat) return false;
-          if (state.trophy === 'Progress' && !t.anyProgress) return false;
+          if (state.trophy === 'Progress' && !(t.anyProgress || t.anyStarted)) return false;
           if (state.trophy === 'Completed' && !t.anyCompleted) return false;
-          if (state.trophy === 'Started' && !t.anyProgress) return false;
+          if (state.trophy === 'Started' && !t.anyStarted) return false;
           if (state.trophy === 'Unplayed' && !t.allUnplayed) return false;
         }
 
@@ -937,7 +913,7 @@
 
         const plat = filtered.filter(x=>x.trophy.anyPlatinum).length;
         const done = filtered.filter(x=>x.trophy.anyCompleted).length;
-        const prog = filtered.filter(x=>x.trophy.anyProgress).length;
+        const prog = filtered.filter(x=>x.trophy.anyProgress || x.trophy.anyStarted).length;
         const unpl = filtered.filter(x=>x.trophy.allUnplayed).length;
         const fav = filtered.filter(x=>x.favorite).length;
 
@@ -1115,16 +1091,11 @@
           const bar = `<div class="progressBar"><div style="width:${p.total != null ? p.percent : 0}%"></div></div>`;
 
           const badges = [];
-
-          // Status badge (icons requested)
-          if (p.status === 'Completed') badges.push({label:'✅ 100% erreicht', cls:'badge--ok'});
-          else if (p.status === 'Progress') badges.push({label:'⏳ In Arbeit', cls:'badge--progress'});
-          else if (p.status === 'Unplayed') badges.push({label:'💤 Ungespielt', cls:''});
-
-          // Platinum flag (independent)
-          if (p.platFlag === 'Platinum') badges.push({label:'💎 Platin erlangt', cls:'badge--ok'});
-          else if (p.platFlag === 'No-Platinum-Title') badges.push({label:'Kein Platin', cls:'badge--warn'});
-
+          if (p.status === 'Platinum') badges.push({label:'Platin erlangt', cls:'badge--ok'});
+          if (p.status === 'Completed') badges.push({label:'100% erreicht', cls:'badge--ok'});
+          if (p.status === 'No-Platinum-Title') badges.push({label:'Kein Platin', cls:'badge--warn'});
+          if (p.status === 'Progress' || p.status === 'Started') badges.push({label:'In Arbeit', cls:'badge--progress'});
+          if (p.status === 'Unplayed') badges.push({label:'Ungespielt', cls:''});
           if (p.missing) badges.push({label:'kein Block → ungespielt', cls:''});
 
           return `
