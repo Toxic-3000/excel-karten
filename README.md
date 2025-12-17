@@ -1,8 +1,12 @@
-# Spieleliste Webansicht v6
-Diese Version kombiniert:
-- UI & Features aus v4 (Filter/Sort, Kompakt/Detail, Badges mit 💎✅⏳💤, Trophy-Logik mit 'Kein Platin' als Flag)
-- Debug-Pills aus v5.1 (JS läuft / Datei / XLSX-Status) – ideal für Mobile ohne Konsole
-- XLSX wird lokal geladen: `./xlsx.full.min.js` (kein CDN nötig)
+# Spieleliste Webansicht v6.1
+Diese Version ist wieder **voll gestylt** (Single-File), und nutzt XLSX **lokal**.
 
-## GitHub Pages Setup
-Lege `index.html` und `xlsx.full.min.js` im selben Ordner ab (Repo root ist ok).
+## Dateien
+- index.html
+- xlsx.full.min.js
+
+Beide müssen im **gleichen Ordner** liegen (z.B. Repo-Root).
+
+## GitHub Pages
+Nach dem Commit ggf. einmal hart neu laden:
+- Android Chrome: Menü → Neu laden (oder Cache leeren)
