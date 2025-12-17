@@ -1143,6 +1143,7 @@
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
               <div class="subline">${idChip}${sysChips}${availChip}</div>
+              ${(state.view === 'compact') && (row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
               
             </div>
             <div class="badgeRow">
