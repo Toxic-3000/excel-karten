@@ -1,101 +1,134 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spieleliste – Test v5.1</title>
-<style>
-  body { font-family: system-ui, -apple-system, sans-serif; margin:0; background:#f4f4f4; }
-  header { padding:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.1); position:sticky; top:0; z-index:10; }
-  h1 { margin:0 0 8px 0; font-size:1.2rem; }
-  input[type=file] { width:100%; }
-  .pill { display:inline-block; padding:8px 10px; border-radius:999px; background:#eee; margin-top:8px; font-size:.9rem; }
-  .ok { background:#cfe8d5; }
-  .bad { background:#f3c8c8; }
-  .card { background:#fff; margin:12px; padding:12px; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Spieleliste – Webansicht</title>
+
+  <!-- Cache-Busting: Versionsstring erhöhen, wenn GH-Pages „alte“ Assets cached -->
+  <link rel="stylesheet" href="styles.css?v=20251217-1" />
+  <script src="./xlsx.full.min.js"></script>
 </head>
 <body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand__title">Spieleliste</div>
+      <div class="brand__subtitle">XLSX → Karten</div>
+    </div>
 
-<header>
-  <h1>Spieleliste (Test v5.1)</h1>
+    <div class="topbar__actions">
+      <button id="btnMenu" class="btn btn--ghost" type="button" aria-haspopup="dialog" aria-controls="sheetMenu">
+        Filter & Sort
+      </button>
+    </div>
+  </header>
 
-  <div class="pill ok" id="jsAlive">JS: lädt…</div>
-  <div class="pill" id="status">Status: bereit</div>
-  <div class="pill" id="fileName">Datei: —</div>
+  <main class="container">
+    <section class="panel">
+      <div class="panel__row">
+        <label class="filepick">
+          <input id="fileInput" type="file" accept=".xlsx,.xls" />
+          <span class="filepick__btn">XLSX auswählen</span>
+          <span id="fileLabel" class="filepick__label">Keine Datei geladen</span>
+        </label>
+      </div>
 
-  <div style="margin-top:10px;">
-    <input id="file" type="file" accept=".xlsx" onchange="window._fileChanged(event)">
-  </div>
+      <div class="panel__row panel__row--wrap">
+        <div class="field">
+          <label class="field__label" for="sheetSelect">Sheet</label>
+          <select id="sheetSelect" class="select" disabled></select>
+        </div>
 
-  <div class="pill" style="display:block;margin-top:10px;">
-    Wenn hier <b>JS: läuft</b> nicht erscheint, läuft dein Viewer ohne JavaScript (z. B. Datei-Preview-App).
-  </div>
-</header>
+        <div class="field field--grow">
+          <label class="field__label" for="searchInput">Suche</label>
+          <input id="searchInput" class="input" type="search" placeholder="Titel, Genre, Entwickler … | Tokens: id:123 system:ps5 source:digital favorite completed …" disabled />
+        </div>
+      </div>
 
-<main id="list"></main>
+      <div class="panel__row panel__row--wrap panel__row--tight">
+        <div id="counts" class="counts">—</div>
+        <div class="spacer"></div>
+        <button id="btnCompact" class="btn btn--ghost" type="button" disabled>Kompakt</button>
+        <button id="btnClear" class="btn btn--ghost" type="button" disabled>Zurücksetzen</button>
+      </div>
 
-<script>
-(function(){
-  const $ = (id) => document.getElementById(id);
-  const setStatus = (msg, bad=false) => {
-    const el = $('status');
-    el.textContent = 'Status: ' + msg;
-    el.classList.toggle('bad', !!bad);
-  };
-  const setFile = (msg) => $('fileName').textContent = 'Datei: ' + msg;
+      <div id="libStatus" class="libstatus" role="status" aria-live="polite"></div>
+      <div id="errorBox" class="error" hidden></div>
+    </section>
 
-  // Prove JS is running immediately
-  $('jsAlive').textContent = 'JS: läuft (' + new Date().toLocaleTimeString() + ')';
+    <section id="cards" class="cards" aria-live="polite"></section>
+    <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+  </main>
 
-  // Global handler for inline onchange (more robust on some Android viewers)
-  window._fileChanged = async (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (!f) { setFile('—'); setStatus('keine Datei gewählt'); return; }
-    setFile(f.name + ' (' + Math.round(f.size/1024) + ' KB)');
-    setStatus('Datei gewählt – prüfe XLSX…');
+  <button id="btnTop" class="fab" type="button" title="Nach oben">Top</button>
 
-    if (typeof XLSX === 'undefined') {
-      setStatus('XLSX nicht geladen (CDN geblockt?)', true);
-      return;
-    }
+  <!-- Bottom-Sheet -->
+  <div id="sheetOverlay" class="overlay" hidden></div>
+  <aside id="sheetMenu" class="sheet" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="sheet__header">
+      <div class="sheet__title">Filter & Sort</div>
+      <button id="btnCloseMenu" class="btn btn--ghost" type="button" aria-label="Schließen">✕</button>
+    </div>
 
-    try {
-      setStatus('Lese Datei…');
-      const buf = await f.arrayBuffer();
-      const wb = XLSX.read(buf, { type:'array' });
-      const sheet = wb.SheetNames[0];
-      const ws = wb.Sheets[sheet];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-      setStatus('OK – Zeilen: ' + rows.length + ' – Sheet: ' + sheet);
+    <div class="sheet__body">
+      <div class="sheet__section">
+        <div class="sheet__sectionTitle">Sortierung</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="field__label" for="sortField">Feld</label>
+            <select id="sortField" class="select" disabled></select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="sortDir">Richtung</label>
+            <select id="sortDir" class="select" disabled>
+              <option value="asc">Aufwärts</option>
+              <option value="desc">Abwärts</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-      render(rows);
-    } catch (err) {
-      setStatus('FEHLER beim Lesen: ' + (err && err.message ? err.message : String(err)), true);
-    }
-  };
+      <div class="sheet__section">
+        <div class="sheet__sectionTitle">Filter</div>
 
-  function render(rows){
-    const root = $('list');
-    root.innerHTML = '';
-    rows.slice(0, 20).forEach(r => {
-      const title = r.Spieletitel || r.Spiel || r.Titel || r.Title || '(kein Titel gefunden)';
-      const d = document.createElement('div');
-      d.className = 'card';
-      d.innerHTML = '<b>' + escapeHtml(String(title)) + '</b><div style="margin-top:6px;color:#666;font-size:.9rem;">Preview</div>';
-      root.appendChild(d);
-    });
-  }
+        <div class="chips" id="filterStatus">
+          <label class="chip"><input type="checkbox" value="favorite" disabled> Favorit</label>
+          <label class="chip"><input type="checkbox" value="delisted" disabled> Delisted</label>
+        </div>
 
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-})();
-</script>
+        <div class="sheet__subTitle">System</div>
+        <div class="chips" id="filterSystem">
+          <label class="chip"><input type="checkbox" value="PS3" disabled> PS3</label>
+          <label class="chip"><input type="checkbox" value="PS4" disabled> PS4</label>
+          <label class="chip"><input type="checkbox" value="PS5" disabled> PS5</label>
+          <label class="chip"><input type="checkbox" value="Vita" disabled> Vita</label>
+        </div>
 
-<!-- XLSX via CDN (as before) -->
-<script src="./xlsx.full.min.js"></script>
+        <div class="sheet__subTitle">Quelle</div>
+        <div class="chips" id="filterSource">
+          <label class="chip"><input type="checkbox" value="Digital" disabled> Digital</label>
+          <label class="chip"><input type="checkbox" value="PS Plus" disabled> PS Plus</label>
+          <label class="chip"><input type="checkbox" value="Retail-Disc" disabled> Retail-Disc</label>
+        </div>
 
+        <div class="sheet__subTitle">Trophäen</div>
+        <div class="chips" id="filterTrophies">
+          <label class="chip"><input type="checkbox" value="unplayed" disabled> 💤 Ungespielt</label>
+          <label class="chip"><input type="checkbox" value="inprogress" disabled> ⏳ In Arbeit</label>
+          <label class="chip"><input type="checkbox" value="completed" disabled> ✅ 100%</label>
+          <label class="chip"><input type="checkbox" value="platinum" disabled> 💎 Platin</label>
+          <label class="chip"><input type="checkbox" value="noplatformplat" disabled> — Kein Platin</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet__footer">
+      <button id="btnClearFilters" class="btn btn--ghost" type="button" disabled>Filter löschen</button>
+      <button id="btnApply" class="btn" type="button" disabled>Anwenden</button>
+    </div>
+  </aside>
+
+  <script src="app.js?v=20251217-1" defer></script>
 </body>
 </html>
