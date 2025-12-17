@@ -243,7 +243,21 @@
       font-weight: 800;
     }
     .v{ font-weight: 850; }
+    
+    .chip--id{
+      border-color: color-mix(in oklab, Highlight 35%, var(--border));
+      background: color-mix(in oklab, Highlight 12%, var(--chip2));
+    }
     @media (max-width:560px){
+      :root{ --badgeW: 132px; }
+      .cardHead{ flex-direction: column; align-items: stretch; }
+      .chips{ justify-content: flex-start !important; }
+      .subline{ gap:6px; }
+      .chip{ padding: 6px 9px; }
+      .gameTitle{ font-size: 17px; }
+    }
+
+@media (max-width:560px){
       .metaGrid{grid-template-columns: 1fr;}
       .k{min-width: 88px;}
     }
@@ -540,6 +554,8 @@
         id: ['ID','Id','id'],
         title: ['Spieletitel','Spiel','Titel','Title','Game'],
         developer: ['Entwickler','Developer'],
+        genre_main: ['Genre'],
+        subgenre: ['Subgenre / Stimmung','Subgenre'],
         genre: ['Genre','Subgenre','Subgenre / Stimmung'],
         main: ['Spielzeit (Main)','Main Story (Std.)','Main'],
         hundred: ['Spielzeit (100%)','100 % (Std.)','100%'],
@@ -829,6 +845,8 @@
           const id = parseIntLoose(pick(r, COL.id)) ?? (idx+1);
           const title = norm(pick(r, COL.title));
           const dev = norm(pick(r, COL.developer));
+          const genreMain = norm(pick(r, COL.genre_main)) || '';
+          const subgenre = norm(pick(r, COL.subgenre)) || '';
           const genre = norm(pick(r, COL.genre));
           const main = parseFloatLoose(pick(r, COL.main));
           const hundred = parseFloatLoose(pick(r, COL.hundred));
@@ -850,6 +868,8 @@
             title,
             dev,
             genre,
+            genreMain,
+            subgenre,
             main,
             hundred,
             metascore: fmtScore(pick(r, COL.metascore)),
@@ -995,16 +1015,27 @@
         if (row.delisted) topBadges.push(`<span class="chip badge badge--danger">Delisted</span>`);
 
         const sysChips = row.systems.map(p => `<span class="chip">${escapeHtml(p === 'VITA' ? 'Vita' : p)}</span>`).join('');
-        const idChip = `<span class="chip">ID ${escapeHtml(row.id)}</span>`;
+        const idChip = `<span class="chip chip--id">ID ${escapeHtml(row.id)}</span>`;
         const availChip = `<span class="chip">${escapeHtml(row.availability)}</span>`;
 
         const hours = (row.main != null || row.hundred != null)
           ? `${row.main != null ? fmtHours(row.main) : '–'}h / ${row.hundred != null ? fmtHours(row.hundred) : '–'}h`
           : '';
 
-        const metas = `
+        const metasDetail = `
           <div class="metaGrid">
-            ${row.genre ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genre)}</div></div>` : ''}
+            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
+            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ''}
+            ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
+            ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
+            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
+            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
+          </div>
+        `;
+
+        const metasCompactExpanded = `
+          <div class="metaGrid">
+            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ((row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : '')}
             ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
             ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
             ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
@@ -1062,7 +1093,7 @@
           ? `
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
               <summary>Mehr Details</summary>
-              ${metas}
+              ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
               ${desc}
               ${store}
               ${features}
@@ -1076,7 +1107,7 @@
             </details>
           `
           : `
-            ${metas}
+            ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
             ${desc}
             ${store}
             ${features}
@@ -1093,7 +1124,7 @@
           <div class="cardHead">
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
-              <div class="subline">${idChip}${sysChips}${availChip}</div>
+              <div class="subline">${idChip}${sysChips}${availChip}</div>\n              ${state.view === 'compact' && (row.genreMain || row.genre) ? `<div class=\"subline\" style=\"margin-top:6px;\">` + `<span class=\"chip\">` + escapeHtml(row.genreMain || row.genre) + `</span>` + `</div>` : ''}
             </div>
             <div class="chips" style="margin-top:0;justify-content:flex-end;">
               ${topBadges.join('')}
