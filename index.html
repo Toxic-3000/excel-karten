@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Spieleliste – Webansicht</title>
+
+  <!-- Cache-Busting: Versionsstring erhöhen, wenn GH-Pages „alte“ Assets cached -->
+  <link rel="stylesheet" href="styles.css?v=20251217-1" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand__title">Spieleliste</div>
+      <div class="brand__subtitle">XLSX → Karten</div>
+    </div>
+
+    <div class="topbar__actions">
+      <button id="btnMenu" class="btn btn--ghost" type="button" aria-haspopup="dialog" aria-controls="sheetMenu">
+        Filter & Sort
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="row row--wrap">
+        <label class="file">
+          <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xls" />
+          <span class="file__btn btn">XLSX laden</span>
+          <span id="fileName" class="file__name muted">Keine Datei</span>
+        </label>
+
+        <div class="row row--grow">
+          <label class="select">
+            <span class="select__label">Sheet</span>
+            <select id="sheetSelect" disabled></select>
+          </label>
+
+          <label class="search row--grow">
+            <span class="search__label">Suche</span>
+            <input id="searchInput" type="search" placeholder="Titel, Entwickler, Subgenre, …" disabled />
+          </label>
+        </div>
+      </div>
+
+      <div class="row row--wrap row--gap-sm">
+        <div id="libStatus" class="pill pill--info">Bereit.</div>
+        <div id="dataStatus" class="pill">Noch keine Daten.</div>
+        <button id="btnReset" class="btn btn--ghost" type="button" disabled>Reset</button>
+      </div>
+    </section>
+
+    <section id="summary" class="summary hidden"></section>
+
+    <section id="list" class="list" aria-live="polite"></section>
+
+    <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+  </main>
+
+  <!-- Bottom Sheet Menu -->
+  <div id="sheetBackdrop" class="backdrop hidden" aria-hidden="true"></div>
+
+  <section id="sheetMenu" class="sheet hidden" role="dialog" aria-modal="true" aria-label="Filter und Sortierung">
+    <div class="sheet__handle" aria-hidden="true"></div>
+
+    <div class="sheet__header">
+      <div class="sheet__title">Filter & Sort</div>
+      <button id="btnCloseSheet" class="btn btn--ghost" type="button" aria-label="Schließen">Schließen</button>
+    </div>
+
+    <div class="sheet__content">
+      <div class="grid">
+        <label class="select">
+          <span class="select__label">Sortieren</span>
+          <select id="sortSelect" disabled>
+            <option value="id_asc">ID (aufsteigend)</option>
+            <option value="id_desc">ID (absteigend)</option>
+            <option value="title_asc">Titel (A–Z)</option>
+            <option value="title_desc">Titel (Z–A)</option>
+            <option value="score_desc">Score (hoch → niedrig)</option>
+            <option value="score_asc">Score (niedrig → hoch)</option>
+            <option value="hours_desc">Stunden (hoch → niedrig)</option>
+            <option value="hours_asc">Stunden (niedrig → hoch)</option>
+          </select>
+        </label>
+
+        <label class="select">
+          <span class="select__label">Anzeige</span>
+          <select id="viewSelect" disabled>
+            <option value="compact">Kompakt</option>
+            <option value="detail">Detail</option>
+          </select>
+        </label>
+
+        <label class="select">
+          <span class="select__label">Plattform</span>
+          <select id="platformSelect" disabled>
+            <option value="ALL">Alle</option>
+            <option value="PS5">PS5</option>
+            <option value="PS4">PS4</option>
+            <option value="PS3">PS3</option>
+            <option value="Vita">Vita</option>
+          </select>
+        </label>
+
+        <label class="select">
+          <span class="select__label">Trophäen</span>
+          <select id="trophySelect" disabled>
+            <option value="ALL">Alle</option>
+            <option value="Platinum">Platinum</option>
+            <option value="No-Platinum-Title">No-Platinum-Title</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed (100%)</option>
+            <option value="Started">Started</option>
+            <option value="Unplayed">Ungespielt</option>
+          </select>
+        </label>
+
+        <label class="select">
+          <span class="select__label">Verfügbarkeit</span>
+          <select id="availSelect" disabled>
+            <option value="ALL">Alle</option>
+            <option value="AVAILABLE">Verfügbar</option>
+            <option value="DELISTED">Delisted</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row row--wrap row--gap-sm" style="margin-top:12px;">
+        <button id="btnClearFilters" class="btn" type="button" disabled>Filter zurücksetzen</button>
+        <div class="muted" style="font-size:13px;">
+          Tipp: Wenn GitHub-Pages “alte” JS/CSS cached, erhöhe die Versionsstrings oben (Cache-Bust).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="app.js?v=20251217-1"></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+:root{
+  --bg: Canvas;
+  --fg: CanvasText;
+  --muted: color-mix(in oklab, CanvasText 55%, Canvas 45%);
+  --card: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+  --border: color-mix(in oklab, CanvasText 15%, Canvas 85%);
+  --shadow: 0 8px 24px rgba(0,0,0,.12);
+  --accent: Highlight;
+  --danger: #cc3b3b;
+  --warn: #c59a00;
+  --ok: #2c8a4a;
+  --chip: color-mix(in oklab, CanvasText 6%, Canvas 94%);
+  --chip2: color-mix(in oklab, CanvasText 10%, Canvas 90%);
+  --radius: 16px;
+  --radius2: 22px;
+  --maxw: 980px;
+  --badgeW: 132px; /* einheitliche Badge-Länge */
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--fg);
+}
+
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  backdrop-filter: blur(10px);
+  background: color-mix(in oklab, Canvas 82%, transparent 18%);
+}
+
+.brand__title{
+  font-weight:800;
+  letter-spacing:.2px;
+  font-size:18px;
+}
+.brand__subtitle{
+  margin-top:2px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.container{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:14px;
+  padding-bottom:86px; /* Platz für Bottom Sheet */
+}
+
+.panel{
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  padding:12px;
+  background:var(--card);
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.row--wrap{flex-wrap:wrap}
+.row--grow{flex:1}
+.row--gap-sm{gap:8px}
+
+.btn{
+  appearance:none;
+  border:1px solid var(--border);
+  background:var(--chip);
+  color:var(--fg);
+  padding:10px 12px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+  transition: transform .04s ease, background .12s ease;
+}
+.btn:active{transform: translateY(1px)}
+.btn[disabled]{opacity:.5; cursor:not-allowed}
+
+.btn--ghost{
+  background: transparent;
+}
+
+.file{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.file input{display:none}
+.file__btn{display:inline-block}
+.file__name{
+  font-size:13px;
+  max-width:56vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.select, .search{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width: 160px;
+}
+.select__label, .search__label{
+  font-size:12px;
+  color:var(--muted);
+}
+select, input[type="search"]{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, Canvas 94%, CanvasText 6%);
+  color: var(--fg);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+select:disabled, input:disabled{opacity:.6}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: var(--chip);
+  font-size:13px;
+  font-weight:700;
+}
+.pill--info{
+  border-color: color-mix(in oklab, Highlight 30%, var(--border));
+}
+
+.summary{
+  margin-top:12px;
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  padding:10px 12px;
+  background:var(--card);
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.list{
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.card{
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  background:var(--card);
+  box-shadow: var(--shadow);
+  padding:12px;
+}
+
+.card__top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.title{
+  font-weight:900;
+  letter-spacing:.1px;
+  font-size:16px;
+  line-height:1.25;
+}
+.sub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width: var(--badgeW);
+  padding:7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--chip2);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  text-transform: none;
+}
+.badge--ok{
+  border-color: color-mix(in oklab, var(--ok) 45%, var(--border));
+  background: color-mix(in oklab, var(--ok) 14%, var(--chip2));
+}
+.badge--warn{
+  border-color: color-mix(in oklab, var(--warn) 50%, var(--border));
+  background: color-mix(in oklab, var(--warn) 14%, var(--chip2));
+}
+.badge--danger{
+  border-color: color-mix(in oklab, var(--danger) 45%, var(--border));
+  background: color-mix(in oklab, var(--danger) 10%, var(--chip2));
+}
+
+/* "In Arbeit" dezenter */
+.badge--progress{
+  border-color: color-mix(in oklab, var(--danger) 22%, var(--border));
+  background: color-mix(in oklab, var(--danger) 6%, var(--chip2));
+}
+
+/* Detail rows */
+.meta{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:8px 10px;
+  font-size:13px;
+}
+.meta__row{
+  display:flex;
+  gap:8px;
+}
+.meta__k{
+  min-width: 96px;
+  color: var(--muted);
+  font-weight:700;
+}
+.meta__v{
+  font-weight:700;
+}
+
+/* Sentinel */
+.sentinel{
+  height:1px;
+}
+
+/* Bottom Sheet */
+.backdrop{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  z-index:80;
+}
+
+.sheet{
+  position:fixed;
+  left:0; right:0;
+  bottom:0;
+  z-index:90;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  border:1px solid var(--border);
+  background:var(--card);
+  box-shadow: 0 -10px 30px rgba(0,0,0,.25);
+  max-height: 78vh;
+  overflow:auto;
+  padding:10px 12px 14px;
+}
+
+.sheet__handle{
+  width:52px;
+  height:5px;
+  border-radius:999px;
+  background: color-mix(in oklab, CanvasText 22%, Canvas 78%);
+  margin: 6px auto 10px;
+}
+
+.sheet__header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 2px 2px 10px;
+}
+.sheet__title{
+  font-weight:900;
+  font-size:16px;
+}
+.sheet__content{
+  padding-bottom: 4px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+@media (max-width:560px){
+  .grid{grid-template-columns: 1fr;}
+  .meta{grid-template-columns: 1fr;}
+  .select, .search{min-width: 140px;}
+}
