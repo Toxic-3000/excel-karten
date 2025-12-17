@@ -163,9 +163,9 @@
     }
     .cardHead{
       display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
     }
     .gameTitle{
       font-weight: 950;
@@ -190,6 +190,15 @@
       gap: 8px;
       align-items:center;
     }
+
+    .badgeRow{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      align-items:center;
+    }
+
     .chip{
       display:inline-flex;
       align-items:center;
@@ -252,8 +261,7 @@
     @media (max-width:560px){
       :root{ --badgeW: 132px; }
       .cardHead{ flex-direction: column; align-items: stretch; }
-      .chips{ justify-content: flex-start !important; }
-      .subline{ gap:6px; }
+            .subline{ gap:6px; }
       .chip{ padding: 6px 9px; }
       .gameTitle{ font-size: 17px; }
     }
@@ -590,7 +598,7 @@
       const state = {
         q: '',
         sort: 'id_asc',
-        view: 'detail',
+        view: 'compact',
         platform: 'ALL',
         trophy: 'ALL',
         avail: 'ALL',
@@ -1134,9 +1142,10 @@
           <div class="cardHead">
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
-              <div class="subline">${idChip}${sysChips}${availChip}</div>\n              ${state.view === 'compact' && (row.genreMain || row.genre) ? `<div class=\"subline\" style=\"margin-top:6px;\">` + `<span class=\"chip\">` + escapeHtml(row.genreMain || row.genre) + `</span>` + `</div>` : ''}
+              <div class="subline">${idChip}${sysChips}${availChip}</div>
+              
             </div>
-            <div class="chips" style="margin-top:0;justify-content:flex-end;">
+            <div class="badgeRow">
               ${topBadges.join('')}
             </div>
           </div>
@@ -1218,7 +1227,7 @@
       });
 
       el.clear.addEventListener('click', ()=>{
-        state.q = ''; state.sort = 'id_asc'; state.view = 'detail';
+        state.q = ''; state.sort = 'id_asc'; state.view = 'compact';
         state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
         el.search.value = '';
         el.sort.value = state.sort;
@@ -1243,6 +1252,8 @@
         if (!workbook || !currentSheet) return;
         const rows = sheetToRows(workbook, currentSheet);
         all = normalize(rows);
+        state.view = 'compact';
+        el.view.value = state.view;
         apply();
         closeSheet();
       });
@@ -1305,6 +1316,9 @@
           el.lib.textContent = 'XLSX: ok (lokal)';
           enableUI(true);
           el.search.disabled = false;
+
+          state.view = 'compact';
+          el.view.value = state.view;
 
           apply();
         }catch(err){
