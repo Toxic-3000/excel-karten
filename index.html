@@ -276,11 +276,6 @@
       border-top: 1px solid var(--border);
       padding-top: 10px;
     }
-    
-    summary .openText{ display:none; }
-    details[open] > summary .openText{ display:inline; }
-    details[open] > summary .closedText{ display:none; }
-
     summary{
       cursor:pointer;
       list-style:none;
@@ -402,7 +397,27 @@
     }
   </style>
   <!-- v6.1: XLSX lokal (neben index.html) -->
-  <script src="./xlsx.full.min.js"></script>
+  <script>
+    (function(){
+      const oldOnError = window.onerror;
+      window.__lastErr = null;
+      window.onerror = function(msg, src, line, col, err){
+        window.__lastErr = {msg:String(msg||''), src:String(src||''), line:line||0, col:col||0, stack: err && err.stack ? String(err.stack) : ''};
+        try{
+          const jsP = document.getElementById('pillJS');
+          if (jsP){ jsP.textContent = 'JS: Fehler'; jsP.classList.remove('ok'); jsP.classList.add('bad'); }
+          const box = document.getElementById('errBox');
+          if (box){
+            box.style.display = 'block';
+            box.textContent = 'JS-Fehler: ' + window.__lastErr.msg + (window.__lastErr.line ? (' @' + window.__lastErr.line + ':' + window.__lastErr.col) : '') + (window.__lastErr.src ? ('\n' + window.__lastErr.src) : '') + (window.__lastErr.stack ? ('\n\n' + window.__lastErr.stack) : '');
+          }
+        }catch(e){}
+        if (oldOnError) return oldOnError.apply(this, arguments);
+        return false;
+      };
+    })();
+  </script>
+
 </head>
 
 <body>
@@ -997,6 +1012,7 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
+        syncToggleSummaries(el.list);
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1069,7 +1085,7 @@
 
         const store = (row.source || row.storeLink || row.availability) ? `
           <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
-            <summary><span class="closedText">Store anzeigen</span><span class="openText">Store verbergen</span></summary>
+            <summary>Store anzeigen</summary>
             <div class="sectionLabel">STORE</div>
             <div class="metaGrid">
               ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
@@ -1081,7 +1097,7 @@
 
         const desc = row.desc ? `
           <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
-            <summary><span class="closedText">Beschreibung anzeigen</span><span class="openText">Beschreibung verbergen</span></summary>
+            <summary>Beschreibung anzeigen</summary>
             <div class="sectionLabel">BESCHREIBUNG</div>
             <div class="textBlock">${escapeHtml(row.desc)}</div>
           </details>
@@ -1105,38 +1121,38 @@
         const compactToggle = (state.view === 'compact')
           ? `
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary><span class="closedText">Mehr Details</span><span class="openText">Weniger Details</span></summary>
+              <summary>Mehr Details</summary>
               ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
               ${desc}
               ${store}
               ${features}
               ${easter}
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary><span class="closedText">Trophäen anzeigen</span><span class="openText">Trophäen verbergen</span></summary>
+                <summary>Trophäen anzeigen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary><span class="closedText">Humorstatistik anzeigen</span><span class="openText">Humorstatistik verbergen</span></summary>
+                <summary>Humorstatistik anzeigen</summary>
                 ${humor}
               </details>
             </details>
           `
           : `
+            ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
+            ${desc}
+            ${store}
+            ${features}
+            ${easter}
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
-              <summary><span class="closedText">Mehr Details</span><span class="openText">Weniger Details</span></summary>
-              ${state.view === 'compact' ? metasCompactExpanded : metasDetail}
-              ${desc}
-              ${store}
-              ${features}
-              ${easter}
+              <summary>Weniger Details</summary>
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
-                <summary><span class="closedText">Trophäen anzeigen</span><span class="openText">Trophäen verbergen</span></summary>
+                <summary>Trophäen verbergen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary><span class="closedText">Humorstatistik anzeigen</span><span class="openText">Humorstatistik verbergen</span></summary>
+                <summary>Humorstatistik anzeigen</summary>
                 ${humor}
               </details>
             </details>
@@ -1268,7 +1284,23 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
+
+
+      function syncToggleSummaries(root=document){
+        const nodes = root.querySelectorAll('details.toggleDetails');
+        for (const d of nodes){
+          const sum = d.querySelector(':scope > summary');
+          if (!sum) continue;
+          const more = d.getAttribute('data-more') || 'Mehr Details';
+          const less = d.getAttribute('data-less') || 'Weniger Details';
+          sum.textContent = d.open ? less : more;
+        }
       }
+
+      document.addEventListener('toggle', (e)=>{
+        const d = e.target;
+        if (d && d.matches && d.matches('details.toggleDetails')){
+          syncToggleSummaries(d.parentElement || document);
         }
       }, true);
 
