@@ -245,8 +245,9 @@
     .v{ font-weight: 850; }
     
     .chip--id{
-      border-color: color-mix(in oklab, Highlight 35%, var(--border));
-      background: color-mix(in oklab, Highlight 12%, var(--chip2));
+      border-color: color-mix(in oklab, #1e5bd7 55%, var(--border));
+      background: color-mix(in oklab, #1e5bd7 18%, var(--chip2));
+      color: color-mix(in oklab, CanvasText 92%, #1e5bd7 8%);
     }
     @media (max-width:560px){
       :root{ --badgeW: 132px; }
@@ -1055,8 +1056,8 @@
         ` : '';
 
         const store = (row.source || row.storeLink || row.availability) ? `
-          <details>
-            <summary>Store</summary>
+          <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
+            <summary>Store anzeigen</summary>
             <div class="sectionLabel">STORE</div>
             <div class="metaGrid">
               ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
@@ -1067,8 +1068,8 @@
         ` : '';
 
         const desc = row.desc ? `
-          <details>
-            <summary>Kurzbeschreibung anzeigen</summary>
+          <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
+            <summary>Beschreibung anzeigen</summary>
             <div class="sectionLabel">BESCHREIBUNG</div>
             <div class="textBlock">${escapeHtml(row.desc)}</div>
           </details>
@@ -1098,10 +1099,13 @@
               ${store}
               ${features}
               ${easter}
-              <details>
+              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
                 <summary>Trophäen anzeigen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
+              </details>
+              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
+                <summary>Humorstatistik anzeigen</summary>
                 ${humor}
               </details>
             </details>
@@ -1114,9 +1118,15 @@
             ${easter}
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
               <summary>Weniger Details</summary>
-              <div class="sectionLabel">TROPHÄEN</div>
-              ${trophy}
-              ${humor}
+              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
+                <summary>Trophäen verbergen</summary>
+                <div class="sectionLabel">TROPHÄEN</div>
+                ${trophy}
+              </details>
+              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
+                <summary>Humorstatistik anzeigen</summary>
+                ${humor}
+              </details>
             </details>
           `;
 
