@@ -777,9 +777,51 @@
         return false;
       }
 
-      function sheetToJson(wb, name){
+      function sheetToRows(wb, name){
         const ws = wb.Sheets[name];
-        return XLSX.utils.sheet_to_json(ws, { defval:'' });
+        const ref = ws['!ref'];
+        if (!ref) return [];
+        const range = XLSX.utils.decode_range(ref);
+
+        // headers from first row
+        const headers = [];
+        for (let c = range.s.c; c <= range.e.c; c++){
+          const addr = XLSX.utils.encode_cell({r: range.s.r, c});
+          const cell = ws[addr];
+          headers.push(cell ? norm(cell.v) : '');
+        }
+
+        const lowerHeaders = headers.map(h => String(h||'').toLowerCase());
+        const storeColIdx = (() => {
+          const exact = lowerHeaders.findIndex(h => h === 'store link' || h === 'storelink');
+          if (exact !== -1) return exact;
+          const sub = lowerHeaders.findIndex(h => h.includes('store') && h.includes('link'));
+          return sub;
+        })();
+
+        const rows = [];
+        for (let r = range.s.r + 1; r <= range.e.r; r++){
+          const obj = {};
+          let empty = true;
+          for (let c = range.s.c; c <= range.e.c; c++){
+            const key = headers[c - range.s.c] || `COL_${c}`;
+            const addr = XLSX.utils.encode_cell({r, c});
+            const cell = ws[addr];
+
+            let val = cell ? cell.v : '';
+            if (val === undefined || val === null) val = '';
+            if (typeof val !== 'number') val = norm(val);
+
+            if (storeColIdx !== -1 && (c - range.s.c) === storeColIdx && cell && cell.l && cell.l.Target){
+              val = cell.l.Target;
+            }
+
+            if (val !== '' && val !== null && val !== undefined) empty = false;
+            obj[key] = val;
+          }
+          if (!empty) rows.push(obj);
+        }
+        return rows;
       }
 
       function normalize(rows){
@@ -921,6 +963,7 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
+        syncToggleSummaries(el.list);
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1017,7 +1060,7 @@
 
         const compactToggle = (state.view === 'compact')
           ? `
-            <details>
+            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
               <summary>Mehr Details</summary>
               ${metas}
               ${desc}
@@ -1038,7 +1081,7 @@
             ${store}
             ${features}
             ${easter}
-            <details open>
+            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
               <summary>Weniger Details</summary>
               <div class="sectionLabel">TROPHÄEN</div>
               ${trophy}
@@ -1157,7 +1200,7 @@
       el.sheetSelect.addEventListener('change', ()=>{
         currentSheet = el.sheetSelect.value;
         if (!workbook || !currentSheet) return;
-        const rows = sheetToJson(workbook, currentSheet);
+        const rows = sheetToRows(workbook, currentSheet);
         all = normalize(rows);
         apply();
         closeSheet();
@@ -1168,6 +1211,25 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
+
+
+      function syncToggleSummaries(root=document){
+        const nodes = root.querySelectorAll('details.toggleDetails');
+        for (const d of nodes){
+          const sum = d.querySelector(':scope > summary');
+          if (!sum) continue;
+          const more = d.getAttribute('data-more') || 'Mehr Details';
+          const less = d.getAttribute('data-less') || 'Weniger Details';
+          sum.textContent = d.open ? less : more;
+        }
+      }
+
+      document.addEventListener('toggle', (e)=>{
+        const d = e.target;
+        if (d && d.matches && d.matches('details.toggleDetails')){
+          syncToggleSummaries(d.parentElement || document);
+        }
+      }, true);
 
       // Inline onchange fallback for some Android setups
       window._fileChanged = () => { try{ el.file.dispatchEvent(new Event('change')); }catch{} };
@@ -1196,7 +1258,7 @@
           currentSheet = workbook.SheetNames[0];
           el.sheetSelect.value = currentSheet;
 
-          const rows = sheetToJson(workbook, currentSheet);
+          const rows = sheetToRows(workbook, currentSheet);
           all = normalize(rows);
 
           el.lib.textContent = 'XLSX: ok (lokal)';

@@ -1,12 +1,11 @@
-# Spieleliste Webansicht v6.1
-Diese Version ist wieder **voll gestylt** (Single-File), und nutzt XLSX **lokal**.
+# Spieleliste Webansicht v6.2
+Änderungen gegenüber v6.1:
+- Zustandsabhängiger Text beim Haupt-Details-Block:
+  - zugeklappt: „Mehr Details“
+  - aufgeklappt: „Weniger Details“
+- Store-Link wird als echter Excel-Hyperlink gelesen (cell.l.Target), nicht nur als Zelltext.
 
-## Dateien
+Dateien:
 - index.html
 - xlsx.full.min.js
-
-Beide müssen im **gleichen Ordner** liegen (z.B. Repo-Root).
-
-## GitHub Pages
-Nach dem Commit ggf. einmal hart neu laden:
-- Android Chrome: Menü → Neu laden (oder Cache leeren)
+Beide im gleichen Ordner (GitHub Pages).
