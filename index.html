@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
-  <title>Spieleliste</title>
+  <title>Spieleliste – Build 6.6b</title>
   <meta http-equiv="Cache-Control" content="no-store" />
   <style>
     :root{
@@ -403,7 +403,7 @@
 <body>
   <header>
     <div class="top">
-      <div class="title">Spieleliste</div>
+      <div class="title">Spieleliste <span style="opacity:.6;font-weight:600">(Build 6.6b)</span></div>
 
       <div class="controls">
         <div class="search">
@@ -462,7 +462,12 @@
           <option value="score_asc">Metascore (niedrig → hoch)</option>
         </select>
       </label>
-<label>
+
+      <label>
+        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">ANZEIGE</div>
+</label>
+
+      <label>
         <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">PLATTFORM</div>
         <select id="platform" disabled>
           <option value="ALL">Alle</option>
@@ -588,7 +593,9 @@
 
       const state = {
         q: '',
-        sort: 'id_asc',        platform: 'ALL',
+        sort: 'id_asc',
+        view: 'compact',
+        platform: 'ALL',
         trophy: 'ALL',
         avail: 'ALL',
         fav: 'ALL',
@@ -776,7 +783,7 @@
 
       function enableUI(on){
         const dis = !on;
-        for (const x of [el.sheetSelect, el.search, el.btnMenu, el.btnReset, el.sort, el.platform, el.trophy, el.avail, el.fav, el.clear]){
+        for (const x of [el.sheetSelect, el.search, el.btnMenu, el.btnReset, el.sort, el.view, el.platform, el.trophy, el.avail, el.fav, el.clear]){
           x.disabled = dis;
         }
       }
@@ -786,12 +793,6 @@
           el.lib.textContent = 'XLSX: ok (lokal)';
           return true;
         }
-
-      // Prevent nested <summary> clicks from bubbling and causing double toggles on mobile
-      document.addEventListener('click', (e)=>{
-        const sum = e.target.closest && e.target.closest('summary');
-        if (sum) e.stopPropagation();
-      }, true);
         el.lib.textContent = 'XLSX: FEHLT';
         alert('XLSX-Library fehlt. Lege xlsx.full.min.js neben index.html (gleiches Verzeichnis).');
         return false;
@@ -986,7 +987,10 @@
         for (const row of slice) frag.appendChild(renderCard(row));
         el.list.appendChild(frag);
 
-        el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;        if (cursor >= filtered.length){
+        el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
+        syncToggleSummaries(el.list);
+
+        if (cursor >= filtered.length){
           if (observer) observer.disconnect();
           observer = null;
         } else {
@@ -1057,7 +1061,7 @@
 
         const store = (row.source || row.storeLink || row.availability) ? `
           <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
-            <summary><span class="whenClosed">Store anzeigen</span><span class="whenOpen">Store verbergen</span></summary>
+            <summary>Store anzeigen</summary>
             <div class="sectionLabel">STORE</div>
             <div class="metaGrid">
               ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
@@ -1069,7 +1073,7 @@
 
         const desc = row.desc ? `
           <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
-            <summary><span class="whenClosed">Beschreibung anzeigen</span><span class="whenOpen">Beschreibung verbergen</span></summary>
+            <summary>Beschreibung anzeigen</summary>
             <div class="sectionLabel">BESCHREIBUNG</div>
             <div class="textBlock">${escapeHtml(row.desc)}</div>
           </details>
@@ -1090,22 +1094,22 @@
           </details>
         ` : '';
 
-        const compactToggle = true
+        const compactToggle = (state.view === 'compact')
           ? `
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary><span class="whenClosed">Mehr Details</span><span class="whenOpen">Weniger Details</span></summary>
+              <summary>Mehr Details</summary>
               ${metasCompactExpanded}
               ${desc}
               ${store}
               ${features}
               ${easter}
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary><span class="whenClosed">Trophäen anzeigen</span><span class="whenOpen">Trophäen verbergen</span></summary>
+                <summary>Trophäen anzeigen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary><span class="whenClosed">Humorstatistik anzeigen</span><span class="whenOpen">Humorstatistik verbergen</span></summary>
+                <summary>Humorstatistik anzeigen</summary>
                 ${humor}
               </details>
             </details>
@@ -1119,12 +1123,12 @@
             <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
               <summary>Weniger Details</summary>
               <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
-                <summary><span class="whenClosed">Trophäen anzeigen</span><span class="whenOpen">Trophäen verbergen</span></summary>
+                <summary>Trophäen verbergen</summary>
                 <div class="sectionLabel">TROPHÄEN</div>
                 ${trophy}
               </details>
               <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary><span class="whenClosed">Humorstatistik anzeigen</span><span class="whenOpen">Humorstatistik verbergen</span></summary>
+                <summary>Humorstatistik anzeigen</summary>
                 ${humor}
               </details>
             </details>
@@ -1135,7 +1139,7 @@
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
               <div class="subline">${idChip}${sysChips}${availChip}</div>
-              ${(row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
+              ${(state.view === 'compact') && (row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
               
             </div>
             <div class="badgeRow">
@@ -1220,9 +1224,11 @@
       });
 
       el.clear.addEventListener('click', ()=>{
-        state.q = ''; state.sort = 'id_asc';        state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
+        state.q = ''; state.sort = 'id_asc'; state.view = 'compact';
+        state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
         el.search.value = '';
-        el.sort.value = state.sort;        el.platform.value = state.platform;
+        el.sort.value = state.sort;
+el.platform.value = state.platform;
         el.trophy.value = state.trophy;
         el.avail.value = state.avail;
         el.fav.value = state.fav;
@@ -1230,7 +1236,9 @@
       });
 
       el.search.addEventListener('input', ()=>{ state.q = el.search.value; apply(); });
-      el.sort.addEventListener('change', ()=>{ state.sort = el.sort.value; apply(); });      el.platform.addEventListener('change', ()=>{ state.platform = el.platform.value; apply(); });
+      el.sort.addEventListener('change', ()=>{ state.sort = el.sort.value; apply(); });
+});
+      el.platform.addEventListener('change', ()=>{ state.platform = el.platform.value; apply(); });
       el.trophy.addEventListener('change', ()=>{ state.trophy = el.trophy.value; apply(); });
       el.avail.addEventListener('change', ()=>{ state.avail = el.avail.value; apply(); });
       el.fav.addEventListener('change', ()=>{ state.fav = el.fav.value; apply(); });
@@ -1239,7 +1247,9 @@
         currentSheet = el.sheetSelect.value;
         if (!workbook || !currentSheet) return;
         const rows = sheetToRows(workbook, currentSheet);
-        all = normalize(rows);        apply();
+        all = normalize(rows);
+        state.view = 'compact';
+apply();
         closeSheet();
       });
 
@@ -1248,6 +1258,30 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
+
+
+      function syncToggleSummaries(root=document){
+        const nodes = root.querySelectorAll('details.toggleDetails');
+        for (const d of nodes){
+          const sum = d.querySelector(':scope > summary');
+          if (!sum) continue;
+          const more = d.getAttribute('data-more') || 'Mehr Details';
+          const less = d.getAttribute('data-less') || 'Weniger Details';
+          sum.textContent = d.open ? less : more;
+        }
+      }
+
+      
+      // summaryStopper: prevent nested <details> clicks from bubbling and double-toggling
+      document.addEventListener('click', (e)=>{
+        const sum = e.target.closest ? e.target.closest('summary') : null;
+        if (sum) e.stopPropagation();
+      }, true);
+
+document.addEventListener('toggle', (e)=>{
+        const d = e.target;
+        if (d && d.matches && d.matches('details.toggleDetails')){
+          syncToggleSummaries(d.parentElement || document);
         }
       }, true);
 
@@ -1283,7 +1317,10 @@
 
           el.lib.textContent = 'XLSX: ok (lokal)';
           enableUI(true);
-          el.search.disabled = false;          apply();
+          el.search.disabled = false;
+
+          state.view = 'compact';
+apply();
         }catch(err){
           console.error(err);
           alert('Fehler beim Einlesen der XLSX. Details in der Konsole.');
