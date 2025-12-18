@@ -283,27 +283,6 @@
       user-select:none;
     }
     summary::-webkit-details-marker{display:none}
-
-    .acc{
-      margin-top: 10px;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
-    }
-    .accBtn{
-      cursor:pointer;
-      list-style:none;
-      font-weight: 900;
-      user-select:none;
-      background: transparent;
-      border: 0;
-      padding: 0;
-      color: inherit;
-      font: inherit;
-    }
-    .accPanel{
-      margin-top: 8px;
-    }
-
     .sectionLabel{
       margin-top: 10px;
       font-size: 12px;
@@ -534,7 +513,6 @@
   </section>
 
   <script>
-
     (() => {
       'use strict';
 
@@ -1003,6 +981,7 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
+        syncToggleSummaries(el.list);
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1043,73 +1022,108 @@
 
         const metasDetail = `
           <div class="metaGrid">
-            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
+            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
+            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ''}
             ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
-            ${row.meta != null ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.meta)}</div></div>` : ''}
-            ${row.user != null ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.user)}</div></div>` : ''}
             ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
+            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
+            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
           </div>
         `;
 
-        const desc = row.desc ? `
-          <div class="sectionLabel">BESCHREIBUNG</div>
-          <div class="textBlock">${escapeHtml(row.desc)}</div>
-        ` : '';
-
-        const features = row.features ? `
-          <div class="sectionLabel">EXTRAS</div>
-          <div class="textBlock">${escapeHtml(row.features)}</div>
-        ` : '';
-
-        const easter = row.easter ? `
-          <div class="sectionLabel">EASTER EGGS</div>
-          <div class="textBlock">${escapeHtml(row.easter)}</div>
-        ` : '';
-
-        const store = (row.source || row.storeLink || row.availability) ? `
-          <div class="sectionLabel">STORE</div>
+        const metasCompactExpanded = `
           <div class="metaGrid">
-            ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
-            ${row.storeLink ? `<div class="metaRow"><div class="k">Link</div><div class="v"><a href="${escapeHtml(row.storeLink)}" target="_blank" rel="noopener">Store Link</a></div></div>` : ''}
-            <div class="metaRow"><div class="k">Verfügbarkeit</div><div class="v">${escapeHtml(row.availability)}</div></div>
+            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ((row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : '')}
+            ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
+            ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
+            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
+            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
           </div>
-        ` : '';
+        `;
 
-        const trophy = row.trophy ? `
-          <div class="sectionLabel">TROPHÄEN</div>
-          ${trophyBlock(row.trophy)}
-        ` : '';
+        const trophy = renderTrophies(row.trophy);
 
-        const humor = (row.humor_total || row.humor_pct || row.humor_years) ? `
+        const humor = (row.humor_total != null || row.humor_pct || row.humor_years) ? `
           <div class="sectionLabel">HUMORSTATISTIK</div>
           <div class="metaGrid">
-            ${row.humor_total ? `<div class="metaRow"><div class="k">Gesamtstunden</div><div class="v">${escapeHtml(row.humor_total)}</div></div>` : ''}
+            ${row.humor_total != null ? `<div class="metaRow"><div class="k">Gesamtstunden</div><div class="v">${escapeHtml(row.humor_total)}</div></div>` : ''}
             ${row.humor_pct ? `<div class="metaRow"><div class="k">% Lebenszeit</div><div class="v">${escapeHtml(row.humor_pct)}</div></div>` : ''}
             ${row.humor_years ? `<div class="metaRow"><div class="k">Jahre</div><div class="v">${escapeHtml(row.humor_years)}</div></div>` : ''}
           </div>
         ` : '';
 
-        const extraContent = `${desc}${metasDetail}${store}${trophy}${humor}${features}${easter}`.trim();
-
-        const acc = extraContent ? `
-          <div class="acc" data-more="Mehr Details" data-less="Weniger Details">
-            <button class="accBtn" type="button" aria-expanded="false">Mehr Details</button>
-            <div class="accPanel" hidden>
-              ${extraContent}
+        const store = (row.source || row.storeLink || row.availability) ? `
+          <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
+            <summary>Store anzeigen</summary>
+            <div class="sectionLabel">STORE</div>
+            <div class="metaGrid">
+              ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
+              ${row.storeLink ? `<div class="metaRow"><div class="k">Store</div><div class="v"><a href="${escapeHtml(row.storeLink)}" target="_blank" rel="noopener">Store Link</a></div></div>` : ''}
+              <div class="metaRow"><div class="k">Verfügbarkeit</div><div class="v">${escapeHtml(row.availability)}</div></div>
             </div>
-          </div>
+          </details>
         ` : '';
+
+        const desc = row.desc ? `
+          <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
+            <summary>Beschreibung anzeigen</summary>
+            <div class="sectionLabel">BESCHREIBUNG</div>
+            <div class="textBlock">${escapeHtml(row.desc)}</div>
+          </details>
+        ` : '';
+
+        const features = row.features ? `
+          <details>
+            <summary>Besonderheiten anzeigen</summary>
+            <div class="sectionLabel">EXTRAS</div>
+            <div class="textBlock">${escapeHtml(row.features)}</div>
+          </details>
+        ` : '';
+
+        const easter = row.easter ? `
+          <details>
+            <summary>Eastereggs anzeigen</summary>
+            <div class="textBlock">${escapeHtml(row.easter)}</div>
+          </details>
+        ` : '';
+
+        
+        const compactToggle = `
+            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
+              <summary>Mehr Details</summary>
+              ${metasCompactExpanded}
+              ${desc}
+              ${store}
+              ${features}
+              ${easter}
+              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
+                <summary>Trophäen anzeigen</summary>
+                <div class="sectionLabel">TROPHÄEN</div>
+                ${trophy}
+              </details>
+              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
+                <summary>Humorstatistik anzeigen</summary>
+                ${humor}
+              </details>
+            </details>
+          `;
+
 
         card.innerHTML = `
           <div class="cardHead">
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
               <div class="subline">${idChip}${sysChips}${availChip}</div>
+              ${(row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
+              
             </div>
-            <div class="badges">${topBadges.join('')}</div>
+            <div class="badgeRow">
+              ${topBadges.join('')}
+            </div>
           </div>
-          ${acc}
+          ${compactToggle}
         `;
+
         return card;
       }
 
@@ -1218,28 +1232,26 @@
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
 
-      // Accordion toggles (robust on mobile; avoids <details> quirks)
-      document.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.accBtn');
-        if (!btn) return;
-        const acc = btn.closest('.acc');
-        if (!acc) return;
-        const panel = acc.querySelector(':scope > .accPanel');
-        if (!panel) return;
 
-        const isOpen = btn.getAttribute('aria-expanded') === 'true';
-        const more = acc.getAttribute('data-more') || btn.textContent || 'Mehr Details';
-        const less = acc.getAttribute('data-less') || 'Weniger Details';
+      function syncToggleSummaries(root=document){
+        const nodes = root.querySelectorAll('details.toggleDetails');
+        for (const d of nodes){
+          const sum = d.querySelector(':scope > summary');
+          if (!sum) continue;
+          const more = d.getAttribute('data-more') || 'Mehr Details';
+          const less = d.getAttribute('data-less') || 'Weniger Details';
+          sum.textContent = d.open ? less : more;
+        }
+      }
 
-        btn.setAttribute('aria-expanded', String(!isOpen));
-        btn.textContent = (!isOpen) ? less : more;
-        panel.hidden = isOpen;
-
-        e.preventDefault();
-        e.stopPropagation();
+      document.addEventListener('toggle', (e)=>{
+        const d = e.target;
+        if (d && d.matches && d.matches('details.toggleDetails')){
+          syncToggleSummaries(d.parentElement || document);
+        }
       }, true);
 
-// Inline onchange fallback for some Android setups
+      // Inline onchange fallback for some Android setups
       window._fileChanged = () => { try{ el.file.dispatchEvent(new Event('change')); }catch{} };
 
       el.file.addEventListener('change', async ()=>{
@@ -1284,7 +1296,6 @@
       enableUI(false);
       el.lib.textContent = window.XLSX ? 'XLSX: ok (lokal)' : 'XLSX: FEHLT';
     })();
-  
-</script>
+  </script>
 </body>
 </html>
