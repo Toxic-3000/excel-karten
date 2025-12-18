@@ -1,12 +1,14 @@
-# Spieleliste Webansicht v6.6
-Änderungen:
-- Kompaktansicht: Genre wird direkt angezeigt (als Chip).
-- Detail/Mehr Details: zeigt Subgenre (falls vorhanden) statt Genre.
-- ID-Badge farblich hervorgehoben.
-- Mobile-Layout aufgeräumt: Card-Header stapelt sich, Badges/Plattformen wirken weniger „versetzt“.
-- Store-Link: echter Excel-Hyperlink wird gelesen (cell.l.Target).
-- Toggle-Text: Mehr/Weniger Details abhängig vom Zustand.
-- v6.6: ID-Badge dunkler blau; Humorstatistik separat ausklappbar; Summary-Texte anzeigen/verbergen zustandsabhängig (Beschreibung/Store/Trophäen/Humor).
-- v6.6: Startet nach dem XLSX-Laden immer in Kompaktansicht; Badge-Zeile fest unter dem Titel (kein Verrutschen durch lange Titel).
-- v6.6: Genre-Chip in Kompaktansicht wieder sichtbar (unter ID/Plattform).
+# Spieleliste Webansicht (Build 6.6e)
 
+Statisches GitHub-Pages-Projekt.
+
+## Dateien
+- index.html
+- xlsx.full.min.js (SheetJS)
+
+## Nutzung
+1. Repo auf GitHub Pages deployen (Branch main / root).
+2. Seite öffnen.
+3. Auf **XLSX laden** klicken und eine lokale Excel-Datei auswählen.
+
+Hinweis: Lädt lokal im Browser (keine Uploads).

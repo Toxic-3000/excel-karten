@@ -2,1300 +2,944 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <title>Spieleliste</title>
-  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Spieleliste (Build 6.6e)</title>
   <style>
-    :root{
+    :root {
       --bg: Canvas;
       --fg: CanvasText;
       --muted: color-mix(in oklab, CanvasText 55%, Canvas 45%);
       --card: color-mix(in oklab, Canvas 92%, CanvasText 8%);
       --border: color-mix(in oklab, CanvasText 14%, Canvas 86%);
       --shadow: 0 10px 30px rgba(0,0,0,.10);
-      --chip: color-mix(in oklab, CanvasText 6%, Canvas 94%);
-      --chip2: color-mix(in oklab, CanvasText 10%, Canvas 90%);
+      --radius: 18px;
+      --radius2: 24px;
+      --chip: color-mix(in oklab, Canvas 88%, CanvasText 12%);
+      --chip2: color-mix(in oklab, Canvas 82%, CanvasText 18%);
       --ok: #1f8f4a;
       --warn: #c59a00;
       --danger: #cc3b3b;
-      --progress: color-mix(in oklab, #2a6fdb 55%, CanvasText 45%);
-      --radius: 18px;
-      --radius2: 24px;
-      --maxw: 980px;
-      --badgeW: 150px;
+      --accent: color-mix(in oklab, #2a6fdb 60%, CanvasText 40%);
     }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--fg);
-    }
-    .muted{color:var(--muted)}
-    .hidden{display:none!important}
-
-    header{
-      position: sticky;
-      top:0;
-      z-index:50;
-      background: color-mix(in oklab, Canvas 86%, transparent 14%);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 14px;
-    }
-    .top{
-      max-width: var(--maxw);
-      margin: 0 auto;
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .title{
-      font-weight: 900;
-      letter-spacing: .2px;
-      font-size: 22px;
-      flex: 0 0 auto;
-    }
-    .controls{
-      flex: 1 1 auto;
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    .search{
-      flex: 1 1 auto;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      border: 1px solid var(--border);
-      background: color-mix(in oklab, Canvas 94%, CanvasText 6%);
-      border-radius: 16px;
-      padding: 10px 12px;
-    }
-    .search input{
-      border:0;
-      outline:0;
-      background:transparent;
-      width:100%;
-      font-size: 16px;
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
       color: var(--fg);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
-    .btn{
-      appearance:none;
-      border: 1px solid var(--border);
-      background: var(--chip);
-      color: var(--fg);
-      padding: 10px 12px;
-      border-radius: 16px;
+    a { color: var(--accent); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px 14px 90px; }
+    header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .title {
+      font-size: 38px;
       font-weight: 800;
-      cursor:pointer;
-      user-select:none;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
     }
-    .btn:active{transform: translateY(1px)}
-    .btn[disabled]{opacity:.5; cursor:not-allowed}
-
-    .bar{
-      max-width: var(--maxw);
-      margin: 10px auto 0;
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      align-items:center;
-      padding: 0 14px;
-    }
-    .file{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .file input{display:none}
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    .title small { font-weight: 700; color: var(--muted); }
+    .search {
+      width: 100%;
       border: 1px solid var(--border);
-      background: var(--chip);
       border-radius: 999px;
-      padding: 8px 10px;
-      font-size: 13px;
-      font-weight: 800;
-    }
-    .pill.ok{ background: color-mix(in oklab, var(--ok) 10%, var(--chip)); border-color: color-mix(in oklab, var(--ok) 45%, var(--border)); }
-    .pill.bad{ background: color-mix(in oklab, var(--danger) 10%, var(--chip)); border-color: color-mix(in oklab, var(--danger) 45%, var(--border)); }
-    select{
-      border:1px solid var(--border);
-      background: color-mix(in oklab, Canvas 94%, CanvasText 6%);
+      padding: 12px 14px;
+      background: var(--card);
       color: var(--fg);
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 14px;
+      font-size: 16px;
       outline: none;
     }
-
-    main{
-      max-width: var(--maxw);
-      margin: 0 auto;
-      padding: 12px 14px 84px;
+    .btnIcon {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 999px;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
     }
-    .stats{
+    .btnIcon:active { transform: translateY(1px); }
+    .controls {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
       margin-top: 10px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
+      margin-bottom: 6px;
     }
-    .list{
-      margin-top: 14px;
-      display:flex;
-      flex-direction:column;
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      user-select: none;
+      color: var(--fg);
+    }
+    .btn:active { transform: translateY(1px); }
+    select {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 12px 14px;
+      font-weight: 650;
+      box-shadow: var(--shadow);
+      width: 100%;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+    .chip {
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .chip strong { font-variant-numeric: tabular-nums; }
+    .grid {
+      display: grid;
       gap: 14px;
     }
-
-    .card{
+    .card {
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius2);
-      background: var(--card);
       box-shadow: var(--shadow);
       padding: 14px;
     }
-    .cardHead{
-      display:flex;
-      flex-direction: column;
-      align-items: stretch;
+    .cardHeader {
+      display: grid;
       gap: 10px;
     }
-    .gameTitle{
-      font-weight: 950;
-      font-size: 18px;
-      line-height: 1.2;
-      letter-spacing: .1px;
+    .cardTitle {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
     }
-    .subline{
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-items:center;
-    }
-
-    .chips{
-      margin-top: 10px;
-      display:flex;
-      flex-wrap:wrap;
+    .row {
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      align-items:center;
+      align-items: center;
     }
-
-    .badgeRow{
-      margin-top: 10px;
-      display:flex;
-      flex-wrap:wrap;
-      gap: 8px;
-      align-items:center;
-    }
-
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid var(--border);
+    .pill {
       background: var(--chip2);
+      border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 12px;
-      font-weight: 850;
-      white-space:nowrap;
-    }
-
-    .badge{
-      min-width: var(--badgeW);
-      justify-content:center;
-      text-align:center;
-    }
-    .badge--ok{
-      border-color: color-mix(in oklab, var(--ok) 45%, var(--border));
-      background: color-mix(in oklab, var(--ok) 14%, var(--chip2));
-    }
-    .badge--warn{
-      border-color: color-mix(in oklab, var(--warn) 50%, var(--border));
-      background: color-mix(in oklab, var(--warn) 14%, var(--chip2));
-    }
-    .badge--danger{
-      border-color: color-mix(in oklab, var(--danger) 45%, var(--border));
-      background: color-mix(in oklab, var(--danger) 10%, var(--chip2));
-    }
-    .badge--progress{
-      border-color: color-mix(in oklab, var(--progress) 20%, var(--border));
-      background: color-mix(in oklab, var(--progress) 8%, var(--chip2));
-    }
-
-    .metaGrid{
-      margin-top: 12px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 12px;
+      padding: 6px 10px;
+      font-weight: 750;
       font-size: 13px;
-    }
-    .metaRow{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-    }
-    .k{
-      min-width: 92px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-    .v{ font-weight: 850; }
-    
-    .chip--id{
-      border-color: color-mix(in oklab, #1e5bd7 55%, var(--border));
-      background: color-mix(in oklab, #1e5bd7 18%, var(--chip2));
-      color: color-mix(in oklab, CanvasText 92%, #1e5bd7 8%);
-    }
-    @media (max-width:560px){
-      :root{ --badgeW: 132px; }
-      .cardHead{ flex-direction: column; align-items: stretch; }
-            .subline{ gap:6px; }
-      .chip{ padding: 6px 9px; }
-      .gameTitle{ font-size: 17px; }
-    }
-
-@media (max-width:560px){
-      .metaGrid{grid-template-columns: 1fr;}
-      .k{min-width: 88px;}
-    }
-
-    details{
-      margin-top: 10px;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
-    }
-    summary{
-      cursor:pointer;
-      list-style:none;
-      font-weight: 900;
-      user-select:none;
-    }
-    summary::-webkit-details-marker{display:none}
-    .sectionLabel{
-      margin-top: 10px;
-      font-size: 12px;
-      letter-spacing: .14em;
-      color: var(--muted);
-      font-weight: 900;
-    }
-    .textBlock{
-      margin-top: 8px;
-      line-height: 1.45;
-      color: color-mix(in oklab, CanvasText 82%, Canvas 18%);
-      white-space: pre-wrap;
-    }
-
-    .trophyBlock{
-      margin-top: 10px;
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-    }
-    .tRow{
-      display:grid;
-      grid-template-columns: 52px 1fr;
-      gap: 10px;
-      align-items:center;
-    }
-    .platChip{
-      justify-content:flex-start;
-      min-width: 52px;
-      text-transform: uppercase;
-      font-size: 12px;
-    }
-    .barWrap{
-      display:flex;
-      flex-direction:column;
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
     }
-    .barTop{
-      display:flex;
-      justify-content:space-between;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 850;
+    .pill.id { background: color-mix(in oklab, #7aa7ff 28%, var(--chip2) 72%); }
+    .pill.ok { background: color-mix(in oklab, var(--ok) 18%, var(--chip2) 82%); }
+    .pill.warn { background: color-mix(in oklab, var(--warn) 18%, var(--chip2) 82%); }
+    .pill.danger { background: color-mix(in oklab, var(--danger) 18%, var(--chip2) 82%); }
+    .kv {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px 12px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
     }
-    .progressBar{
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: color-mix(in oklab, CanvasText 6%, Canvas 94%);
-      overflow:hidden;
+    .k { color: var(--muted); font-weight: 700; }
+    .v { font-weight: 800; }
+    details {
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+      padding-top: 10px;
     }
-    .progressBar > div{
-      height:100%;
-      width:0%;
-      background: color-mix(in oklab, Highlight 55%, CanvasText 45%);
-    }
-    .tBadges{
-      margin-top: 6px;
-      display:flex;
-      flex-wrap:wrap;
-      gap: 8px;
-    }
-
-    .backdrop{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.45);
-      z-index:80;
-    }
-    .sheet{
-      position:fixed;
-      left:0; right:0;
-      bottom:0;
-      z-index:90;
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
-      border:1px solid var(--border);
-      background:var(--card);
-      box-shadow: 0 -10px 30px rgba(0,0,0,.25);
-      max-height: 78vh;
-      overflow:auto;
-      padding:10px 12px 14px;
-    }
-    .handle{
-      width:52px;height:5px;border-radius:999px;
-      background: color-mix(in oklab, CanvasText 22%, Canvas 78%);
-      margin: 6px auto 10px;
-    }
-    .sheetHead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 2px 2px 10px;
-    }
-    .sheetTitle{font-weight: 950; font-size: 16px;}
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
+    summary {
+      list-style: none;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 18px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 10px;
     }
-    @media (max-width:560px){ .grid{grid-template-columns:1fr;} }
-
-    .toTop{
+    summary::-webkit-details-marker { display:none; }
+    .chev {
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      display: grid; place-items: center;
+      border: 1px solid var(--border);
+      background: var(--chip);
+      flex: 0 0 auto;
+    }
+    details[open] .chev { transform: rotate(180deg); }
+    .subdetails {
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+    .subdetails summary { font-size: 16px; font-weight: 850; }
+    .text {
+      margin: 10px 0 0;
+      color: var(--fg);
+      font-size: 14.5px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .table td {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .table td:first-child { color: var(--muted); font-weight: 750; width: 38%; padding-right: 10px; }
+    .floatingTop {
       position: fixed;
       right: 14px;
       bottom: 18px;
       z-index: 60;
+      border: 1px solid var(--border);
+      background: var(--card);
       border-radius: 999px;
       padding: 10px 14px;
       box-shadow: var(--shadow);
+      font-weight: 800;
+      text-decoration: none;
+      color: var(--fg);
+      display: none;
+    }
+    .floatingTop.show { display: inline-flex; }
+    /* Bottom sheet */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      z-index: 80;
+    }
+    .overlay.open { display: block; }
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: -100%;
+      margin: 0 auto;
+      max-width: 980px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px 22px 0 0;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      z-index: 90;
+      transition: bottom .22s ease;
+    }
+    .sheet.open { bottom: 0; }
+    .sheetHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .sheetHead h2 { margin: 0; font-size: 22px; font-weight: 900; }
+    .sheetClose {
+      border: 1px solid var(--border);
+      background: var(--chip);
+      border-radius: 999px;
+      width: 44px; height: 44px;
+      display: grid; place-items: center;
+      font-weight: 900;
+      cursor: pointer;
+      color: var(--fg);
+    }
+    .sheetGrid {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .sheetGrid label {
+      display: grid;
+      gap: 8px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 12px;
+    }
+    .sheetActions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    @media (max-width: 520px) {
+      .title { font-size: 34px; }
+      .kv { grid-template-columns: 110px 1fr; }
     }
   </style>
-  <!-- v6.1: XLSX lokal (neben index.html) -->
   <script src="./xlsx.full.min.js"></script>
 </head>
-
 <body>
+<a id="top"></a>
+<div class="wrap">
   <header>
-    <div class="top">
-      <div class="title">Spieleliste</div>
-
-      <div class="controls">
-        <div class="search">
-          <input id="search" type="search" placeholder="Suche…" disabled>
-        </div>
-        <button id="btnMenu" class="btn" type="button" disabled aria-haspopup="dialog" aria-controls="sheet">
-          ☰
-        </button>
-      </div>
-    </div>
-
-    <div class="bar">
-      <div class="file">
-        <label class="btn" style="cursor:pointer;">
-          <input id="file" type="file" accept=".xlsx,.xls,.xlsm" onchange="window._fileChanged && window._fileChanged(event)">
-          XLSX laden
-        </label>
-
-        <select id="sheetSelect" disabled></select>
-
-        <span id="hitline" class="pill">Treffer: 0 · angezeigt: 0/0</span>
-        <span id="lib" class="pill">XLSX: …</span>
-        <span id="filepill" class="pill">Datei: —</span>
-        <span id="jspill" class="pill">JS: …</span>
-      </div>
-
-      <button id="btnReset" class="btn" type="button" disabled>Reset</button>
-    </div>
+    <div class="title">Spieleliste <small>(Build 6.6e)</small></div>
+    <input id="q" class="search" type="search" placeholder="Suche..." disabled />
+    <button id="btnMenu" class="btnIcon" type="button" aria-label="Filter & Sort">
+      ☰
+    </button>
   </header>
 
-  <main>
-    <div id="stats" class="stats hidden"></div>
-    <section id="list" class="list"></section>
-    <div id="sentinel" style="height:1px;"></div>
-  </main>
-
-  <button id="toTop" class="btn toTop hidden" type="button">↑ Top</button>
-
-  <div id="backdrop" class="backdrop hidden" aria-hidden="true"></div>
-  <section id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="Filter und Sortierung">
-    <div class="handle"></div>
-    <div class="sheetHead">
-      <div class="sheetTitle">Filter & Sortieren</div>
-      <button id="btnClose" class="btn" type="button">Schließen</button>
-    </div>
-
-    <div class="grid">
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">SORTIEREN</div>
-        <select id="sort" disabled>
-          <option value="id_asc">ID (aufsteigend)</option>
-          <option value="id_desc">ID (absteigend)</option>
-          <option value="title_asc">Titel (A–Z)</option>
-          <option value="title_desc">Titel (Z–A)</option>
-          <option value="score_desc">Metascore (hoch → niedrig)</option>
-          <option value="score_asc">Metascore (niedrig → hoch)</option>
-        </select>
-      </label>
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">PLATTFORM</div>
-        <select id="platform" disabled>
-          <option value="ALL">Alle</option>
-          <option value="PS5">PS5</option>
-          <option value="PS4">PS4</option>
-          <option value="PS3">PS3</option>
-          <option value="VITA">Vita</option>
-        </select>
-      </label>
-
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">TROPHÄEN</div>
-        <select id="trophy" disabled>
-          <option value="ALL">Alle</option>
-          <option value="Platinum">💎 Platin erlangt</option>
-          <option value="No-Platinum-Title">Kein Platin</option>
-          <option value="Progress">⏳ In Arbeit</option>
-          <option value="Completed">✅ 100% erreicht</option>
-          <option value="Unplayed">💤 Ungespielt</option>
-        </select>
-      </label>
-
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">VERFÜGBARKEIT</div>
-        <select id="avail" disabled>
-          <option value="ALL">Alle</option>
-          <option value="AVAILABLE">Verfügbar</option>
-          <option value="DELISTED">Delisted</option>
-        </select>
-      </label>
-
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">FAVORIT</div>
-        <select id="fav" disabled>
-          <option value="ALL">Alle</option>
-          <option value="YES">Nur Favoriten</option>
-          <option value="NO">Ohne Favoriten</option>
-        </select>
-      </label>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <button id="clear" class="btn" type="button" disabled>Filter zurücksetzen</button>
-      <div class="muted" style="font-size:13px;">
-        Trophy-Parsing nutzt <b>3 Spalten</b>: „Trophäen Fortschritt“, „100%“, „Platin“.
-      </div>
-    </div>
-  </section>
-
-  <script>
-    (() => {
-      'use strict';
-
-      const PAGE_SIZE = 40;
-      const $ = (id) => document.getElementById(id);
-
-      const el = {
-        file: $('file'),
-        sheetSelect: $('sheetSelect'),
-        search: $('search'),
-        btnMenu: $('btnMenu'),
-        btnReset: $('btnReset'),
-        hitline: $('hitline'),
-        lib: $('lib'),
-        filepill: $('filepill'),
-        jspill: $('jspill'),
-        stats: $('stats'),
-        list: $('list'),
-        sentinel: $('sentinel'),
-        toTop: $('toTop'),
-
-        backdrop: $('backdrop'),
-        sheet: $('sheet'),
-        btnClose: $('btnClose'),
-
-        sort: $('sort'),
-        platform: $('platform'),
-        trophy: $('trophy'),
-        avail: $('avail'),
-        fav: $('fav'),
-        clear: $('clear'),
-      };
-
-      // v6.1 Debug-Pills
-      if (el.jspill) el.jspill.textContent = 'JS: läuft (' + new Date().toLocaleTimeString() + ')';
-
-      const COL = {
-        id: ['ID','Id','id'],
-        title: ['Spieletitel','Spiel','Titel','Title','Game'],
-        developer: ['Entwickler','Developer'],
-        genre_main: ['Genre'],
-        subgenre: ['Subgenre / Stimmung','Subgenre'],
-        genre: ['Genre','Subgenre','Subgenre / Stimmung'],
-        main: ['Spielzeit (Main)','Main Story (Std.)','Main'],
-        hundred: ['Spielzeit (100%)','100 % (Std.)','100%'],
-        metascore: ['Metascore','Pressemeinung (Ø)'],
-        userscore: ['Userwertung','Userwertung (Ø)'],
-        systems: ['System','Systeme','Platforms'],
-        availability: ['Verfügbarkeit','Availability','Store Status'],
-        storeLink: ['Store Link','StoreLink','Store URL','Store'],
-        source: ['Quelle','Source'],
-        desc: ['Kurzbeschreibung','Beschreibung','Description'],
-        features: ['Besonderheiten','Features'],
-        easter: ['Eastereggs','Easter Eggs','Easter'],
-        favorite: ['Favorit','Favorite','Fav'],
-        humor_total: ['Gesamtstunden (Humorstatistik)','Gesamtstunden','Humorstatistik – Gesamtstunden'],
-        humor_pct: ['% Lebenszeit (Humorstatistik)','% Lebenszeit','Humorstatistik – % Lebenszeit'],
-        humor_years: ['Jahre (Humorstatistik)','Jahre','Humorstatistik – Jahre'],
-
-        trophy_progress: ['Trophäen Fortschritt','Trophäenfortschritt','Trophy Progress'],
-        trophy_100: ['100%','100 %','100% Status'],
-        trophy_platinum: ['Platin','Platinum','Platin Status'],
-      };
-
-      let workbook = null;
-      let currentSheet = null;
-
-      let all = [];
-      let filtered = [];
-      let cursor = 0;
-      let observer = null;
-
-      const state = {
-        q: '',
-        sort: 'id_asc',
-        platform: 'ALL',
-        trophy: 'ALL',
-        avail: 'ALL',
-        fav: 'ALL',
-      };
-
-      function norm(v){
-        if (v === null || v === undefined) return '';
-        return String(v).replace(/\u00A0/g,' ').trim();
-      }
-      function lower(v){ return norm(v).toLowerCase(); }
-
-      function pick(obj, keys){
-        for (const k of keys){
-          if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
-        }
-        const map = Object.keys(obj).reduce((a,k)=> (a[k.toLowerCase()]=k, a), {});
-        for (const k of keys){
-          const hit = map[String(k).toLowerCase()];
-          if (hit) return obj[hit];
-        }
-        return undefined;
-      }
-      function pickBySubstring(obj, needles){
-        const keys = Object.keys(obj || {});
-        const low = keys.map(k => [k, String(k).toLowerCase()]);
-        for (const needle of needles){
-          const n = String(needle).toLowerCase();
-          const hit = low.find(([k,kl]) => kl.includes(n));
-          if (hit) return obj[hit[0]];
-        }
-        return undefined;
-      }
-
-      function parseIntLoose(v){
-        const s = norm(v);
-        if (!s) return null;
-        const n = parseInt(s.replace(/[^\d-]/g,''), 10);
-        return Number.isFinite(n) ? n : null;
-      }
-      function parseFloatLoose(v){
-        const s = norm(v);
-        if (!s) return null;
-        const n = parseFloat(s.replace(',', '.'));
-        return Number.isFinite(n) ? n : null;
-      }
-      function parseScore(v){
-        const s = norm(v);
-        if (!s) return null;
-        const m = s.match(/(\d+(?:[.,]\d+)?)/);
-        if (!m) return null;
-        const n = parseFloat(m[1].replace(',', '.'));
-        return Number.isFinite(n) ? n : null;
-      }
-      function fmtScore(v){
-        const n = parseScore(v);
-        if (n === null) return '';
-        const s = Number.isInteger(n) ? String(n) : n.toFixed(1);
-        return `${s} / 100`;
-      }
-      function fmt4(v){
-        const n = parseFloatLoose(v);
-        if (n === null) return '';
-        return n.toFixed(4).replace('.', ',');
-      }
-      function fmtHours(v){
-        const n = parseFloatLoose(v);
-        if (n === null) return '';
-        return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
-      }
-
-      function parseSystems(v){
-        const s = norm(v);
-        if (!s) return [];
-        return s.split(',').map(x=>norm(x)).filter(Boolean).map(x=>x.toUpperCase() === 'VITA' ? 'VITA' : x.toUpperCase());
-      }
-      function isDelisted(v){
-        const s = lower(v);
-        if (!s) return false;
-        return s.includes('delisted') || s.includes('nicht mehr') || s.includes('nichtmehr');
-      }
-
-      function escapeHtml(s){
-        return norm(s).replace(/[&<>\"']/g, m => ({
-          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-        }[m]));
-      }
-
-      function parsePlatformPairs(text){
-        const s = norm(text);
-        const out = new Map();
-        if (!s) return out;
-
-        const lines = s.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-
-        // single-line: "PS4 18 of 18" or "PS5 Completed"
-        for (const line of lines){
-          const m = line.match(/^(PS5|PS4|PS3|VITA)\s+(.+)$/i);
-          if (m){
-            out.set(m[1].toUpperCase(), m[2].trim());
-          }
-        }
-
-        // two-line blocks: platform line followed by value line
-        const isPlat = (x) => /^(PS5|PS4|PS3|VITA)$/i.test(x);
-        for (let i = 0; i < lines.length; i++){
-          if (isPlat(lines[i])){
-            const p = lines[i].toUpperCase();
-            const next = lines[i+1];
-            if (next && !isPlat(next)){
-              if (!out.has(p)) out.set(p, next.trim());
-              i += 1;
-            }
-          }
-        }
-        return out;
-      }
-
-      function parseCount(text){
-        const s = norm(text);
-        const m = s.match(/(\d+)\s*of\s*(\d+)/i);
-        if (!m) return null;
-        const got = parseInt(m[1], 10);
-        const total = parseInt(m[2], 10);
-        if (!Number.isFinite(got) || !Number.isFinite(total) || total <= 0) return null;
-        const percent = Math.max(0, Math.min(100, Math.round((got/total)*100)));
-        return { got, total, percent };
-      }
-
-      // v6.1: "Kein Platin" ist ein Flag, unabhängig vom Fortschritt
-      function trophySummaryFromColumns(progressText, hundredText, platinumText, systems){
-        const prog = parsePlatformPairs(progressText);
-        const hund = parsePlatformPairs(hundredText);
-        const plat = parsePlatformPairs(platinumText);
-
-        const wanted = (systems && systems.length)
-          ? systems
-          : Array.from(new Set([...prog.keys(), ...hund.keys(), ...plat.keys()]));
-
-        const per = wanted.map(p => {
-          const key = p.toUpperCase();
-          const vProg = prog.get(key) || '';
-          const vHund = hund.get(key) || '';
-          const vPlat = plat.get(key) || '';
-
-          let platFlag = '';
-          if (vPlat === 'Platinum') platFlag = 'Platinum';
-          else if (vPlat === 'No-Platinum-Title') platFlag = 'No-Platinum-Title';
-
-          let status = 'Unplayed';
-          const c = parseCount(vProg) || parseCount(vHund);
-          const got = c ? c.got : 0;
-          const total = c ? c.total : null;
-          const percent = c ? c.percent : 0;
-
-          const hundLower = vHund.toLowerCase();
-          if (hundLower.includes('completed')) status = 'Completed';
-          else if (hundLower.includes('in progress')) status = 'Progress';
-          else if (total != null && got >= total) status = 'Completed';
-          else if (got > 0) status = 'Progress';
-          else status = 'Unplayed';
-
-          const missing = !prog.has(key) && !hund.has(key) && !plat.has(key);
-          return { platform:key, status, platFlag, got, total, percent, missing };
-        });
-
-        return {
-          per,
-          anyPlatinum: per.some(x => x.platFlag === 'Platinum'),
-          anyNoPlat: per.some(x => x.platFlag === 'No-Platinum-Title'),
-          anyCompleted: per.some(x => x.status === 'Completed'),
-          anyProgress: per.some(x => x.status === 'Progress'),
-          allUnplayed: per.every(x => x.status === 'Unplayed')
-        };
-      }
-
-      function primaryBadges(t){
-        const badges = [];
-        if (t.anyPlatinum) badges.push({ label:'💎 Platin erlangt', cls:'badge--ok' });
-        if (t.anyCompleted) badges.push({ label:'✅ 100% erreicht', cls:'badge--ok' });
-        if (t.anyNoPlat) badges.push({ label:'Kein Platin', cls:'badge--warn' });
-        if (t.anyProgress) badges.push({ label:'⏳ In Arbeit', cls:'badge--progress' });
-        if (t.allUnplayed) badges.push({ label:'💤 Ungespielt', cls:'' });
-        return badges;
-      }
-
-      function enableUI(on){
-        const dis = !on;
-        for (const x of [el.sheetSelect, el.search, el.btnMenu, el.btnReset, el.sort, el.platform, el.trophy, el.avail, el.fav, el.clear]){
-          x.disabled = dis;
-        }
-      }
-
-      function ensureXLSX(){
-        if (window.XLSX){
-          el.lib.textContent = 'XLSX: ok (lokal)';
-          return true;
-        }
-        el.lib.textContent = 'XLSX: FEHLT';
-        alert('XLSX-Library fehlt. Lege xlsx.full.min.js neben index.html (gleiches Verzeichnis).');
-        return false;
-      }
-
-      function sheetToRows(wb, name){
-        const ws = wb.Sheets[name];
-        const ref = ws['!ref'];
-        if (!ref) return [];
-        const range = XLSX.utils.decode_range(ref);
-
-        // headers from first row
-        const headers = [];
-        for (let c = range.s.c; c <= range.e.c; c++){
-          const addr = XLSX.utils.encode_cell({r: range.s.r, c});
-          const cell = ws[addr];
-          headers.push(cell ? norm(cell.v) : '');
-        }
-
-        const lowerHeaders = headers.map(h => String(h||'').toLowerCase());
-        const storeColIdx = (() => {
-          const exact = lowerHeaders.findIndex(h => h === 'store link' || h === 'storelink');
-          if (exact !== -1) return exact;
-          const sub = lowerHeaders.findIndex(h => h.includes('store') && h.includes('link'));
-          return sub;
-        })();
-
-        const rows = [];
-        for (let r = range.s.r + 1; r <= range.e.r; r++){
-          const obj = {};
-          let empty = true;
-          for (let c = range.s.c; c <= range.e.c; c++){
-            const key = headers[c - range.s.c] || `COL_${c}`;
-            const addr = XLSX.utils.encode_cell({r, c});
-            const cell = ws[addr];
-
-            let val = cell ? cell.v : '';
-            if (val === undefined || val === null) val = '';
-            if (typeof val !== 'number') val = norm(val);
-
-            if (storeColIdx !== -1 && (c - range.s.c) === storeColIdx && cell && cell.l && cell.l.Target){
-              val = cell.l.Target;
-            }
-
-            if (val !== '' && val !== null && val !== undefined) empty = false;
-            obj[key] = val;
-          }
-          if (!empty) rows.push(obj);
-        }
-        return rows;
-      }
-
-      function normalize(rows){
-        return rows.map((r, idx) => {
-          const id = parseIntLoose(pick(r, COL.id)) ?? (idx+1);
-          const title = norm(pick(r, COL.title));
-          const dev = norm(pick(r, COL.developer));
-          const genreMain = norm(pick(r, COL.genre_main)) || '';
-          const subgenre = norm(pick(r, COL.subgenre)) || '';
-          const genre = norm(pick(r, COL.genre));
-          const main = parseFloatLoose(pick(r, COL.main));
-          const hundred = parseFloatLoose(pick(r, COL.hundred));
-          const systems = parseSystems(pick(r, COL.systems));
-
-          const tProg = pick(r, COL.trophy_progress) ?? pickBySubstring(r, ['trophäen fortschritt','trophy progress','trophies progress']);
-          const tHund = pick(r, COL.trophy_100) ?? pickBySubstring(r, ['100%']);
-          const tPlat = pick(r, COL.trophy_platinum) ?? pickBySubstring(r, ['platin','platinum']);
-          const t = trophySummaryFromColumns(tProg, tHund, tPlat, systems);
-
-          const delisted = isDelisted(pick(r, COL.availability));
-
-          const favRaw = lower(pick(r, COL.favorite));
-          const favorite = (favRaw === 'x' || favRaw === '1' || favRaw === 'true' || favRaw === 'yes' || favRaw.includes('⭐') || favRaw.includes('favorit'));
-
-          return {
-            _i: idx,
-            id,
-            title,
-            dev,
-            genre,
-            genreMain,
-            subgenre,
-            main,
-            hundred,
-            metascore: fmtScore(pick(r, COL.metascore)),
-            userscore: fmtScore(pick(r, COL.userscore)),
-            systems,
-            availability: delisted ? 'Delisted' : 'Verfügbar',
-            delisted,
-            favorite,
-            storeLink: norm(pick(r, COL.storeLink)),
-            source: norm(pick(r, COL.source)),
-            desc: norm(pick(r, COL.desc)),
-            features: norm(pick(r, COL.features)),
-            easter: norm(pick(r, COL.easter)),
-            trophy: t,
-            humor_total: parseIntLoose(pick(r, COL.humor_total)),
-            humor_pct: fmt4(pick(r, COL.humor_pct)),
-            humor_years: fmt4(pick(r, COL.humor_years)),
-          };
-        }).filter(x => x.title || x.dev || x.genre);
-      }
-
-      function matches(row){
-        const q = lower(state.q);
-        if (q){
-          const hay = `${row.id} ${row.title} ${row.dev} ${row.genre}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-
-        if (state.platform !== 'ALL'){
-          if (!row.systems.includes(state.platform)) return false;
-        }
-
-        if (state.avail !== 'ALL'){
-          if (state.avail === 'DELISTED' && !row.delisted) return false;
-          if (state.avail === 'AVAILABLE' && row.delisted) return false;
-        }
-
-        if (state.fav !== 'ALL'){
-          if (state.fav === 'YES' && !row.favorite) return false;
-          if (state.fav === 'NO' && row.favorite) return false;
-        }
-
-        if (state.trophy !== 'ALL'){
-          const t = row.trophy;
-          if (state.trophy === 'Platinum' && !t.anyPlatinum) return false;
-          if (state.trophy === 'No-Platinum-Title' && !t.anyNoPlat) return false;
-          if (state.trophy === 'Progress' && !t.anyProgress) return false;
-          if (state.trophy === 'Completed' && !t.anyCompleted) return false;
-          if (state.trophy === 'Unplayed' && !t.allUnplayed) return false;
-        }
-
-        return true;
-      }
-
-      function sortRows(rows){
-        const a = [...rows];
-        const cmp = (x,y) => {
-          switch(state.sort){
-            case 'id_asc': return (x.id??0) - (y.id??0);
-            case 'id_desc': return (y.id??0) - (x.id??0);
-            case 'title_asc': return x.title.localeCompare(y.title,'de',{sensitivity:'base'});
-            case 'title_desc': return y.title.localeCompare(x.title,'de',{sensitivity:'base'});
-            case 'score_desc': return (parseScore(y.metascore)??-1) - (parseScore(x.metascore)??-1);
-            case 'score_asc': return (parseScore(x.metascore)??999) - (parseScore(y.metascore)??999);
-            default: return 0;
-          }
-        };
-        a.sort((x,y)=> {
-          const d = cmp(x,y);
-          return d !== 0 ? d : (x._i - y._i);
-        });
-        return a;
-      }
-
-      function apply(){
-        filtered = sortRows(all.filter(matches));
-        cursor = 0;
-        el.list.innerHTML = '';
-        renderStats();
-        renderNext();
-      }
-
-      function renderStats(){
-        const shown = filtered.length;
-        const total = all.length;
-        el.hitline.textContent = `Treffer: ${shown} · angezeigt: ${Math.min(cursor,shown)}/${shown}`;
-
-        const plat = filtered.filter(x=>x.trophy.anyPlatinum).length;
-        const done = filtered.filter(x=>x.trophy.anyCompleted).length;
-        const prog = filtered.filter(x=>x.trophy.anyProgress).length;
-        const unpl = filtered.filter(x=>x.trophy.allUnplayed).length;
-        const fav = filtered.filter(x=>x.favorite).length;
-
-        el.stats.classList.remove('hidden');
-        el.stats.innerHTML = `
-          <span class="pill">💎 Platin: <b>${plat}</b></span>
-          <span class="pill">✅ 100%: <b>${done}</b></span>
-          <span class="pill">⏳ In Arbeit: <b>${prog}</b></span>
-          <span class="pill">💤 Ungespielt: <b>${unpl}</b></span>
-          <span class="pill">⭐ Favorit: <b>${fav}</b></span>
-          <span class="pill">${shown} / ${total}</span>
-        `;
-      }
-
-      function renderNext(){
-        const slice = filtered.slice(cursor, cursor + PAGE_SIZE);
-        cursor += slice.length;
-
-        const frag = document.createDocumentFragment();
-        for (const row of slice) frag.appendChild(renderCard(row));
-        el.list.appendChild(frag);
-
-        el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
-        syncToggleSummaries(el.list);
-
-        if (cursor >= filtered.length){
-          if (observer) observer.disconnect();
-          observer = null;
-        } else {
-          ensureObserver();
-        }
-      }
-
-      function ensureObserver(){
-        if (observer) return;
-        observer = new IntersectionObserver((entries)=>{
-          for (const e of entries){
-            if (e.isIntersecting) renderNext();
-          }
-        }, { root:null, rootMargin:'450px', threshold:0.01 });
-        observer.observe(el.sentinel);
-      }
-
-      function renderCard(row){
-        const card = document.createElement('article');
-        card.className = 'card';
-
-        const topBadges = [];
-        if (row.favorite) topBadges.push(`<span class="chip badge">⭐ Favorit</span>`);
-        for (const b of primaryBadges(row.trophy)){
-          topBadges.push(`<span class="chip badge ${b.cls}">${escapeHtml(b.label)}</span>`);
-        }
-        if (row.delisted) topBadges.push(`<span class="chip badge badge--danger">Delisted</span>`);
-
-        const sysChips = row.systems.map(p => `<span class="chip">${escapeHtml(p === 'VITA' ? 'Vita' : p)}</span>`).join('');
-        const idChip = `<span class="chip chip--id">ID ${escapeHtml(row.id)}</span>`;
-        const availChip = `<span class="chip">${escapeHtml(row.availability)}</span>`;
-
-        const hours = (row.main != null || row.hundred != null)
-          ? `${row.main != null ? fmtHours(row.main) : '–'}h / ${row.hundred != null ? fmtHours(row.hundred) : '–'}h`
-          : '';
-
-        const metasDetail = `
-          <div class="metaGrid">
-            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
-            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ''}
-            ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
-            ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
-            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
-            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
-          </div>
-        `;
-
-        const metasCompactExpanded = `
-          <div class="metaGrid">
-            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ((row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : '')}
-            ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
-            ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
-            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
-            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
-          </div>
-        `;
-
-        const trophy = renderTrophies(row.trophy);
-
-        const humor = (row.humor_total != null || row.humor_pct || row.humor_years) ? `
-          <div class="sectionLabel">HUMORSTATISTIK</div>
-          <div class="metaGrid">
-            ${row.humor_total != null ? `<div class="metaRow"><div class="k">Gesamtstunden</div><div class="v">${escapeHtml(row.humor_total)}</div></div>` : ''}
-            ${row.humor_pct ? `<div class="metaRow"><div class="k">% Lebenszeit</div><div class="v">${escapeHtml(row.humor_pct)}</div></div>` : ''}
-            ${row.humor_years ? `<div class="metaRow"><div class="k">Jahre</div><div class="v">${escapeHtml(row.humor_years)}</div></div>` : ''}
-          </div>
-        ` : '';
-
-        const store = (row.source || row.storeLink || row.availability) ? `
-          <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
-            <summary>Store anzeigen</summary>
-            <div class="sectionLabel">STORE</div>
-            <div class="metaGrid">
-              ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
-              ${row.storeLink ? `<div class="metaRow"><div class="k">Store</div><div class="v"><a href="${escapeHtml(row.storeLink)}" target="_blank" rel="noopener">Store Link</a></div></div>` : ''}
-              <div class="metaRow"><div class="k">Verfügbarkeit</div><div class="v">${escapeHtml(row.availability)}</div></div>
-            </div>
-          </details>
-        ` : '';
-
-        const desc = row.desc ? `
-          <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
-            <summary>Beschreibung anzeigen</summary>
-            <div class="sectionLabel">BESCHREIBUNG</div>
-            <div class="textBlock">${escapeHtml(row.desc)}</div>
-          </details>
-        ` : '';
-
-        const features = row.features ? `
-          <details>
-            <summary>Besonderheiten anzeigen</summary>
-            <div class="sectionLabel">EXTRAS</div>
-            <div class="textBlock">${escapeHtml(row.features)}</div>
-          </details>
-        ` : '';
-
-        const easter = row.easter ? `
-          <details>
-            <summary>Eastereggs anzeigen</summary>
-            <div class="textBlock">${escapeHtml(row.easter)}</div>
-          </details>
-        ` : '';
-
-        
-        const compactToggle = `
-            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary>Mehr Details</summary>
-              ${metasCompactExpanded}
-              ${desc}
-              ${store}
-              ${features}
-              ${easter}
-              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary>Trophäen anzeigen</summary>
-                <div class="sectionLabel">TROPHÄEN</div>
-                ${trophy}
-              </details>
-              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
-                ${humor}
-              </details>
-            </details>
-          `;
-
-
-        card.innerHTML = `
-          <div class="cardHead">
-            <div>
-              <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
-              <div class="subline">${idChip}${sysChips}${availChip}</div>
-              ${(row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
-              
-            </div>
-            <div class="badgeRow">
-              ${topBadges.join('')}
-            </div>
-          </div>
-          ${compactToggle}
-        `;
-
-        return card;
-      }
-
-      function renderTrophies(t){
-        const parts = t.per.map(p => {
-          const platLabel = (p.platform === 'VITA') ? 'Vita' : p.platform;
-          const countText = (p.total != null) ? `${p.got} of ${p.total}` : (p.missing ? '—' : '');
-          const percentText = (p.total != null && p.total > 0) ? `${p.percent}%` : '';
-
-          const bar = `<div class="progressBar"><div style="width:${p.total != null ? p.percent : 0}%"></div></div>`;
-
-          const badges = [];
-          if (p.status === 'Completed') badges.push({label:'✅ 100% erreicht', cls:'badge--ok'});
-          else if (p.status === 'Progress') badges.push({label:'⏳ In Arbeit', cls:'badge--progress'});
-          else if (p.status === 'Unplayed') badges.push({label:'💤 Ungespielt', cls:''});
-
-          if (p.platFlag === 'Platinum') badges.push({label:'💎 Platin erlangt', cls:'badge--ok'});
-          else if (p.platFlag === 'No-Platinum-Title') badges.push({label:'Kein Platin', cls:'badge--warn'});
-
-          if (p.missing) badges.push({label:'kein Block → ungespielt', cls:''});
-
-          return `
-            <div class="tRow">
-              <span class="chip platChip">${escapeHtml(platLabel)}</span>
-              <div class="barWrap">
-                <div class="barTop">
-                  <span>${escapeHtml(countText)}</span>
-                  <span>${escapeHtml(percentText)}</span>
-                </div>
-                ${bar}
-                <div class="tBadges">
-                  ${badges.map(b => `<span class="chip badge ${b.cls}">${escapeHtml(b.label)}</span>`).join('')}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        return `<div class="trophyBlock">${parts}</div>`;
-      }
-
-      function openSheet(){
-        el.backdrop.classList.remove('hidden');
-        el.sheet.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-      }
-      function closeSheet(){
-        el.backdrop.classList.add('hidden');
-        el.sheet.classList.add('hidden');
-        document.body.style.overflow = '';
-      }
-
-      el.btnMenu.addEventListener('click', () => { if (!el.btnMenu.disabled) openSheet(); });
-      el.btnClose.addEventListener('click', closeSheet);
-      el.backdrop.addEventListener('click', closeSheet);
-      document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeSheet(); });
-
-      el.btnReset.addEventListener('click', ()=>{
-        workbook = null; currentSheet = null;
-        all = []; filtered = [];
-        cursor = 0;
-        if (observer) observer.disconnect();
-        observer = null;
-
-        el.sheetSelect.innerHTML = '';
-        el.search.value = '';
-        el.list.innerHTML = '';
-        el.stats.classList.add('hidden');
-        el.hitline.textContent = 'Treffer: 0 · angezeigt: 0/0';
-        el.filepill.textContent = 'Datei: —';
-        enableUI(false);
-        el.file.value = '';
+  <div class="controls">
+    <button id="btnLoad" class="btn" type="button">XLSX laden</button>
+    <select id="selSheet" disabled></select>
+  </div>
+
+  <div class="chips" id="statusChips">
+    <span class="chip">Treffer: <strong id="hitCount">0</strong> · angezeigt: <strong id="shownCount">0</strong>/<strong id="totalCount">0</strong></span>
+    <span class="chip" id="chipXlsx">XLSX: <strong id="xlsxState">…</strong></span>
+    <span class="chip">Datei: <strong id="fileState">—</strong></span>
+    <span class="chip">JS: <strong id="jsUptime">…</strong></span>
+    <button id="btnReset" class="btn" type="button" style="padding:10px 14px; font-weight:900;">Reset</button>
+  </div>
+
+  <div class="chips" id="summaryChips" style="display:none;"></div>
+
+  <div class="grid" id="list"></div>
+
+  <div class="note" id="note">
+    Hinweis: Die Excel wird lokal im Browser gelesen (keine Uploads). Wenn du Probleme hast, prüfe, ob <code>xlsx.full.min.js</code> neben <code>index.html</code> liegt.
+  </div>
+</div>
+
+<a class="floatingTop" id="btnTop" href="#top">↑ Top</a>
+
+<div class="overlay" id="overlay"></div>
+<section class="sheet" id="sheet" aria-modal="true" role="dialog" aria-label="Filter & Sortieren">
+  <div class="sheetHead">
+    <h2>Filter &amp; Sortieren</h2>
+    <button class="sheetClose" id="sheetClose" type="button">×</button>
+  </div>
+
+  <div class="sheetGrid">
+    <label>SORTIEREN
+      <select id="sortBy">
+        <option value="id">ID</option>
+        <option value="title">Spieletitel</option>
+        <option value="genre">Genre</option>
+        <option value="meta">Metascore</option>
+        <option value="user">Userwertung</option>
+        <option value="main">Spielzeit (Main)</option>
+        <option value="fav">Favorit</option>
+      </select>
+    </label>
+
+    <label>RICHTUNG
+      <select id="sortDir">
+        <option value="asc">Aufwärts</option>
+        <option value="desc">Abwärts</option>
+      </select>
+    </label>
+
+    <label>PLATTFORM
+      <select id="fSystem">
+        <option value="">Alle</option>
+        <option value="PS3">PS3</option>
+        <option value="PS4">PS4</option>
+        <option value="PS5">PS5</option>
+        <option value="Vita">Vita</option>
+      </select>
+    </label>
+
+    <label>QUELLE
+      <select id="fQuelle">
+        <option value="">Alle</option>
+        <option value="Digital">Digital</option>
+        <option value="PS Plus">PS Plus</option>
+        <option value="Retail-Disc">Retail-Disc</option>
+      </select>
+    </label>
+
+    <label>VERFÜGBARKEIT
+      <select id="fAvail">
+        <option value="">Alle</option>
+        <option value="Verfügbar">Verfügbar</option>
+        <option value="Delisted">Delisted</option>
+      </select>
+    </label>
+
+    <label>FAVORIT
+      <select id="fFav">
+        <option value="">Alle</option>
+        <option value="only">Nur Favoriten</option>
+        <option value="no">Ohne Favoriten</option>
+      </select>
+    </label>
+
+    <label>TROPHÄEN
+      <select id="fTrophy">
+        <option value="">Alle</option>
+        <option value="platinum">Platin erlangt</option>
+        <option value="no-platinum">Kein Platin</option>
+        <option value="in-progress">In Arbeit</option>
+        <option value="completed">100% erreicht</option>
+        <option value="unplayed">Ungespielt</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="sheetActions">
+    <button id="btnClearFilters" class="btn" type="button">Filter zurücksetzen</button>
+    <button id="btnApply" class="btn" type="button">Anwenden</button>
+  </div>
+
+  <div class="note">
+    Trophy-Parsing nutzt 3 Spalten: „Trophäen Fortschritt“, „100%“, „Platin“.
+  </div>
+</section>
+
+<input id="file" type="file" accept=".xlsx,.xls" style="display:none" />
+
+<script>
+(() => {
+  const t0 = Date.now();
+  const $ = (id) => document.getElementById(id);
+
+  const elQ = $("q");
+  const elList = $("list");
+  const elSheet = $("selSheet");
+  const elFile = $("file");
+  const elHit = $("hitCount");
+  const elShown = $("shownCount");
+  const elTotal = $("totalCount");
+  const elXlsxState = $("xlsxState");
+  const elFileState = $("fileState");
+  const elUptime = $("jsUptime");
+  const elSummary = $("summaryChips");
+
+  const overlay = $("overlay");
+  const sheet = $("sheet");
+
+  const state = {
+    wb: null,
+    rows: [],
+    filtered: [],
+    renderCount: 40,
+    search: "",
+    sortBy: "id",
+    sortDir: "asc",
+    fSystem: "",
+    fQuelle: "",
+    fAvail: "",
+    fFav: "",
+    fTrophy: ""
+  };
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,"0");
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,"0");
+    const ss = String(s%60).padStart(2,"0");
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function setXlsxState() {
+    const ok = !!window.XLSX;
+    elXlsxState.textContent = ok ? "ok" : "FEHLT";
+    $("chipXlsx").style.borderColor = ok ? "color-mix(in oklab, var(--ok) 45%, var(--border) 55%)"
+                                        : "color-mix(in oklab, var(--danger) 45%, var(--border) 55%)";
+    $("btnLoad").disabled = !ok;
+    elQ.disabled = !ok;
+    elSheet.disabled = !ok;
+  }
+
+  function safeStr(v) {
+    if (v === null || v === undefined) return "";
+    return String(v).replace(/\s+/g," ").trim();
+  }
+
+  function pick(obj, keys) {
+    for (const k of keys) {
+      if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") return obj[k];
+    }
+    return "";
+  }
+
+  function parseSystems(row) {
+    // "System" kann mehrere Werte enthalten ("PS4, Vita" oder "PS4 / PS5" etc.)
+    const raw = safeStr(pick(row, ["System", "Plattform", "Plattformen"]));
+    if (!raw) return [];
+    return raw.split(/[,/]|\s\+\s/).map(s => safeStr(s)).filter(Boolean);
+  }
+
+  function parseQuelle(row) {
+    return safeStr(pick(row, ["Quelle", "Medium", "Lizenz"]));
+  }
+
+  function parseAvail(row) {
+    return safeStr(pick(row, ["Verfügbarkeit", "Availability"]));
+  }
+
+  function parseFav(row) {
+    const v = pick(row, ["Favorit", "Favorite"]);
+    const s = safeStr(v).toLowerCase();
+    return s === "1" || s === "true" || s === "ja" || s === "yes" || s === "★" || s === "fav" || s === "favorit";
+  }
+
+  function parseNum(val) {
+    if (val === null || val === undefined) return NaN;
+    if (typeof val === "number") return val;
+    const s = String(val).replace(",", ".").replace(/[^0-9.\-]/g, "");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function trophyInfo(row) {
+    const prog = safeStr(row["Trophäen Fortschritt"]);
+    const c100 = safeStr(row["100%"]);
+    const plat = safeStr(row["Platin"]);
+    let pct = null;
+    // Beispiele: "PS4\n18%", "VITA\n0%"
+    const m = prog.match(/(\d{1,3})\s*%/);
+    if (m) pct = Math.max(0, Math.min(100, parseInt(m[1],10)));
+    const hasPlat = /platinum/i.test(plat);
+    const has100 = /completed/i.test(c100);
+    const unplayed = /no\-trophies/i.test(prog) || pct === 0 || pct === null;
+    const inProgress = (pct !== null && pct > 0 && pct < 100) || (/in\s*progress/i.test(prog));
+    return { pct, hasPlat, has100, unplayed, inProgress };
+  }
+
+  function normalizeRow(row) {
+    const id = parseInt(pick(row, ["ID","Id","id"]), 10);
+    const title = safeStr(pick(row, ["Spieletitel","Spiel","Titel","Title"]));
+    const genre = safeStr(pick(row, ["Genre","Hauptgenre"]));
+    const dev = safeStr(pick(row, ["Entwickler","Developer"]));
+    const subgenre = safeStr(pick(row, ["Subgenre","Subgenre / Stimmung","Subgenre/Stimmung"]));
+    const main = safeStr(pick(row, ["Spielzeit (Main)","Spielzeit Main","Main","Main Story (Std.)"]));
+    const hundred = safeStr(pick(row, ["Spielzeit (100%)","100% (Std.)","Hundert","Completionist"]));
+    const meta = safeStr(pick(row, ["Metascore","Pressemeinung (Ø)"]));
+    const user = safeStr(pick(row, ["Userwertung","Userwertung (Ø)"]));
+    const desc = safeStr(pick(row, ["Kurzbeschreibung","Beschreibung","Description"]));
+    const storeLink = safeStr(pick(row, ["Store Link","Store","Link"]));
+    const systems = parseSystems(row);
+    const quelle = parseQuelle(row);
+    const avail = parseAvail(row);
+    const fav = parseFav(row);
+    const trop = trophyInfo(row);
+
+    const hsTotal = safeStr(pick(row, ["Gesamtstunden (Humorstatistik)","Gesamtstunden","Humorstatistik – Gesamtstunden"]));
+    const hsPct = safeStr(pick(row, ["% Lebenszeit (Humorstatistik)","% Lebenszeit","Humorstatistik – % Lebenszeit"]));
+    const hsYears = safeStr(pick(row, ["Jahre (Humorstatistik)","Jahre","Humorstatistik – Jahre"]));
+
+    // Status-Pill: Verfügbarkeit
+    let availClass = "ok";
+    if (/delisted/i.test(avail)) availClass = "danger";
+    if (!avail) availClass = "warn";
+
+    return {
+      raw: row,
+      id: Number.isFinite(id) ? id : null,
+      title,
+      genre,
+      dev,
+      subgenre,
+      main,
+      hundred,
+      meta,
+      user,
+      desc,
+      storeLink,
+      systems,
+      quelle,
+      avail,
+      availClass,
+      fav,
+      trop,
+      hsTotal, hsPct, hsYears
+    };
+  }
+
+  function rebuildSheetSelect() {
+    elSheet.innerHTML = "";
+    if (!state.wb) return;
+    for (const name of state.wb.SheetNames) {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      elSheet.appendChild(opt);
+    }
+    elSheet.disabled = false;
+  }
+
+  function readSheet(name) {
+    const ws = state.wb.Sheets[name];
+    const arr = window.XLSX.utils.sheet_to_json(ws, { defval: "" });
+    state.rows = arr.map(normalizeRow).filter(r => r.title || r.id !== null);
+    state.renderCount = 40;
+    applyAll();
+  }
+
+  function openSheet() {
+    overlay.classList.add("open");
+    sheet.classList.add("open");
+  }
+  function closeSheet() {
+    overlay.classList.remove("open");
+    sheet.classList.remove("open");
+  }
+
+  function applyFilters(rows) {
+    const q = state.search.toLowerCase().trim();
+    let out = rows;
+
+    if (q) {
+      out = out.filter(r => {
+        const hay = `${r.id ?? ""} ${r.title} ${r.genre} ${r.dev} ${r.subgenre}`.toLowerCase();
+        return hay.includes(q);
       });
+    }
 
-      el.clear.addEventListener('click', ()=>{
-        state.q = ''; state.sort = 'id_asc';
-        state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
-        el.search.value = '';
-        el.sort.value = state.sort;
-        el.platform.value = state.platform;
-        el.trophy.value = state.trophy;
-        el.avail.value = state.avail;
-        el.fav.value = state.fav;
-        apply();
-      });
+    if (state.fSystem) {
+      out = out.filter(r => r.systems.some(s => s.toLowerCase() === state.fSystem.toLowerCase()));
+    }
+    if (state.fQuelle) {
+      out = out.filter(r => r.quelle.toLowerCase() === state.fQuelle.toLowerCase());
+    }
+    if (state.fAvail) {
+      out = out.filter(r => r.avail.toLowerCase() === state.fAvail.toLowerCase());
+    }
+    if (state.fFav === "only") out = out.filter(r => r.fav);
+    if (state.fFav === "no") out = out.filter(r => !r.fav);
 
-      el.search.addEventListener('input', ()=>{ state.q = el.search.value; apply(); });
-      el.sort.addEventListener('change', ()=>{ state.sort = el.sort.value; apply(); });
-      el.platform.addEventListener('change', ()=>{ state.platform = el.platform.value; apply(); });
-      el.trophy.addEventListener('change', ()=>{ state.trophy = el.trophy.value; apply(); });
-      el.avail.addEventListener('change', ()=>{ state.avail = el.avail.value; apply(); });
-      el.fav.addEventListener('change', ()=>{ state.fav = el.fav.value; apply(); });
-
-      el.sheetSelect.addEventListener('change', ()=>{
-        currentSheet = el.sheetSelect.value;
-        if (!workbook || !currentSheet) return;
-        const rows = sheetToRows(workbook, currentSheet);
-        all = normalize(rows);
-        apply();
-        closeSheet();
-      });
-
-      el.toTop.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
-      window.addEventListener('scroll', ()=>{
-        const y = window.scrollY || document.documentElement.scrollTop;
-        el.toTop.classList.toggle('hidden', y < 600);
-      }, { passive:true });
-
-
-      function syncToggleSummaries(root=document){
-        const nodes = root.querySelectorAll('details.toggleDetails');
-        for (const d of nodes){
-          const sum = d.querySelector(':scope > summary');
-          if (!sum) continue;
-          const more = d.getAttribute('data-more') || 'Mehr Details';
-          const less = d.getAttribute('data-less') || 'Weniger Details';
-          sum.textContent = d.open ? less : more;
-        }
-      }
-
-      document.addEventListener('toggle', (e)=>{
-        const d = e.target;
-        if (d && d.matches && d.matches('details.toggleDetails')){
-          syncToggleSummaries(d.parentElement || document);
-        }
-      }, true);
-
-      // Inline onchange fallback for some Android setups
-      window._fileChanged = () => { try{ el.file.dispatchEvent(new Event('change')); }catch{} };
-
-      el.file.addEventListener('change', async ()=>{
-        const file = el.file.files && el.file.files[0];
-        el.filepill.textContent = 'Datei: ' + (file ? (file.name + ' (' + Math.round(file.size/1024) + ' KB)') : '—');
-        if (!file) return;
-
-        if (!ensureXLSX()) return;
-
-        enableUI(false);
-        el.lib.textContent = 'XLSX: lese Datei…';
-
-        try{
-          const buf = await file.arrayBuffer();
-          workbook = XLSX.read(buf, { type:'array' });
-
-          el.sheetSelect.innerHTML = '';
-          for (const name of workbook.SheetNames){
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            el.sheetSelect.appendChild(opt);
-          }
-          currentSheet = workbook.SheetNames[0];
-          el.sheetSelect.value = currentSheet;
-
-          const rows = sheetToRows(workbook, currentSheet);
-          all = normalize(rows);
-
-          el.lib.textContent = 'XLSX: ok (lokal)';
-          enableUI(true);
-          el.search.disabled = false;
-        apply();
-        }catch(err){
-          console.error(err);
-          alert('Fehler beim Einlesen der XLSX. Details in der Konsole.');
-          el.lib.textContent = 'XLSX: Fehler';
-          enableUI(false);
+    if (state.fTrophy) {
+      out = out.filter(r => {
+        const t = r.trop;
+        switch (state.fTrophy) {
+          case "platinum": return t.hasPlat;
+          case "no-platinum": return !t.hasPlat;
+          case "in-progress": return t.inProgress;
+          case "completed": return t.has100;
+          case "unplayed": return t.unplayed;
+          default: return true;
         }
       });
+    }
 
-      enableUI(false);
-      el.lib.textContent = window.XLSX ? 'XLSX: ok (lokal)' : 'XLSX: FEHLT';
-    })();
-  </script>
+    return out;
+  }
+
+  function sortRows(rows) {
+    const dir = state.sortDir === "desc" ? -1 : 1;
+    const key = state.sortBy;
+
+    const get = (r) => {
+      switch (key) {
+        case "id": return r.id ?? 999999999;
+        case "title": return r.title.toLowerCase();
+        case "genre": return r.genre.toLowerCase();
+        case "meta": return parseNum(r.meta);
+        case "user": return parseNum(r.user);
+        case "main": {
+          // versucht "10h" -> 10
+          const m = String(r.main).match(/(\d+(?:[\.,]\d+)?)/);
+          return m ? parseFloat(m[1].replace(",", ".")) : NaN;
+        }
+        case "fav": return r.fav ? 0 : 1; // Favoriten nach oben
+        default: return r.id ?? 999999999;
+      }
+    };
+
+    return [...rows].sort((a,b) => {
+      const av = get(a), bv = get(b);
+      const aNan = Number.isNaN(av), bNan = Number.isNaN(bv);
+      if (aNan && bNan) return 0;
+      if (aNan) return 1;
+      if (bNan) return -1;
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      return (String(av).localeCompare(String(bv), "de")) * dir;
+    });
+  }
+
+  function updateSummary(rowsAll) {
+    if (!rowsAll.length) {
+      elSummary.style.display = "none";
+      elSummary.innerHTML = "";
+      return;
+    }
+    const plat = rowsAll.filter(r => r.trop.hasPlat).length;
+    const c100 = rowsAll.filter(r => r.trop.has100).length;
+    const inprog = rowsAll.filter(r => r.trop.inProgress).length;
+    const fav = rowsAll.filter(r => r.fav).length;
+    const unplayed = rowsAll.filter(r => r.trop.unplayed).length;
+
+    elSummary.innerHTML = "";
+    const mk = (label, val) => {
+      const s = document.createElement("span");
+      s.className = "chip";
+      s.innerHTML = `${label}: <strong>${val}</strong>`;
+      elSummary.appendChild(s);
+    };
+    mk("💎 Platin", plat);
+    mk("✅ 100%", c100);
+    mk("⏳ In Arbeit", inprog);
+    mk("💤 Ungespielt", unplayed);
+    mk("⭐ Favorit", fav);
+    mk(`${rowsAll.length} / ${rowsAll.length}`, rowsAll.length);
+
+    elSummary.style.display = "flex";
+  }
+
+  function cardHtml(r) {
+    const pills = [];
+    pills.push(`<span class="pill id">ID ${r.id ?? "?"}</span>`);
+    for (const s of r.systems.slice(0,3)) pills.push(`<span class="pill">${escapeHtml(s)}</span>`);
+    if (r.avail) pills.push(`<span class="pill ${r.availClass}">${escapeHtml(r.avail)}</span>`);
+    if (r.genre) pills.push(`<span class="pill">${escapeHtml(r.genre)}</span>`);
+    if (r.fav) pills.push(`<span class="pill">⭐ Favorit</span>`);
+
+    const t = r.trop;
+    if (t.hasPlat) pills.push(`<span class="pill">💎 Platin</span>`);
+    else pills.push(`<span class="pill">◇ Kein Platin</span>`);
+    if (t.has100) pills.push(`<span class="pill">✅ 100%</span>`);
+    else if (t.inProgress) pills.push(`<span class="pill">⏳ In Arbeit</span>`);
+    else if (t.unplayed) pills.push(`<span class="pill">💤 Ungespielt</span>`);
+
+    const kv = [];
+    if (r.subgenre) kv.push(rowKV("Subgenre", r.subgenre));
+    if (r.dev) kv.push(rowKV("Entwickler", r.dev));
+    if (r.main || r.hundred) kv.push(rowKV("Spielzeit", `${r.main || "?"} / ${r.hundred || "?"}`));
+    if (r.meta) kv.push(rowKV("Metascore", r.meta));
+    if (r.user) kv.push(rowKV("Userwertung", r.user));
+
+    const descBlock = r.desc
+      ? `<details class="subdetails"><summary>Beschreibung <span class="chev">⌄</span></summary><div class="text">${escapeHtml(r.desc)}</div></details>`
+      : "";
+
+    const storeRows = [];
+    if (r.quelle) storeRows.push(trRow("Quelle", r.quelle));
+    if (r.storeLink) storeRows.push(trRow("Store", `<a href="${escapeAttr(r.storeLink)}" target="_blank" rel="noopener">Store Link</a>`));
+    if (r.avail) storeRows.push(trRow("Verfügbarkeit", r.avail));
+    const storeBlock = storeRows.length
+      ? `<details class="subdetails"><summary>Store <span class="chev">⌄</span></summary><table class="table">${storeRows.join("")}</table></details>`
+      : "";
+
+    const trophyRows = [];
+    const rawProg = safeStr(r.raw["Trophäen Fortschritt"]);
+    const raw100 = safeStr(r.raw["100%"]);
+    const rawPlat = safeStr(r.raw["Platin"]);
+    if (rawProg) trophyRows.push(trRow("Fortschritt", escapeHtml(rawProg).replaceAll("\n","<br>")));
+    if (raw100) trophyRows.push(trRow("100%", escapeHtml(raw100).replaceAll("\n","<br>")));
+    if (rawPlat) trophyRows.push(trRow("Platin", escapeHtml(rawPlat).replaceAll("\n","<br>")));
+    const trophyBlock = trophyRows.length
+      ? `<details class="subdetails"><summary>Trophäen <span class="chev">⌄</span></summary><table class="table">${trophyRows.join("")}</table></details>`
+      : "";
+
+    const hsRows = [];
+    if (r.hsTotal) hsRows.push(trRow("Gesamtstunden", escapeHtml(r.hsTotal)));
+    if (r.hsPct) hsRows.push(trRow("% Lebenszeit", escapeHtml(r.hsPct)));
+    if (r.hsYears) hsRows.push(trRow("Jahre", escapeHtml(r.hsYears)));
+    const hsBlock = hsRows.length
+      ? `<details class="subdetails"><summary>Humorstatistik <span class="chev">⌄</span></summary><table class="table">${hsRows.join("")}</table></details>`
+      : "";
+
+    return `
+      <article class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">${escapeHtml((r.id ?? "?") + ": " + (r.title || "—"))}</div>
+          <div class="row">${pills.join("")}</div>
+        </div>
+
+        <div class="kv">${kv.join("")}</div>
+
+        <details>
+          <summary>Mehr Details <span class="chev">⌄</span></summary>
+          ${descBlock}
+          ${storeBlock}
+          ${trophyBlock}
+          ${hsBlock}
+        </details>
+      </article>
+    `;
+  }
+
+  function rowKV(k, v) {
+    return `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div>`;
+  }
+  function trRow(k, vHtml) {
+    return `<tr><td>${escapeHtml(k)}</td><td>${vHtml}</td></tr>`;
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  }
+  function escapeAttr(s) {
+    return String(s ?? "").replace(/"/g,"&quot;");
+  }
+
+  function render() {
+    const rows = state.filtered;
+    const total = rows.length;
+    const n = Math.min(state.renderCount, total);
+
+    elHit.textContent = total;
+    elShown.textContent = n;
+    elTotal.textContent = total;
+
+    // Render only first n
+    const frag = document.createDocumentFragment();
+    elList.innerHTML = "";
+    for (let i=0; i<n; i++) {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = cardHtml(rows[i]);
+      frag.appendChild(tmp.firstElementChild);
+    }
+    elList.appendChild(frag);
+  }
+
+  function applyAll() {
+    const filtered = applyFilters(state.rows);
+    const sorted = sortRows(filtered);
+    state.filtered = sorted;
+    updateSummary(state.filtered);
+    render();
+  }
+
+  function bumpRenderCount() {
+    state.renderCount += 40;
+    render();
+  }
+
+  function onScroll() {
+    const y = window.scrollY || document.documentElement.scrollTop;
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    $("btnTop").classList.toggle("show", y > 900);
+
+    if (h > 0 && (h - y) < 650) {
+      if (state.renderCount < state.filtered.length) bumpRenderCount();
+    }
+  }
+
+  function setFromUi() {
+    state.sortBy = $("sortBy").value;
+    state.sortDir = $("sortDir").value;
+    state.fSystem = $("fSystem").value;
+    state.fQuelle = $("fQuelle").value;
+    state.fAvail = $("fAvail").value;
+    state.fFav = $("fFav").value;
+    state.fTrophy = $("fTrophy").value;
+  }
+
+  function clearFilters() {
+    $("fSystem").value = "";
+    $("fQuelle").value = "";
+    $("fAvail").value = "";
+    $("fFav").value = "";
+    $("fTrophy").value = "";
+    $("sortBy").value = "id";
+    $("sortDir").value = "asc";
+    setFromUi();
+    applyAll();
+  }
+
+  // Events
+  $("btnMenu").addEventListener("click", () => openSheet());
+  $("sheetClose").addEventListener("click", closeSheet);
+  overlay.addEventListener("click", closeSheet);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSheet();
+  });
+
+  $("btnApply").addEventListener("click", () => {
+    setFromUi();
+    state.renderCount = 40;
+    applyAll();
+    closeSheet();
+  });
+  $("btnClearFilters").addEventListener("click", () => {
+    clearFilters();
+    closeSheet();
+  });
+
+  $("btnLoad").addEventListener("click", () => elFile.click());
+  elFile.addEventListener("change", async () => {
+    const f = elFile.files && elFile.files[0];
+    if (!f) return;
+    elFileState.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+    try {
+      const buf = await f.arrayBuffer();
+      state.wb = window.XLSX.read(buf, { type: "array" });
+      rebuildSheetSelect();
+      elSheet.value = state.wb.SheetNames[0];
+      readSheet(elSheet.value);
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Lesen der XLSX. Details siehe Konsole.");
+    }
+  });
+
+  elSheet.addEventListener("change", () => {
+    if (!state.wb) return;
+    readSheet(elSheet.value);
+  });
+
+  elQ.addEventListener("input", () => {
+    state.search = elQ.value;
+    state.renderCount = 40;
+    applyAll();
+  });
+
+  $("btnReset").addEventListener("click", () => {
+    elQ.value = "";
+    state.search = "";
+    state.renderCount = 40;
+    clearFilters();
+    // Workbook behalten; Reset meint nur UI/Filter
+  });
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // Startup
+  setXlsxState();
+  elQ.disabled = false;
+  $("btnLoad").disabled = !window.XLSX;
+  elSheet.disabled = true;
+  elUptime.textContent = fmtTime(Date.now() - t0);
+  setInterval(() => {
+    elUptime.textContent = fmtTime(Date.now() - t0);
+  }, 1000);
+
+})();
+</script>
 </body>
 </html>
