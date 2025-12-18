@@ -539,7 +539,7 @@
         btnClose: $('btnClose'),
 
         sort: $('sort'),
-platform: $('platform'),
+        platform: $('platform'),
         trophy: $('trophy'),
         avail: $('avail'),
         fav: $('fav'),
@@ -588,7 +588,7 @@ platform: $('platform'),
       const state = {
         q: '',
         sort: 'id_asc',
-platform: 'ALL',
+        platform: 'ALL',
         trophy: 'ALL',
         avail: 'ALL',
         fav: 'ALL',
@@ -1203,7 +1203,7 @@ platform: 'ALL',
         state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
         el.search.value = '';
         el.sort.value = state.sort;
-el.platform.value = state.platform;
+        el.platform.value = state.platform;
         el.trophy.value = state.trophy;
         el.avail.value = state.avail;
         el.fav.value = state.fav;
@@ -1212,7 +1212,6 @@ el.platform.value = state.platform;
 
       el.search.addEventListener('input', ()=>{ state.q = el.search.value; apply(); });
       el.sort.addEventListener('change', ()=>{ state.sort = el.sort.value; apply(); });
-});
       el.platform.addEventListener('change', ()=>{ state.platform = el.platform.value; apply(); });
       el.trophy.addEventListener('change', ()=>{ state.trophy = el.trophy.value; apply(); });
       el.avail.addEventListener('change', ()=>{ state.avail = el.avail.value; apply(); });
@@ -1223,7 +1222,7 @@ el.platform.value = state.platform;
         if (!workbook || !currentSheet) return;
         const rows = sheetToRows(workbook, currentSheet);
         all = normalize(rows);
-apply();
+        apply();
         closeSheet();
       });
 
@@ -1285,7 +1284,7 @@ apply();
           el.lib.textContent = 'XLSX: ok (lokal)';
           enableUI(true);
           el.search.disabled = false;
-apply();
+        apply();
         }catch(err){
           console.error(err);
           alert('Fehler beim Einlesen der XLSX. Details in der Konsole.');
