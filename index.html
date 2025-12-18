@@ -981,7 +981,7 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
-        syncToggleSummaries(el.list);
+        requestAnimationFrame(()=>syncToggleSummaries(el.list));
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1247,7 +1247,9 @@
       document.addEventListener('toggle', (e)=>{
         const d = e.target;
         if (d && d.matches && d.matches('details.toggleDetails')){
-          syncToggleSummaries(d.parentElement || document);
+          // Defer to next tick: avoids some mobile browsers immediately collapsing <details>
+          const scope = d.parentElement || document;
+          setTimeout(()=>syncToggleSummaries(scope), 0);
         }
       }, true);
 
