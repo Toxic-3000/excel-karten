@@ -1217,9 +1217,7 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
-      }
 
-      
       // Accordion toggles (robust on mobile; avoids <details> quirks)
       document.addEventListener('click', (e)=>{
         const btn = e.target.closest('.accBtn');
