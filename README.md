@@ -10,3 +10,6 @@
 - v6.6: Startet nach dem XLSX-Laden immer in Kompaktansicht; Badge-Zeile fest unter dem Titel (kein Verrutschen durch lange Titel).
 - v6.6: Genre-Chip in Kompaktansicht wieder sichtbar (unter ID/Plattform).
 
+
+
+Patch: 6.6a – Detailansicht entfernt; Anzeige-Menü entfernt; Toggle-Texte stabil ohne globalen Listener.

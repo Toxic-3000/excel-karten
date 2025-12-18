@@ -395,6 +395,12 @@
       padding: 10px 14px;
       box-shadow: var(--shadow);
     }
+  
+    /* Toggle-Text ohne JS-Listener (stabil auf Mobile) */
+    details.toggleDetails > summary .whenOpen{ display:none; }
+    details.toggleDetails[open] > summary .whenClosed{ display:none; }
+    details.toggleDetails[open] > summary .whenOpen{ display:inline; }
+
   </style>
   <!-- v6.1: XLSX lokal (neben index.html) -->
   <script src="./xlsx.full.min.js"></script>
@@ -462,15 +468,6 @@
           <option value="score_asc">Metascore (niedrig → hoch)</option>
         </select>
       </label>
-
-      <label>
-        <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">ANZEIGE</div>
-        <select id="view" disabled>
-          <option value="detail">Detail</option>
-          <option value="compact">Kompakt</option>
-        </select>
-      </label>
-
       <label>
         <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em;">PLATTFORM</div>
         <select id="platform" disabled>
@@ -954,6 +951,7 @@
       }
 
       function apply(){
+        state.view = 'compact';
         filtered = sortRows(all.filter(matches));
         cursor = 0;
         el.list.innerHTML = '';
@@ -992,9 +990,8 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
-        syncToggleSummaries(el.list);
-
-        if (cursor >= filtered.length){
+        decorateToggleSummaries(el.list);
+if (cursor >= filtered.length){
           if (observer) observer.disconnect();
           observer = null;
         } else {
@@ -1232,7 +1229,7 @@
         state.platform='ALL'; state.trophy='ALL'; state.avail='ALL'; state.fav='ALL';
         el.search.value = '';
         el.sort.value = state.sort;
-        el.view.value = state.view;
+        if (el.view) if (el.view) el.view.value = state.view;
         el.platform.value = state.platform;
         el.trophy.value = state.trophy;
         el.avail.value = state.avail;
@@ -1242,7 +1239,7 @@
 
       el.search.addEventListener('input', ()=>{ state.q = el.search.value; apply(); });
       el.sort.addEventListener('change', ()=>{ state.sort = el.sort.value; apply(); });
-      el.view.addEventListener('change', ()=>{ state.view = el.view.value; apply(); });
+      if (el.view) el.view.addEventListener('change', ()=>{ state.view = el.view.value; apply(); });
       el.platform.addEventListener('change', ()=>{ state.platform = el.platform.value; apply(); });
       el.trophy.addEventListener('change', ()=>{ state.trophy = el.trophy.value; apply(); });
       el.avail.addEventListener('change', ()=>{ state.avail = el.avail.value; apply(); });
@@ -1254,7 +1251,7 @@
         const rows = sheetToRows(workbook, currentSheet);
         all = normalize(rows);
         state.view = 'compact';
-        el.view.value = state.view;
+        if (el.view) if (el.view) el.view.value = state.view;
         apply();
         closeSheet();
       });
@@ -1264,25 +1261,24 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
+        }
+      }, true);
 
 
-      function syncToggleSummaries(root=document){
+      function decorateToggleSummaries(root=document){
         const nodes = root.querySelectorAll('details.toggleDetails');
         for (const d of nodes){
           const sum = d.querySelector(':scope > summary');
           if (!sum) continue;
-          const more = d.getAttribute('data-more') || 'Mehr Details';
+          // already decorated?
+          if (sum.querySelector('.whenClosed') || sum.querySelector('.whenOpen')) continue;
+          const more = d.getAttribute('data-more') || sum.textContent.trim() || 'Mehr Details';
           const less = d.getAttribute('data-less') || 'Weniger Details';
-          sum.textContent = d.open ? less : more;
+          sum.innerHTML = `<span class="whenClosed">${escapeHtml(more)}</span><span class="whenOpen">${escapeHtml(less)}</span>`;
+          // prevent accidental outer toggles on mobile
+          sum.addEventListener('click', (e)=>e.stopPropagation(), {passive:true});
         }
       }
-
-      document.addEventListener('toggle', (e)=>{
-        const d = e.target;
-        if (d && d.matches && d.matches('details.toggleDetails')){
-          syncToggleSummaries(d.parentElement || document);
-        }
-      }, true);
 
       // Inline onchange fallback for some Android setups
       window._fileChanged = () => { try{ el.file.dispatchEvent(new Event('change')); }catch{} };
@@ -1319,7 +1315,7 @@
           el.search.disabled = false;
 
           state.view = 'compact';
-          el.view.value = state.view;
+          if (el.view) if (el.view) el.view.value = state.view;
 
           apply();
         }catch(err){
