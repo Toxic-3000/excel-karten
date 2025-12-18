@@ -283,6 +283,27 @@
       user-select:none;
     }
     summary::-webkit-details-marker{display:none}
+
+    .acc{
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    .accBtn{
+      cursor:pointer;
+      list-style:none;
+      font-weight: 900;
+      user-select:none;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+    }
+    .accPanel{
+      margin-top: 8px;
+    }
+
     .sectionLabel{
       margin-top: 10px;
       font-size: 12px;
@@ -1065,26 +1086,18 @@
         ` : '';
 
         const desc = row.desc ? `
-          <details class="toggleDetails" data-more="Beschreibung anzeigen" data-less="Beschreibung verbergen">
-            <summary>Beschreibung anzeigen</summary>
-            <div class="sectionLabel">BESCHREIBUNG</div>
-            <div class="textBlock">${escapeHtml(row.desc)}</div>
-          </details>
+          <div class="sectionLabel">BESCHREIBUNG</div>
+          <div class="textBlock">${escapeHtml(row.desc)}</div>
         ` : '';
 
         const features = row.features ? `
-          <details>
-            <summary>Besonderheiten anzeigen</summary>
-            <div class="sectionLabel">EXTRAS</div>
-            <div class="textBlock">${escapeHtml(row.features)}</div>
-          </details>
+          <div class="sectionLabel">EXTRAS</div>
+          <div class="textBlock">${escapeHtml(row.features)}</div>
         ` : '';
 
         const easter = row.easter ? `
-          <details>
-            <summary>Eastereggs anzeigen</summary>
-            <div class="textBlock">${escapeHtml(row.easter)}</div>
-          </details>
+          <div class="sectionLabel">EASTEREGGS</div>
+          <div class="textBlock">${escapeHtml(row.easter)}</div>
         ` : '';
 
         
@@ -1253,7 +1266,29 @@
         }
       }, true);
 
-      // Inline onchange fallback for some Android setups
+      
+      // Accordion toggles (robust on mobile; avoids <details> quirks)
+      document.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.accBtn');
+        if (!btn) return;
+        const acc = btn.closest('.acc');
+        if (!acc) return;
+        const panel = acc.querySelector(':scope > .accPanel');
+        if (!panel) return;
+
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+        const more = acc.getAttribute('data-more') || btn.textContent || 'Mehr Details';
+        const less = acc.getAttribute('data-less') || 'Weniger Details';
+
+        btn.setAttribute('aria-expanded', String(!isOpen));
+        btn.textContent = (!isOpen) ? less : more;
+        panel.hidden = isOpen;
+
+        e.preventDefault();
+        e.stopPropagation();
+      }, true);
+
+// Inline onchange fallback for some Android setups
       window._fileChanged = () => { try{ el.file.dispatchEvent(new Event('change')); }catch{} };
 
       el.file.addEventListener('change', async ()=>{
