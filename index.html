@@ -534,6 +534,7 @@
   </section>
 
   <script>
+
     (() => {
       'use strict';
 
@@ -1002,7 +1003,6 @@
         el.list.appendChild(frag);
 
         el.hitline.textContent = `Treffer: ${filtered.length} · angezeigt: ${Math.min(cursor,filtered.length)}/${filtered.length}`;
-        requestAnimationFrame(()=>syncToggleSummaries(el.list));
 
         if (cursor >= filtered.length){
           if (observer) observer.disconnect();
@@ -1043,47 +1043,13 @@
 
         const metasDetail = `
           <div class="metaGrid">
-            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
-            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ''}
+            ${(row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : ''}
             ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
+            ${row.meta != null ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.meta)}</div></div>` : ''}
+            ${row.user != null ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.user)}</div></div>` : ''}
             ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
-            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
-            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
           </div>
         `;
-
-        const metasCompactExpanded = `
-          <div class="metaGrid">
-            ${row.subgenre ? `<div class="metaRow"><div class="k">Subgenre</div><div class="v">${escapeHtml(row.subgenre)}</div></div>` : ((row.genreMain || row.genre) ? `<div class="metaRow"><div class="k">Genre</div><div class="v">${escapeHtml(row.genreMain || row.genre)}</div></div>` : '')}
-            ${row.dev ? `<div class="metaRow"><div class="k">Entwickler</div><div class="v">${escapeHtml(row.dev)}</div></div>` : ''}
-            ${hours ? `<div class="metaRow"><div class="k">Spielzeit</div><div class="v">${escapeHtml(hours)}</div></div>` : ''}
-            ${row.metascore ? `<div class="metaRow"><div class="k">Metascore</div><div class="v">${escapeHtml(row.metascore)}</div></div>` : ''}
-            ${row.userscore ? `<div class="metaRow"><div class="k">Userwertung</div><div class="v">${escapeHtml(row.userscore)}</div></div>` : ''}
-          </div>
-        `;
-
-        const trophy = renderTrophies(row.trophy);
-
-        const humor = (row.humor_total != null || row.humor_pct || row.humor_years) ? `
-          <div class="sectionLabel">HUMORSTATISTIK</div>
-          <div class="metaGrid">
-            ${row.humor_total != null ? `<div class="metaRow"><div class="k">Gesamtstunden</div><div class="v">${escapeHtml(row.humor_total)}</div></div>` : ''}
-            ${row.humor_pct ? `<div class="metaRow"><div class="k">% Lebenszeit</div><div class="v">${escapeHtml(row.humor_pct)}</div></div>` : ''}
-            ${row.humor_years ? `<div class="metaRow"><div class="k">Jahre</div><div class="v">${escapeHtml(row.humor_years)}</div></div>` : ''}
-          </div>
-        ` : '';
-
-        const store = (row.source || row.storeLink || row.availability) ? `
-          <details class="toggleDetails" data-more="Store anzeigen" data-less="Store verbergen">
-            <summary>Store anzeigen</summary>
-            <div class="sectionLabel">STORE</div>
-            <div class="metaGrid">
-              ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
-              ${row.storeLink ? `<div class="metaRow"><div class="k">Store</div><div class="v"><a href="${escapeHtml(row.storeLink)}" target="_blank" rel="noopener">Store Link</a></div></div>` : ''}
-              <div class="metaRow"><div class="k">Verfügbarkeit</div><div class="v">${escapeHtml(row.availability)}</div></div>
-            </div>
-          </details>
-        ` : '';
 
         const desc = row.desc ? `
           <div class="sectionLabel">BESCHREIBUNG</div>
@@ -1096,47 +1062,54 @@
         ` : '';
 
         const easter = row.easter ? `
-          <div class="sectionLabel">EASTEREGGS</div>
+          <div class="sectionLabel">EASTER EGGS</div>
           <div class="textBlock">${escapeHtml(row.easter)}</div>
         ` : '';
 
-        
-        const compactToggle = `
-            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary>Mehr Details</summary>
-              ${metasCompactExpanded}
-              ${desc}
-              ${store}
-              ${features}
-              ${easter}
-              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary>Trophäen anzeigen</summary>
-                <div class="sectionLabel">TROPHÄEN</div>
-                ${trophy}
-              </details>
-              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
-                ${humor}
-              </details>
-            </details>
-          `;
+        const store = (row.source || row.storeLink || row.availability) ? `
+          <div class="sectionLabel">STORE</div>
+          <div class="metaGrid">
+            ${row.source ? `<div class="metaRow"><div class="k">Quelle</div><div class="v">${escapeHtml(row.source)}</div></div>` : ''}
+            ${row.storeLink ? `<div class="metaRow"><div class="k">Link</div><div class="v"><a href="${escapeHtml(row.storeLink)}" target="_blank" rel="noopener">Store Link</a></div></div>` : ''}
+            <div class="metaRow"><div class="k">Verfügbarkeit</div><div class="v">${escapeHtml(row.availability)}</div></div>
+          </div>
+        ` : '';
 
+        const trophy = row.trophy ? `
+          <div class="sectionLabel">TROPHÄEN</div>
+          ${trophyBlock(row.trophy)}
+        ` : '';
+
+        const humor = (row.humor_total || row.humor_pct || row.humor_years) ? `
+          <div class="sectionLabel">HUMORSTATISTIK</div>
+          <div class="metaGrid">
+            ${row.humor_total ? `<div class="metaRow"><div class="k">Gesamtstunden</div><div class="v">${escapeHtml(row.humor_total)}</div></div>` : ''}
+            ${row.humor_pct ? `<div class="metaRow"><div class="k">% Lebenszeit</div><div class="v">${escapeHtml(row.humor_pct)}</div></div>` : ''}
+            ${row.humor_years ? `<div class="metaRow"><div class="k">Jahre</div><div class="v">${escapeHtml(row.humor_years)}</div></div>` : ''}
+          </div>
+        ` : '';
+
+        const extraContent = `${desc}${metasDetail}${store}${trophy}${humor}${features}${easter}`.trim();
+
+        const acc = extraContent ? `
+          <div class="acc" data-more="Mehr Details" data-less="Weniger Details">
+            <button class="accBtn" type="button" aria-expanded="false">Mehr Details</button>
+            <div class="accPanel" hidden>
+              ${extraContent}
+            </div>
+          </div>
+        ` : '';
 
         card.innerHTML = `
           <div class="cardHead">
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
               <div class="subline">${idChip}${sysChips}${availChip}</div>
-              ${(row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
-              
             </div>
-            <div class="badgeRow">
-              ${topBadges.join('')}
-            </div>
+            <div class="badges">${topBadges.join('')}</div>
           </div>
-          ${compactToggle}
+          ${acc}
         `;
-
         return card;
       }
 
@@ -1244,27 +1217,7 @@
         const y = window.scrollY || document.documentElement.scrollTop;
         el.toTop.classList.toggle('hidden', y < 600);
       }, { passive:true });
-
-
-      function syncToggleSummaries(root=document){
-        const nodes = root.querySelectorAll('details.toggleDetails');
-        for (const d of nodes){
-          const sum = d.querySelector(':scope > summary');
-          if (!sum) continue;
-          const more = d.getAttribute('data-more') || 'Mehr Details';
-          const less = d.getAttribute('data-less') || 'Weniger Details';
-          sum.textContent = d.open ? less : more;
-        }
       }
-
-      document.addEventListener('toggle', (e)=>{
-        const d = e.target;
-        if (d && d.matches && d.matches('details.toggleDetails')){
-          // Defer to next tick: avoids some mobile browsers immediately collapsing <details>
-          const scope = d.parentElement || document;
-          setTimeout(()=>syncToggleSummaries(scope), 0);
-        }
-      }, true);
 
       
       // Accordion toggles (robust on mobile; avoids <details> quirks)
@@ -1333,6 +1286,7 @@
       enableUI(false);
       el.lib.textContent = window.XLSX ? 'XLSX: ok (lokal)' : 'XLSX: FEHLT';
     })();
-  </script>
+  
+</script>
 </body>
 </html>
