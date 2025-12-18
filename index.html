@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spieleliste – stabil v6.11</title>
+<meta http-equiv="Cache-Control" content="no-store"/>
+<style>
+:root{
+  --bg: Canvas;
+  --fg: CanvasText;
+  --border: color-mix(in oklab, CanvasText 15%, Canvas 85%);
+  --card: color-mix(in oklab, Canvas 94%, CanvasText 6%);
+  --chip: color-mix(in oklab, CanvasText 10%, Canvas 90%);
+  --id: #3b5fbf;
+  --radius: 18px;
+}
+body{
+  margin:0;
+  padding:16px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding:14px;
+  margin-bottom:16px;
+}
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:10px;
+}
+.badge{
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--chip);
+  font-weight:600;
+  font-size:12px;
+}
+.badge.id{
+  background: var(--id);
+  color:white;
+}
+.section{
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+details > summary{
+  cursor:pointer;
+  font-weight:800;
+  list-style:none;
+  user-select:none;
+}
+details > summary::-webkit-details-marker{display:none;}
+</style>
+
+<script src="./xlsx.full.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('details[data-more]').forEach(d => {
+    const s = d.querySelector('summary');
+    const more = d.dataset.more;
+    const less = d.dataset.less;
+    const sync = () => { s.textContent = d.open ? less : more; };
+    sync();
+    d.addEventListener('toggle', sync);
+    s.addEventListener('click', e => e.stopPropagation());
+  });
+});
+</script>
+</head>
+<body>
+
+<div class="card">
+  <h2>2064: Read Only Memories</h2>
+  <div class="badges">
+    <span class="badge id">ID 1</span>
+    <span class="badge">PS4</span>
+    <span class="badge">Vita</span>
+    <span class="badge">Verfügbar</span>
+  </div>
+
+  <strong>Genre</strong> Adventure<br>
+  <strong>Subgenre</strong> Graphic‑Adventure; futuristisch, ruhig<br>
+  <strong>Entwickler</strong> MidBoss<br>
+  <strong>Spielzeit</strong> 13h / 18h<br>
+  <strong>Metascore</strong> 80 / 100<br>
+  <strong>Userwertung</strong> 58 / 100
+
+  <details data-more="Mehr Details" data-less="Weniger Details">
+    <summary>Mehr Details</summary>
+
+    <div class="section">
+      <strong>Beschreibung</strong>
+      <p>Cyberpunk‑Adventure mit Dialogfokus und storygetriebenem Spielfluss.</p>
+    </div>
+
+    <div class="section">
+      <strong>Store</strong><br>
+      <a href="https://store.playstation.com" target="_blank">Zum Store</a>
+    </div>
+
+    <details data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
+      <summary>Trophäen anzeigen</summary>
+      <div class="section">💎 ⏳ 💤</div>
+    </details>
+
+    <details data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
+      <summary>Humorstatistik anzeigen</summary>
+      <div class="section">
+        Gesamtstunden: 13<br>
+        % Lebenszeit: 0,0018<br>
+        Jahre: 0,0015
+      </div>
+    </details>
+
+  </details>
+</div>
+
+</body>
+</html>
