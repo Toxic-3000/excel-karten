@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
   <meta http-equiv="Cache-Control" content="no-store" />
-  <title>Spieleliste – Build 6.6c</title>
+  <title>Spieleliste – Build 6.6d</title>
   <style>
     :root{
       --bg: Canvas;
@@ -174,12 +174,62 @@
     .check{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);background:var(--chip);padding:10px 12px;border-radius:999px;font-weight:850}
     .check input{transform:scale(1.2)}
     .btnGhost{background:transparent;box-shadow:none}
-  </style>
+  
+/* --- Custom selects (avoid native pickers on mobile) --- */
+.srOnly{
+  position:absolute !important;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);
+  white-space:nowrap;border:0;
+}
+.selectLike{
+  width:100%;
+  text-align:left;
+  padding:12px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--chip);
+  color:var(--fg);
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.selectLike::after{
+  content:"▾";
+  opacity:.75;
+  font-weight:700;
+}
+.optList{
+  margin-top:10px;
+  border-radius:18px;
+  border:1px solid var(--border);
+  background:var(--card);
+  overflow:hidden;
+}
+.optList button{
+  width:100%;
+  text-align:left;
+  padding:12px 14px;
+  background:transparent;
+  border:0;
+  border-top:1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  color:var(--fg);
+  font-weight:600;
+}
+.optList button:first-child{border-top:0;}
+.optList button[aria-selected="true"]{
+  background:color-mix(in oklab, var(--progress) 14%, transparent);
+}
+
+</style>
 </head>
 <body>
 <header>
   <div class="topbar">
-    <div class="title">Spieleliste <span class="build">(Build 6.6c)</span></div>
+    <div class="title">Spieleliste <span class="build">(Build 6.6d)</span></div>
     <div class="searchRow">
       <input id="search" class="search" type="search" placeholder="Suche…" disabled />
       <button id="btnMenu" class="btn btnIcon" type="button" disabled aria-haspopup="dialog" aria-controls="dlgMenu">☰</button>
@@ -187,7 +237,9 @@
   </div>
   <div class="controls">
     <button id="btnLoad" class="btn" type="button">XLSX laden</button>
-    <select id="sheet" class="select" disabled></select>
+    <select id="sheet" class="select srOnly" disabled></select>
+<button type="button" class="selectLike" id="sheetBtn" aria-haspopup="listbox" aria-expanded="false"></button>
+<div class="optList" id="sheetList" role="listbox" hidden></div>
     <span id="pillHits" class="pill">Treffer: 0 · angezeigt: 0/0</span>
     <span id="pillXlsx" class="pill warn">XLSX: …</span>
     <span id="pillFile" class="pill">Datei: —</span>
@@ -213,11 +265,15 @@
   <div class="dlgBody">
     <div class="row">
       <label class="k" for="sortField" style="min-width:90px">Sortierung</label>
-      <select id="sortField" class="select"></select>
-      <select id="sortDir" class="select">
+      <select id="sortField" class="select srOnly"></select>
+<button type="button" class="selectLike" id="sortFieldBtn" aria-haspopup="listbox" aria-expanded="false"></button>
+<div class="optList" id="sortFieldList" role="listbox" hidden></div>
+      <select id="sortDir" class="select srOnly">
         <option value="asc">Aufwärts</option>
         <option value="desc">Abwärts</option>
       </select>
+<button type="button" class="selectLike" id="sortDirBtn" aria-haspopup="listbox" aria-expanded="false"></button>
+<div class="optList" id="sortDirList" role="listbox" hidden></div>
     </div>
 
     <div class="row">
@@ -277,6 +333,65 @@
     btnApply: document.getElementById("btnApply"),
     btnClear: document.getElementById("btnClear"),
   };
+
+  // --- Custom select UI (keeps the real <select> for logic, but avoids native pickers) ---
+  function setupCustomSelect(selectId, btnId, listId, onCommit){
+    const sel = document.getElementById(selectId);
+    const btn = document.getElementById(btnId);
+    const list = document.getElementById(listId);
+    if(!sel || !btn || !list) return;
+    if(btn.dataset.bound==="1"){ sel.dispatchEvent(new Event("change",{bubbles:false})); return; }
+    btn.dataset.bound="1";
+
+    const rebuild = ()=>{
+      list.innerHTML = "";
+      [...sel.options].forEach((opt)=>{
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = opt.textContent || opt.value;
+        b.setAttribute("role","option");
+        b.setAttribute("aria-selected", opt.value===sel.value ? "true":"false");
+        b.addEventListener("click", (ev)=>{
+          ev.preventDefault();
+          ev.stopPropagation();
+          sel.value = opt.value;
+          sel.dispatchEvent(new Event("change",{bubbles:true}));
+          close();
+          onCommit && onCommit(sel.value);
+        });
+        list.appendChild(b);
+      });
+      btn.textContent = (sel.selectedOptions[0] && sel.selectedOptions[0].textContent) ? sel.selectedOptions[0].textContent : sel.value;
+    };
+
+    const open = ()=>{
+      rebuild();
+      list.hidden = false;
+      btn.setAttribute("aria-expanded","true");
+    };
+    const close = ()=>{
+      list.hidden = true;
+      btn.setAttribute("aria-expanded","false");
+    };
+    const toggle = ()=>{
+      if(list.hidden) open(); else close();
+    };
+
+    btn.addEventListener("click", (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggle();
+    });
+
+    sel.addEventListener("change", ()=>rebuild());
+
+    // close on outside click / escape
+    document.addEventListener("click", ()=>{ if(!list.hidden) close(); }, {passive:true});
+    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") close(); });
+
+    rebuild();
+  }
+
 
   const state = {
     rows: [],
@@ -636,6 +751,7 @@
     el.search.disabled = false;
     el.btnMenu.disabled = false;
     el.sheet.disabled = false;
+      setupCustomSelect('sheet','sheetBtn','sheetList');
     el.btnReset.disabled = false;
   }
 
@@ -796,6 +912,8 @@
     state.filters.src = new Set(Array.from(document.querySelectorAll(".fSrc")).filter(cb => cb.checked).map(cb => cb.value));
     state.sortField = el.sortField.value;
     state.sortDir = el.sortDir.value;
+    setupCustomSelect('sortField','sortFieldBtn','sortFieldList');
+    setupCustomSelect('sortDir','sortDirBtn','sortDirList');
     el.dlgMenu.close();
     applyAll();
   });
