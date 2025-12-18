@@ -544,7 +544,6 @@
         btnClose: $('btnClose'),
 
         sort: $('sort'),
-        view: $('view'),
         platform: $('platform'),
         trophy: $('trophy'),
         avail: $('avail'),
@@ -783,7 +782,7 @@
 
       function enableUI(on){
         const dis = !on;
-        for (const x of [el.sheetSelect, el.search, el.btnMenu, el.btnReset, el.sort, el.view, el.platform, el.trophy, el.avail, el.fav, el.clear]){
+        for (const x of [el.sheetSelect, el.search, el.btnMenu, el.btnReset, el.sort, el.platform, el.trophy, el.avail, el.fav, el.clear]){
           x.disabled = dis;
         }
       }
@@ -1094,52 +1093,14 @@
           </details>
         ` : '';
 
-        const compactToggle = (state.view === 'compact')
-          ? `
-            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details">
-              <summary>Mehr Details</summary>
-              ${metasCompactExpanded}
-              ${desc}
-              ${store}
-              ${features}
-              ${easter}
-              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen">
-                <summary>Trophäen anzeigen</summary>
-                <div class="sectionLabel">TROPHÄEN</div>
-                ${trophy}
-              </details>
-              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
-                ${humor}
-              </details>
-            </details>
-          `
-          : `
-            ${metasCompactExpanded}
-            ${desc}
-            ${store}
-            ${features}
-            ${easter}
-            <details class="toggleDetails" data-more="Mehr Details" data-less="Weniger Details" open>
-              <summary>Weniger Details</summary>
-              <details class="toggleDetails" data-more="Trophäen anzeigen" data-less="Trophäen verbergen" open>
-                <summary>Trophäen verbergen</summary>
-                <div class="sectionLabel">TROPHÄEN</div>
-                ${trophy}
-              </details>
-              <details class="toggleDetails" data-more="Humorstatistik anzeigen" data-less="Humorstatistik verbergen">
-                <summary>Humorstatistik anzeigen</summary>
-                ${humor}
-              </details>
-            </details>
-          `;
+        const compactToggle = (state.view = 'compact';
 
         card.innerHTML = `
           <div class="cardHead">
             <div>
               <div class="gameTitle">${escapeHtml(row.title || '(ohne Titel)')}</div>
               <div class="subline">${idChip}${sysChips}${availChip}</div>
-              ${(state.view === 'compact') && (row.genreMain || row.genre) ? `<div class="subline" style="margin-top:6px;"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
+              ${(state.view = 'compact';"><span class="chip">${escapeHtml(row.genreMain || row.genre)}</span></div>` : ''}
               
             </div>
             <div class="badgeRow">
