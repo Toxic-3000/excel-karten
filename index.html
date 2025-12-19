@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Spieleliste (Build 6.6f)</title>
+  <title>Spieleliste (Build 6.6g)</title>
   <style>
     :root {
       --bg: Canvas;
@@ -256,34 +256,52 @@
     }
     .floatingTop.show { display: inline-flex; }
     /* Bottom sheet */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      display: none;
-      z-index: 80;
-    }
+    .overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+  z-index: 80;
+  display: none;
+}
+.overlay.open{ opacity: 1; pointer-events: auto; }
+
     .overlay.open { display: block; }
-    .sheet {
-      position: fixed;
-      left: 0; right: 0; bottom: -100%;
-      margin: 0 auto;
-      max-width: 980px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 22px 22px 0 0;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      z-index: 90;
-      transition: bottom .22s ease;
-    }
+    .sheet{
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: -110%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  z-index: 90;
+  transition: bottom .22s ease;
+  max-height: min(85vh, calc(100vh - 24px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+.sheet.open{ bottom: 12px; }
+
     .sheet.open { bottom: 0; }
-    .sheetHead {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+    .sheetHead{
+  display:flex; align-items:center; justify-content:space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 2;
+  padding: 10px 0 12px;
+  margin: -16px -16px 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
     .sheetHead h2 { margin: 0; font-size: 22px; font-weight: 900; }
     .sheetClose {
       border: 1px solid var(--border);
@@ -325,7 +343,8 @@
       .title { font-size: 34px; }
       .kv { grid-template-columns: 110px 1fr; }
     }
-  </style>
+  .noScroll{overflow:hidden; touch-action:none;}
+</style>
   <script src="./xlsx.full.min.js"></script>
 </head>
 <body>
@@ -628,14 +647,26 @@
     applyAll();
   }
 
-  function openSheet() {
+  function openSheet(){
+  // make sure overlay participates in layout before we animate opacity
+  overlay.style.display = "block";
+  document.body.classList.add("noScroll");
+  requestAnimationFrame(()=>{
     overlay.classList.add("open");
     sheet.classList.add("open");
-  }
-  function closeSheet() {
-    overlay.classList.remove("open");
-    sheet.classList.remove("open");
-  }
+  });
+}
+  function closeSheet(){
+  overlay.classList.remove("open");
+  sheet.classList.remove("open");
+  document.body.classList.remove("noScroll");
+  // after transition, fully hide overlay to avoid "stuck" remnants on some mobile browsers
+  window.setTimeout(()=>{
+    if(!overlay.classList.contains("open")){
+      overlay.style.display = "none";
+    }
+  }, 240);
+}
 
   function applyFilters(rows) {
     const q = state.search.toLowerCase().trim();
