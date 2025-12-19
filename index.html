@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Spieleliste (Build 6.6e)</title>
+  <title>Spieleliste (Build 6.6f)</title>
   <style>
     :root {
       --bg: Canvas;
@@ -135,17 +135,34 @@
       display: grid;
       gap: 10px;
     }
-    .cardTitle {
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: -0.01em;
+    /* Titelzeile: ID-Badge links neben dem Titel, optional Favorit rechts */
+    .titleLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
     }
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
+    .cardTitleText{
+      flex:1 1 auto;
+      min-width: 180px;
+      line-height: 1.1;
     }
+    .titleLine .pill{
+      margin: 0;
+    }
+
+    /* Die neuen Reihen unter dem Titel */
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 8px;
+    }
+    .pillRow:first-of-type{ margin-top: 0; }
+
+    .pill.source{ background: var(--chip2); }
+    .pill.fav{ background: color-mix(in oklab, var(--ok) 22%, var(--chip) 78%); }
     .pill {
       background: var(--chip2);
       border: 1px solid var(--border);
@@ -315,7 +332,7 @@
 <a id="top"></a>
 <div class="wrap">
   <header>
-    <div class="title">Spieleliste <small>(Build 6.6e)</small></div>
+    <div class="title">Spieleliste <small>(Build 6.6f)</small></div>
     <input id="q" class="search" type="search" placeholder="Suche..." disabled />
     <button id="btnMenu" class="btnIcon" type="button" aria-label="Filter & Sort">
       ☰
@@ -722,19 +739,29 @@
   }
 
   function cardHtml(r) {
-    const pills = [];
-    pills.push(`<span class="pill id">ID ${r.id ?? "?"}</span>`);
-    for (const s of r.systems.slice(0,3)) pills.push(`<span class="pill">${escapeHtml(s)}</span>`);
-    if (r.avail) pills.push(`<span class="pill ${r.availClass}">${escapeHtml(r.avail)}</span>`);
-    if (r.genre) pills.push(`<span class="pill">${escapeHtml(r.genre)}</span>`);
-    if (r.fav) pills.push(`<span class="pill">⭐ Favorit</span>`);
+    // Kopfzeilen-Layout (Build 6.6c+):
+    // Zeile 1: ID-Badge + Titel + (optional) Favorit
+    // Zeile 2: Plattform-Badges + Quelle + Verfügbarkeit
+    // Zeile 3: Genre
+    // Zeile 4: Trophy-Status
 
+    const idPill = `<span class="pill id">ID ${r.id ?? "?"}</span>`;
+    const favPill = r.fav ? `<span class="pill fav">⭐ Favorit</span>` : "";
+
+    const rowPlatforms = [];
+    for (const s of r.systems.slice(0, 4)) rowPlatforms.push(`<span class="pill">${escapeHtml(s)}</span>`);
+    if (r.quelle) rowPlatforms.push(`<span class="pill source">${escapeHtml(r.quelle)}</span>`);
+    if (r.avail) rowPlatforms.push(`<span class="pill ${r.availClass}">${escapeHtml(r.avail)}</span>`);
+
+    const rowGenre = r.genre ? `<span class="pill genre">${escapeHtml(r.genre)}</span>` : "";
+
+    const rowTrophies = [];
     const t = r.trop;
-    if (t.hasPlat) pills.push(`<span class="pill">💎 Platin</span>`);
-    else pills.push(`<span class="pill">◇ Kein Platin</span>`);
-    if (t.has100) pills.push(`<span class="pill">✅ 100%</span>`);
-    else if (t.inProgress) pills.push(`<span class="pill">⏳ In Arbeit</span>`);
-    else if (t.unplayed) pills.push(`<span class="pill">💤 Ungespielt</span>`);
+    if (t.hasPlat) rowTrophies.push(`<span class="pill">💎 Platin</span>`);
+    else rowTrophies.push(`<span class="pill">◇ Kein Platin</span>`);
+    if (t.has100) rowTrophies.push(`<span class="pill">✅ 100%</span>`);
+    else if (t.inProgress) rowTrophies.push(`<span class="pill">⏳ In Arbeit</span>`);
+    else if (t.unplayed) rowTrophies.push(`<span class="pill">💤 Ungespielt</span>`);
 
     const kv = [];
     if (r.subgenre) kv.push(rowKV("Subgenre", r.subgenre));
@@ -777,8 +804,14 @@
     return `
       <article class="card">
         <div class="cardHeader">
-          <div class="cardTitle">${escapeHtml((r.id ?? "?") + ": " + (r.title || "—"))}</div>
-          <div class="row">${pills.join("")}</div>
+          <div class="titleLine">
+            ${idPill}
+            <div class="cardTitleText">${escapeHtml(r.title || "—")}</div>
+            ${favPill}
+          </div>
+          <div class="row">${rowPlatforms.join("")}</div>
+          ${rowGenre ? `<div class="row">${rowGenre}</div>` : ""}
+          <div class="row">${rowTrophies.join("")}</div>
         </div>
 
         <div class="kv">${kv.join("")}</div>
