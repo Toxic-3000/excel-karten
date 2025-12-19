@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Spieleliste (Build 6.6h)</title>
+  <title>Spieleliste (Build 6.6i)</title>
   <style>
     :root {
       --bg: Canvas;
@@ -135,22 +135,49 @@
       display: grid;
       gap: 10px;
     }
-    /* Titelzeile: ID-Badge links neben dem Titel, optional Favorit rechts */
-    .titleLine{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom: 10px;
-    }
-    .cardTitleText{
-      flex:1 1 auto;
-      min-width: 180px;
-      line-height: 1.1;
-    }
-    .titleLine .pill{
-      margin: 0;
-    }
+    /* Kopfbereich:
+   Zeile 1: links ID-Badge, rechts Favorit-Icon (falls vorhanden)
+   Zeile 2: Spieletitel (größer, darf umbrechen)
+*/
+.titleLine{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+}
+.titleLineLeft{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  min-width: 0;
+}
+.favIconBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--ok) 18%, var(--chip) 82%);
+  box-shadow: var(--shadow);
+  font-size: 18px;
+  line-height: 1;
+  user-select:none;
+}
+.favIconBtn[aria-hidden="true"]{ display:none; }
+
+.cardTitleText{
+  margin: 6px 0 0 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  word-break: break-word;
+}
+@media (max-width: 360px){
+  .cardTitleText{ font-size: 20px; }
+}
 
     /* Die neuen Reihen unter dem Titel */
     .pillRow{
@@ -780,7 +807,7 @@
     // Zeile 4: Trophy-Status
 
     const idPill = `<span class="pill id">ID ${r.id ?? "?"}</span>`;
-    const favPill = r.fav ? `<span class="pill fav">⭐ Favorit</span>` : "";
+    const favIcon = r.fav ? `<span class="favIconBtn" title="Favorit" aria-label="Favorit">★</span>` : `<span class="favIconBtn" aria-hidden="true">★</span>`;
 
     const rowPlatforms = [];
     for (const s of r.systems.slice(0, 4)) rowPlatforms.push(`<span class="pill">${escapeHtml(s)}</span>`);
@@ -839,11 +866,12 @@
       <article class="card">
         <div class="cardHeader">
           <div class="titleLine">
-            ${idPill}
-            <div class="cardTitleText">${escapeHtml(r.title || "—")}</div>
-            ${favPill}
+            <div class="titleLineLeft">${idPill}</div>
+            ${favIcon}
           </div>
-          <div class="row">${rowPlatforms.join("")}</div>
+          <div class="cardTitleText">${escapeHtml(r.title || "—")}</div>
+          <div class="row">
+          ${rowPlatforms.join("")}</div>
           ${rowGenre ? `<div class="row">${rowGenre}</div>` : ""}
           <div class="row">${rowTrophies.join("")}</div>
         </div>
