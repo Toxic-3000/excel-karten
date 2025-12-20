@@ -1,27 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0b
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0c
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0b";
-
-/**
- * PATCH-FREUNDLICHE STRUKTUR (Orientierung)
- * ------------------------------------------------------------------
- * Ziel: Änderungen sollen künftig in klaren "Zonen" passieren, statt
- * quer durch die Datei. Diese Datei ist weiterhin bewusst "vanilla JS"
- * (keine Build-Toolchain), aber mit sauberem Zuschnitt.
- *
- * 1) CONFIG   : Texte/Badge-Begriffe/Mapping (hier zuerst nachschauen)
- * 2) PARSING  : XLSX-Zeile -> internes Game-Objekt (ohne DOM)
- * 3) STATE    : Filter/Sortierung/Paging
- * 4) RENDER   : DOM-Erzeugung (Cards, Badges, Accordion-Sektionen)
- * 5) FILTER   : Matching-Logik ("was passt")
- * 6) INIT     : Event-Handler + Startup
- */
-
+  const BUILD = "7.0c";
 
   const $ = (id) => document.getElementById(id);
 
@@ -46,6 +30,7 @@
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
+    trophyRow: $("trophyRow"),
     fFav: $("fFav"),
   };
 
@@ -84,6 +69,7 @@
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
+      trophies: new Set(),
     },
     sortField: "ID",
     sortDir: "asc",
@@ -91,6 +77,7 @@
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
+      trophies: new Set(),
     },
     reminderCol: null,
     fileName: null,
@@ -228,6 +215,9 @@
         if (v && /^https?:\/\//i.test(v)) row.__storeUrl = v;
       }
 
+      // Trophy tags (for filter)
+      for (const t of trophyTags(row)) state.distinct.trophies.add(t);
+
       // Platforms distinct from System (pipe-separated)
       const sys = String(row[COL.system] ?? "").trim();
       splitPipe(sys).forEach(p => state.distinct.platforms.add(p));
@@ -254,8 +244,8 @@
       {k:"Spieletitel", label:"Titel"},
       {k:"Metascore", label:"Metascore"},
       {k:"Userwertung", label:"Userwertung"},
-      {k:"Spielzeit (Main)", label:"Main"},
-      {k:"Spielzeit (100%)", label:"100%"},
+      {k:"Spielzeit (Main)", label:"🕒 Main-Story"},
+      {k:"Spielzeit (100%)", label:"🕒 Komplett"},
       {k:"Genre", label:"Genre"},
       {k:"Quelle", label:"Quelle"},
       {k:"Verfügbarkeit", label:"Verfügbarkeit"},
@@ -278,6 +268,12 @@
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
+
+    // Trophy status chips (show all tags that appear)
+    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
+    const tros = Array.from(state.distinct.trophies);
+    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
+    el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
 
     // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
@@ -317,6 +313,7 @@
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
               : group === "avail" ? state.filters.availability
+              : group === "trophy" ? state.filters.trophies
               : null;
     if (!set) return;
     if (pressed) set.delete(key);
@@ -372,6 +369,14 @@
         const av = String(r[COL.avail] ?? "").trim();
         if (!avF.has(av)) return false;
       }
+      // trophies filter (multi-select OR)
+      const troF = state.filters.trophies;
+      if (troF.size){
+        const tags = trophyTags(r);
+        let ok = false;
+        for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
+        if (!ok) return false;
+      }
       return true;
     });
 
@@ -398,6 +403,47 @@
 
     el.pillRows.textContent = `Treffer: ${out.length}`;
     render(out);
+  }
+
+
+  function trophyTags(row){
+    // Tags for filtering (multi-select OR)
+    // "Platin", "100%", "In Arbeit", "Ungespielt", "Kein Platin", "Box-Teil", "Unbekannt"
+    const tags = new Set();
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
+    const prog = String(row[COL.trophProg] ?? "").trim();
+
+    // BOX token
+    if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
+      tags.add("Box-Teil");
+      return tags;
+    }
+
+    // global tokens (no platform prefix)
+    const g100 = (!p100.includes(":") ? p100 : "");
+    const gpl  = (!plat.includes(":") ? plat : "");
+
+    const d100  = parseKeyVals(p100);
+    const dpl   = parseKeyVals(plat);
+    const dprog = parseKeyVals(prog);
+
+    const any = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyFrac = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
+
+    if (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt")) tags.add("Platin");
+    if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
+    if (gpl === "Nicht-Verfügbar" || any(dpl, "Nicht-Verfügbar")) tags.add("Kein Platin");
+
+    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
+        g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet") || anyFrac){
+      tags.add("In Arbeit");
+    }
+
+    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
+
+    if (!tags.size) tags.add("Unbekannt");
+    return tags;
   }
 
   function trophySummary(row){
@@ -694,6 +740,7 @@
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();
+    state.filters.trophies.clear();
     el.fFav.checked = false;
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
