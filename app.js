@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0g2
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0g2";
+  const BUILD = "7.0h";
 
   const $ = (id) => document.getElementById(id);
 
@@ -649,18 +649,93 @@
   }
 
   function renderTrophyDetails(row){
-    const prog = String(row[COL.trophProg] ?? "").trim();
-    const p100 = String(row[COL.troph100] ?? "").trim();
-    const plat = String(row[COL.platin] ?? "").trim();
+    const progRaw = String(row[COL.trophProg] ?? "").trim();
+    const p100Raw = String(row[COL.troph100] ?? "").trim();
+    const platRaw = String(row[COL.platin] ?? "").trim();
 
-    if (!prog && !p100 && !plat) return `<div class="small">Keine Trophäen-Daten vorhanden.</div>`;
+    if (!progRaw && !p100Raw && !platRaw) return `<div class="small">Keine Trophäen-Daten vorhanden.</div>`;
 
     // BOX case
-    const box = [prog,p100,plat].find(v => String(v).startsWith("BOX_TEIL:"));
+    const box = [progRaw,p100Raw,platRaw].find(v => String(v).startsWith("BOX_TEIL:"));
     if (box){
       const ref = box.split(":",2)[1] || "";
       return `<div class="small">📦 Teil einer Box ${ref ? `(Referenz: ${esc(ref)})` : ""}</div>`;
     }
+
+    const dprog = parseKeyVals(progRaw);
+    const d100  = parseKeyVals(p100Raw);
+    const dpl   = parseKeyVals(platRaw);
+
+    // global tokens (when value has no platform prefix)
+    const gProg = (!progRaw.includes(":") ? progRaw : "");
+    const g100  = (!p100Raw.includes(":") ? p100Raw : "");
+    const gPl   = (!platRaw.includes(":") ? platRaw : "");
+
+    const keys = new Set([
+      ...Object.keys(dprog),
+      ...Object.keys(d100),
+      ...Object.keys(dpl),
+    ]);
+    if (!keys.size) keys.add("GLOBAL");
+
+    const order = ["PS5","PS4","PS3","PS2","PS1","PSVita","PSP","PC","Switch","Xbox","Steam"];
+    const plats = Array.from(keys);
+    plats.sort((a,b) => {
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      if (ia !== -1 || ib !== -1){
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      }
+      if (a === "GLOBAL") return 1;
+      if (b === "GLOBAL") return -1;
+      return a.localeCompare(b, "de");
+    });
+
+    const rowsHtml = [];
+    for (const p of plats){
+      const isGlobal = p === "GLOBAL";
+
+      const pv   = String(isGlobal ? gProg : (dprog[p] ?? "")).trim();
+      const v100 = String(isGlobal ? g100  : (d100[p]  ?? "")).trim();
+      const vPl  = String(isGlobal ? gPl   : (dpl[p]   ?? "")).trim();
+
+      const frac = parseFrac(pv);
+      const pct = frac ? frac.pct : 0; // always show bar (Ungespielt => 0%)
+      const pctLabel = `${pct} %`;
+
+      const badges = [];
+      const unplayed = (pv === "Ungespielt") || (isGlobal && progRaw === "Ungespielt");
+      if (unplayed) badges.push(badge("trophy", "💤 Ungespielt"));
+      else if (frac && frac.pct > 0 && frac.pct < 100) badges.push(badge("trophy", "⏳ In Arbeit"));
+
+      if (v100 === "Abgeschlossen" || (isGlobal && g100 === "Abgeschlossen")) badges.push(badge("trophy", "✅ 100%"));
+
+      // Platin only if explicitly present in Excel
+      if (vPl === "Platin-Erlangt" || (isGlobal && gPl === "Platin-Erlangt")) badges.push(badge("trophy", "💎 Platin"));
+      if (vPl === "Nicht-Verfügbar" || (isGlobal && gPl === "Nicht-Verfügbar")) badges.push(badge("trophy", "◇ Kein Platin"));
+
+      if (!badges.length && !pv && !v100 && !vPl) badges.push(badge("trophy", "❓ Unbekannt"));
+
+      const parts = [];
+      if (frac) parts.push(`${frac.a}/${frac.b}`);
+      parts.push(pctLabel);
+
+      rowsHtml.push(`
+        <div class="tRow">
+          <div class="tPlat">${badge("platform", isGlobal ? "Plattform" : p)}</div>
+          <div class="tMain">
+            <div class="tBar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+              <div class="tFill" style="width:${pct}%"></div>
+            </div>
+            <div class="tMeta">${esc(parts.join(" • "))}</div>
+          </div>
+          <div class="tBadges">${badges.join("")}</div>
+        </div>
+      `);
+    }
+
+    return `<div class="trophyList">${rowsHtml.join("")}</div>`;
+  }
+
 
     const dprog = parseKeyVals(prog);
     const d100 = parseKeyVals(p100);

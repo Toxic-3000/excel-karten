@@ -361,3 +361,30 @@ summary::-webkit-details-marker{display:none}
 .badge.avail.ok, .badge.avail.warn, .badge.avail.bad{
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%) !important;
 }
+
+/* Trophy UI (Build 7.0h) */
+.trophyList{display:flex;flex-direction:column;gap:12px}
+.tRow{
+  display:grid;
+  grid-template-columns: auto 1fr auto;
+  gap:10px;
+  align-items:start;
+  padding:8px 0;
+  border-top:1px solid color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+}
+.tRow:first-child{border-top:none;padding-top:0}
+.tPlat .badge{min-width:72px}
+.tMain{min-width:0}
+.tBar{
+  height:10px;
+  border-radius:999px;
+  background: color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+  overflow:hidden;
+}
+.tFill{
+  height:100%;
+  border-radius:999px;
+  background: color-mix(in oklab, var(--fg) 45%, var(--bg) 55%);
+}
+.tMeta{margin-top:6px}
+.tBadges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
