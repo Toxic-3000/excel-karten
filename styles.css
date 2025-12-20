@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0a */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -104,7 +104,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   display:grid;place-items:center;
 }
 
-.wrap{max-width:920px;margin:0 auto;padding:12px 12px 90px}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 12px 90px}
 .cards{padding:6px 4px}
 
 .card{
@@ -115,6 +115,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding:14px;
   margin:12px 0;
 }
+
+/* Card internal layout (Build 7.0h: responsive-first) */
+.cardHeader{ }
+.cardLayout{display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px}
+.cardAside{ }
+.cardDetails{ }
+
+/* When the info box lives in the aside, remove its extra top margin */
+.cardAside .info{margin-top:0}
 
 .rowMeta{
   display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -139,7 +148,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .title{
   font-weight:950;
-  font-size:24px;
+  font-size:clamp(20px, 2.8vw, 26px);
   margin:10px 0 8px;
   word-break:break-word;
 }
@@ -362,29 +371,30 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%) !important;
 }
 
-/* Trophy UI (Build 7.0h) */
-.trophyList{display:flex;flex-direction:column;gap:12px}
-.tRow{
-  display:grid;
-  grid-template-columns: auto 1fr auto;
-  gap:10px;
-  align-items:start;
-  padding:8px 0;
-  border-top:1px solid color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+/* ===== Responsive layout ===== */
+
+/* Wider header: search + pills side-by-side */
+@media (min-width: 720px){
+  .topbar{padding:14px 16px 10px}
+  .subbar{flex-direction:row; align-items:center; justify-content:space-between}
+  .search{flex:1; max-width:none}
+  .pills{justify-content:flex-end}
+  .wrap{padding:14px 16px 110px}
 }
-.tRow:first-child{border-top:none;padding-top:0}
-.tPlat .badge{min-width:72px}
-.tMain{min-width:0}
-.tBar{
-  height:10px;
-  border-radius:999px;
-  background: color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
-  overflow:hidden;
+
+/* Landscape phones / small tablets: use two-column card layout to avoid tall stacks */
+@media (orientation: landscape) and (min-width: 520px){
+  .wrap{max-width:980px}
+  .card{padding:14px 16px}
+  .cardLayout{grid-template-columns: 1fr 320px; align-items:start}
+  .cardAside{grid-column:2}
+  .cardDetails{grid-column:1}
+  .sheet{max-width:980px}
 }
-.tFill{
-  height:100%;
-  border-radius:999px;
-  background: color-mix(in oklab, var(--fg) 45%, var(--bg) 55%);
+
+/* Desktop: a bit more breathing room */
+@media (min-width: 980px){
+  .wrap{max-width:1240px}
+  .cardLayout{grid-template-columns: 1fr 340px}
+  .sheet{max-width:1240px}
 }
-.tMeta{margin-top:6px}
-.tBadges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}

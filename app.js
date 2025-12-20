@@ -5,7 +5,7 @@
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0h";
+  const BUILD = "7.0g2";
 
   const $ = (id) => document.getElementById(id);
 
@@ -590,35 +590,36 @@
 
       return `
         <article class="card">
-          <div class="rowMeta">
-            <div class="idBadge">ID ${esc(id || "—")}</div>
-            ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+          <div class="cardHeader">
+            <div class="rowMeta">
+              <div class="idBadge">ID ${esc(id || "—")}</div>
+              ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+            </div>
+
+            <div class="title">${esc(title)}</div>
+
+            <div class="badgeRow">
+              ${platBadges.join("")}
+              ${srcBadge}
+              ${avBadge}
+              ${reminder ? remBadge : ""}
+            </div>
+
+            <div class="badgeRow">${genreBadge}</div>
+
+            <div class="badgeRow">${trophyBadge}</div>
           </div>
 
-          <div class="title">${esc(title)}</div>
-
-          <div class="badgeRow">
-            ${platBadges.join("")}
-            ${srcBadge}
-            ${avBadge}
-            ${reminder ? remBadge : ""}
-          </div>
-
-          <div class="badgeRow">
-            ${genreBadge}
-          </div>
-
-          <div class="badgeRow">
-            ${trophyBadge}
-          </div>
-
-          ${info}
-
-          <div class="detailsWrap">
-            ${detailsBlock("Beschreibung", descBody)}
-            ${detailsBlock("Store", storeBody)}
-            ${detailsBlock("Trophäen", trophyBody)}
-            ${detailsBlock("Humorstatistik", humorBody)}
+          <div class="cardLayout">
+            <aside class="cardAside">${info}</aside>
+            <div class="cardDetails">
+              <div class="detailsWrap">
+                ${detailsBlock("Beschreibung", descBody)}
+                ${detailsBlock("Store", storeBody)}
+                ${detailsBlock("Trophäen", trophyBody)}
+                ${detailsBlock("Humorstatistik", humorBody)}
+              </div>
+            </div>
           </div>
         </article>`;
     }).join("");
@@ -648,93 +649,70 @@
       </details>`;
   }
 
-    function renderTrophyDetails(row){
-    const progRaw = String(row[COL.trophProg] ?? "").trim();
-    const p100Raw = String(row[COL.troph100] ?? "").trim();
-    const platRaw = String(row[COL.platin] ?? "").trim();
+  function renderTrophyDetails(row){
+    const prog = String(row[COL.trophProg] ?? "").trim();
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
 
-    if (!progRaw && !p100Raw && !platRaw) return `<div class="small">Keine Trophäen-Daten vorhanden.</div>`;
+    if (!prog && !p100 && !plat) return `<div class="small">Keine Trophäen-Daten vorhanden.</div>`;
 
     // BOX case
-    const box = [progRaw, p100Raw, platRaw].find(v => String(v).startsWith("BOX_TEIL:"));
+    const box = [prog,p100,plat].find(v => String(v).startsWith("BOX_TEIL:"));
     if (box){
-      const ref = box.split(":", 2)[1] || "";
+      const ref = box.split(":",2)[1] || "";
       return `<div class="small">📦 Teil einer Box ${ref ? `(Referenz: ${esc(ref)})` : ""}</div>`;
     }
 
-    const dprog = parseKeyVals(progRaw);
-    const d100  = parseKeyVals(p100Raw);
-    const dpl   = parseKeyVals(platRaw);
+    const dprog = parseKeyVals(prog);
+    const d100 = parseKeyVals(p100);
+    const dpl = parseKeyVals(plat);
 
-    // Global tokens (when value has no platform prefix)
-    const gProg = (!progRaw.includes(":") ? progRaw : "");
-    const g100  = (!p100Raw.includes(":") ? p100Raw : "");
-    const gPl   = (!platRaw.includes(":") ? platRaw : "");
-
-    const keys = new Set([
-      ...Object.keys(dprog),
-      ...Object.keys(d100),
-      ...Object.keys(dpl),
-    ]);
-    if (!keys.size) keys.add("GLOBAL");
-
-    const order = ["PS5","PS4","PS3","PS2","PS1","PSVita","PSP","PC","Switch","Xbox","Steam"];
-    const plats = Array.from(keys);
-    plats.sort((a,b) => {
-      const ia = order.indexOf(a), ib = order.indexOf(b);
-      if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-      if (a === "GLOBAL") return 1;
-      if (b === "GLOBAL") return -1;
-      return a.localeCompare(b, "de");
-    });
-
-    const rowsHtml = [];
-    for (const p of plats){
-      const isGlobal = p === "GLOBAL";
-
-      const pv   = String(isGlobal ? gProg : (dprog[p] ?? "")).trim();
-      const v100 = String(isGlobal ? g100  : (d100[p]  ?? "")).trim();
-      const vPl  = String(isGlobal ? gPl   : (dpl[p]   ?? "")).trim();
-
+    const platforms = ["PS3","PS4","PS5","Vita"];
+    const blocks = [];
+    for (const p of platforms){
+      const pv = dprog[p] ?? "";
       const frac = parseFrac(pv);
-      const pct = frac ? frac.pct : 0; // Prozentbar IMMER (Ungespielt => 0 %)
-      const pctLabel = `${pct} %`;
+      const s100 = d100[p] ?? (p100 && !p100.includes(":") ? p100 : "");
+      const spl = dpl[p] ?? (plat && !plat.includes(":") ? plat : "");
+
+      if (!pv && !s100 && !spl) continue;
 
       const badges = [];
-      const unplayed = (pv === "Ungespielt") || (isGlobal && progRaw === "Ungespielt");
-      if (unplayed) badges.push(badge("trophy", "💤 Ungespielt"));
-      else if (frac && frac.pct > 0 && frac.pct < 100) badges.push(badge("trophy", "⏳ In Arbeit"));
+      if (spl === "Platin-Erlangt") badges.push(badge("trophy ok", "💎 Platin"));
+      else if (spl === "Wird-Bearbeitet") badges.push(badge("trophy warn", "⏳️ Platin: In Arbeit"));
+      else if (spl === "Nicht-Verfügbar") badges.push(badge("trophy bad", "◇ Kein Platin"));
+      else if (spl === "Ungespielt") badges.push(badge("trophy", "💤 Ungespielt"));
 
-      if (v100 === "Abgeschlossen" || (isGlobal && g100 === "Abgeschlossen")) badges.push(badge("trophy", "✅ 100%"));
+      if (s100 === "Abgeschlossen") badges.push(badge("trophy ok", "✅️ 100%"));
+      else if (s100 === "Wird-Bearbeitet") badges.push(badge("trophy warn", "⏳️ 100%: In Arbeit"));
+      else if (s100 === "Nicht-Verfügbar") badges.push(badge("trophy bad", "🚫 100%: N/A"));
+      else if (s100 === "Ungespielt") badges.push(badge("trophy", "💤 Ungespielt"));
 
-      // Platin nur wenn explizit vorhanden
-      if (vPl === "Platin-Erlangt" || (isGlobal && gPl === "Platin-Erlangt")) badges.push(badge("trophy", "💎 Platin"));
-      if (vPl === "Nicht-Verfügbar" || (isGlobal && gPl === "Nicht-Verfügbar")) badges.push(badge("trophy", "◇ Kein Platin"));
+      let bar = "";
+      let line = "";
+      if (frac){
+        bar = `<div class="bar"><div style="width:${frac.pct}%"></div></div>`;
+        line = `<div class="small">${esc(pv)} (${frac.pct}%)</div>`;
+      } else if (pv) {
+        line = `<div class="small">${esc(pv)}</div>`;
+      }
 
-      if (!badges.length && !pv && !v100 && !vPl) badges.push(badge("trophy", "❓ Unbekannt"));
-
-      const parts = [];
-      if (frac) parts.push(`${frac.a}/${frac.b}`);
-      parts.push(pctLabel);
-
-      rowsHtml.push(`
-        <div class="tRow">
-          <div class="tPlat">${badge("platform", isGlobal ? "Plattform" : p)}</div>
-          <div class="tMain">
-            <div class="tBar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-              <div class="tFill" style="width:${pct}%"></div>
-            </div>
-            <div class="tMeta">${esc(parts.join(" • "))}</div>
+      blocks.push(`
+        <div class="platBlock">
+          <div class="platHead">
+            ${badge("platform", p)}
+            ${badges.join("")}
           </div>
-          <div class="tBadges">${badges.join("")}</div>
+          ${line}
+          ${bar}
         </div>
       `);
     }
 
-    return `<div class="trophyList">${rowsHtml.join("")}</div>`;
+    return blocks.length ? blocks.join("") : `<div class="small">Keine plattformbezogenen Trophäenwerte erkannt.</div>`;
   }
 
-function renderHumor(row){
+  function renderHumor(row){
     const total = String(row[COL.humorTotal] ?? "").trim();
     const pct = String(row[COL.humorPct] ?? "").trim();
     const yrs = String(row[COL.humorYears] ?? "").trim();
