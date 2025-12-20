@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Spieleliste – Build 7.0c</title>
+  <title>Spieleliste – Build 7.0d</title>
   <link rel="stylesheet" href="styles.css" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -11,7 +11,7 @@
   <header class="hdr">
     <div class="topbar">
       <div class="brand">
-        Spieleliste <span class="build">Build 7.0c</span>
+        Spieleliste <span class="build">Build 7.0d</span>
       </div>
       <div class="topActions">
         <button id="btnLoad" class="btn">Excel auswählen</button>
@@ -76,6 +76,28 @@
           </label>
 
           <div class="subsect">
+            <div class="subTitle">Spielzeit</div>
+            <div class="timeGrid">
+              <div class="timeCol">
+                <div class="timeLabel">🕒 Main-Story (Std.)</div>
+                <div class="timeRow">
+                  <input id="mainMin" class="timeInput" type="number" inputmode="decimal" step="0.1" placeholder="min" />
+                  <input id="mainMax" class="timeInput" type="number" inputmode="decimal" step="0.1" placeholder="max" />
+                </div>
+              </div>
+              <div class="timeCol">
+                <div class="timeLabel">🕒 Komplett (Std.)</div>
+                <div class="timeRow">
+                  <input id="compMin" class="timeInput" type="number" inputmode="decimal" step="0.1" placeholder="min" />
+                  <input id="compMax" class="timeInput" type="number" inputmode="decimal" step="0.1" placeholder="max" />
+                </div>
+              </div>
+            </div>
+            <div class="small muted" style="margin-top:8px">Leer lassen = kein Zeitfilter. Werte mit Dezimalpunkt oder -komma möglich.</div>
+          </div>
+
+
+          <div class="subsect">
             <div class="subTitle">Plattform</div>
             <div class="chipRow" id="platRow"></div>
           </div>
@@ -88,11 +110,6 @@
           <div class="subsect">
             <div class="subTitle">Verfügbarkeit</div>
             <div class="chipRow" id="availRow"></div>
-          </div>
-
-          <div class="subsect">
-            <div class="subTitle">Trophäenstatus</div>
-            <div class="chipRow" id="trophyRow"></div>
           </div>
         </div>
 

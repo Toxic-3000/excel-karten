@@ -324,3 +324,20 @@ summary::-webkit-details-marker{display:none}
 .sheetActions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap}
 .sheetFoot{margin-top:10px}
 .muted{opacity:.75}
+
+/* Time filter inputs (Build 7.0d) */
+.timeGrid{display:grid; grid-template-columns: 1fr; gap:12px}
+@media (min-width: 560px){ .timeGrid{grid-template-columns: 1fr 1fr;} }
+.timeCol{display:flex; flex-direction:column; gap:8px}
+.timeLabel{font-size:12px; opacity:.75; font-weight:950}
+.timeRow{display:flex; gap:8px}
+.timeInput{
+  width:92px;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  color:var(--fg);
+  border-radius:999px;
+  padding:10px 12px;
+  font-weight:950;
+  outline:none;
+}
