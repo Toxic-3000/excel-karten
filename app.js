@@ -1,11 +1,16 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h2
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h3
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0h2";
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0h3").trim();
+
+  // Keep build string consistent in UI + browser title.
+  document.title = `Spieleliste – Build ${BUILD}`;
+  const buildLabel = document.getElementById("buildLabel");
+  if (buildLabel) buildLabel.textContent = `Build ${BUILD}`;
 
   const $ = (id) => document.getElementById(id);
 
@@ -590,39 +595,39 @@
 
       return `
         <article class="card">
-          <div class="cardTop">
-            <div class="cardMain">
-              <div class="cardHeader">
-                <div class="rowMeta">
-                  <div class="idBadge">ID ${esc(id || "—")}</div>
-                  ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
-                </div>
+          <div class="topGrid">
+            <div class="head">
+              <div class="rowMeta">
+                <div class="idBadge">ID ${esc(id || "—")}</div>
+                ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+              </div>
 
-                <div class="title">${esc(title)}</div>
+              <div class="title">${esc(title)}</div>
 
-                <div class="badgeRow">
-                  ${platBadges.join("")}
-                  ${srcBadge}
-                  ${avBadge}
-                  ${reminder ? remBadge : ""}
-                </div>
+              <div class="badgeRow">
+                ${platBadges.join("")}
+                ${srcBadge}
+                ${avBadge}
+                ${reminder ? remBadge : ""}
+              </div>
 
-                <div class="badgeRow">${genreBadge}</div>
+              <div class="badgeRow">
+                ${genreBadge}
+              </div>
 
-                <div class="badgeRow">${trophyBadge}</div>
+              <div class="badgeRow">
+                ${trophyBadge}
               </div>
             </div>
 
-            <aside class="cardAside">${info}</aside>
+            ${info}
           </div>
 
-          <div class="cardBottom">
-            <div class="detailsWrap">
-              ${detailsBlock("Beschreibung", descBody)}
-              ${detailsBlock("Store", storeBody)}
-              ${detailsBlock("Trophäen", trophyBody)}
-              ${detailsBlock("Humorstatistik", humorBody)}
-            </div>
+          <div class="detailsWrap">
+            ${detailsBlock("desc", "Beschreibung", descBody)}
+            ${detailsBlock("trophy", "Trophäen", trophyBody)}
+            ${detailsBlock("store", "Store", storeBody)}
+            ${detailsBlock("humor", "Humorstatistik", humorBody)}
           </div>
         </article>`;
     }).join("");
@@ -640,12 +645,13 @@
     }
   }
 
-  function detailsBlock(name, bodyHtml){
-    const safe = esc(name);
+  function detailsBlock(key, label, bodyHtml){
+    const safeLabel = esc(label);
+    const safeKey = String(key || "").toLowerCase().replace(/[^a-z0-9_-]/g, "");
     return `
-      <details>
+      <details class="d d-${safeKey}">
         <summary>
-          <span data-label="${safe}">${safe} anzeigen</span>
+          <span data-label="${safeLabel}">${safeLabel} anzeigen</span>
           <span class="chev">▾</span>
         </summary>
         <div class="detailsBody">${bodyHtml}</div>

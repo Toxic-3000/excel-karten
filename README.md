@@ -1,13 +1,13 @@
-# Build 7.0h
+# Build 7.0h3
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0g2
+## Was neu ist in 7.0h3
 
-- **Bugfix:** „Excel auswählen“ öffnet wieder den Dateidialog (JS‑Syntaxfehler/undef. Variable behoben).
-
-- **Quellen‑Badge auf der Karte:** Wenn die Quelle **Unbekannt** ist, wird sie jetzt eindeutig als **„🏷️ Unbekannt“** dargestellt.
-- **Filter & Sortieren → Quelle:** Die **Icons/Symbole wurden bei Digital / PS‑Plus / Retail‑Disc entfernt** (um Verwirrung zu vermeiden). **Nur „Unbekannt“** bekommt weiterhin ein klares Symbol (**🏷️**).
+- **Buildname konsistent:** UI (Header), Browser‑Titel und README hängen am gleichen Build‑String.
+- **Globales Responsive‑Grundlayout:** mobil → quer → desktop.
+- **Querformat ohne „tote Flächen“:** die aufklappbaren Blöcke **Store** und **Humorstatistik** stehen im Querformat (und am Desktop) als **2‑Spalten‑Reihe** nebeneinander.
+- **Karte querformat‑tauglich:** Kopfbereich (Titel/Badges) und Infoblock nutzen im Querformat die Breite sinnvoll.
 
 ## Feature‑Überblick
 
@@ -28,4 +28,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0e → Store‑Sektion zweispaltig
 - ✅ 7.0f → Badge‑Farben & ruhiger (neutralere Standard‑Badges, Quelle etwas dunkler)
 - ✅ 7.0g2 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
-- ⏭️ 7.0h → Trophäen‑UI ruhig & final (Redesign)
+- ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
+- ⏭️ 7.0i → Trophäen‑UI ruhig & final (Hochformat optimieren: 3 Badges nebeneinander + Progressbar darunter)

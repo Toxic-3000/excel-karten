@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h2 */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h3 */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -104,7 +104,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   display:grid;place-items:center;
 }
 
-.wrap{max-width:1200px;margin:0 auto;padding:12px 12px 90px}
+.wrap{max-width:980px;margin:0 auto;padding:12px 12px 90px}
 .cards{padding:6px 4px}
 
 .card{
@@ -115,16 +115,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding:14px;
   margin:12px 0;
 }
-
-/* Card internal layout (Build 7.0h2: responsive-first, landscape-friendly) */
-.cardTop{display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px}
-.cardMain{min-width:0}
-.cardHeader{ }
-.cardAside{ }
-.cardBottom{margin-top:10px}
-
-/* When the info box lives in the aside, remove its extra top margin */
-.cardAside .info{margin-top:0}
 
 .rowMeta{
   display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -149,7 +139,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .title{
   font-weight:950;
-  font-size:clamp(20px, 2.8vw, 26px);
+  font-size:24px;
   margin:10px 0 8px;
   word-break:break-word;
 }
@@ -185,6 +175,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding:12px;
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
 }
+
+/* --- Card layout (mobile-first) --- */
+.topGrid{display:block}
+.detailsWrap{
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.detailsWrap details{margin:0}
 .grid{
   display:grid;
   grid-template-columns: 120px 1fr;
@@ -195,7 +195,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .v{font-weight:850}
 
 details{
-  margin:8px 0 0;
+  margin:10px 0 0;
   border:1px solid var(--border);
   border-radius:16px;
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
@@ -372,30 +372,40 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%) !important;
 }
 
-/* ===== Responsive layout ===== */
-
-/* Wider header: search + pills side-by-side */
+/* --- Responsive: search + pills side-by-side (tablet/desktop) --- */
 @media (min-width: 720px){
-  .topbar{padding:14px 16px 10px}
-  .subbar{flex-direction:row; align-items:center; justify-content:space-between}
+  .subbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
   .search{flex:1; max-width:none}
   .pills{justify-content:flex-end}
-  .wrap{padding:14px 16px 110px}
 }
 
-/* Landscape phones / small tablets: use two-column card layout to avoid tall stacks */
-@media (orientation: landscape) and (min-width: 520px){
-  .wrap{max-width:980px}
-  .card{padding:14px 16px}
-  /* Header+info side-by-side, but sections span full width below.
-     This avoids the "big empty left column" when accordions are collapsed. */
-  .cardTop{grid-template-columns: 1fr 320px; align-items:start}
-  .sheet{max-width:980px}
+/* --- Responsive: Landscape cards (mobile landscape & small tablets) --- */
+@media (min-width: 520px) and (orientation: landscape){
+  .topGrid{
+    display:grid;
+    grid-template-columns: 1.18fr 0.82fr;
+    gap:12px;
+    align-items:start;
+  }
+  .topGrid .info{margin-top:0}
+
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .detailsWrap .d-desc,
+  .detailsWrap .d-trophy{grid-column: 1 / -1}
 }
 
-/* Desktop: a bit more breathing room */
-@media (min-width: 980px){
-  .wrap{max-width:1240px}
-  .cardTop{grid-template-columns: 1fr 340px}
-  .sheet{max-width:1240px}
+/* --- Responsive: Desktop readability --- */
+@media (min-width: 1100px){
+  .wrap{max-width:1180px}
+  .card{padding:16px}
+  .title{font-size:26px}
 }
