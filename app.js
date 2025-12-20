@@ -30,11 +30,8 @@
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
+    trophyRow: $("trophyRow"),
     fFav: $("fFav"),
-    mainMin: $("mainMin"),
-    mainMax: $("mainMax"),
-    compMin: $("compMin"),
-    compMax: $("compMax"),
   };
 
   // Column contract (Excel headers)
@@ -72,10 +69,7 @@
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
-      mainMin: null,
-      mainMax: null,
-      compMin: null,
-      compMax: null,
+      trophies: new Set(),
     },
     sortField: "ID",
     sortDir: "asc",
@@ -83,6 +77,7 @@
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
+      trophies: new Set(),
     },
     reminderCol: null,
     fileName: null,
@@ -220,6 +215,9 @@
         if (v && /^https?:\/\//i.test(v)) row.__storeUrl = v;
       }
 
+      // Trophy tags (for filter)
+      for (const t of trophyTags(row)) state.distinct.trophies.add(t);
+
       // Platforms distinct from System (pipe-separated)
       const sys = String(row[COL.system] ?? "").trim();
       splitPipe(sys).forEach(p => state.distinct.platforms.add(p));
@@ -271,6 +269,12 @@
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
 
+    // Trophy status chips (show all tags that appear)
+    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
+    const tros = Array.from(state.distinct.trophies);
+    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
+    el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
+
     // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
       btn.addEventListener("click", () => onChip(btn));
@@ -309,6 +313,7 @@
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
               : group === "avail" ? state.filters.availability
+              : group === "trophy" ? state.filters.trophies
               : null;
     if (!set) return;
     if (pressed) set.delete(key);
@@ -323,13 +328,6 @@
   }
   function parseHours(s){
     const n = parseFloat(String(s ?? "").replace(",", "."));
-    return Number.isFinite(n) ? n : null;
-  }
-
-  function parseNumInput(v){
-    const t = String(v ?? "").trim();
-    if (!t) return null;
-    const n = Number(t.replace(",", "."));
     return Number.isFinite(n) ? n : null;
   }
 
@@ -371,6 +369,14 @@
         const av = String(r[COL.avail] ?? "").trim();
         if (!avF.has(av)) return false;
       }
+      // trophies filter (multi-select OR)
+      const troF = state.filters.trophies;
+      if (troF.size){
+        const tags = trophyTags(r);
+        let ok = false;
+        for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
+        if (!ok) return false;
+      }
       return true;
     });
 
@@ -397,6 +403,45 @@
 
     el.pillRows.textContent = `Treffer: ${out.length}`;
     render(out);
+  }
+
+
+  function trophyTags(row){
+    // Tags for filtering (multi-select OR)
+    // "Platin", "100%", "In Arbeit", "Ungespielt", "Kein Platin", "Box-Teil", "Unbekannt"
+    const tags = new Set();
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
+    const prog = String(row[COL.trophProg] ?? "").trim();
+
+    if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
+      tags.add("Box-Teil");
+      return tags;
+    }
+
+    const g100 = (!p100.includes(":") ? p100 : "");
+    const gpl  = (!plat.includes(":") ? plat : "");
+
+    const d100  = parseKeyVals(p100);
+    const dpl   = parseKeyVals(plat);
+    const dprog = parseKeyVals(prog);
+
+    const any = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyFrac = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
+
+    if (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt")) tags.add("Platin");
+    if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
+    if (gpl === "Nicht-Verfügbar" || any(dpl, "Nicht-Verfügbar")) tags.add("Kein Platin");
+
+    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
+        g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet") || anyFrac){
+      tags.add("In Arbeit");
+    }
+
+    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
+
+    if (!tags.size) tags.add("Unbekannt");
+    return tags;
   }
 
   function trophySummary(row){
@@ -458,6 +503,35 @@
     return `<div class="small">Store-Link gefunden, aber keine URL (Hyperlink) erkannt.</div>`;
   }
 
+  function renderStore(row, src, av){
+    // Two-column layout like the info block: Quelle / Store-Link / Verfügbarkeit
+    const text = String(row[COL.store] ?? "").trim();
+    const url = String(row.__storeUrl ?? "").trim();
+
+    let storeValue = "";
+    if (url && /^https?:\/\//i.test(url)){
+      const linkText = text || "Store Link";
+      storeValue = `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(linkText)}</a>`;
+    } else if (text && /^https?:\/\//i.test(text)){
+      storeValue = `<a href="${esc(text)}" target="_blank" rel="noopener noreferrer">Store Link</a>`;
+    } else if (text){
+      storeValue = `<span class="small">Linktext vorhanden, aber keine URL (Hyperlink) erkannt.</span>`;
+    } else {
+      storeValue = `<span class="small">Kein Store-Link vorhanden.</span>`;
+    }
+
+    const srcVal = src || "Unbekannt";
+    const avVal  = av  || "Unbekannt";
+
+    return `
+      <div class="grid storeGrid">
+        <div class="k">Quelle</div><div class="v">${esc(srcVal)}</div>
+        <div class="k">Store</div><div class="v">${storeValue}</div>
+        <div class="k">Verfügbarkeit</div><div class="v">${esc(avVal)}</div>
+      </div>`;
+  }
+
+
   function render(rows){
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
@@ -506,7 +580,7 @@
       const desc = String(row[COL.desc] ?? "").trim();
       const descBody = desc ? `<div class="pre">${esc(desc)}</div>` : `<div class="small">Keine Beschreibung vorhanden.</div>`;
 
-      const storeBody = storeLink(row);
+      const storeBody = renderStore(row, src, av);
 
       const trophyBody = renderTrophyDetails(row);
       const humorBody = renderHumor(row);
@@ -684,11 +758,6 @@
 
   el.btnApply.addEventListener("click", () => {
     state.filters.fav = !!el.fFav.checked;
-    // Time filters
-    state.filters.mainMin = parseNumInput(el.mainMin.value);
-    state.filters.mainMax = parseNumInput(el.mainMax.value);
-    state.filters.compMin = parseNumInput(el.compMin.value);
-    state.filters.compMax = parseNumInput(el.compMax.value);
     el.dlg.close();
     applyAndRender();
   });
@@ -698,6 +767,7 @@
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();
+    state.filters.trophies.clear();
     el.fFav.checked = false;
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
