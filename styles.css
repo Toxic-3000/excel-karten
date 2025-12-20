@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h2 */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -116,11 +116,12 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   margin:12px 0;
 }
 
-/* Card internal layout (Build 7.0h: responsive-first) */
+/* Card internal layout (Build 7.0h2: responsive-first, landscape-friendly) */
+.cardTop{display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px}
+.cardMain{min-width:0}
 .cardHeader{ }
-.cardLayout{display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px}
 .cardAside{ }
-.cardDetails{ }
+.cardBottom{margin-top:10px}
 
 /* When the info box lives in the aside, remove its extra top margin */
 .cardAside .info{margin-top:0}
@@ -194,7 +195,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .v{font-weight:850}
 
 details{
-  margin:10px 0 0;
+  margin:8px 0 0;
   border:1px solid var(--border);
   border-radius:16px;
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
@@ -386,15 +387,15 @@ summary::-webkit-details-marker{display:none}
 @media (orientation: landscape) and (min-width: 520px){
   .wrap{max-width:980px}
   .card{padding:14px 16px}
-  .cardLayout{grid-template-columns: 1fr 320px; align-items:start}
-  .cardAside{grid-column:2}
-  .cardDetails{grid-column:1}
+  /* Header+info side-by-side, but sections span full width below.
+     This avoids the "big empty left column" when accordions are collapsed. */
+  .cardTop{grid-template-columns: 1fr 320px; align-items:start}
   .sheet{max-width:980px}
 }
 
 /* Desktop: a bit more breathing room */
 @media (min-width: 980px){
   .wrap{max-width:1240px}
-  .cardLayout{grid-template-columns: 1fr 340px}
+  .cardTop{grid-template-columns: 1fr 340px}
   .sheet{max-width:1240px}
 }

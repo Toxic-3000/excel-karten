@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h2
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0g2";
+  const BUILD = "7.0h2";
 
   const $ = (id) => document.getElementById(id);
 
@@ -590,35 +590,38 @@
 
       return `
         <article class="card">
-          <div class="cardHeader">
-            <div class="rowMeta">
-              <div class="idBadge">ID ${esc(id || "—")}</div>
-              ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+          <div class="cardTop">
+            <div class="cardMain">
+              <div class="cardHeader">
+                <div class="rowMeta">
+                  <div class="idBadge">ID ${esc(id || "—")}</div>
+                  ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+                </div>
+
+                <div class="title">${esc(title)}</div>
+
+                <div class="badgeRow">
+                  ${platBadges.join("")}
+                  ${srcBadge}
+                  ${avBadge}
+                  ${reminder ? remBadge : ""}
+                </div>
+
+                <div class="badgeRow">${genreBadge}</div>
+
+                <div class="badgeRow">${trophyBadge}</div>
+              </div>
             </div>
 
-            <div class="title">${esc(title)}</div>
-
-            <div class="badgeRow">
-              ${platBadges.join("")}
-              ${srcBadge}
-              ${avBadge}
-              ${reminder ? remBadge : ""}
-            </div>
-
-            <div class="badgeRow">${genreBadge}</div>
-
-            <div class="badgeRow">${trophyBadge}</div>
+            <aside class="cardAside">${info}</aside>
           </div>
 
-          <div class="cardLayout">
-            <aside class="cardAside">${info}</aside>
-            <div class="cardDetails">
-              <div class="detailsWrap">
-                ${detailsBlock("Beschreibung", descBody)}
-                ${detailsBlock("Store", storeBody)}
-                ${detailsBlock("Trophäen", trophyBody)}
-                ${detailsBlock("Humorstatistik", humorBody)}
-              </div>
+          <div class="cardBottom">
+            <div class="detailsWrap">
+              ${detailsBlock("Beschreibung", descBody)}
+              ${detailsBlock("Store", storeBody)}
+              ${detailsBlock("Trophäen", trophyBody)}
+              ${detailsBlock("Humorstatistik", humorBody)}
             </div>
           </div>
         </article>`;
