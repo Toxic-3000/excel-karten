@@ -1,4 +1,4 @@
-# Spieleliste Webansicht – Clean Rebuild (Build 7.0e)
+# Spieleliste Webansicht – Clean Rebuild (Build 7.0f)
 
 **Einzige Datenquelle (Source of Truth):** `Spieleliste_paired_machinefriendly_trimmed_corrected.xlsx`
 
@@ -25,13 +25,16 @@ Dann GitHub Pages aktivieren und die Excel in der Webansicht auswählen.
   - Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main-Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
   - Filter: Favoriten, Plattform, Quelle, Verfügbarkeit, Trophäenstatus (Multi-Select OR)
 
-## Änderungen in Build 7.0e (nur dieses Thema)
-- **Badge-Farben & Ruhe:**
-  - Quellen-Badges optisch dunkler als Plattform-Badges (bessere Trennung)
-  - **PS-Plus** Badge ist jetzt **neutral** (nicht mehr grün)
-  - **Verfügbar** Badge ist jetzt **grün**
-  - **Eingeschränkt** Badge bleibt **gelb**, **Delisted** bleibt **rot**
-  - Badge-Text ist linksbündig (ruhigeres Layout)
+## Änderungen in Build 7.0f (nur dieses Thema)
+- **Badge-System (Variante A: Status-Dot)**
+  - Quelle-Badges: **🏷️ Digital / 🏷️ Retail-Disc / 🏷️ PS-Plus / 🏷️ Unbekannt**
+  - Quelle bleibt **dunkler neutral** als Plattform (bessere Trennung)
+  - Verfügbarkeit bleibt **ruhig neutral**, Status über **farbigen Punkt links**:
+    - Verfügbar → grün
+    - Eingeschränkt → gelb
+    - Delisted → rot
+    - Unbekannt → neutral/grau
+  - Trophäenstatus bleibt **neutral** (Emoji trägt die Bedeutung)
 
 ## Nächster Build (Fixplan)
-- 7.0f → Trophäen-UI ruhig & final
+- 7.0g → Trophäen-UI ruhig & final

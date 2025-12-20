@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0e
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0f
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0e";
+  const BUILD = "7.0f";
 
   const $ = (id) => document.getElementById(id);
 
@@ -244,8 +244,8 @@
       {k:"Spieletitel", label:"Titel"},
       {k:"Metascore", label:"Metascore"},
       {k:"Userwertung", label:"Userwertung"},
-      {k:"Spielzeit (Main)", label:"🕒 Main-Story"},
-      {k:"Spielzeit (100%)", label:"🕒 Komplett"},
+      {k:"Spielzeit (Main)", label:"Main"},
+      {k:"Spielzeit (100%)", label:"100%"},
       {k:"Genre", label:"Genre"},
       {k:"Quelle", label:"Quelle"},
       {k:"Verfügbarkeit", label:"Verfügbarkeit"},
@@ -264,7 +264,7 @@
 
     // Sources and availability: show *all* states present
     const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, s, state.filters.sources.has(s))).join("");
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, "🏷️ " + s, state.filters.sources.has(s))).join("");
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
@@ -478,13 +478,13 @@
     const t = String(av ?? "").trim();
     if (t === "Delisted") return "bad";
     if (t === "Eingeschränkt") return "warn";
-    if (t === "Unbekannt") return "warn";
     if (t === "Verfügbar") return "ok";
-    return ""; // other states
+    if (t === "Unbekannt") return "";
+    return ""; // Verfügbar or others
   }
   function classifySource(src){
     const t = String(src ?? "").trim();
-    if (t === "Unbekannt") return "warn";
+    if (t === "Unbekannt") return "";
     if (t === "PS-Plus") return "";
     return "";
   }
