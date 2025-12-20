@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0f
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0g
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0f";
+  const BUILD = "7.0g";
 
   const $ = (id) => document.getElementById(id);
 
