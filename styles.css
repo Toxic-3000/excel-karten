@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0a */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0e */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -325,5 +325,27 @@ summary::-webkit-details-marker{display:none}
 .sheetFoot{margin-top:10px}
 .muted{opacity:.75}
 
-/* Store grid (Build 7.0d) */
+/* Store grid (Build 7.0e) */
 .storeGrid a{word-break:break-word}
+
+
+/* Badge calm tweaks (Build 7.0e) */
+.badge{
+  justify-content:flex-start;            /* calmer: left alignment */
+  text-align:left;
+}
+.badge.platform{
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+}
+.badge.source{
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%); /* slightly darker than platform */
+}
+.badge.avail{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+.badge.genre{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+.badge.trophy{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}

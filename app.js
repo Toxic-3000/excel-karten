@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0d
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0e
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0d";
+  const BUILD = "7.0e";
 
   const $ = (id) => document.getElementById(id);
 
@@ -479,12 +479,13 @@
     if (t === "Delisted") return "bad";
     if (t === "Eingeschränkt") return "warn";
     if (t === "Unbekannt") return "warn";
-    return ""; // Verfügbar or others
+    if (t === "Verfügbar") return "ok";
+    return ""; // other states
   }
   function classifySource(src){
     const t = String(src ?? "").trim();
     if (t === "Unbekannt") return "warn";
-    if (t === "PS-Plus") return "ok";
+    if (t === "PS-Plus") return "";
     return "";
   }
 
