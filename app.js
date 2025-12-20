@@ -1,11 +1,27 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0a
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0b
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0a";
+  const BUILD = "7.0b";
+
+/**
+ * PATCH-FREUNDLICHE STRUKTUR (Orientierung)
+ * ------------------------------------------------------------------
+ * Ziel: Änderungen sollen künftig in klaren "Zonen" passieren, statt
+ * quer durch die Datei. Diese Datei ist weiterhin bewusst "vanilla JS"
+ * (keine Build-Toolchain), aber mit sauberem Zuschnitt.
+ *
+ * 1) CONFIG   : Texte/Badge-Begriffe/Mapping (hier zuerst nachschauen)
+ * 2) PARSING  : XLSX-Zeile -> internes Game-Objekt (ohne DOM)
+ * 3) STATE    : Filter/Sortierung/Paging
+ * 4) RENDER   : DOM-Erzeugung (Cards, Badges, Accordion-Sektionen)
+ * 5) FILTER   : Matching-Logik ("was passt")
+ * 6) INIT     : Event-Handler + Startup
+ */
+
 
   const $ = (id) => document.getElementById(id);
 
