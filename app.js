@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0g
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0f
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = "7.0g";
+  const BUILD = "7.0g.1";
 
   const $ = (id) => document.getElementById(id);
 
@@ -264,7 +264,7 @@
 
     // Sources and availability: show *all* states present
     const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, "🏷️ " + s, state.filters.sources.has(s))).join("");
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, (s === "Unbekannt" ? "❓ " + s : s), state.filters.sources.has(s))).join("");
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
@@ -560,7 +560,8 @@
 
       // badge rows
       const platBadges = sys.map(p => badge("platform", p));
-      const srcBadge = badge("source "+classifySource(src), src);
+      const srcLabel = (src === "Unbekannt" ? "❓ Unbekannt" : src);
+
       const avBadge = badge("avail "+classifyAvailability(av), av);
       const genreBadge = badge("genre", genre);
       const remBadge = reminder ? badge("note warn", "🔔 Erinnerung") : "";

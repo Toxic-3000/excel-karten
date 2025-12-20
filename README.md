@@ -1,35 +1,30 @@
-# Spieleliste Webansicht – Clean Rebuild (Build 7.0g)
+# Build 7.0g.1
 
-**Einzige Datenquelle (Source of Truth):** `Spieleliste_paired_machinefriendly_trimmed_corrected.xlsx`
+Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Deployment (GitHub Pages)
-Lege diese Dateien ins Repo-Root (gleiches Verzeichnis):
-- `index.html`
-- `styles.css`
-- `app.js`
-- `xlsx.full.min.js`
+## Was neu ist in 7.0g.1
 
-Dann GitHub Pages aktivieren und die Excel in der Webansicht auswählen.
+- **Quellen‑Badge auf der Karte:** Wenn die Quelle **Unbekannt** ist, wird sie jetzt eindeutig als **„❓ Unbekannt“** dargestellt.
+- **Filter & Sortieren → Quelle:** Die **Icons/Symbole wurden bei Digital / PS‑Plus / Retail‑Disc entfernt** (um Verwirrung zu vermeiden). **Nur „Unbekannt“** bekommt weiterhin ein klares Symbol (**❓**).
 
-## Features (aktueller Stand)
-- Kompaktansicht-only (keine Detailansicht)
-- Kartenkopf: ID + Favorit (Zeile 1), Titel (Zeile 2)
-- Badge-Zeilen:
-  - Plattform / Quelle / Verfügbarkeit (alle Zustände werden angezeigt)
-  - Genre
-  - Trophäenstatus (Kurzform)
-- Fester Infoblock: Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
-- Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen (inkl. Progress-Bar), Humorstatistik
-  - Store-Link nutzt **Linktext + echte URL** aus Excel (Hyperlink), falls vorhanden
-- Filter & Sortieren (mobilfreundliches Bottom-Sheet)
-  - Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main-Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
-  - Filter: Favoriten, Plattform, Quelle, Verfügbarkeit, Trophäenstatus (Multi-Select OR)
+## Feature‑Überblick
 
-## Änderungen in Build 7.0g (nur dieses Thema)
-- **Quellen-Badges auf den Karten (minimalistisch):**
-  - Nur bei **Unbekannt** wird das Symbol auf der Karte angezeigt: **🏷️ Unbekannt**
-  - **Digital / Retail-Disc / PS-Plus** bleiben **ohne Symbol** (ruhig wie zuvor)
-  - Filter-/Sortiermenü bleibt unverändert (🏷️-Symbolik dort bleibt wie in 7.0f)
+- XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
+- Suche über Titel/Genre/Subgenre/Entwickler
+- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
+- Filter: Favorit, Plattform, Quelle, Verfügbarkeit
+- Kartenlayout:
+  - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
+  - Badge‑Zeilen: Plattform(en) + Quelle + Verfügbarkeit; Genre; Trophäen‑Status
+  - Info‑Block: Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
+  - Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen, Humorstatistik
+- Store‑Link übernimmt **Linktext + URL** aus der Excel
 
-## Nächster Build (Fixplan)
-- 7.0h → Trophäen-UI ruhig & final
+## Fix‑/Build‑Plan
+
+- ✅ 7.0d → Filterbegriffe: **🕒 Main‑Story** / **🕒 Komplett**
+- ✅ 7.0e → Store‑Sektion zweispaltig
+- ✅ 7.0f → Badge‑Farben & ruhiger (neutralere Standard‑Badges, Quelle etwas dunkler)
+- ✅ 7.0g.1 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
+- ⏭️ 7.0h → Trophäen‑UI ruhig & final (Redesign)
+
