@@ -5,7 +5,7 @@
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-F").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-G").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -214,6 +214,13 @@
     const targetSheet = wb.Sheets["Spieleliste Komplett"] ? "Spieleliste Komplett" : wb.SheetNames[0];
     const ws = wb.Sheets[targetSheet];
 
+    // Reset distinct value caches (in case the user loads another file)
+    state.distinct.genres.clear();
+    state.distinct.platforms.clear();
+    state.distinct.sources.clear();
+    state.distinct.availability.clear();
+    state.distinct.trophies.clear();
+
     // Build rows as objects, while capturing Store hyperlink URLs
     // We use sheet_to_json with header row 1, and also keep range info to map row index -> cell address.
     const range = XLSX.utils.decode_range(ws["!ref"]);
@@ -260,6 +267,11 @@
       // Platforms distinct from System (pipe-separated)
       const sys = String(row[COL.system] ?? "").trim();
       splitPipe(sys).forEach(p => state.distinct.platforms.add(p));
+
+      // Genre distinct (for dropdown)
+      const genre = String(row[COL.genre] ?? "").trim() || "Unbekannt";
+      state.distinct.genres.add(genre);
+
       // Source / availability
       const src = normalizeSourceValue(row[COL.source]);
       if (src){
@@ -322,6 +334,25 @@
     const tros = Array.from(state.distinct.trophies);
     tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
+
+    // Genre dropdown (datalist)
+    if (el.genreList && el.genreInput){
+      const genres = Array.from(state.distinct.genres)
+        .filter(Boolean)
+        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
+
+      el.genreList.innerHTML = "";
+      for (const g of genres){
+        const opt = document.createElement("option");
+        opt.value = g;
+        el.genreList.appendChild(opt);
+      }
+
+      el.genreInput.value = state.filters.genre || "";
+      el.genreInput.oninput = () => {
+        state.filters.genre = el.genreInput.value.trim();
+      };
+    }
 
     // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
@@ -416,6 +447,13 @@
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f !== "x" && f !== "1" && f !== "true") return false;
       }
+      // genre filter (substring match, case/whitespace-insensitive)
+      const gf = norm(state.filters.genre);
+      if (gf){
+        const g = norm(r[COL.genre]);
+        if (!g.includes(gf)) return false;
+      }
+
       // platform filter: system contains at least one selected
       if (platF.size){
         const sys = splitPipe(r[COL.system]);
