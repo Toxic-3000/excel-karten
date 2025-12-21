@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-D
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-E
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-D").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-E").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -96,6 +96,16 @@
   }
   function norm(s){
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
+  }
+
+
+  function normalizeSourceValue(s){
+    // Some sheets may already contain the 🏷 emoji (legacy). We normalize to the plain value
+    // so the filter dialog stays calm, while the card view can still show the icon.
+    return String(s ?? "")
+      .replace(/^🏷️?\s*/, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function parseIdQuery(raw){
@@ -251,8 +261,11 @@
       const sys = String(row[COL.system] ?? "").trim();
       splitPipe(sys).forEach(p => state.distinct.platforms.add(p));
       // Source / availability
-      const src = String(row[COL.source] ?? "").trim();
-      if (src) state.distinct.sources.add(src);
+      const src = normalizeSourceValue(row[COL.source]);
+      if (src){
+        row[COL.source] = src;
+        state.distinct.sources.add(src);
+      }
       const av = String(row[COL.avail] ?? "").trim();
       if (av) state.distinct.availability.add(av);
     }
@@ -412,7 +425,7 @@
       }
       // source
       if (srcF.size){
-        const src = String(r[COL.source] ?? "").trim();
+        const src = normalizeSourceValue(r[COL.source]);
         if (!srcF.has(src)) return false;
       }
       // availability
