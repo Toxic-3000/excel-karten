@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h3 */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h4 */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -20,12 +20,25 @@ html,body{height:100%}
 body{
   margin:0;
   font: 16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
-  background:
-    radial-gradient(1100px 700px at 12% -10%, color-mix(in oklab, var(--blue) 16%, var(--bg) 84%), transparent 62%),
-    radial-gradient(1000px 700px at 88% -5%, color-mix(in oklab, var(--warn) 16%, var(--bg) 84%), transparent 62%),
-    var(--bg);
+  /* Background is handled by .appBg to avoid "scroll drift" / parallax-like effects. */
+  background: var(--bg);
   color:var(--fg);
 }
+
+/* Static background layer (fixed to viewport, never scrolls) */
+.appBg{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(1100px 700px at 12% -10%, color-mix(in oklab, var(--blue) 10%, var(--bg) 90%), transparent 62%),
+    radial-gradient(1000px 700px at 88% -5%, color-mix(in oklab, var(--warn) 10%, var(--bg) 90%), transparent 62%),
+    var(--bg);
+}
+
+/* Ensure UI stays above the fixed background layer */
+.hdr, .wrap, .toTop, .dlg{position:relative; z-index:1;}
 
 a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
@@ -104,7 +117,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   display:grid;place-items:center;
 }
 
-.wrap{max-width:980px;margin:0 auto;padding:12px 12px 90px}
+.wrap{max-width:980px;margin:0 auto;padding:12px 12px 90px; position:relative; z-index:1}
 .cards{padding:6px 4px}
 
 .card{
@@ -113,7 +126,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-radius: var(--r2);
   box-shadow: var(--shadow);
   padding:14px;
-  margin:12px 0;
+  margin:18px 0;
 }
 
 .rowMeta{

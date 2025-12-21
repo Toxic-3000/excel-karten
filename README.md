@@ -1,13 +1,13 @@
-# Build 7.0h3
+# Build 7.0h4
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0h3
+## Was neu ist in 7.0h4
 
 - **Buildname konsistent:** UI (Header), Browser‑Titel und README hängen am gleichen Build‑String.
-- **Globales Responsive‑Grundlayout:** mobil → quer → desktop.
-- **Querformat ohne „tote Flächen“:** die aufklappbaren Blöcke **Store** und **Humorstatistik** stehen im Querformat (und am Desktop) als **2‑Spalten‑Reihe** nebeneinander.
-- **Karte querformat‑tauglich:** Kopfbereich (Titel/Badges) und Infoblock nutzen im Querformat die Breite sinnvoll.
+- **UI ruhiger beim Scrollen:** Hintergrund ist **statisch** (kein „blau rutscht nach“ / kein Parallax‑Gefühl).
+- **Mehr Luft zwischen Karten:** Kartenabstand erhöht, ohne die Karten innen aufzublähen.
+- **Querformat-Logik bleibt:** Store + Humorstatistik nutzen weiterhin die Breite als 2‑Spalten‑Reihe.
 
 ## Feature‑Überblick
 
@@ -29,4 +29,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0f → Badge‑Farben & ruhiger (neutralere Standard‑Badges, Quelle etwas dunkler)
 - ✅ 7.0g2 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
 - ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
+- ✅ 7.0h4 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
 - ⏭️ 7.0i → Trophäen‑UI ruhig & final (Hochformat optimieren: 3 Badges nebeneinander + Progressbar darunter)
