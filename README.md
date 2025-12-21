@@ -1,8 +1,8 @@
-# Build 7.0j-G
+# Build 7.0j-GA
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0j-G
+## Was neu ist in 7.0j-GA
 
 - **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
@@ -11,6 +11,8 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
   - **Querformat:** Store & Humorstatistik bleiben nebeneinander; **Eastereggs nimmt die volle Breite darunter ein** und sitzt **über den Trophäen**.
 
 - **Genre-Filter im Dialog:** Dropdown mit Tipp‑Suche (Vorschlagsliste wird aus der XLSX aufgebaut) + freies Tippen (substring‑Match).
+
+- **Bugfix:** XLSX‑Import stürzt nicht mehr ab (Genre‑Vorschlagsliste korrekt initialisiert).
 
 - **„⭐ Nur Favoriten“ ist wieder da:** Der Favoriten‑Filter ist als eigener Abschnitt sichtbar.
 - **Mehr Luft zwischen Chips:** Chip‑Abstände funktionieren jetzt stabil auch auf mobilen Browsern, in denen "flex-gap" zickt.

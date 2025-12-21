@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-F
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-G").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -37,6 +37,8 @@
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyRow: $("trophyRow"),
+    genreInput: $("genreInput"),
+    genreList: $("genreList"),
   };
 
   // Column contract (Excel headers)
@@ -72,6 +74,7 @@
     q: "",
     filters: {
       fav: false,
+      genre: "",
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
@@ -84,6 +87,7 @@
       sources: new Set(),
       availability: new Set(),
       trophies: new Set(),
+      genres: new Set(),
     },
     reminderCol: null,
     fileName: null,
@@ -324,7 +328,7 @@
     // Sources and availability: show *all* states present
     const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
     // In der Kartenansicht darf das 🏷️-Symbol bleiben; im Filter-Dialog wirkt es aber unruhig.
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, s, state.filters.sources.has(s))).join("");
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s))).join("");
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
@@ -364,6 +368,11 @@
     const p = pressed ? "true" : "false";
     const cls = primary ? "chip primary" : "chip";
     return `<button type="button" class="${cls}" data-group="${esc(group)}" data-key="${esc(key)}" aria-pressed="${p}">${esc(label)}</button>`;
+  }
+
+  function stripTagEmoji(label){
+    // Only for the filter dialog: keep data/value intact, but remove the visual marker.
+    return String(label ?? "").replace(/^\s*🏷\s*/u, "").trim();
   }
 
   function onChip(btn){
@@ -891,10 +900,12 @@ function renderTrophyDetails(row){
 
   el.btnClear.addEventListener("click", () => {
     state.filters.fav = false;
+    state.filters.genre = "";
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
+    if (el.genreInput) el.genreInput.value = "";
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");
