@@ -1,8 +1,8 @@
-# Build 7.0h4
+# Build 7.0h5
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0h4
+## Was neu ist in 7.0h5
 
 - **Buildname konsistent:** UI (Header), Browser‑Titel und README hängen am gleichen Build‑String.
 - **UI ruhiger beim Scrollen:** Hintergrund ist **statisch** (kein „blau rutscht nach“ / kein Parallax‑Gefühl).
@@ -29,5 +29,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0f → Badge‑Farben & ruhiger (neutralere Standard‑Badges, Quelle etwas dunkler)
 - ✅ 7.0g2 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
 - ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
-- ✅ 7.0h4 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
+- ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
 - ⏭️ 7.0i → Trophäen‑UI ruhig & final (Hochformat optimieren: 3 Badges nebeneinander + Progressbar darunter)
