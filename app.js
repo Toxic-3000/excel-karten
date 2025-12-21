@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0i").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0i-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -126,6 +126,18 @@
   function badge(cls, txt, kind=""){
     const k = kind ? " " + kind : "";
     return `<span class="badge ${cls}${k}">${esc(txt)}</span>`;
+  }
+
+
+  function badgeRaw(cls, innerHtml, kind=""){
+    const k = kind ? " " + kind : "";
+    return `<span class="badge ${cls}${k}">${innerHtml}</span>`;
+  }
+
+  function trophyText(shortTxt, longTxt){
+    const s = esc(shortTxt);
+    const l = esc(longTxt);
+    return `<span class="tShort">${s}</span><span class="tLong">${l}</span>`;
   }
 
   function pill(text, kind){
@@ -628,8 +640,8 @@
 
           <div class="detailsWrap">
             ${detailsBlock("desc", "Beschreibung", descBody)}
-            ${detailsBlock("trophy", "Trophäen", trophyBody)}
             ${detailsBlock("store", "Store", storeBody)}
+            ${detailsBlock("trophy", "Trophäen", trophyBody)}
             ${detailsBlock("humor", "Humorstatistik", humorBody)}
           </div>
         </article>`;
@@ -679,23 +691,23 @@ function renderTrophyDetails(row){
   const dprog = parseKeyVals(prog);
 
   const platforms = ["PS3","PS4","PS5","Vita"];
-
   function labelPlatin(token){
-    if (token === "Platin-Erlangt") return "💎 Platin";
-    if (token === "Wird-Bearbeitet") return "⏳ Platin: In Arbeit";
-    if (token === "Nicht-Verfügbar") return "◇ Kein Platin";
-    if (token === "Ungespielt") return "💤 Ungespielt";
-    if (!token) return "—";
-    return token.replaceAll("-", " ");
+    if (token === "Platin-Erlangt") return {short:"💎 Platin", long:"💎 Platin erlangt"};
+    if (token === "Wird-Bearbeitet") return {short:"⏳ Platin", long:"⏳ Platin in Arbeit"};
+    if (token === "Nicht-Verfügbar") return {short:"◇ Kein Platin", long:"◇ Kein Platin vorhanden"};
+    if (token === "Ungespielt") return {short:"💤 Ungespielt", long:"💤 Ungespielt"};
+    if (!token) return {short:"—", long:"—"};
+    const t = token.replaceAll("-", " " );
+    return {short:t, long:t};
   }
-
   function label100(token){
-    if (token === "Abgeschlossen") return "✅ 100%";
-    if (token === "Wird-Bearbeitet") return "⏳ 100%: In Arbeit";
-    if (token === "Nicht-Verfügbar") return "🚫 100%: N/A";
-    if (token === "Ungespielt") return "💤 Ungespielt";
-    if (!token) return "—";
-    return token.replaceAll("-", " ");
+    if (token === "Abgeschlossen") return {short:"✅ 100%", long:"✅ 100% erlangt"};
+    if (token === "Wird-Bearbeitet") return {short:"⏳ 100%", long:"⏳ 100% in Arbeit"};
+    if (token === "Nicht-Verfügbar") return {short:"🚫 100%", long:"🚫 100% nicht verfügbar"};
+    if (token === "Ungespielt") return {short:"💤 Ungespielt", long:"💤 Ungespielt"};
+    if (!token) return {short:"—", long:"—"};
+    const t = token.replaceAll("-", " " );
+    return {short:t, long:t};
   }
 
   const blocks = [];
@@ -719,8 +731,8 @@ function renderTrophyDetails(row){
       <div class="platBlock">
         <div class="tRow">
           ${badge("platform", p)}
-          ${badge("tSlot", labelPlatin(spl))}
-          ${badge("tSlot", label100(s100))}
+          ${(() => { const pl = labelPlatin(spl); return badgeRaw("tSlot", trophyText(pl.short, pl.long)); })()}
+          ${(() => { const h = label100(s100); return badgeRaw("tSlot", trophyText(h.short, h.long)); })()}
         </div>
         ${line ? `<div class="small">${esc(line)}</div>` : ``}
         ${pct != null ? `<div class="bar"><div class="barFill" style="width:${Math.max(0, Math.min(100, pct))}%"></div></div>` : ``}

@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i-A */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
   --muted: color-mix(in oklab, var(--fg) 60%, var(--bg) 40%);
   --card: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   --border: color-mix(in oklab, var(--fg) 14%, var(--bg) 86%);
-  --shadow: 0 2px 6px rgba(0,0,0,.14), 0 18px 48px rgba(0,0,0,.16);
+  --shadow: 0 4px 12px rgba(0,0,0,.18), 0 26px 68px rgba(0,0,0,.20);
   --r1: 16px;
   --r2: 22px;
   --blue: #2a6fdb;
@@ -58,7 +58,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   letter-spacing:.2px;
 }
 .build{
-  font-size:14px;
+  font-size:13px;
   font-weight:900;
   opacity:.65;
   margin-left:10px;
@@ -137,14 +137,14 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
   border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
   border-radius:999px;
-  padding:6px 10px;
+  padding:5px 9px;
   font-weight:950;
   min-width:92px;
   text-align:center;
 }
 .favIcon{
   font-size:18px;
-  width:34px;height:30px;
+  width:34px;height:28px;
   border-radius:999px;
   display:grid;place-items:center;
   border:1px solid var(--border);
@@ -159,23 +159,24 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 .badgeRow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
+.badgeRow-genre{margin-bottom:12px}
 .badge{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding:6px 10px;
+  padding:5px 9px;
   font-weight:950;
-  font-size:14px;
+  font-size:13px;
   display:inline-flex;
   gap:6px;
   align-items:center;
-  height:30px;
+  height:28px;
 }
 /* Fixed-ish lengths per type (for visual calm) */
 .badge.platform{min-width:54px; justify-content:center}
 .badge.source{min-width:108px; justify-content:center}
 .badge.avail{min-width:128px; justify-content:center}
-.badge.genre{min-width:150px; justify-content:center}
+.badge.genre{min-width:140px; justify-content:center}
 .badge.trophy{min-width:150px; justify-content:center}
 .badge.note{min-width:150px; justify-content:center}
 
@@ -416,7 +417,11 @@ summary::-webkit-details-marker{display:none}
     gap:10px;
   }
   .detailsWrap .d-desc,
-  .detailsWrap .d-trophy{grid-column: 1 / -1}
+  .detailsWrap .d-trophy{grid-column: 1 / -1}  /* feste Reihenfolge im Querformat: Beschreibung → Store/Humor nebeneinander → Trophäen */
+  .detailsWrap .d-desc{grid-column: 1 / -1; grid-row: 1;}
+  .detailsWrap .d-store{grid-column: 1; grid-row: 2;}
+  .detailsWrap .d-humor{grid-column: 2; grid-row: 2;}
+  .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 3;}
 }
 
 /* --- Responsive: Desktop readability --- */
@@ -430,11 +435,11 @@ summary::-webkit-details-marker{display:none}
 @media (hover:hover){
   .card:hover{
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0,0,0,.16), 0 22px 58px rgba(0,0,0,.18);
+    box-shadow: 0 6px 18px rgba(0,0,0,.20), 0 34px 90px rgba(0,0,0,.22);
   }
 }
 
-/* --- Build 7.0i: Header badge stacking + calmer trophies --- */
+/* --- Build 7.0i-A: Header badge stacking + calmer trophies --- */
 
 /* Genre: kleiner, dunkler – Kontextbadge */
 .badge.genre{
@@ -461,9 +466,9 @@ summary::-webkit-details-marker{display:none}
   margin-right:8px;
   background: color-mix(in oklab, var(--fg) 35%, var(--bg) 65%);
 }
-.badge.trophyHeader.ok::before{ background: color-mix(in oklab, var(--ok) 70%, var(--bg) 30%); }
-.badge.trophyHeader.warn::before{ background: color-mix(in oklab, var(--warn) 70%, var(--bg) 30%); }
-.badge.trophyHeader.bad::before{ background: color-mix(in oklab, var(--bad) 70%, var(--bg) 30%); }
+.badge.trophyHeader.ok::before{ background: color-mix(in oklab, var(--ok) 45%, var(--fg) 55%); }
+.badge.trophyHeader.warn::before{ background: color-mix(in oklab, var(--warn) 45%, var(--fg) 55%); }
+.badge.trophyHeader.bad::before{ background: color-mix(in oklab, var(--bad) 45%, var(--fg) 55%); }
 /* sicherstellen, dass ok/warn/bad NICHT den Hintergrund einfärben */
 .badge.trophyHeader.ok,
 .badge.trophyHeader.warn,
@@ -490,3 +495,17 @@ summary::-webkit-details-marker{display:none}
 .badge.tSlot{
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
+
+
+/* Trophy label variants: short on portrait, long on landscape/desktop */
+.tLong{display:none}
+@media (min-width: 520px) and (orientation: landscape){
+  .tShort{display:none}
+  .tLong{display:inline}
+}
+@media (min-width: 900px){
+  .tShort{display:none}
+  .tLong{display:inline}
+}
+
+.badgeRow-trophy{margin-top:10px}

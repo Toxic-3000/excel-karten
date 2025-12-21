@@ -1,17 +1,14 @@
-# Build 7.0i
+# Build 7.0i-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0i
+## Was neu ist in 7.0i-A
 
-- **Mehr „Luft“ + klarer Karten‑Schatten:** Kartenabstand verdoppelt und Schatten sichtbar dunkler (ruhigeres Scrollen).
-- **Badge‑Kopf jetzt in 4 Zeilen (immer einheitlich):**
-  1) Plattform(en)  
-  2) Quelle + Verfügbarkeit  
-  3) Genre (kleiner & dunkler)  
-  4) Trophäenstatus (neutral, Status nur über kleinen Punkt)
-- **Trophäen‑Block beruhigt:** Pro Plattform eine Zeile mit **3 Badges nebeneinander** (Plattform | Platin‑Status | 100%‑Status) und **darunter** Text + Progressbar.
-- **Keine knalligen Trophäenfarben mehr:** Badges sind neutral, ohne grün/gelb als Flächenfarbe.
+- **Store wieder vor Trophäen:** Reihenfolge der Aufklappbereiche ist wieder **Beschreibung → Store → Trophäen → Humorstatistik**.
+- **Trophäen-Texte je Ansicht:** Hochformat nutzt kompakte Labels (z. B. **⏳ Platin**, **⏳ 100%**), Querformat/Desktop nutzt ausführlichere Texte (z. B. **⏳ Platin in Arbeit**, **✅ 100% erlangt**).
+- **Noch ruhigeres Badge-Layout:** Badges minimal kleiner, Genre etwas dunkler, mehr Abstand zwischen Genre und Trophäenstatus.
+- **Schatten stärker:** Karten heben sich deutlicher vom Hintergrund ab.
+
 
 ## Feature‑Überblick
 
@@ -34,5 +31,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0g2 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
 - ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
 - ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
-- ✅ 7.0i → **Header‑Badges in 4 Zeilen** + **Trophäen‑Block ruhig & neutral**
+- ✅ 7.0i-A → **Variante A final** + **Store vor Trophäen** + **Trophäen‑Labels je Ansicht**
 - ⏭️ Nächstes Thema: **Schrift/Lesbarkeit** (Desktop‑Typo schöner + konsistenter)
