@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h5 */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h6 */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
   --muted: color-mix(in oklab, var(--fg) 60%, var(--bg) 40%);
   --card: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   --border: color-mix(in oklab, var(--fg) 14%, var(--bg) 86%);
-  --shadow: 0 1px 2px rgba(0,0,0,.10), 0 12px 30px rgba(0,0,0,.10);
+  --shadow: 0 2px 4px rgba(0,0,0,.14), 0 16px 40px rgba(0,0,0,.16);
   --r1: 16px;
   --r2: 22px;
   --blue: #2a6fdb;
@@ -126,7 +126,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-radius: var(--r2);
   box-shadow: var(--shadow);
   padding:14px;
-  margin:32px 0;
+  margin:64px 0;
   transition: box-shadow .18s ease, transform .18s ease;
 }
 

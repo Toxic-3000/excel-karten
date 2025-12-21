@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h5
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h6
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0h5").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0h6").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
