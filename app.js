@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i-A
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0i-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -62,6 +62,7 @@
     humorTotal: "Gesamtstunden (Humorstatistik)",
     humorPct: "% Lebenszeit (Humorstatistik)",
     humorYears: "Jahre (Humorstatistik)",
+    easter: "Eastereggs",
   };
 
   const REMINDER_CANDIDATES = ["Erinnerung", "Reminder", "Notiz", "Hinweis", "Memo"];
@@ -95,6 +96,17 @@
   }
   function norm(s){
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
+  }
+
+  function parseIdQuery(raw){
+    // Accept: "2064", "#2064", "id 2064", "ID:2064" (1–4 digits)
+    const t = String(raw ?? "").trim();
+    if (!t) return null;
+    let m = t.match(/^#?(\d{1,4})$/);
+    if (!m) m = t.match(/^id\s*[:\s]\s*#?(\d{1,4})$/i);
+    if (!m) return null;
+    const n = String(Number(m[1]));
+    return n && n !== "NaN" ? n : null;
   }
   function splitPipe(s){
     return String(s ?? "").split("|").map(x => x.trim()).filter(Boolean);
@@ -349,7 +361,9 @@
   }
 
   function applyAndRender(){
-    const q = norm(state.q);
+    const qRaw = String(state.q ?? "");
+    const q = norm(qRaw);
+    const idQuery = parseIdQuery(qRaw);
     const favOnly = state.filters.fav;
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
@@ -358,11 +372,18 @@
     let out = state.rows.filter(r => {
       // search
       if (q){
-        const hay = [
-          r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-          r[COL.source], r[COL.avail]
-        ].map(norm).join(" | ");
-        if (!hay.includes(q)) return false;
+        // Smarter search: if the query looks like an ID (1–4 digits), match by ID.
+        if (idQuery){
+          const rid = String(r[COL.id] ?? "").trim();
+          const rn = String(Number(rid));
+          if (rn !== idQuery) return false;
+        } else {
+          const hay = [
+            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
+            r[COL.source], r[COL.avail]
+          ].map(norm).join(" | ");
+          if (!hay.includes(q)) return false;
+        }
       }
       // fav
       if (favOnly){
@@ -605,6 +626,11 @@
       const trophyBody = renderTrophyDetails(row);
       const humorBody = renderHumor(row);
 
+      const easter = String(row[COL.easter] ?? "").trim();
+      const easterBody = easter
+        ? `<div class="pre">${esc(easter)}</div>`
+        : `<div class="small">Keine Eastereggs vorhanden.</div>`;
+
       return `
         <article class="card">
           <div class="topGrid">
@@ -643,6 +669,7 @@
             ${detailsBlock("store", "Store", storeBody)}
             ${detailsBlock("trophy", "Trophäen", trophyBody)}
             ${detailsBlock("humor", "Humorstatistik", humorBody)}
+            ${detailsBlock("easter", "Eastereggs", easterBody)}
           </div>
         </article>`;
     }).join("");

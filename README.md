@@ -1,26 +1,27 @@
-# Build 7.0i-A
+# Build 7.0j-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0i-A
+## Was neu ist in 7.0j-A
 
-- **Store wieder vor Trophäen:** Reihenfolge der Aufklappbereiche ist wieder **Beschreibung → Store → Trophäen → Humorstatistik**.
-- **Trophäen-Texte je Ansicht:** Hochformat nutzt kompakte Labels (z. B. **⏳ Platin**, **⏳ 100%**), Querformat/Desktop nutzt ausführlichere Texte (z. B. **⏳ Platin in Arbeit**, **✅ 100% erlangt**).
-- **Noch ruhigeres Badge-Layout:** Badges minimal kleiner, Genre etwas dunkler, mehr Abstand zwischen Genre und Trophäenstatus.
-- **Schatten stärker:** Karten heben sich deutlicher vom Hintergrund ab.
+- **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
+- **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
+- **Eastereggs hinzugefügt:** Neues aufklappbares Feld **Eastereggs** (Textfeld wie Beschreibung).
+  - **Hochformat:** Eastereggs steht **unter Humorstatistik**.
+  - **Querformat:** Store & Humorstatistik bleiben nebeneinander; **Eastereggs nimmt die volle Breite darunter ein** und sitzt **über den Trophäen**.
 
 
 ## Feature‑Überblick
 
 - XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
-- Suche über Titel/Genre/Subgenre/Entwickler
+- Suche über **ID**, Titel/Genre/Subgenre/Entwickler
 - Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
 - Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
   - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Genre; Trophäen‑Status
   - Info‑Block: Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
-  - Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen, Humorstatistik
+  - Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen, Humorstatistik, Eastereggs
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 ## Fix‑/Build‑Plan
@@ -32,4 +33,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
 - ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
 - ✅ 7.0i-A → **Variante A final** + **Store vor Trophäen** + **Trophäen‑Labels je Ansicht**
+- ✅ 7.0j-A → **Smartere ID‑Suche** + **Dialogtext kürzer** + **Eastereggs‑Sektion**
 - ⏭️ Nächstes Thema: **Schrift/Lesbarkeit** (Desktop‑Typo schöner + konsistenter)

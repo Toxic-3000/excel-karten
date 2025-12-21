@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i-A */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-A */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -417,11 +417,13 @@ summary::-webkit-details-marker{display:none}
     gap:10px;
   }
   .detailsWrap .d-desc,
-  .detailsWrap .d-trophy{grid-column: 1 / -1}  /* feste Reihenfolge im Querformat: Beschreibung → Store/Humor nebeneinander → Trophäen */
+  .detailsWrap .d-trophy,
+  .detailsWrap .d-easter{grid-column: 1 / -1}  /* feste Reihenfolge im Querformat: Beschreibung → Store/Humor nebeneinander → Eastereggs full-width → Trophäen */
   .detailsWrap .d-desc{grid-column: 1 / -1; grid-row: 1;}
   .detailsWrap .d-store{grid-column: 1; grid-row: 2;}
   .detailsWrap .d-humor{grid-column: 2; grid-row: 2;}
-  .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 3;}
+  .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 3;}
+  .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
 /* --- Responsive: Desktop readability --- */
