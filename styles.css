@@ -307,16 +307,16 @@ summary::-webkit-details-marker{display:none}
   text-transform:uppercase;
   opacity:.65;
   font-weight:950;
-  margin:6px 0 10px;
+  margin:12px 0 10px;
 }
 .subTitle{
   font-size:12px;
   opacity:.75;
   font-weight:950;
-  margin:8px 0 8px;
+  margin:14px 0 10px;
 }
-.sect{margin-bottom:14px}
-.subsect{margin-top:10px}
+.sect{margin-bottom:18px}
+.subsect{margin-top:14px}
 
 .toggle{
   display:flex; gap:10px; align-items:center;
@@ -329,7 +329,8 @@ summary::-webkit-details-marker{display:none}
 }
 .toggle input{transform:scale(1.15)}
 
-.chipRow{display:flex; flex-wrap:wrap; gap:8px}
+.chipRow{display:flex; flex-wrap:wrap; gap:10px}
+.chipRow + .chipRow{margin-top:10px}
 .chip{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
@@ -347,7 +348,7 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--ok) 16%, var(--bg) 84%);
   border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%);
 }
-.sheetActions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap}
+.sheetActions{display:flex; gap:10px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
 .sheetFoot{margin-top:10px}
 .muted{opacity:.75}
 

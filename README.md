@@ -1,14 +1,17 @@
-# Build 7.0j-A
+# Build 7.0j-B
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0j-A
+## Was neu ist in 7.0j-B
 
 - **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
 - **Eastereggs hinzugefügt:** Neues aufklappbares Feld **Eastereggs** (Textfeld wie Beschreibung).
   - **Hochformat:** Eastereggs steht **unter Humorstatistik**.
   - **Querformat:** Store & Humorstatistik bleiben nebeneinander; **Eastereggs nimmt die volle Breite darunter ein** und sitzt **über den Trophäen**.
+
+- **Sortier/Filter‑Menü aufgeräumt:** Abstände zwischen Überschriften und Chip‑Reihen sind konsistenter.
+- **„Nur Favoriten“ ist jetzt ein Chip‑Toggle** (kein Checkbox‑Look mehr), damit es visuell zu den übrigen Filtern passt.
 
 
 ## Feature‑Überblick

@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-A
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-B
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-B").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -32,11 +32,11 @@
     btnClear: $("btnClear"),
     sortFieldRow: $("sortFieldRow"),
     sortDirRow: $("sortDirRow"),
+    favRow: $("favRow"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyRow: $("trophyRow"),
-    fFav: $("fFav"),
   };
 
   // Column contract (Excel headers)
@@ -285,6 +285,9 @@
       chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", true),
     ].join("");
 
+    // Favorites toggle as chip (instead of checkbox)
+    el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav);
+
     // Platforms: show canonical order when possible
     const plats = Array.from(state.distinct.platforms);
     const order = ["PS3","PS4","PS5","Vita"];
@@ -320,6 +323,13 @@
     const group = btn.getAttribute("data-group");
     const key = btn.getAttribute("data-key");
     const pressed = btn.getAttribute("aria-pressed") === "true";
+
+    if (group === "fav"){
+      // simple toggle
+      state.filters.fav = !pressed;
+      btn.setAttribute("aria-pressed", pressed ? "false" : "true");
+      return;
+    }
 
     if (group === "sortField"){
       // exclusive
@@ -819,7 +829,6 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
-    state.filters.fav = !!el.fFav.checked;
     el.dlg.close();
     applyAndRender();
   });
@@ -830,7 +839,6 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    el.fFav.checked = false;
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");
