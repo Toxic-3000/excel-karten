@@ -160,6 +160,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .badgeRow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
 .badgeRow-genre{margin-bottom:12px}
+
+/* Zarte Trennlinie zwischen "Meta" (Plattform/Quelle) und "Inhalt" (Genre/Trophäen) */
+.headDivider{
+  height:1px;
+  width:100%;
+  background:rgba(0,0,0,0.10);
+  border-radius:999px;
+  margin:10px 0 8px;
+}
 .badge{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
@@ -332,10 +341,13 @@ summary::-webkit-details-marker{display:none}
 .chipRow{
   display:flex;
   flex-wrap:wrap;
-  /* "gap" ist auf mobilen Browsern leider manchmal inkonsistent – deshalb Margin-Spacing */
-  margin:-6px;
+  /* Gleichmäßige Abstände auch bei Wrap (Portrait/Querformat) */
+  gap:12px;
 }
-.chipRow > .chip{margin:6px}
+.chipRow > .chip{margin:0}
+
+/* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
+#sortDirRow{margin-top:12px;}
 .chip{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
