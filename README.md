@@ -1,13 +1,17 @@
-# Build 7.0h6
+# Build 7.0i
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0h6
+## Was neu ist in 7.0i
 
-- **Buildname konsistent:** UI (Header), Browser‑Titel und README hängen am gleichen Build‑String.
-- **UI ruhiger beim Scrollen:** Hintergrund ist **statisch** (kein „blau rutscht nach“ / kein Parallax‑Gefühl).
-- **Mehr Luft zwischen Karten:** Kartenabstand erhöht, ohne die Karten innen aufzublähen.
-- **Querformat-Logik bleibt:** Store + Humorstatistik nutzen weiterhin die Breite als 2‑Spalten‑Reihe.
+- **Mehr „Luft“ + klarer Karten‑Schatten:** Kartenabstand verdoppelt und Schatten sichtbar dunkler (ruhigeres Scrollen).
+- **Badge‑Kopf jetzt in 4 Zeilen (immer einheitlich):**
+  1) Plattform(en)  
+  2) Quelle + Verfügbarkeit  
+  3) Genre (kleiner & dunkler)  
+  4) Trophäenstatus (neutral, Status nur über kleinen Punkt)
+- **Trophäen‑Block beruhigt:** Pro Plattform eine Zeile mit **3 Badges nebeneinander** (Plattform | Platin‑Status | 100%‑Status) und **darunter** Text + Progressbar.
+- **Keine knalligen Trophäenfarben mehr:** Badges sind neutral, ohne grün/gelb als Flächenfarbe.
 
 ## Feature‑Überblick
 
@@ -17,7 +21,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
-  - Badge‑Zeilen: Plattform(en) + Quelle + Verfügbarkeit; Genre; Trophäen‑Status
+  - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Genre; Trophäen‑Status
   - Info‑Block: Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
   - Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen, Humorstatistik
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
@@ -29,5 +33,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0f → Badge‑Farben & ruhiger (neutralere Standard‑Badges, Quelle etwas dunkler)
 - ✅ 7.0g2 → **Unbekannte Quelle eindeutig** + **Quelle‑Icons im Filter entschlackt**
 - ✅ 7.0h3 → **Global responsive Grundlayout** + **Querformat/Meta‑Blöcke kompakter**
-- ✅ 7.0h6 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
-- ⏭️ 7.0i → Trophäen‑UI ruhig & final (Hochformat optimieren: 3 Badges nebeneinander + Progressbar darunter)
+- ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
+- ✅ 7.0i → **Header‑Badges in 4 Zeilen** + **Trophäen‑Block ruhig & neutral**
+- ⏭️ Nächstes Thema: **Schrift/Lesbarkeit** (Desktop‑Typo schöner + konsistenter)

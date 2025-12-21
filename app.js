@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0h6
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0i
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0h6").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0i").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -561,7 +561,7 @@
 
       // Trophy short
       const ts = trophySummary(row);
-      const trophyBadge = badge("trophy"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`);
+      const trophyBadge = badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`);
 
       // badge rows
       const platBadges = sys.map(p => badge("platform", p));
@@ -604,18 +604,21 @@
 
               <div class="title">${esc(title)}</div>
 
-              <div class="badgeRow">
+              <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
+              </div>
+
+              <div class="badgeRow badgeRow-meta">
                 ${srcBadge}
                 ${avBadge}
                 ${reminder ? remBadge : ""}
               </div>
 
-              <div class="badgeRow">
+              <div class="badgeRow badgeRow-genre">
                 ${genreBadge}
               </div>
 
-              <div class="badgeRow">
+              <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
             </div>
@@ -658,68 +661,75 @@
       </details>`;
   }
 
-  function renderTrophyDetails(row){
-    const prog = String(row[COL.trophProg] ?? "").trim();
-    const p100 = String(row[COL.troph100] ?? "").trim();
-    const plat = String(row[COL.platin] ?? "").trim();
+function renderTrophyDetails(row){
+  const p100 = String(row[COL.troph100] ?? "").trim();
+  const plat = String(row[COL.platin] ?? "").trim();
+  const prog = String(row[COL.trophProg] ?? "").trim();
 
-    if (!prog && !p100 && !plat) return `<div class="small">Keine Trophäen-Daten vorhanden.</div>`;
+  if (!p100 && !plat && !prog) return `<div class="small">Keine Trophäenwerte vorhanden.</div>`;
 
-    // BOX case
-    const box = [prog,p100,plat].find(v => String(v).startsWith("BOX_TEIL:"));
-    if (box){
-      const ref = box.split(":",2)[1] || "";
-      return `<div class="small">📦 Teil einer Box ${ref ? `(Referenz: ${esc(ref)})` : ""}</div>`;
-    }
-
-    const dprog = parseKeyVals(prog);
-    const d100 = parseKeyVals(p100);
-    const dpl = parseKeyVals(plat);
-
-    const platforms = ["PS3","PS4","PS5","Vita"];
-    const blocks = [];
-    for (const p of platforms){
-      const pv = dprog[p] ?? "";
-      const frac = parseFrac(pv);
-      const s100 = d100[p] ?? (p100 && !p100.includes(":") ? p100 : "");
-      const spl = dpl[p] ?? (plat && !plat.includes(":") ? plat : "");
-
-      if (!pv && !s100 && !spl) continue;
-
-      const badges = [];
-      if (spl === "Platin-Erlangt") badges.push(badge("trophy ok", "💎 Platin"));
-      else if (spl === "Wird-Bearbeitet") badges.push(badge("trophy warn", "⏳️ Platin: In Arbeit"));
-      else if (spl === "Nicht-Verfügbar") badges.push(badge("trophy bad", "◇ Kein Platin"));
-      else if (spl === "Ungespielt") badges.push(badge("trophy", "💤 Ungespielt"));
-
-      if (s100 === "Abgeschlossen") badges.push(badge("trophy ok", "✅️ 100%"));
-      else if (s100 === "Wird-Bearbeitet") badges.push(badge("trophy warn", "⏳️ 100%: In Arbeit"));
-      else if (s100 === "Nicht-Verfügbar") badges.push(badge("trophy bad", "🚫 100%: N/A"));
-      else if (s100 === "Ungespielt") badges.push(badge("trophy", "💤 Ungespielt"));
-
-      let bar = "";
-      let line = "";
-      if (frac){
-        bar = `<div class="bar"><div style="width:${frac.pct}%"></div></div>`;
-        line = `<div class="small">${esc(pv)} (${frac.pct}%)</div>`;
-      } else if (pv) {
-        line = `<div class="small">${esc(pv)}</div>`;
-      }
-
-      blocks.push(`
-        <div class="platBlock">
-          <div class="platHead">
-            ${badge("platform", p)}
-            ${badges.join("")}
-          </div>
-          ${line}
-          ${bar}
-        </div>
-      `);
-    }
-
-    return blocks.length ? blocks.join("") : `<div class="small">Keine plattformbezogenen Trophäenwerte erkannt.</div>`;
+  // BOX-Teile (Sammel-Entry)
+  if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
+    const raw = (p100 || plat || prog).replace(/^BOX_TEIL:/, "");
+    return `<div class="small"><b>📦 Box-Teil</b>: ${esc(raw.trim())}</div>`;
   }
+
+  const d100 = parseKeyVals(p100);
+  const dpl = parseKeyVals(plat);
+  const dprog = parseKeyVals(prog);
+
+  const platforms = ["PS3","PS4","PS5","Vita"];
+
+  function labelPlatin(token){
+    if (token === "Platin-Erlangt") return "💎 Platin";
+    if (token === "Wird-Bearbeitet") return "⏳ Platin: In Arbeit";
+    if (token === "Nicht-Verfügbar") return "◇ Kein Platin";
+    if (token === "Ungespielt") return "💤 Ungespielt";
+    if (!token) return "—";
+    return token.replaceAll("-", " ");
+  }
+
+  function label100(token){
+    if (token === "Abgeschlossen") return "✅ 100%";
+    if (token === "Wird-Bearbeitet") return "⏳ 100%: In Arbeit";
+    if (token === "Nicht-Verfügbar") return "🚫 100%: N/A";
+    if (token === "Ungespielt") return "💤 Ungespielt";
+    if (!token) return "—";
+    return token.replaceAll("-", " ");
+  }
+
+  const blocks = [];
+
+  for (const p of platforms){
+    const s100 = (d100[p] || "").trim();
+    const spl  = (dpl[p] || "").trim();
+    const pv   = (dprog[p] || "").trim();
+
+    if (!pv && !s100 && !spl) continue;
+
+    const frac = parseFrac(pv);
+    const line = frac?.pct != null
+      ? `${frac.a}/${frac.b} (${Math.round(frac.pct)}%)`
+      : (pv ? pv : "");
+
+    // Bei "Abgeschlossen" kann die Bar ohne Bruch trotzdem sinnvoll sein
+    const pct = frac?.pct ?? (s100 === "Abgeschlossen" ? 100 : null);
+
+    blocks.push(`
+      <div class="platBlock">
+        <div class="tRow">
+          ${badge("platform", p)}
+          ${badge("tSlot", labelPlatin(spl))}
+          ${badge("tSlot", label100(s100))}
+        </div>
+        ${line ? `<div class="small">${esc(line)}</div>` : ``}
+        ${pct != null ? `<div class="bar"><div class="barFill" style="width:${Math.max(0, Math.min(100, pct))}%"></div></div>` : ``}
+      </div>
+    `);
+  }
+
+  return blocks.length ? blocks.join("") : `<div class="small">Keine plattformbezogenen Trophäenwerte erkannt.</div>`;
+}
 
   function renderHumor(row){
     const total = String(row[COL.humorTotal] ?? "").trim();
