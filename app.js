@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-B
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-D
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-C").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-D").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -298,7 +298,8 @@
 
     // Sources and availability: show *all* states present
     const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, (s === "Unbekannt" ? "🏷️ " + s : s), state.filters.sources.has(s))).join("");
+    // In der Kartenansicht darf das 🏷️-Symbol bleiben; im Filter-Dialog wirkt es aber unruhig.
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, s, state.filters.sources.has(s))).join("");
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
     el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
