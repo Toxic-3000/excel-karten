@@ -5,7 +5,7 @@
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-B").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-C").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -280,9 +280,11 @@
       {k:"Verfügbarkeit", label:"Verfügbarkeit"},
     ];
     el.sortFieldRow.innerHTML = sortFields.map(sf => chipHtml("sortField", sf.k, sf.label, state.sortField === sf.k, true)).join("");
+    // Sortierrichtung bewusst NICHT "primary": wir nutzen hier den ruhigen Blau-Akzent,
+    // damit sich Auf-/Absteigend visuell von den Sortierfeldern abhebt.
     el.sortDirRow.innerHTML = [
-      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", true),
-      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", true),
+      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", false),
+      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", false),
     ].join("");
 
     // Favorites toggle as chip (instead of checkbox)

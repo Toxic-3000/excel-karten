@@ -307,16 +307,16 @@ summary::-webkit-details-marker{display:none}
   text-transform:uppercase;
   opacity:.65;
   font-weight:950;
-  margin:12px 0 10px;
+  margin:16px 0 12px;
 }
 .subTitle{
   font-size:12px;
   opacity:.75;
   font-weight:950;
-  margin:14px 0 10px;
+  margin:12px 0 10px;
 }
 .sect{margin-bottom:18px}
-.subsect{margin-top:14px}
+.subsect{margin-top:16px}
 
 .toggle{
   display:flex; gap:10px; align-items:center;
@@ -329,8 +329,13 @@ summary::-webkit-details-marker{display:none}
 }
 .toggle input{transform:scale(1.15)}
 
-.chipRow{display:flex; flex-wrap:wrap; gap:10px}
-.chipRow + .chipRow{margin-top:10px}
+.chipRow{
+  display:flex;
+  flex-wrap:wrap;
+  /* "gap" ist auf mobilen Browsern leider manchmal inkonsistent – deshalb Margin-Spacing */
+  margin:-6px;
+}
+.chipRow > .chip{margin:6px}
 .chip{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
