@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA1
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA1").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -37,8 +37,7 @@
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyRow: $("trophyRow"),
-    genreInput: $("genreInput"),
-    genreList: $("genreList"),
+    genreSelect: $("genreSelect"),
   };
 
   // Column contract (Excel headers)
@@ -339,22 +338,28 @@
     tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
 
-    // Genre dropdown (datalist)
-    if (el.genreList && el.genreInput){
+    // Genre dropdown (select – ohne Suche)
+    if (el.genreSelect){
       const genres = Array.from(state.distinct.genres)
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      el.genreList.innerHTML = "";
+      // Populate
+      el.genreSelect.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "";
+      optAll.textContent = "Alle";
+      el.genreSelect.appendChild(optAll);
       for (const g of genres){
         const opt = document.createElement("option");
         opt.value = g;
-        el.genreList.appendChild(opt);
+        opt.textContent = g;
+        el.genreSelect.appendChild(opt);
       }
 
-      el.genreInput.value = state.filters.genre || "";
-      el.genreInput.oninput = () => {
-        state.filters.genre = el.genreInput.value.trim();
+      el.genreSelect.value = state.filters.genre || "";
+      el.genreSelect.onchange = () => {
+        state.filters.genre = el.genreSelect.value;
       };
     }
 
@@ -905,7 +910,7 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    if (el.genreInput) el.genreInput.value = "";
+    if (el.genreSelect) el.genreSelect.value = "";
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");

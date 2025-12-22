@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-  <meta name="app-build" content="7.0j-GA" />
+    <meta name="app-build" content="7.0j-GA1" />
   <link rel="stylesheet" href="styles.css" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -80,8 +80,9 @@
 
           <div class="subsect" id="genreSect">
             <div class="subTitle">Genre</div>
-            <input id="genreInput" class="filterDropdown" list="genreList" placeholder="Genre wählen oder tippen …" autocomplete="off" />
-            <datalist id="genreList"></datalist>
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
+              <option value="">Alle Genres</option>
+            </select>
           </div>
 
           <div class="subsect">
