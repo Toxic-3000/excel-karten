@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA2
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA3
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA2").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA3").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -910,6 +910,15 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
+    // Some mobile browsers are flaky with <select multiple> change events.
+    // Re-sync the selected genres on Apply to ensure multi-select works reliably.
+    if (el.genreSelect){
+      const s = new Set();
+      for (const opt of el.genreSelect.selectedOptions){
+        if (opt && opt.value) s.add(opt.value);
+      }
+      state.filters.genres = s;
+    }
     el.dlg.close();
     applyAndRender();
   });
