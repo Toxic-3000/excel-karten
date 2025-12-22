@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA1
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-GA2
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA1").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0j-GA2").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -73,7 +73,8 @@
     q: "",
     filters: {
       fav: false,
-      genre: "",
+      // Multi-Genre Filter: leer = kein Genre-Filter (alle Genres)
+      genres: new Set(),
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
@@ -338,18 +339,16 @@
     tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
 
-    // Genre dropdown (select – ohne Suche)
+    // Genre dropdown (Multi-Select – ohne Suche)
     if (el.genreSelect){
+      el.genreSelect.multiple = true;
+
       const genres = Array.from(state.distinct.genres)
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
       // Populate
       el.genreSelect.innerHTML = "";
-      const optAll = document.createElement("option");
-      optAll.value = "";
-      optAll.textContent = "Alle";
-      el.genreSelect.appendChild(optAll);
       for (const g of genres){
         const opt = document.createElement("option");
         opt.value = g;
@@ -357,9 +356,18 @@
         el.genreSelect.appendChild(opt);
       }
 
-      el.genreSelect.value = state.filters.genre || "";
+      // Restore previous selection (if any)
+      const selected = state.filters.genres || new Set();
+      for (const opt of el.genreSelect.options){
+        opt.selected = selected.has(opt.value);
+      }
+
       el.genreSelect.onchange = () => {
-        state.filters.genre = el.genreSelect.value;
+        const s = new Set();
+        for (const opt of el.genreSelect.selectedOptions){
+          if (opt.value) s.add(opt.value);
+        }
+        state.filters.genres = s;
       };
     }
 
@@ -461,11 +469,14 @@
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f !== "x" && f !== "1" && f !== "true") return false;
       }
-      // genre filter (substring match, case/whitespace-insensitive)
-      const gf = norm(state.filters.genre);
-      if (gf){
-        const g = norm(r[COL.genre]);
-        if (!g.includes(gf)) return false;
+      // Genre filter (Multi-Select; exact match against dropdown values, normalized)
+      if (state.filters.genres && state.filters.genres.size){
+        const gNorm = norm(r[COL.genre]);
+        let ok = false;
+        for (const sel of state.filters.genres){
+          if (gNorm === norm(sel)) { ok = true; break; }
+        }
+        if (!ok) return false;
       }
 
       // platform filter: system contains at least one selected
@@ -905,12 +916,14 @@ function renderTrophyDetails(row){
 
   el.btnClear.addEventListener("click", () => {
     state.filters.fav = false;
-    state.filters.genre = "";
+    state.filters.genres.clear();
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    if (el.genreSelect) el.genreSelect.value = "";
+    if (el.genreSelect){
+      for (const o of Array.from(el.genreSelect.options)) o.selected = false;
+    }
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");

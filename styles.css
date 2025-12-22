@@ -547,3 +547,12 @@ summary::-webkit-details-marker{display:none}
   border-color: rgba(0,0,0,.24);
   background: rgba(255,255,255,.7);
 }
+
+/* Genre-Dropdown: Mehrfachauswahl, aber kompakt wie ein normales Dropdown */
+.filterDropdown[multiple][size="1"]{
+  -webkit-appearance: menulist;
+  appearance: menulist;
+  height: 44px;
+  padding-right: 38px; /* Platz für den Dropdown-Pfeil */
+  overflow: hidden;
+}
