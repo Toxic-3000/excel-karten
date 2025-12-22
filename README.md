@@ -1,8 +1,14 @@
-# Build 7.0j-GA3
+# Build 7.0k-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0j-GA3
+## Was neu ist in 7.0k-A
+
+- **Typografie/Lesbarkeit:** Weniger Fettschrift insgesamt (Bolding ist jetzt auf Titel & zentrale Werte konzentriert).
+- **Ruhigerer Lesefluss:** Fließtexte (Beschreibung, Eastereggs etc.) haben eine angenehmere Zeilenhöhe.
+- **Stabilere Zahlen:** Wichtige Zahlenfelder (ID, Badges, Treffer/Pills) nutzen tabellarische Ziffern (weniger „Zappeln“).
+
+## Enthaltene Features (aus den vorherigen Builds)
 
 - **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
@@ -45,4 +51,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
 - ✅ 7.0i-A → **Variante A final** + **Store vor Trophäen** + **Trophäen‑Labels je Ansicht**
 - ✅ 7.0j-A → **Smartere ID‑Suche** + **Dialogtext kürzer** + **Eastereggs‑Sektion**
-- ⏭️ Nächstes Thema: **Schrift/Lesbarkeit** (Desktop‑Typo schöner + konsistenter)
+- ✅ 7.0k-A → **Typografie‑Pass** (weniger Fettschrift, ruhigere Zeilenhöhe, stabilere Zahlen)
+- ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)

@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0j-E */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-A (Typografie) */
 :root{
   --bg: Canvas;
   --fg: CanvasText;
@@ -19,7 +19,8 @@
 html,body{height:100%}
 body{
   margin:0;
-  font: 16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+  /* Slightly calmer reading rhythm + less aggressive default weight */
+  font: 450 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
   /* Background is handled by .appBg to avoid "scroll drift" / parallax-like effects. */
   background: var(--bg);
   color:var(--fg);
@@ -53,13 +54,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding:14px 12px 10px;
 }
 .brand{
-  font-weight:950;
+  font-weight:800;
   font-size:30px;
   letter-spacing:.2px;
 }
 .build{
   font-size:13px;
-  font-weight:900;
+  font-weight:600;
   opacity:.65;
   margin-left:10px;
   border:1px solid var(--border);
@@ -81,7 +82,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   color:var(--fg);
   border-radius:999px;
   padding:12px 14px;
-  font-weight:800;
+  font-weight:500;
   outline:none;
 }
 .pills{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
@@ -90,7 +91,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
   padding:9px 12px;
-  font-weight:900;
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
 }
 .pill-ok{border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%)}
 .pill-warn{border-color: color-mix(in oklab, var(--warn) 55%, var(--border) 45%)}
@@ -102,7 +104,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   color:var(--fg);
   padding:12px 14px;
   border-radius:999px;
-  font-weight:950;
+  font-weight:650;
   cursor:pointer;
   box-shadow: var(--shadow);
   user-select:none;
@@ -138,7 +140,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
   border-radius:999px;
   padding:5px 9px;
-  font-weight:950;
+  font-weight:650;
+  font-variant-numeric: tabular-nums;
   min-width:92px;
   text-align:center;
 }
@@ -152,7 +155,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 .title{
-  font-weight:950;
+  font-weight:750;
   font-size:24px;
   margin:10px 0 8px;
   word-break:break-word;
@@ -174,12 +177,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
   padding:5px 9px;
-  font-weight:950;
+  font-weight:600;
   font-size:13px;
   display:inline-flex;
   gap:6px;
   align-items:center;
   height:28px;
+  font-variant-numeric: tabular-nums;
 }
 /* Fixed-ish lengths per type (for visual calm) */
 .badge.platform{min-width:54px; justify-content:center}
@@ -216,8 +220,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   gap:8px 12px;
   align-items:start;
 }
-.k{opacity:.75; font-weight:950}
-.v{font-weight:850}
+.k{opacity:.75; font-weight:600}
+.v{font-weight:550; font-variant-numeric: tabular-nums;}
 
 details{
   margin:10px 0 0;
@@ -230,16 +234,16 @@ summary{
   list-style:none;
   cursor:pointer;
   padding:12px 12px;
-  font-weight:950;
+  font-weight:650;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 summary::-webkit-details-marker{display:none}
 .chev{opacity:.7}
-.detailsBody{padding:12px 12px 14px}
+.detailsBody{padding:12px 12px 14px; line-height:1.55}
 .pre{white-space:pre-wrap}
-.small{font-size:13px; opacity:.8; font-weight:850}
+.small{font-size:13px; opacity:.8; font-weight:500}
 
 .platBlock{margin:12px 0}
 .platHead{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
@@ -261,10 +265,10 @@ summary::-webkit-details-marker{display:none}
   box-shadow: var(--shadow);
   padding:18px;
 }
-.emptyTitle{font-weight:950; font-size:22px}
-.emptyText{margin-top:8px; opacity:.9; font-weight:800}
+.emptyTitle{font-weight:750; font-size:22px}
+.emptyText{margin-top:8px; opacity:.9; font-weight:450; line-height:1.5}
 .emptyActions{margin-top:14px}
-.emptyHint{margin-top:14px; font-size:13px; opacity:.8; font-weight:800}
+.emptyHint{margin-top:14px; font-size:13px; opacity:.8; font-weight:450}
 
 .toTop{
   position:fixed;
@@ -276,7 +280,7 @@ summary::-webkit-details-marker{display:none}
   border-radius:999px;
   padding:10px 14px;
   box-shadow: var(--shadow);
-  font-weight:950;
+  font-weight:650;
   cursor:pointer;
 }
 
@@ -305,7 +309,7 @@ summary::-webkit-details-marker{display:none}
   justify-content:space-between;
   align-items:center;
 }
-.sheetTitle{font-weight:950}
+.sheetTitle{font-weight:650}
 .sheetBody{
   padding:12px 12px 16px;
   overflow:auto;
@@ -315,13 +319,13 @@ summary::-webkit-details-marker{display:none}
   letter-spacing:.14em;
   text-transform:uppercase;
   opacity:.65;
-  font-weight:950;
+  font-weight:650;
   margin:16px 0 12px;
 }
 .subTitle{
   font-size:12px;
   opacity:.75;
-  font-weight:950;
+  font-weight:650;
   margin:12px 0 10px;
 }
 .sect{margin-bottom:18px}
@@ -333,7 +337,7 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   padding:10px 12px;
   border-radius:999px;
-  font-weight:950;
+  font-weight:650;
   width:fit-content;
 }
 .toggle input{transform:scale(1.15)}
@@ -353,7 +357,7 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
   padding:9px 12px;
-  font-weight:950;
+  font-weight:650;
   cursor:pointer;
   user-select:none;
 }
@@ -465,7 +469,7 @@ summary::-webkit-details-marker{display:none}
 .badge.genre{
   background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
   font-size:13px;
-  font-weight:900;
+  font-weight:600;
   height:28px;
   padding:5px 10px;
 }
