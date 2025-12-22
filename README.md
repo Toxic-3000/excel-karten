@@ -1,12 +1,15 @@
-# Build 7.0k-A
+# Build 7.0k-B
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-A
+## Was neu ist in 7.0k-B
 
-- **Typografie/Lesbarkeit:** Weniger Fettschrift insgesamt (Bolding ist jetzt auf Titel & zentrale Werte konzentriert).
-- **Ruhigerer Lesefluss:** Fließtexte (Beschreibung, Eastereggs etc.) haben eine angenehmere Zeilenhöhe.
-- **Stabilere Zahlen:** Wichtige Zahlenfelder (ID, Badges, Treffer/Pills) nutzen tabellarische Ziffern (weniger „Zappeln“).
+- **Textgröße-Schalter (A/A+/A++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
+  - Presets: **A (100%) → A+ (110%) → A++ (125%)**
+  - Wird im Browser gespeichert (LocalStorage), bleibt also beim nächsten Öffnen erhalten.
+  - **Badges skalieren mit** (Schrift + Padding/Höhe), damit nichts gequetscht wirkt.
+- **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
+- **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
 
 ## Enthaltene Features (aus den vorherigen Builds)
 
@@ -52,4 +55,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0i-A → **Variante A final** + **Store vor Trophäen** + **Trophäen‑Labels je Ansicht**
 - ✅ 7.0j-A → **Smartere ID‑Suche** + **Dialogtext kürzer** + **Eastereggs‑Sektion**
 - ✅ 7.0k-A → **Typografie‑Pass** (weniger Fettschrift, ruhigere Zeilenhöhe, stabilere Zahlen)
+- ✅ 7.0k-B → **Textgröße-Schalter** (A/A+/A++, Badges & UI skalieren mit)
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)

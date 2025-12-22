@@ -1,5 +1,6 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-A (Typografie) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-B (Typografie) */
 :root{
+  --uiScale: 1;
   --bg: Canvas;
   --fg: CanvasText;
   --muted: color-mix(in oklab, var(--fg) 60%, var(--bg) 40%);
@@ -20,7 +21,10 @@ html,body{height:100%}
 body{
   margin:0;
   /* Slightly calmer reading rhythm + less aggressive default weight */
-  font: 450 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+  font-weight: 450;
+  font-size: calc(16px * var(--uiScale));
+  line-height: 1.45;
   /* Background is handled by .appBg to avoid "scroll drift" / parallax-like effects. */
   background: var(--bg);
   color:var(--fg);
@@ -50,27 +54,27 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-bottom:1px solid var(--border);
 }
 .topbar{
-  display:flex; gap:12px; align-items:center; justify-content:space-between;
-  padding:14px 12px 10px;
+  display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:space-between;
+  padding: calc(14px * var(--uiScale)) calc(12px * var(--uiScale)) calc(10px * var(--uiScale));
 }
 .brand{
   font-weight:800;
-  font-size:30px;
+  font-size: calc(30px * var(--uiScale));
   letter-spacing:.2px;
 }
 .build{
-  font-size:13px;
+  font-size: calc(13px * var(--uiScale));
   font-weight:600;
   opacity:.65;
-  margin-left:10px;
+  margin-left: calc(10px * var(--uiScale));
   border:1px solid var(--border);
-  padding:4px 10px;
+  padding: calc(4px * var(--uiScale)) calc(10px * var(--uiScale));
   border-radius:999px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
-.topActions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.topActions{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
 .subbar{
-  padding:0 12px 12px;
+  padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
   flex-direction:column;
   gap:10px;
@@ -81,16 +85,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
   color:var(--fg);
   border-radius:999px;
-  padding:12px 14px;
+  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
   font-weight:500;
   outline:none;
 }
-.pills{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.pills{display:flex; flex-wrap:wrap; gap: calc(10px * var(--uiScale)); align-items:center}
 .pill{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding:9px 12px;
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:600;
   font-variant-numeric: tabular-nums;
 }
@@ -102,7 +106,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   color:var(--fg);
-  padding:12px 14px;
+  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
   border-radius:999px;
   font-weight:650;
   cursor:pointer;
@@ -115,11 +119,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
 }
 .btn-icon{
-  width:44px;height:44px;padding:0;
+  width: calc(44px * var(--uiScale));
+  height: calc(44px * var(--uiScale));
+  padding:0;
   display:grid;place-items:center;
 }
 
-.wrap{max-width:980px;margin:0 auto;padding:12px 12px 90px; position:relative; z-index:1}
+.wrap{max-width:980px;margin:0 auto;padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(90px * var(--uiScale)); position:relative; z-index:1}
 .cards{padding:6px 4px}
 
 .card{
@@ -127,8 +133,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border:1px solid var(--border);
   border-radius: var(--r2);
   box-shadow: var(--shadow);
-  padding:14px;
-  margin:64px 0;
+  padding: calc(14px * var(--uiScale));
+  margin: 64px 0;
   transition: box-shadow .18s ease, transform .18s ease;
 }
 
@@ -139,15 +145,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
   border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
   border-radius:999px;
-  padding:5px 9px;
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-weight:650;
   font-variant-numeric: tabular-nums;
-  min-width:92px;
+  min-width: calc(92px * var(--uiScale));
   text-align:center;
 }
 .favIcon{
-  font-size:18px;
-  width:34px;height:28px;
+  font-size: calc(18px * var(--uiScale));
+  width: calc(34px * var(--uiScale));
+  height: calc(28px * var(--uiScale));
   border-radius:999px;
   display:grid;place-items:center;
   border:1px solid var(--border);
@@ -156,12 +163,12 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .title{
   font-weight:750;
-  font-size:24px;
+  font-size: calc(24px * var(--uiScale));
   margin:10px 0 8px;
   word-break:break-word;
 }
 
-.badgeRow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
+.badgeRow{display:flex; flex-wrap:wrap; gap: calc(6px * var(--uiScale)); margin:8px 0}
 .badgeRow-genre{margin-bottom:12px}
 
 /* Zarte Trennlinie zwischen "Meta" (Plattform/Quelle) und "Inhalt" (Genre/Trophäen) */
@@ -170,38 +177,38 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   width:100%;
   background:rgba(0,0,0,0.10);
   border-radius:999px;
-  margin:10px 0 8px;
+  margin: calc(10px * var(--uiScale)) 0 calc(8px * var(--uiScale));
 }
 .badge{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding:5px 9px;
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-weight:600;
-  font-size:13px;
+  font-size: calc(13px * var(--uiScale));
   display:inline-flex;
-  gap:6px;
+  gap: calc(6px * var(--uiScale));
   align-items:center;
-  height:28px;
+  height: calc(28px * var(--uiScale));
   font-variant-numeric: tabular-nums;
 }
 /* Fixed-ish lengths per type (for visual calm) */
-.badge.platform{min-width:54px; justify-content:center}
-.badge.source{min-width:108px; justify-content:center}
-.badge.avail{min-width:128px; justify-content:center}
-.badge.genre{min-width:140px; justify-content:center}
-.badge.trophy{min-width:150px; justify-content:center}
-.badge.note{min-width:150px; justify-content:center}
+.badge.platform{min-width: calc(54px * var(--uiScale)); justify-content:center}
+.badge.source{min-width: calc(108px * var(--uiScale)); justify-content:center}
+.badge.avail{min-width: calc(128px * var(--uiScale)); justify-content:center}
+.badge.genre{min-width: calc(140px * var(--uiScale)); justify-content:center}
+.badge.trophy{min-width: calc(150px * var(--uiScale)); justify-content:center}
+.badge.note{min-width: calc(150px * var(--uiScale)); justify-content:center}
 
 .badge.ok{background: color-mix(in oklab, var(--ok) 18%, var(--bg) 82%)}
 .badge.warn{background: color-mix(in oklab, var(--warn) 18%, var(--bg) 82%)}
 .badge.bad{background: color-mix(in oklab, var(--bad) 18%, var(--bg) 82%)}
 
 .info{
-  margin-top:10px;
+  margin-top: calc(10px * var(--uiScale));
   border:1px solid var(--border);
   border-radius: var(--r1);
-  padding:12px;
+  padding: calc(12px * var(--uiScale));
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
 }
 
@@ -216,8 +223,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .detailsWrap details{margin:0}
 .grid{
   display:grid;
-  grid-template-columns: 120px 1fr;
-  gap:8px 12px;
+  grid-template-columns: calc(120px * var(--uiScale)) 1fr;
+  gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:start;
 }
 .k{opacity:.75; font-weight:600}
@@ -233,7 +240,7 @@ details{
 summary{
   list-style:none;
   cursor:pointer;
-  padding:12px 12px;
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:650;
   display:flex;
   justify-content:space-between;
@@ -241,44 +248,44 @@ summary{
 }
 summary::-webkit-details-marker{display:none}
 .chev{opacity:.7}
-.detailsBody{padding:12px 12px 14px; line-height:1.55}
+.detailsBody{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(14px * var(--uiScale)); line-height:1.55}
 .pre{white-space:pre-wrap}
-.small{font-size:13px; opacity:.8; font-weight:500}
+.small{font-size: calc(13px * var(--uiScale)); opacity:.8; font-weight:500}
 
-.platBlock{margin:12px 0}
-.platHead{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.platBlock{margin: calc(12px * var(--uiScale)) 0}
+.platHead{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
 .bar{
-  height:10px;
+  height: calc(10px * var(--uiScale));
   border-radius:999px;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
   overflow:hidden;
-  margin-top:8px;
+  margin-top: calc(8px * var(--uiScale));
 }
 .bar > div{height:100%; background: color-mix(in oklab, var(--fg) 42%, var(--bg) 58%)}
 
-.empty{padding:18px 4px}
+.empty{padding: calc(18px * var(--uiScale)) calc(4px * var(--uiScale))}
 .emptyCard{
   border:1px solid var(--border);
   border-radius:22px;
   background:var(--card);
   box-shadow: var(--shadow);
-  padding:18px;
+  padding: calc(18px * var(--uiScale));
 }
-.emptyTitle{font-weight:750; font-size:22px}
-.emptyText{margin-top:8px; opacity:.9; font-weight:450; line-height:1.5}
-.emptyActions{margin-top:14px}
-.emptyHint{margin-top:14px; font-size:13px; opacity:.8; font-weight:450}
+.emptyTitle{font-weight:750; font-size: calc(22px * var(--uiScale))}
+.emptyText{margin-top: calc(8px * var(--uiScale)); opacity:.9; font-weight:450; line-height:1.5}
+.emptyActions{margin-top: calc(14px * var(--uiScale))}
+.emptyHint{margin-top: calc(14px * var(--uiScale)); font-size: calc(13px * var(--uiScale)); opacity:.8; font-weight:450}
 
 .toTop{
   position:fixed;
-  right:14px;
-  bottom:16px;
+  right: calc(14px * var(--uiScale));
+  bottom: calc(16px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding:10px 14px;
+  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
   box-shadow: var(--shadow);
   font-weight:650;
   cursor:pointer;
@@ -304,32 +311,32 @@ summary::-webkit-details-marker{display:none}
   position:sticky; top:0;
   background:var(--card);
   border-bottom:1px solid var(--border);
-  padding:12px 12px;
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 .sheetTitle{font-weight:650}
 .sheetBody{
-  padding:12px 12px 16px;
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(16px * var(--uiScale));
   overflow:auto;
 }
 .sectTitle{
-  font-size:12px;
+  font-size: calc(12px * var(--uiScale));
   letter-spacing:.14em;
   text-transform:uppercase;
   opacity:.65;
   font-weight:650;
-  margin:16px 0 12px;
+  margin: calc(16px * var(--uiScale)) 0 calc(12px * var(--uiScale));
 }
 .subTitle{
-  font-size:12px;
+  font-size: calc(12px * var(--uiScale));
   opacity:.75;
   font-weight:650;
-  margin:12px 0 10px;
+  margin: calc(12px * var(--uiScale)) 0 calc(10px * var(--uiScale));
 }
-.sect{margin-bottom:18px}
-.subsect{margin-top:16px}
+.sect{margin-bottom: calc(18px * var(--uiScale))}
+.subsect{margin-top: calc(16px * var(--uiScale))}
 
 .toggle{
   display:flex; gap:10px; align-items:center;
@@ -346,17 +353,17 @@ summary::-webkit-details-marker{display:none}
   display:flex;
   flex-wrap:wrap;
   /* Gleichmäßige Abstände auch bei Wrap (Portrait/Querformat) */
-  gap:12px;
+  gap: calc(12px * var(--uiScale));
 }
 .chipRow > .chip{margin:0}
 
 /* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
-#sortDirRow{margin-top:12px;}
+#sortDirRow{margin-top: calc(12px * var(--uiScale));}
 .chip{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding:9px 12px;
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
   user-select:none;
@@ -369,7 +376,7 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--ok) 16%, var(--bg) 84%);
   border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%);
 }
-.sheetActions{display:flex; gap:10px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
+.sheetActions{display:flex; gap: calc(10px * var(--uiScale)); justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
 .sheetFoot{margin-top:10px}
 .muted{opacity:.75}
 
@@ -383,11 +390,11 @@ summary::-webkit-details-marker{display:none}
 }
 .badge.avail::before{
   content:"";
-  width:8px;
-  height:8px;
+  width: calc(8px * var(--uiScale));
+  height: calc(8px * var(--uiScale));
   border-radius:999px;
   display:inline-block;
-  margin-right:8px;
+  margin-right: calc(8px * var(--uiScale));
   background: color-mix(in oklab, var(--fg) 35%, var(--bg) 65%); /* default (Unbekannt/neutral) */
 }
 .badge.avail.ok::before{ background: var(--ok); }
@@ -451,8 +458,8 @@ summary::-webkit-details-marker{display:none}
 /* --- Responsive: Desktop readability --- */
 @media (min-width: 1100px){
   .wrap{max-width:1180px}
-  .card{padding:16px}
-  .title{font-size:26px}
+  .card{padding: calc(16px * var(--uiScale))}
+  .title{font-size: calc(26px * var(--uiScale))}
 }
 
 
@@ -468,26 +475,26 @@ summary::-webkit-details-marker{display:none}
 /* Genre: kleiner, dunkler – Kontextbadge */
 .badge.genre{
   background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
-  font-size:13px;
+  font-size: calc(13px * var(--uiScale));
   font-weight:600;
-  height:28px;
-  padding:5px 10px;
+  height: calc(28px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(10px * var(--uiScale));
 }
 
 /* Trophäenstatus im Header: neutral, Status nur über kleinen Punkt */
 .badge.trophyHeader{
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
-  min-width:150px;
+  min-width: calc(150px * var(--uiScale));
   justify-content:flex-start;
   text-align:left;
 }
 .badge.trophyHeader::before{
   content:"";
-  width:8px;
-  height:8px;
+  width: calc(8px * var(--uiScale));
+  height: calc(8px * var(--uiScale));
   border-radius:999px;
   display:inline-block;
-  margin-right:8px;
+  margin-right: calc(8px * var(--uiScale));
   background: color-mix(in oklab, var(--fg) 35%, var(--bg) 65%);
 }
 .badge.trophyHeader.ok::before{ background: color-mix(in oklab, var(--ok) 45%, var(--fg) 55%); }
@@ -503,8 +510,8 @@ summary::-webkit-details-marker{display:none}
 /* Trophäen-Details: pro Plattform eine ruhige Zeile mit 3 Badges */
 .tRow{
   display:grid;
-  grid-template-columns: 62px minmax(0,1fr) minmax(0,1fr);
-  gap:8px;
+  grid-template-columns: calc(62px * var(--uiScale)) minmax(0,1fr) minmax(0,1fr);
+  gap: calc(8px * var(--uiScale));
   align-items:center;
 }
 .tRow .badge{
@@ -534,16 +541,16 @@ summary::-webkit-details-marker{display:none}
 
 .badgeRow-trophy{margin-top:10px}
 
-/* Filter: Genre-Dropdown (Datalist Input) */
+/* Filter: Genre-Dropdown (Select) */
 .filterDropdown{
   width: 100%;
   max-width: 520px;
-  padding: 12px 16px;
+  padding: calc(12px * var(--uiScale)) calc(16px * var(--uiScale));
   border: 1px solid rgba(0,0,0,.12);
   border-radius: 999px;
   background: rgba(255,255,255,.55);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
-  font-size: 16px;
+  font-size: calc(16px * var(--uiScale));
   outline: none;
 }
 
@@ -556,7 +563,7 @@ summary::-webkit-details-marker{display:none}
 .filterDropdown[multiple][size="1"]{
   -webkit-appearance: menulist;
   appearance: menulist;
-  height: 44px;
-  padding-right: 38px; /* Platz für den Dropdown-Pfeil */
+  height: calc(44px * var(--uiScale));
+  padding-right: calc(38px * var(--uiScale)); /* Platz für den Dropdown-Pfeil */
   overflow: hidden;
 }

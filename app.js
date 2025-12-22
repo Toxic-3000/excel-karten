@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-A
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-B
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-B").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -19,6 +19,7 @@
     btnLoad: $("btnLoad"),
     btnLoad2: $("btnLoad2"),
     btnMenu: $("btnMenu"),
+    btnTextScale: $("btnTextScale"),
     btnTop: $("btnTop"),
     search: $("search"),
     cards: $("cards"),
@@ -39,6 +40,49 @@
     trophyRow: $("trophyRow"),
     genreSelect: $("genreSelect"),
   };
+
+
+  // --- UI: Textgröße (A / A+ / A++) ---
+  const UI_SCALE_KEY = "spieleliste_uiScalePreset";
+  const UI_SCALES = [
+    { id: "normal", v: 1.00, label: "A" },
+    { id: "gross", v: 1.10, label: "A+" },
+    { id: "sehrgross", v: 1.25, label: "A++" },
+  ];
+
+  function getScalePreset(){
+    const saved = localStorage.getItem(UI_SCALE_KEY);
+    if (saved && UI_SCALES.some(x => x.id === saved)) return saved;
+    // Default: leicht größer (bessere Lesbarkeit)
+    return "gross";
+  }
+
+  function applyScale(presetId){
+    const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
+    document.documentElement.style.setProperty("--uiScale", String(preset.v));
+    localStorage.setItem(UI_SCALE_KEY, preset.id);
+    if (el.btnTextScale){
+      el.btnTextScale.textContent = preset.label;
+      el.btnTextScale.setAttribute("aria-label", `Textgröße: ${preset.label}`);
+      el.btnTextScale.setAttribute("title", `Textgröße: ${preset.label}`);
+    }
+  }
+
+  function cycleScale(currentId){
+    const idx = UI_SCALES.findIndex(x => x.id === currentId);
+    return UI_SCALES[(idx + 1) % UI_SCALES.length].id;
+  }
+
+  let currentScalePreset = getScalePreset();
+  applyScale(currentScalePreset);
+
+  if (el.btnTextScale){
+    el.btnTextScale.addEventListener("click", () => {
+      currentScalePreset = cycleScale(currentScalePreset);
+      applyScale(currentScalePreset);
+    });
+  }
+
 
   // Column contract (Excel headers)
   const COL = {
