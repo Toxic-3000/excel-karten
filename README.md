@@ -1,16 +1,17 @@
-# Build 7.0k-D
+# Build 7.0k-E
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-D
+## Was neu ist in 7.0k-E
 
-- **Textgröße-Schalter (A/A+/A++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
-  - Presets: **A (100%) → A+ (110%) → A++ (125%)**
+- **Textgröße-Schalter (A/A+/A++/A+++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
+  - Presets (feiner): **A (100%) → A+ (108%) → A++ (116%) → A+++ (124%)**
   - Wird im Browser gespeichert (LocalStorage), bleibt also beim nächsten Öffnen erhalten.
   - **Badges & Menütexte skalieren sichtbar mit** (Schrift + Padding/Höhe), damit nichts gequetscht wirkt.
   - **Fix:** Skalierung greift jetzt auch zuverlässig auf **Buttons/Selects/Inputs** (Mobile‑Browser hatten da gern eigene Größen).
+- **Header auf Mobile ruhiger:** Auf schmalen Screens stehen **Buttons/Scale unter dem Titel**, statt rechts „wild“ zu umbrechen.
+- **Lesbarer Umbruch im Info‑Block:** Werte brechen angenehmer um (keine extrem harten Silbentrennungen durch `overflow-wrap:anywhere`).
 - **Spacing skaliert mit:** Gaps/Abstände in Header, Karten‑Meta und Dialog folgen der UI‑Skala (wirkt bei A+/A++ konsistenter).
-- **Fix für A++‑Layout:** Lange Werte (z. B. Subgenre) bleiben jetzt im Raster und brechen sauber um (kein „wandern“ aus dem Bereich).
 - **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
 - **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
 
@@ -61,4 +62,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-B → **Textgröße-Schalter** (A/A+/A++, Badges & UI skalieren mit)
 - ✅ 7.0k-C → **Skalierung-Fixes** (Spacing + Grid‑Overflow bei A++)
 - ✅ 7.0k-D → **Form‑Controls erben Font** + **Info‑Grid flexibler** (verhindert „Rauswandern“ bei A++)
+- ✅ 7.0k-E → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)

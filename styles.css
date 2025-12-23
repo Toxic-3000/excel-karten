@@ -66,18 +66,31 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-weight:800;
   font-size: calc(30px * var(--uiScale));
   letter-spacing:.2px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap: calc(8px * var(--uiScale));
 }
 .build{
   font-size: calc(13px * var(--uiScale));
   font-weight:600;
   opacity:.65;
-  margin-left: calc(10px * var(--uiScale));
+  margin-left: 0;
   border:1px solid var(--border);
   padding: calc(4px * var(--uiScale)) calc(10px * var(--uiScale));
   border-radius:999px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
 .topActions{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
+
+/* Header-Layout: auf schmalen Screens Aktionen unter den Titel ziehen,
+   damit Buttons/Badges nicht "wild" umbrechen. */
+@media (max-width: 700px){
+  .topbar{flex-direction:column; align-items:stretch; gap: calc(10px * var(--uiScale));}
+  .topActions{justify-content:flex-start; width:100%;}
+  .topActions .btn{flex:1 1 auto;}
+  .topActions .btnScale{flex:0 0 auto; margin-left:auto;}
+}
 .subbar{
   padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
@@ -243,9 +256,11 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-weight:550;
   font-variant-numeric: tabular-nums;
   min-width:0;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  hyphens:auto;
+  /* "anywhere" erzeugt teils extrem harte Silbentrennung (Graphi- / Adven- / ...)
+     -> angenehmer: normaler Umbruch + ggf. Wortbruch als Fallback */
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
   text-align:left;
 }
 

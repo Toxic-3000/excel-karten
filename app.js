@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-C
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-E
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-C").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-E").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -42,12 +42,14 @@
   };
 
 
-  // --- UI: Textgröße (A / A+ / A++) ---
+  // --- UI: Textgröße (A / A+ / A++ / A+++) ---
   const UI_SCALE_KEY = "spieleliste_uiScalePreset";
+  // Feiner abgestufte Skalierung: kleine Sprünge, aber "sehr groß" bleibt erreichbar.
   const UI_SCALES = [
-    { id: "normal", v: 1.00, label: "A" },
-    { id: "gross", v: 1.10, label: "A+" },
-    { id: "sehrgross", v: 1.25, label: "A++" },
+    { id: "normal",    v: 1.00, label: "A" },
+    { id: "gross",     v: 1.08, label: "A+" },
+    { id: "grossplus", v: 1.16, label: "A++" },
+    { id: "sehrgross", v: 1.24, label: "A+++" },
   ];
 
   function getScalePreset(){
