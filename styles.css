@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-G (Info-Block Hybrid + bessere Lesbarkeit) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-H (Info-Block Hybrid + bessere Lesbarkeit) */
 :root{
   --uiScale: 1;
   --bg: Canvas;
@@ -260,18 +260,27 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .infoTable{
   margin-top: calc(12px * var(--uiScale));
   padding-top: calc(12px * var(--uiScale));
-  border-top: 1px solid color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+  /* Deutlicher Schnitt: Entwickler → Kennzahlen */
+  border-top: calc(2px * 1) solid color-mix(in oklab, var(--fg) 14%, var(--bg) 86%);
 }
+
 .infoRow{
   display:grid;
   grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
-  align-items:start;
+  align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.infoRow + .infoRow{
-  border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
+.infoRow .v{ text-align:right; }
+
+.infoRowPrimary{
+  padding-bottom: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+}
+.infoRowScore{
+  padding: calc(6px * var(--uiScale)) 0;
 }
 
 /* --- Card layout (mobile-first) --- */
@@ -283,6 +292,41 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   gap:calc(10px * var(--uiScale));
 }
 .detailsWrap details{margin:0}
+.kvTable{
+  display:flex;
+  flex-direction:column;
+  gap: 0;
+  min-width:0;
+}
+.kvRow{
+  display:grid;
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  align-items:baseline;
+  padding: calc(8px * var(--uiScale)) 0;
+  min-width:0;
+}
+.kvRow .v{ text-align:right; }
+
+.kvRow + .kvRow{
+  border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
+}
+
+.kvRowPrimary{
+  padding-bottom: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+}
+.kvHumor .kvRow + .kvRow{ border-top:none; } /* Humor: keine Linie zwischen Sekundärwerten */
+.kvHumor .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
+.kvHumor .kvRowPrimary{ padding-bottom: calc(10px * var(--uiScale)); margin-bottom: calc(8px * var(--uiScale)); border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%); }
+.kvStore .kvRow + .kvRow{ border-top:none; }
+.kvStore .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
+
+
+.vNum{ font-variant-numeric: tabular-nums; }
+.num{ font-variant-numeric: tabular-nums; }
+.slash{ opacity:.55; padding: 0 calc(2px * var(--uiScale)); }
 .grid{
   display:grid;
   /* Flex columns to avoid overflow in large UI scale levels on narrow landscape.
@@ -293,9 +337,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   /* wichtig für große UI-Skalen: sonst können lange Werte das Grid sprengen */
   min-width:0;
 }
-.k{opacity:.75; font-weight:600}
+.k{opacity:.78; font-weight:520}
 .v{
-  font-weight:550;
+  font-weight:520;
   font-variant-numeric: tabular-nums;
   min-width:0;
   /* "anywhere" erzeugt teils extrem harte Silbentrennung (Graphi- / Adven- / ...)
@@ -510,7 +554,7 @@ summary::-webkit-details-marker{display:none}
 @media (min-width: 520px) and (orientation: landscape){
   .topGrid{
     display:grid;
-    grid-template-columns: 1.18fr 0.82fr;
+    grid-template-columns: 0.88fr 1.12fr;
     gap:calc(12px * var(--uiScale));
     align-items:start;
   }

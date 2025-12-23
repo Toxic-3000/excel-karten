@@ -1,27 +1,29 @@
-# Build 7.0k-G
+# Build 7.0k-H
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-G
+## Was neu ist in 7.0k-H
 
-- **Info‑Block neu (Hybrid, ohne Akkordeon):**
-  - **Genre als Text** im Info‑Block (kein Genre‑Badge mehr im Karten‑Header).
-  - **Genre → Subgenre → Entwickler** sind **untereinander (stacked)**, damit lange Texte mehr Breite haben.
-  - Darunter eine kompakte **Tabelle** mit **Spielzeit**, **Lebenszeit (Jahre)**, **Metascore** und **Userwertung**.
-  - **Zarte Linien** trennen die Bereiche/Zeilen, Genre & Subgenre sind leicht voneinander abgesetzt.
+- **Info‑Block: Lesbarkeit & Rhythmus finalisiert**
+  - **Lebenszeit** ist **nicht mehr** im Info‑Block (bleibt ausschließlich in der **Humorstatistik**).
+  - **Genre → Subgenre → Entwickler** bleiben **stacked** (volle Breite).
+  - **Neue Trennlinien:**
+    - Feine Linie zwischen **Subgenre ↔ Entwickler**
+    - Deutlichere Linie zwischen **Entwickler ↔ Kennzahlen**
+  - **Werteblock neu ausbalanciert (auch bei A+ stabil):**
+    - **Spielzeit** als Primärwert (mit ruhigem Separator darunter)
+    - **Metascore + Userwertung** als Paar (ohne Linie dazwischen)
+    - Werte **rechtsbündig**, Zahlen als **tabellarische Ziffern**, Slash optisch ruhiger
 
-- **Textgröße-Schalter (A/A+/A++/A+++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
-  - Presets (feiner): **A (100%) → A+ (108%) → A++ (116%) → A+++ (124%)**
-  - Wird im Browser gespeichert (LocalStorage), bleibt also beim nächsten Öffnen erhalten.
-  - **Badges & Menütexte skalieren sichtbar mit** (Schrift + Padding/Höhe), damit nichts gequetscht wirkt.
-  - **Fix:** Skalierung greift jetzt auch zuverlässig auf **Buttons/Selects/Inputs** (Mobile‑Browser hatten da gern eigene Größen).
-- **Header auf Mobile ruhiger:** Auf schmalen Screens stehen **Buttons/Scale unter dem Titel**, statt rechts „wild“ zu umbrechen.
-- **Lesbarer Umbruch im Info‑Block:** Werte brechen angenehmer um (keine extrem harten Silbentrennungen durch `overflow-wrap:anywhere`).
-- **Spacing skaliert mit:** Gaps/Abstände in Header, Karten‑Meta und Dialog folgen der UI‑Skala (wirkt bei A+/A++ konsistenter).
-- **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
-- **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
+- **Store & Humorstatistik typografisch vereinheitlicht**
+  - Beide Bereiche nutzen jetzt das gleiche **Label/Wert‑Schema** wie der Werteblock (ruhiger, weniger „Badge‑/Formular‑Gefühl“).
+  - In der **Humorstatistik** ist **Gesamtstunden** der Primärwert; **% Lebenszeit** und **Jahre** sind Sekundärwerte (ohne harte Linien zwischen ihnen).
+
+- **Querformat (Landscape): Info‑Block nutzt den Platz**
+  - Der rechte Kartenbereich (Info‑Block) ist im Landscape **breiter**, damit Subgenre/Entwickler weniger gequetscht werden.
 
 ## Enthaltene Features (aus den vorherigen Builds)
+
 
 - **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
@@ -49,8 +51,8 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
-  - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Genre; Trophäen‑Status
-  - Info‑Block: Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
+  - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Trophäen‑Status
+  - Info‑Block: Genre, Subgenre, Entwickler, Spielzeit, Metascore, Userwertung
   - Aufklappbar: Beschreibung, Store (zweispaltig), Trophäen, Humorstatistik, Eastereggs
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
@@ -70,4 +72,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-D → **Form‑Controls erben Font** + **Info‑Grid flexibler** (verhindert „Rauswandern“ bei A++)
 - ✅ 7.0k-E → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
 - ✅ 7.0k-G → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
+- ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)

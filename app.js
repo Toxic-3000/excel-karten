@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-G
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-H
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-G").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-H").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -143,6 +143,31 @@
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function isNumericToken(t){
+    return /^[0-9]+(?:[.,][0-9]+)?$/.test(String(t ?? "").trim());
+  }
+  function renderRatioParts(a, b){
+    const A = String(a ?? "").trim() || "—";
+    const B = String(b ?? "").trim() || "—";
+    if (isNumericToken(A) && isNumericToken(B)){
+      return `<span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span>`;
+    }
+    return esc(`${A} / ${B}`);
+  }
+  function renderRatioString(v){
+    const t = String(v ?? "").trim();
+    if (!t) return esc("—");
+    const parts = t.split("/");
+    if (parts.length === 2){
+      const A = parts[0].trim();
+      const B = parts[1].trim();
+      if (isNumericToken(A) && isNumericToken(B)){
+        return `<span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span>`;
+      }
+    }
+    return esc(t);
   }
   function norm(s){
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
@@ -678,32 +703,32 @@
   }
 
   function renderStore(row, src, av){
-    // Two-column layout like the info block: Quelle / Store-Link / Verfügbarkeit
-    const text = String(row[COL.store] ?? "").trim();
-    const url = String(row.__storeUrl ?? "").trim();
+  const text = String(row[COL.store] ?? "").trim();
+  const url = String(row.__storeUrl ?? "").trim();
 
-    let storeValue = "";
-    if (url && /^https?:\/\//i.test(url)){
-      const linkText = text || "Store Link";
-      storeValue = `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(linkText)}</a>`;
-    } else if (text && /^https?:\/\//i.test(text)){
-      storeValue = `<a href="${esc(text)}" target="_blank" rel="noopener noreferrer">Store Link</a>`;
-    } else if (text){
-      storeValue = `<span class="small">Linktext vorhanden, aber keine URL (Hyperlink) erkannt.</span>`;
-    } else {
-      storeValue = `<span class="small">Kein Store-Link vorhanden.</span>`;
-    }
-
-    const srcVal = src || "Unbekannt";
-    const avVal  = av  || "Unbekannt";
-
-    return `
-      <div class="grid storeGrid">
-        <div class="k">Quelle</div><div class="v">${esc(srcVal)}</div>
-        <div class="k">Store</div><div class="v">${storeValue}</div>
-        <div class="k">Verfügbarkeit</div><div class="v">${esc(avVal)}</div>
-      </div>`;
+  let storeValue = "";
+  if (url && /^https?:\/\//i.test(url)){
+    const linkText = text || "Store Link";
+    storeValue = `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(linkText)}</a>`;
+  } else if (text && /^https?:\/\//i.test(text)){
+    storeValue = `<a href="${esc(text)}" target="_blank" rel="noopener noreferrer">Store Link</a>`;
+  } else if (text){
+    storeValue = `<span class="small">Linktext vorhanden, aber keine URL (Hyperlink) erkannt.</span>`;
+  } else {
+    storeValue = `<span class="small">Kein Store-Link vorhanden.</span>`;
   }
+
+  const srcVal = src || "Unbekannt";
+  const avVal  = av  || "Unbekannt";
+
+  return `
+    <div class="kvTable kvStore">
+      <div class="kvRow"><div class="k">Quelle</div><div class="v">${esc(srcVal)}</div></div>
+      <div class="kvRow"><div class="k">Store</div><div class="v">${storeValue}</div></div>
+      <div class="kvRow"><div class="k">Verfügbarkeit</div><div class="v">${esc(avVal)}</div></div>
+    </div>`;
+}
+
 
 
   function render(rows){
@@ -724,11 +749,6 @@
       const hundred = String(row[COL.hundred] ?? "").trim() || "—";
       const meta = String(row[COL.meta] ?? "").trim() || "—";
       const user = String(row[COL.user] ?? "").trim() || "—";
-
-      // Lebenszeit (Jahre) aus der Humorstatistik – für den Info-Block als kompakte Kennzahl.
-      const yrsRaw = String(row[COL.humorYears] ?? "").trim();
-      const yrs = yrsRaw || "—";
-      const yrsDisp = (yrs === "—") ? "—" : (/[A-Za-zÄÖÜäöü]/.test(yrs) ? yrs : `${yrs} Jahre`);
 
       const reminder = state.reminderCol ? String(row[state.reminderCol] ?? "").trim() : "";
 
@@ -752,22 +772,37 @@
               <div class="k">Genre</div>
               <div class="v vText">${esc(genre)}</div>
             </div>
+
             <div class="softSep" aria-hidden="true"></div>
+
             <div class="infoItem">
               <div class="k">Subgenre</div>
               <div class="v vText">${esc(sub)}</div>
             </div>
+
+            <div class="softSep" aria-hidden="true"></div>
+
             <div class="infoItem">
               <div class="k">Entwickler</div>
               <div class="v vText">${esc(dev)}</div>
             </div>
           </div>
 
-          <div class="infoTable" role="table" aria-label="Weitere Informationen">
-            <div class="infoRow" role="row"><div class="k" role="cell">Spielzeit</div><div class="v" role="cell">${esc(main)} / ${esc(hundred)}</div></div>
-            <div class="infoRow" role="row"><div class="k" role="cell">Lebenszeit</div><div class="v" role="cell">${esc(yrsDisp)}</div></div>
-            <div class="infoRow" role="row"><div class="k" role="cell">Metascore</div><div class="v" role="cell">${esc(meta)}</div></div>
-            <div class="infoRow" role="row"><div class="k" role="cell">Userwertung</div><div class="v" role="cell">${esc(user)}</div></div>
+          <div class="infoTable" role="table" aria-label="Kennzahlen">
+            <div class="infoRow infoRowPrimary" role="row">
+              <div class="k" role="cell">Spielzeit</div>
+              <div class="v vNum" role="cell">${renderRatioParts(main, hundred)}</div>
+            </div>
+
+            <div class="infoRow infoRowScore" role="row">
+              <div class="k" role="cell">Metascore</div>
+              <div class="v vNum" role="cell">${renderRatioString(meta)}</div>
+            </div>
+
+            <div class="infoRow infoRowScore" role="row">
+              <div class="k" role="cell">Userwertung</div>
+              <div class="v vNum" role="cell">${renderRatioString(user)}</div>
+            </div>
           </div>
         </div>`;
 
@@ -923,17 +958,18 @@ function renderTrophyDetails(row){
 }
 
   function renderHumor(row){
-    const total = String(row[COL.humorTotal] ?? "").trim();
-    const pct = String(row[COL.humorPct] ?? "").trim();
-    const yrs = String(row[COL.humorYears] ?? "").trim();
-    if (!total && !pct && !yrs) return `<div class="small">Keine Humorstatistik vorhanden.</div>`;
-    return `
-      <div class="grid">
-        <div class="k">Gesamtstunden</div><div class="v">${esc(total || "—")}</div>
-        <div class="k">% Lebenszeit</div><div class="v">${esc(pct || "—")}</div>
-        <div class="k">Jahre</div><div class="v">${esc(yrs || "—")}</div>
-      </div>`;
-  }
+  const total = String(row[COL.humorTotal] ?? "").trim();
+  const pct = String(row[COL.humorPct] ?? "").trim();
+  const yrs = String(row[COL.humorYears] ?? "").trim();
+  if (!total && !pct && !yrs) return `<div class="small">Keine Humorstatistik vorhanden.</div>`;
+  return `
+    <div class="kvTable kvHumor">
+      <div class="kvRow kvRowPrimary"><div class="k">Gesamtstunden</div><div class="v">${esc(total || "—")}</div></div>
+      <div class="kvRow"><div class="k">% Lebenszeit</div><div class="v">${esc(pct || "—")}</div></div>
+      <div class="kvRow"><div class="k">Jahre</div><div class="v">${esc(yrs || "—")}</div></div>
+    </div>`;
+}
+
 
   // Events
   function openFilePicker(){
