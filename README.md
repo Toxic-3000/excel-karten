@@ -1,8 +1,14 @@
-# Build 7.0k-F
+# Build 7.0k-G
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-F
+## Was neu ist in 7.0k-G
+
+- **Info‑Block neu (Hybrid, ohne Akkordeon):**
+  - **Genre als Text** im Info‑Block (kein Genre‑Badge mehr im Karten‑Header).
+  - **Genre → Subgenre → Entwickler** sind **untereinander (stacked)**, damit lange Texte mehr Breite haben.
+  - Darunter eine kompakte **Tabelle** mit **Spielzeit**, **Lebenszeit (Jahre)**, **Metascore** und **Userwertung**.
+  - **Zarte Linien** trennen die Bereiche/Zeilen, Genre & Subgenre sind leicht voneinander abgesetzt.
 
 - **Textgröße-Schalter (A/A+/A++/A+++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
   - Presets (feiner): **A (100%) → A+ (108%) → A++ (116%) → A+++ (124%)**
@@ -13,10 +19,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - **Lesbarer Umbruch im Info‑Block:** Werte brechen angenehmer um (keine extrem harten Silbentrennungen durch `overflow-wrap:anywhere`).
 - **Spacing skaliert mit:** Gaps/Abstände in Header, Karten‑Meta und Dialog folgen der UI‑Skala (wirkt bei A+/A++ konsistenter).
 - **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
-- **Hybrid-Infos (lesbarer):** **Genre** steht jetzt **immer als Text** im Info-Bereich.
-  - **Weitere Infos** ist ein neues Akkordeon mit **Subgenre, Entwickler, Spielzeit, Metascore, Userwertung**.
-  - Das **Genre-Badge** im Karten-Kopf entfällt → weniger Chips, weniger gequetschter Text.
-
 - **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
 
 ## Enthaltene Features (aus den vorherigen Builds)
@@ -67,4 +69,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-C → **Skalierung-Fixes** (Spacing + Grid‑Overflow bei A++)
 - ✅ 7.0k-D → **Form‑Controls erben Font** + **Info‑Grid flexibler** (verhindert „Rauswandern“ bei A++)
 - ✅ 7.0k-E → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
+- ✅ 7.0k-G → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)

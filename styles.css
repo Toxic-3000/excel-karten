@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-F (Typografie + Skalierung Fixes) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-G (Info-Block Hybrid + bessere Lesbarkeit) */
 :root{
   --uiScale: 1;
   --bg: Canvas;
@@ -232,6 +232,48 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   overflow:hidden;
 }
 
+/* --- Info-Block: Hybrid-Layout (ohne Akkordeon) ---
+   - Genre/Subgenre/Entwickler: untereinander, volle Breite
+   - darunter kompakte Tabelle (Spielzeit, Lebenszeit, Meta, User)
+*/
+.infoStack{
+  display:flex;
+  flex-direction:column;
+  gap: calc(10px * var(--uiScale));
+}
+.infoItem{min-width:0}
+.infoItem .k{margin-bottom: calc(4px * var(--uiScale));}
+.infoItem .vText{
+  font-weight:500;
+  line-height:1.4;
+  /* Keine aggressive Silbentrennung im Subgenre/Genre-Text */
+  hyphens:none;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.softSep{
+  height:1px;
+  background: color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+  opacity:.7;
+  margin: calc(2px * var(--uiScale)) 0;
+}
+.infoTable{
+  margin-top: calc(12px * var(--uiScale));
+  padding-top: calc(12px * var(--uiScale));
+  border-top: 1px solid color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+}
+.infoRow{
+  display:grid;
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  align-items:start;
+  padding: calc(8px * var(--uiScale)) 0;
+  min-width:0;
+}
+.infoRow + .infoRow{
+  border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
+}
+
 /* --- Card layout (mobile-first) --- */
 .topGrid{display:block}
 .detailsWrap{
@@ -262,15 +304,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   word-break: normal;
   hyphens: auto;
   text-align:left;
-}
-
-/* --- Info block: minimal + more info --- */
-.infoGrid-min{
-  grid-template-columns: minmax(calc(80px * var(--uiScale)), 0.35fr) minmax(0, 0.65fr);
-  gap: calc(6px * var(--uiScale)) calc(12px * var(--uiScale));
-}
-.moreInfoGrid{
-  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.35fr) minmax(0, 0.65fr);
 }
 
 details{
