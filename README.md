@@ -1,13 +1,15 @@
-# Build 7.0k-B
+# Build 7.0k-C
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-B
+## Was neu ist in 7.0k-C
 
 - **Textgröße-Schalter (A/A+/A++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
   - Presets: **A (100%) → A+ (110%) → A++ (125%)**
   - Wird im Browser gespeichert (LocalStorage), bleibt also beim nächsten Öffnen erhalten.
-  - **Badges skalieren mit** (Schrift + Padding/Höhe), damit nichts gequetscht wirkt.
+  - **Badges & Menütexte skalieren sichtbar mit** (Schrift + Padding/Höhe), damit nichts gequetscht wirkt.
+- **Spacing skaliert mit:** Gaps/Abstände in Header, Karten‑Meta und Dialog folgen der UI‑Skala (wirkt bei A+/A++ konsistenter).
+- **Fix für A++‑Layout:** Lange Werte (z. B. Subgenre) bleiben jetzt im Raster und brechen sauber um (kein „wandern“ aus dem Bereich).
 - **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
 - **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
 
@@ -56,4 +58,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0j-A → **Smartere ID‑Suche** + **Dialogtext kürzer** + **Eastereggs‑Sektion**
 - ✅ 7.0k-A → **Typografie‑Pass** (weniger Fettschrift, ruhigere Zeilenhöhe, stabilere Zahlen)
 - ✅ 7.0k-B → **Textgröße-Schalter** (A/A+/A++, Badges & UI skalieren mit)
+- ✅ 7.0k-C → **Skalierung-Fixes** (Spacing + Grid‑Overflow bei A++)
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)
