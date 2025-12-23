@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-C (Typografie + Skalierung Fixes) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-F (Typografie + Skalierung Fixes) */
 :root{
   --uiScale: 1;
   --bg: Canvas;
@@ -262,6 +262,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   word-break: normal;
   hyphens: auto;
   text-align:left;
+}
+
+/* --- Info block: minimal + more info --- */
+.infoGrid-min{
+  grid-template-columns: minmax(calc(80px * var(--uiScale)), 0.35fr) minmax(0, 0.65fr);
+  gap: calc(6px * var(--uiScale)) calc(12px * var(--uiScale));
+}
+.moreInfoGrid{
+  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.35fr) minmax(0, 0.65fr);
 }
 
 details{

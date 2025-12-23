@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-E
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-F
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-E").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-F").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -706,6 +706,22 @@
   }
 
 
+  
+
+  function renderMoreInfo(sub, dev, main, hundred, meta, user){
+    const hasPlay = (main && main !== "—") || (hundred && hundred !== "—");
+    const play = hasPlay ? `${esc(main)} / ${esc(hundred)}` : "—";
+    return `
+      <div class="grid infoGrid moreInfoGrid">
+        <div class="k">Subgenre</div><div class="v">${esc(sub)}</div>
+        <div class="k">Entwickler</div><div class="v">${esc(dev)}</div>
+        <div class="k">Spielzeit</div><div class="v">${play}</div>
+        <div class="k">Metascore</div><div class="v">${esc(meta)}</div>
+        <div class="k">Userwertung</div><div class="v">${esc(user)}</div>
+      </div>`;
+  }
+
+
   function render(rows){
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
@@ -737,18 +753,13 @@
   const srcBadge = badge("source " + classifySource(src), srcLabel);
 
       const avBadge = badge("avail "+classifyAvailability(av), av);
-      const genreBadge = badge("genre", genre);
       const remBadge = reminder ? badge("note warn", "🔔 Erinnerung") : "";
 
       // info block
       const info = `
         <div class="info">
-          <div class="grid">
-            <div class="k">Subgenre</div><div class="v">${esc(sub)}</div>
-            <div class="k">Entwickler</div><div class="v">${esc(dev)}</div>
-            <div class="k">Spielzeit</div><div class="v">${esc(main)} / ${esc(hundred)}</div>
-            <div class="k">Metascore</div><div class="v">${esc(meta)}</div>
-            <div class="k">Userwertung</div><div class="v">${esc(user)}</div>
+          <div class="grid infoGrid infoGrid-min">
+            <div class="k">Genre</div><div class="v">${esc(genre)}</div>
           </div>
         </div>`;
 
@@ -788,11 +799,6 @@
               </div>
 
               <div class="headDivider" aria-hidden="true"></div>
-
-              <div class="badgeRow badgeRow-genre">
-                ${genreBadge}
-              </div>
-
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
@@ -803,6 +809,7 @@
 
           <div class="detailsWrap">
             ${detailsBlock("desc", "Beschreibung", descBody)}
+            ${detailsBlock("moreinfo", "Weitere Infos", renderMoreInfo(sub, dev, main, hundred, meta, user))}
             ${detailsBlock("store", "Store", storeBody)}
             ${detailsBlock("trophy", "Trophäen", trophyBody)}
             ${detailsBlock("humor", "Humorstatistik", humorBody)}

@@ -1,8 +1,8 @@
-# Build 7.0k-E
+# Build 7.0k-F
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-E
+## Was neu ist in 7.0k-F
 
 - **Textgröße-Schalter (A/A+/A++/A+++):** Oben in der Kopfzeile kannst du die Schrift **sofort** umschalten.
   - Presets (feiner): **A (100%) → A+ (108%) → A++ (116%) → A+++ (124%)**
@@ -13,6 +13,10 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - **Lesbarer Umbruch im Info‑Block:** Werte brechen angenehmer um (keine extrem harten Silbentrennungen durch `overflow-wrap:anywhere`).
 - **Spacing skaliert mit:** Gaps/Abstände in Header, Karten‑Meta und Dialog folgen der UI‑Skala (wirkt bei A+/A++ konsistenter).
 - **Proportionaler Typo-Scale:** Wichtige UI‑Elemente (Header, Buttons, Chips, Badges, Dialog) skalieren mit der Textgröße, ohne das Layout zu sprengen.
+- **Hybrid-Infos (lesbarer):** **Genre** steht jetzt **immer als Text** im Info-Bereich.
+  - **Weitere Infos** ist ein neues Akkordeon mit **Subgenre, Entwickler, Spielzeit, Metascore, Userwertung**.
+  - Das **Genre-Badge** im Karten-Kopf entfällt → weniger Chips, weniger gequetschter Text.
+
 - **Weiterhin Typografie-Pass:** Weniger Fettschrift insgesamt, ruhigerer Lesefluss, stabilere Zahlen (tabellarische Ziffern).
 
 ## Enthaltene Features (aus den vorherigen Builds)
