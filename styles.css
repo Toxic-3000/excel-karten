@@ -18,6 +18,11 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
+/* Ensure form controls inherit our scaled typography.
+   Some mobile browsers keep default UI font sizes on buttons/inputs unless forced. */
+button, input, select, textarea{ font: inherit; }
+
 body{
   margin:0;
   /* Slightly calmer reading rhythm + less aggressive default weight */
@@ -210,6 +215,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-radius: var(--r1);
   padding: calc(12px * var(--uiScale));
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  min-width:0;
+  overflow:hidden;
 }
 
 /* --- Card layout (mobile-first) --- */
@@ -223,7 +230,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .detailsWrap details{margin:0}
 .grid{
   display:grid;
-  grid-template-columns: calc(120px * var(--uiScale)) 1fr;
+  /* Flex columns to avoid overflow in large UI scale levels on narrow landscape.
+     Labels keep a minimum width, values stay shrinkable (min-width:0). */
+  grid-template-columns: minmax(calc(96px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:start;
   /* wichtig für große UI-Skalen: sonst können lange Werte das Grid sprengen */
@@ -237,6 +246,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   overflow-wrap:anywhere;
   word-break:break-word;
   hyphens:auto;
+  text-align:left;
 }
 
 details{
