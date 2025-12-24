@@ -1,23 +1,24 @@
-# Build 7.0k-I
+# Build 7.0k-J
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-I
+## Was neu ist in 7.0k-J
 
-- **Typografie‑Feinschliff (wirkt in Info‑Block, Store, Humorstatistik):**
-  - Labels ("Genre", "Subgenre", "Metascore" …) sind **kleiner & klarer** (höheres Gewicht, dezenteres Grau, leichtes Letter‑Spacing).
-  - Werte sind **minimal größer & kräftiger** (tabellarische Ziffern), damit das Auge schneller "abgreift".
-  - **Scores** ("80 / 100") sind jetzt **no‑wrap** → kein unschönes Umbruch‑Stottern bei schmalen Spalten.
+- **FAB „Ansicht“ (unaufdringlich, kein Sticky‑Menü):**
+  - Unten rechts ein kleiner Button **„Aa“**.
+  - Öffnet ein kompaktes Panel für **Textgröße (A–A+++)** und **Sortierrichtung (↑/↓)**.
+  - Enthält auch **„Filter & Sortieren“** → du kommst überall in der Liste schnell an die Optionen, ohne hochzuscrollen.
 
-- **UI‑Skalierung: feinere Schritte**
-  - A / A+ / A++ / A+++ sind enger gestaffelt, damit du nicht "zu grob" springen musst.
+- **Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift:**
+  - Labels wirken „UI‑mäßiger“ (leichter, minimal mehr Letter‑Spacing), Inhalte lesen sich stärker.
+  - Zahlen nutzen tabellarische Ziffern; Slash/Trennzeichen sind bewusst leiser.
+  - Infoblock ist minimal größer skaliert (Leseblock‑Priorität).
 
-- **Store & Humorstatistik typografisch vereinheitlicht**
-  - Beide Bereiche nutzen jetzt das gleiche **Label/Wert‑Schema** wie der Werteblock (ruhiger, weniger „Badge‑/Formular‑Gefühl“).
-  - In der **Humorstatistik** ist **Gesamtstunden** der Primärwert; **% Lebenszeit** und **Jahre** sind Sekundärwerte (ohne harte Linien zwischen ihnen).
+- **Skalierung fein & lesbar:**
+  - Schritte sind bewusst klein (A / A+ / A++ / A+++) und die Basisschrift ist leicht größer.
 
-- **Querformat (Landscape): Info‑Block nutzt den Platz**
-  - Der rechte Kartenbereich (Info‑Block) ist im Landscape **breiter**, damit Subgenre/Entwickler weniger gequetscht werden.
+- **Desktop‑Lesbarkeit:**
+  - Font‑Stack für Desktop angepasst (bevorzugt Segoe UI Variable, wenn vorhanden) + bessere Text‑Rendereinstellung.
 
 ## Enthaltene Features (aus den vorherigen Builds)
 
@@ -71,4 +72,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-G → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
-- ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)
+- ✅ 7.0k-J → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
+- ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)

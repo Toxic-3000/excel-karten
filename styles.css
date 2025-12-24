@@ -1,4 +1,7 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-I (Typografie-Feinschliff: Labels/Values + Scores no-wrap) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-J
+   - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
+   - FAB "Ansicht" statt Sticky-Scale-Button
+*/
 :root{
   --uiScale: 1;
   --bg: Canvas;
@@ -26,13 +29,20 @@ button, input, select, textarea{ font: inherit; }
 body{
   margin:0;
   /* Slightly calmer reading rhythm + less aggressive default weight */
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif;
   font-weight: 450;
-  font-size: calc(16px * var(--uiScale));
+  /* Base readability: slightly larger than default to help long sessions */
+  font-size: calc(17px * var(--uiScale));
   line-height: 1.45;
+  text-rendering: optimizeLegibility;
   /* Background is handled by .appBg to avoid "scroll drift" / parallax-like effects. */
   background: var(--bg);
   color:var(--fg);
+}
+
+/* Desktop: prefer the variable Segoe face when available (often calmer on Windows). */
+@media (min-width: 980px){
+  body{ font-family: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif; }
 }
 
 /* Static background layer (fixed to viewport, never scrolls) */
@@ -228,9 +238,14 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-radius: var(--r1);
   padding: calc(12px * var(--uiScale));
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  /* Infoblock ist der "Leseblock" – leicht größer, ohne die restliche UI aufzublasen */
+  font-size: 1.03em;
   min-width:0;
   overflow:hidden;
 }
+
+/* Info-block gets a tiny boost to keep dense text comfortable at higher scales */
+.info{ font-size: calc(1rem * 1.03); }
 
 /* --- Info-Block: Hybrid-Layout (ohne Akkordeon) ---
    - Genre/Subgenre/Entwickler: untereinander, volle Breite
@@ -324,9 +339,10 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .kvStore .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
 
 
-.vNum{ font-variant-numeric: tabular-nums; }
-.num{ font-variant-numeric: tabular-nums; }
-.slash{ opacity:.55; padding: 0 calc(2px * var(--uiScale)); }
+.vNum{ font-variant-numeric: tabular-nums; font-weight: 620; }
+.num{ font-variant-numeric: tabular-nums; font-weight: 620; }
+/* Trennzeichen & Einheiten bewusst leiser */
+.slash{ opacity:.62; font-weight: 450; font-size: .95em; padding: 0 calc(2px * var(--uiScale)); }
 .grid{
   display:grid;
   /* Flex columns to avoid overflow in large UI scale levels on narrow landscape.
@@ -338,15 +354,17 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   min-width:0;
 }
 .k{
-  opacity:.74;
-  font-weight:650;
-  font-size: calc(12.5px * var(--uiScale));
-  letter-spacing: 0.01em;
+  /* Labels: gleich groß genug zum Lesen, aber "technischer" und leiser */
+  opacity:.78;
+  font-weight:520;
+  font-size: calc(13.5px * var(--uiScale));
+  letter-spacing: 0.03em;
   line-height: 1.2;
 }
 .v{
-  font-weight:650;
-  font-size: calc(14px * var(--uiScale));
+  /* Values: slightly stronger than labels (without turning everything bold) */
+  font-weight:520;
+  font-size: calc(15.5px * var(--uiScale));
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
   min-width:0;
@@ -411,7 +429,8 @@ summary::-webkit-details-marker{display:none}
 .toTop{
   position:fixed;
   right: calc(14px * var(--uiScale));
-  bottom: calc(16px * var(--uiScale));
+  /* make room for the FAB */
+  bottom: calc(86px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
@@ -421,6 +440,49 @@ summary::-webkit-details-marker{display:none}
   font-weight:650;
   cursor:pointer;
 }
+
+/* Floating Action Button (Ansicht) */
+.fab{
+  position:fixed;
+  right: calc(14px * var(--uiScale));
+  bottom: calc(16px * var(--uiScale));
+  z-index:65;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius: 999px;
+  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  box-shadow: var(--shadow);
+  font-weight: 700;
+  opacity: .82;
+}
+.fab:active{ transform: translateY(1px); }
+
+.fabPanel{
+  position:fixed;
+  right: calc(14px * var(--uiScale));
+  bottom: calc(70px * var(--uiScale));
+  z-index:66;
+  width: min(320px, calc(100vw - 28px));
+  border:1px solid var(--border);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: var(--shadow);
+  padding: calc(12px * var(--uiScale));
+}
+.fabHead{display:flex; align-items:center; justify-content:space-between; gap: calc(10px * var(--uiScale));}
+.fabTitle{font-weight: 750; letter-spacing: .2px;}
+.fabClose{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius:999px;
+  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-weight: 650;
+}
+.fabSect{margin-top: calc(12px * var(--uiScale));}
+.fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
+.fabChips{gap: calc(10px * var(--uiScale));}
+.fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
+.fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
 
 /* Bottom sheet */
 .dlg{border:0;padding:0;background:transparent}

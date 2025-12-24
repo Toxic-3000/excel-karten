@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-I
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-J
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-I").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-J").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -19,8 +19,15 @@
     btnLoad: $("btnLoad"),
     btnLoad2: $("btnLoad2"),
     btnMenu: $("btnMenu"),
-    btnTextScale: $("btnTextScale"),
     btnTop: $("btnTop"),
+
+    // Floating quick access (FAB)
+    fabView: $("fabView"),
+    fabPanel: $("fabPanel"),
+    fabClose: $("fabClose"),
+    fabScaleRow: $("fabScaleRow"),
+    fabSortDirRow: $("fabSortDirRow"),
+    fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     cards: $("cards"),
     empty: $("empty"),
@@ -44,12 +51,12 @@
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
   const UI_SCALE_KEY = "spieleliste_uiScalePreset";
-  // Feiner abgestufte Skalierung: kleine Sprünge, aber "sehr groß" bleibt erreichbar.
+  // Feiner abgestufte Skalierung + etwas größere Basisschrift (CSS): lesbarer, ohne Sprung-Gefühl.
   const UI_SCALES = [
     { id: "normal",    v: 1.00, label: "A" },
-    { id: "gross",     v: 1.06, label: "A+" },
-    { id: "grossplus", v: 1.12, label: "A++" },
-    { id: "sehrgross", v: 1.18, label: "A+++" },
+    { id: "gross",     v: 1.05, label: "A+" },
+    { id: "grossplus", v: 1.10, label: "A++" },
+    { id: "sehrgross", v: 1.15, label: "A+++" },
   ];
 
   function getScalePreset(){
@@ -63,11 +70,7 @@
     const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
-    if (el.btnTextScale){
-      el.btnTextScale.textContent = preset.label;
-      el.btnTextScale.setAttribute("aria-label", `Textgröße: ${preset.label}`);
-      el.btnTextScale.setAttribute("title", `Textgröße: ${preset.label}`);
-    }
+    updateFabScaleUI();
   }
 
   function cycleScale(currentId){
@@ -78,11 +81,91 @@
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
 
-  if (el.btnTextScale){
-    el.btnTextScale.addEventListener("click", () => {
-      currentScalePreset = cycleScale(currentScalePreset);
-      applyScale(currentScalePreset);
+  // No more header button: quick access lives in the FAB panel.
+
+  function updateFabScaleUI(){
+    if (!el.fabScaleRow) return;
+    for (const b of el.fabScaleRow.querySelectorAll(".chip")){
+      b.setAttribute("aria-pressed", b.getAttribute("data-key") === currentScalePreset ? "true" : "false");
+    }
+  }
+
+  function updateFabSortUI(){
+    if (!el.fabSortDirRow) return;
+    for (const b of el.fabSortDirRow.querySelectorAll(".chip")){
+      b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
+    }
+  }
+
+  function closeFab(){
+    if (!el.fabPanel) return;
+    el.fabPanel.hidden = true;
+  }
+
+  function toggleFab(){
+    if (!el.fabPanel) return;
+    el.fabPanel.hidden = !el.fabPanel.hidden;
+  }
+
+  function buildFab(){
+    if (!el.fabView || !el.fabPanel) return;
+
+    // Build scale chips (explicit choose, no multi-tap cycling)
+    if (el.fabScaleRow){
+      el.fabScaleRow.innerHTML = UI_SCALES.map(s => chipHtml("uiScale", s.id, s.label, s.id === currentScalePreset)).join("");
+    }
+
+    // Build quick sort direction chips
+    if (el.fabSortDirRow){
+      el.fabSortDirRow.innerHTML = [
+        chipHtml("quickSortDir", "asc", "↑ Auf", state.sortDir === "asc"),
+        chipHtml("quickSortDir", "desc", "↓ Ab", state.sortDir === "desc"),
+      ].join("");
+    }
+
+    // Wire FAB open/close
+    el.fabView.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFab();
     });
+    // Clicks inside the panel should not close it.
+    el.fabPanel.addEventListener("click", (e) => e.stopPropagation());
+    if (el.fabClose){
+      el.fabClose.addEventListener("click", (e) => { e.stopPropagation(); closeFab(); });
+    }
+
+    // Wire chips inside panel
+    for (const btn of el.fabPanel.querySelectorAll(".chip")){
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const group = btn.getAttribute("data-group");
+        const key = btn.getAttribute("data-key");
+        if (group === "uiScale"){
+          currentScalePreset = key;
+          applyScale(currentScalePreset);
+          return;
+        }
+        if (group === "quickSortDir"){
+          state.sortDir = key;
+          updateFabSortUI();
+          applyAndRender();
+          return;
+        }
+      });
+    }
+
+    // Open the full menu from the FAB (so you never have to scroll back up)
+    if (el.fabOpenMenu){
+      el.fabOpenMenu.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeFab();
+        openMenuDialog();
+      });
+    }
+
+    // Close on outside click / Esc
+    document.addEventListener("click", () => closeFab());
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFab(); });
   }
 
 
@@ -600,6 +683,8 @@
     });
 
     el.pillRows.textContent = `Treffer: ${out.length}`;
+    // Keep FAB quick controls in sync (in case sortDir changed via dialog).
+    updateFabSortUI();
     render(out);
   }
 
@@ -1001,8 +1086,21 @@ function renderTrophyDetails(row){
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 
-  el.btnMenu.addEventListener("click", () => {
+  function openMenuDialog(){
+    // Keep dialog chips in sync with quick controls.
+    if (el.sortDirRow){
+      for (const b of el.sortDirRow.querySelectorAll(".chip")){
+        b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
+      }
+    }
     if (!el.dlg.open) el.dlg.showModal();
+  }
+
+  // Build the floating quick access UI (FAB) once.
+  buildFab();
+
+  el.btnMenu.addEventListener("click", () => {
+    openMenuDialog();
   });
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
