@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-H
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-I
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-H").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-I").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -47,9 +47,9 @@
   // Feiner abgestufte Skalierung: kleine Sprünge, aber "sehr groß" bleibt erreichbar.
   const UI_SCALES = [
     { id: "normal",    v: 1.00, label: "A" },
-    { id: "gross",     v: 1.08, label: "A+" },
-    { id: "grossplus", v: 1.16, label: "A++" },
-    { id: "sehrgross", v: 1.24, label: "A+++" },
+    { id: "gross",     v: 1.06, label: "A+" },
+    { id: "grossplus", v: 1.12, label: "A++" },
+    { id: "sehrgross", v: 1.18, label: "A+++" },
   ];
 
   function getScalePreset(){
@@ -152,7 +152,7 @@
     const A = String(a ?? "").trim() || "—";
     const B = String(b ?? "").trim() || "—";
     if (isNumericToken(A) && isNumericToken(B)){
-      return `<span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span>`;
+      return `<span class="ratio"><span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span></span>`;
     }
     return esc(`${A} / ${B}`);
   }
@@ -164,7 +164,7 @@
       const A = parts[0].trim();
       const B = parts[1].trim();
       if (isNumericToken(A) && isNumericToken(B)){
-        return `<span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span>`;
+        return `<span class="ratio"><span class="num">${esc(A)}</span> <span class="slash">/</span> <span class="num">${esc(B)}</span></span>`;
       }
     }
     return esc(t);

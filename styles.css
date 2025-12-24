@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-H (Info-Block Hybrid + bessere Lesbarkeit) */
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-I (Typografie-Feinschliff: Labels/Values + Scores no-wrap) */
 :root{
   --uiScale: 1;
   --bg: Canvas;
@@ -337,9 +337,17 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   /* wichtig für große UI-Skalen: sonst können lange Werte das Grid sprengen */
   min-width:0;
 }
-.k{opacity:.78; font-weight:520}
+.k{
+  opacity:.74;
+  font-weight:650;
+  font-size: calc(12.5px * var(--uiScale));
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
 .v{
-  font-weight:520;
+  font-weight:650;
+  font-size: calc(14px * var(--uiScale));
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
   min-width:0;
   /* "anywhere" erzeugt teils extrem harte Silbentrennung (Graphi- / Adven- / ...)
@@ -349,6 +357,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   hyphens: auto;
   text-align:left;
 }
+
+/* Scores (z.B. 80 / 100) dürfen nicht umbrechen */
+.ratio{ white-space:nowrap; }
 
 details{
   margin:calc(10px * var(--uiScale)) 0 0;
@@ -554,7 +565,7 @@ summary::-webkit-details-marker{display:none}
 @media (min-width: 520px) and (orientation: landscape){
   .topGrid{
     display:grid;
-    grid-template-columns: 0.88fr 1.12fr;
+    grid-template-columns: 0.80fr 1.20fr;
     gap:calc(12px * var(--uiScale));
     align-items:start;
   }

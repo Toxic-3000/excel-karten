@@ -1,19 +1,16 @@
-# Build 7.0k-H
+# Build 7.0k-I
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-H
+## Was neu ist in 7.0k-I
 
-- **Info‑Block: Lesbarkeit & Rhythmus finalisiert**
-  - **Lebenszeit** ist **nicht mehr** im Info‑Block (bleibt ausschließlich in der **Humorstatistik**).
-  - **Genre → Subgenre → Entwickler** bleiben **stacked** (volle Breite).
-  - **Neue Trennlinien:**
-    - Feine Linie zwischen **Subgenre ↔ Entwickler**
-    - Deutlichere Linie zwischen **Entwickler ↔ Kennzahlen**
-  - **Werteblock neu ausbalanciert (auch bei A+ stabil):**
-    - **Spielzeit** als Primärwert (mit ruhigem Separator darunter)
-    - **Metascore + Userwertung** als Paar (ohne Linie dazwischen)
-    - Werte **rechtsbündig**, Zahlen als **tabellarische Ziffern**, Slash optisch ruhiger
+- **Typografie‑Feinschliff (wirkt in Info‑Block, Store, Humorstatistik):**
+  - Labels ("Genre", "Subgenre", "Metascore" …) sind **kleiner & klarer** (höheres Gewicht, dezenteres Grau, leichtes Letter‑Spacing).
+  - Werte sind **minimal größer & kräftiger** (tabellarische Ziffern), damit das Auge schneller "abgreift".
+  - **Scores** ("80 / 100") sind jetzt **no‑wrap** → kein unschönes Umbruch‑Stottern bei schmalen Spalten.
+
+- **UI‑Skalierung: feinere Schritte**
+  - A / A+ / A++ / A+++ sind enger gestaffelt, damit du nicht "zu grob" springen musst.
 
 - **Store & Humorstatistik typografisch vereinheitlicht**
   - Beide Bereiche nutzen jetzt das gleiche **Label/Wert‑Schema** wie der Werteblock (ruhiger, weniger „Badge‑/Formular‑Gefühl“).
@@ -73,4 +70,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-E → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
 - ✅ 7.0k-G → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
+- ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ⏭️ Nächstes Thema: **Desktop‑Lesbarkeit** feinjustieren (Font‑Stack, Zeilenlänge, Kontrast)
