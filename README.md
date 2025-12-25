@@ -1,14 +1,8 @@
-# Build 7.0k-P
+# Build 7.0k-K
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-P
-
-- **Hotfix: XLSX‑Import läuft wieder stabil:**
-  - Fehler **„txtHas is not defined“** ist behoben.
-  - Der vorherige Fix **„COL_PLATIN is not defined“** bleibt enthalten.
-  - Trophy‑Tokens wie **„100%“** / **„Platin“** werden robuster erkannt.
-  - Filter **„In Arbeit“** zeigt keine abgeschlossenen Spiele mehr an.
+## Was neu ist in 7.0k-K
 
 - **FAB „Ansicht“ (unaufdringlich, kein Sticky‑Menü):**
   - Unten rechts ein kleiner Button **„Aa“**.
@@ -25,10 +19,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - **Desktop‑Lesbarkeit:**
   - Font‑Stack für Desktop angepasst (bevorzugt Segoe UI Variable, wenn vorhanden) + bessere Text‑Rendereinstellung.
-
-- **Optik (dezent, weniger „grau in grau“):**
-  - Die aufklappbaren Bereiche haben jetzt eine sehr feine **Farbleiste je Sektion** (Beschreibung/Store/Trophäen/Humor/Eastereggs).
-  - Dadurch wirkt die Karte strukturierter, ohne bunt zu werden.
 
 ## Enthaltene Features (aus den vorherigen Builds)
 
@@ -74,16 +64,13 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0h5 → **Statischer Hintergrund** + **mehr Kartenabstand (ruhigeres Scrollen)**
 - ✅ 7.0i-A → **Variante A final** + **Store vor Trophäen** + **Trophäen‑Labels je Ansicht**
 - ✅ 7.0j-A → **Smartere ID‑Suche** + **Dialogtext kürzer** + **Eastereggs‑Sektion**
-- ✅ 7.0k-M → **Typografie‑Pass** (weniger Fettschrift, ruhigere Zeilenhöhe, stabilere Zahlen)
-- ✅ 7.0k-M → **Textgröße-Schalter** (A/A+/A++, Badges & UI skalieren mit)
-- ✅ 7.0k-M → **Skalierung-Fixes** (Spacing + Grid‑Overflow bei A++)
-- ✅ 7.0k-M → **Form‑Controls erben Font** + **Info‑Grid flexibler** (verhindert „Rauswandern“ bei A++)
-- ✅ 7.0k-M → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
-- ✅ 7.0k-M → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
-- ✅ 7.0k-M → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
-- ✅ 7.0k-M → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
-- ✅ 7.0k-N → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0k-N → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0k-N → **Bugfix XLSX Import** (COL_PLATIN) + **robustere Trophy‑Tokens** + **„In Arbeit“‑Filter korrekt**
-- ✅ 7.0k-O → **Hotfix**: `txtHas` fehlt nicht mehr (verhindert „XLSX: Fehler“ beim Einlesen)
+- ✅ 7.0k-A → **Typografie‑Pass** (weniger Fettschrift, ruhigere Zeilenhöhe, stabilere Zahlen)
+- ✅ 7.0k-B → **Textgröße-Schalter** (A/A+/A++, Badges & UI skalieren mit)
+- ✅ 7.0k-C → **Skalierung-Fixes** (Spacing + Grid‑Overflow bei A++)
+- ✅ 7.0k-D → **Form‑Controls erben Font** + **Info‑Grid flexibler** (verhindert „Rauswandern“ bei A++)
+- ✅ 7.0k-E → **Skalierung feiner** + **Header Mobile aufgeräumt** + **Info‑Umbruch angenehmer**
+- ✅ 7.0k-G → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
+- ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
+- ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
+- ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)

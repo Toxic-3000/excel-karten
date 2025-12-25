@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-L
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-K
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-P").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-K").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -254,13 +254,6 @@
   }
   function norm(s){
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
-  }
-
-  // Safe, normalized substring check (used by search/filters)
-  function txtHas(haystack, needle){
-    const n = norm(needle);
-    if (!n) return false;
-    return norm(haystack).includes(n);
   }
 
 
@@ -696,127 +689,87 @@
   }
 
 
-  
-function trophyTags(row){
-  // Tags for filtering (multi-select OR).
-  // We deliberately use *robust* substring checks here, because the Excel fields often contain
-  // platform-specific key/value strings (e.g., "PS4: 21/21 (100%)") and human wording variants.
-  const tags = new Set();
-
-  const p100 = String(row[COL.troph100] ?? "").trim();
-  const plat = String(row[COL.platin] ?? "").trim();
-  const prog = String(row[COL.trophProg] ?? "").trim();
-
-  const kv100 = parseKeyVals(p100);
-  const kvPlat = parseKeyVals(plat);
-  const kvProg = parseKeyVals(prog);
-
-  const vals = (kv) => Object.values(kv || {});
-  const any = (kv, fn) => vals(kv).some(fn);
-
-  const isNoPlatin = (s) => txtHas(s, "kein platin") || txtHas(s, "no plat") || txtHas(s, "no-platin");
-  const isPlatinDone = (s) => txtHas(s, "platin") && !isNoPlatin(s);
-  const isHundredDone = (s) => txtHas(s, "abgeschlossen") || /\b100\s*%?\b/i.test(String(s || ""));
-  const isUnplayed = (s) => txtHas(s, "ungespielt");
-  const isWorkToken = (s) =>
-    txtHas(s, "wird-bearbeitet") ||
-    txtHas(s, "in arbeit") ||
-    txtHas(s, "angefangen") ||
-    txtHas(s, "begonnen");
-
-  const platinDone = isPlatinDone(plat) || any(kvPlat, isPlatinDone);
-  const hundredDone = isHundredDone(p100) || any(kv100, isHundredDone);
-  const noPlatin = isNoPlatin(plat) || any(kvPlat, isNoPlatin);
-  const unplayed = isUnplayed(prog) || any(kvProg, isUnplayed);
-
-  // Best effort: derive progress percentage from "x/y (z%)" strings.
-  let maxPct = null;
-  const updPct = (s) => {
-    const r = parseFrac(s);
-    if (r && r.pct != null) maxPct = Math.max(maxPct ?? 0, r.pct);
-  };
-  updPct(prog);
-  vals(kvProg).forEach(updPct);
-
-  const complete = platinDone || hundredDone || (maxPct != null && maxPct >= 99.5);
-  const hasWork = isWorkToken(prog) || any(kvProg, isWorkToken);
-  const hasProgress = maxPct != null && maxPct > 0;
-
-  if (platinDone) tags.add("Platin");
-  if (hundredDone) tags.add("100%");
-  if (noPlatin) tags.add("Kein Platin");
-  if (unplayed) tags.add("Ungespielt");
-
-  // "In Arbeit" should mean: started, but not completed.
-  if (!unplayed && !complete && (hasWork || hasProgress)) tags.add("In Arbeit");
-
-  // Box-Teil marker (kept for your dataset semantics).
-  if (txtHas(plat, "box") || any(kvPlat, (v) => txtHas(v, "box"))) tags.add("Box-Teil");
-
-  // Unknown trophy fields
-  const allEmpty = !p100 && !plat && !prog;
-  if (allEmpty) tags.add("Unbekannt");
-
-  return tags;
-}
-
-  function trophySummary(row){
-    // Column names are centralized in the COL mapping.
-    const pl = String(row[COL.platin] ?? "").trim();
-    const g100 = String(row[COL.troph100] ?? "").trim();
+  function trophyTags(row){
+    // Tags for filtering (multi-select OR)
+    // "Platin", "100%", "In Arbeit", "Ungespielt", "Kein Platin", "Box-Teil", "Unbekannt"
+    const tags = new Set();
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
     const prog = String(row[COL.trophProg] ?? "").trim();
 
-    const isPlatin = txtHas(pl, "platin");
-    const isNoPlatin = txtHas(pl, "kein platin") || txtHas(pl, "no plat");
-    const isBox = txtHas(pl, "box-teil") || txtHas(pl, "boxt");
-
-    const is100Token = txtHas(g100, "abgeschlossen") || txtHas(g100, "100%") || txtHas(g100, "komplett");
-
-    // Fortschritt: entweder key:value (z.B. "PS4: 21/21 (100%)") oder pur (z.B. "21/21 (100%)")
-    let maxPct = null;
-    const d = parseKeyVals(prog);
-    for (const k in d){
-      const f = parseFrac(d[k]);
-      if (f && f.pct != null) maxPct = Math.max(maxPct ?? 0, f.pct);
-    }
-    if (prog && !prog.includes(":")){
-      const f = parseFrac(prog);
-      if (f && f.pct != null) maxPct = Math.max(maxPct ?? 0, f.pct);
+    if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
+      tags.add("Box-Teil");
+      return tags;
     }
 
-    const hasAny = maxPct != null && maxPct > 0;
-    const isComplete = isPlatin || is100Token || (maxPct != null && maxPct >= 99.5);
+    const g100 = (!p100.includes(":") ? p100 : "");
+    const gpl  = (!plat.includes(":") ? plat : "");
 
-    if (isComplete){
-      if (isPlatin) return {icon:"💎", text:"Platin", cls:"ok", maxPct};
-      if (isNoPlatin) return {icon:"◇", text:"Kein Platin", cls:"ok", maxPct};
-      return {icon:"✅", text:"100%", cls:"ok", maxPct};
+    const d100  = parseKeyVals(p100);
+    const dpl   = parseKeyVals(plat);
+    const dprog = parseKeyVals(prog);
+
+    const any = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyFrac = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
+
+    if (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt")) tags.add("Platin");
+    if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
+    if (gpl === "Nicht-Verfügbar" || any(dpl, "Nicht-Verfügbar")) tags.add("Kein Platin");
+
+    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
+        g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet") || anyFrac){
+      tags.add("In Arbeit");
     }
 
-    if (hasAny) return {icon:"🛠️", text:"In Arbeit", cls:"warn", maxPct};
-    if (isBox) return {icon:"📦", text:"Box-Teil", cls:"muted", maxPct};
-    if (isNoPlatin) return {icon:"◇", text:"Kein Platin", cls:"muted", maxPct};
-    if (txtHas(pl, "ungespielt")) return {icon:"💤", text:"Ungespielt", cls:"muted", maxPct};
+    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
 
-    return {icon:"🏆", text:"Trophäen", cls:"muted", maxPct};
+    if (!tags.size) tags.add("Unbekannt");
+    return tags;
   }
-function classifyAvailKey(av){
-  av=(av||'').toLowerCase();
-  if(av.includes('verfüg')) return 'available';
-  if(av.includes('delist')) return 'delisted';
-  if(av.includes('eingesch')) return 'restricted';
-  if(av.includes('unbek')) return 'unknown';
-  return 'unknown';
-}
 
+  function trophySummary(row){
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
+    const prog = String(row[COL.trophProg] ?? "").trim();
 
-function classifySource(src){
-    const v = String(src ?? "").toLowerCase().trim();
-    if (!v || v === "unbekannt") return "unknown";
-    if (v.includes("ps-plus") || v.includes("ps plus") || v.includes("psplus")) return "psplus";
-    if (v.includes("retail") || v.includes("disc") || v.includes("disk") || v.includes("phys")) return "retail";
-    if (v.includes("digital")) return "digital";
-    return "unknown";
+    // BOX?
+    if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
+      return {icon:"📦", text:"Box-Teil", cls:"warn"};
+    }
+
+    // global tokens
+    const g100 = (!p100.includes(":") ? p100 : "");
+    const gpl = (!plat.includes(":") ? plat : "");
+
+    const d100 = parseKeyVals(p100);
+    const dpl = parseKeyVals(plat);
+    const dprog = parseKeyVals(prog);
+
+    const has = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyProg = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
+
+    if (gpl === "Platin-Erlangt" || has(dpl, "Platin-Erlangt")) return {icon:"💎", text:"Platin", cls:"ok"};
+    if (g100 === "Abgeschlossen" || has(d100, "Abgeschlossen")) return {icon:"✅️", text:"100%", cls:"ok"};
+    if (gpl === "Wird-Bearbeitet" || has(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || has(d100, "Wird-Bearbeitet") || anyProg)
+      return {icon:"⏳️", text:"In Arbeit", cls:"warn"};
+    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") return {icon:"💤", text:"Ungespielt", cls:""};
+    // fallback: if empty or unknown
+    return {icon:"—", text:"Trophäen", cls:""};
+  }
+
+  function classifyAvailability(av){
+    const t = String(av ?? "").trim();
+    if (t === "Delisted") return "bad";
+    if (t === "Eingeschränkt") return "warn";
+    if (t === "Verfügbar") return "ok";
+    if (t === "Unbekannt") return "";
+    return ""; // Verfügbar or others
+  }
+  function classifySource(src){
+    const t = String(src ?? "").trim();
+    if (t === "Unbekannt") return "";
+    if (t === "PS-Plus") return "";
+    return "";
   }
 
   function storeLink(row){
@@ -889,7 +842,7 @@ function classifySource(src){
       const trophyBadge = badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`);
 
       // badge rows
-      const platBadges = sys.map(p => badge("platform", p, classifyPlatform(p)));
+      const platBadges = sys.map(p => badge("platform", p));
       const srcLabel = (src === "Unbekannt" ? "🏷️ Unbekannt" : src);
   const srcBadge = badge("source " + classifySource(src), srcLabel);
 
@@ -1076,7 +1029,7 @@ function renderTrophyDetails(row){
     blocks.push(`
       <div class="platBlock">
         <div class="tRow">
-          ${badge("platform", p, classifyPlatform(p))}
+          ${badge("platform", p)}
           ${(() => { const pl = labelPlatin(spl); return badgeRaw("tSlot", trophyText(pl.short, pl.long)); })()}
           ${(() => { const h = label100(s100); return badgeRaw("tSlot", trophyText(h.short, h.long)); })()}
         </div>
