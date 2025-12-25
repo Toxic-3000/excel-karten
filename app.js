@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Y
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Z
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Y").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Z").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -815,7 +815,7 @@ if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog)) {
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-Y)
+// Kartenkopf: Trophy-Badges (Build 7.0k-Z)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -829,6 +829,13 @@ function trophyHeaderBadges(row){
   if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
     return [];
   }
+
+
+// Ungespielt: expliziter Status in den Feldern (klassischer Datensatz)
+const isUngespielt = (s) => String(s || "").trim() === "Ungespielt";
+if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog) || (!p100 && !plat && !prog)){
+  return [{icon:"💤", text:"Ungespielt", cls:""}];
+}
 
   const g100 = (!p100.includes(":") ? p100 : "");
   const gpl  = (!plat.includes(":") ? plat : "");
