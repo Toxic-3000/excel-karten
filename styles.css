@@ -463,6 +463,19 @@ details{
   background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
   overflow:hidden;
 }
+
+/* Mehr „Charakter“ ohne Krawall: dezente Farbleiste je Sektion */
+details.d{
+  border-left: 4px solid var(--sec-accent, var(--border));
+}
+details.d > summary{
+  background: linear-gradient(90deg, color-mix(in oklab, var(--sec-accent, var(--fg)) 20%, transparent), transparent 55%);
+}
+details.d-desc{   --sec-accent: rgba(99,164,255,.85); }
+details.d-store{  --sec-accent: rgba(169,124,255,.85); }
+details.d-trophy{ --sec-accent: rgba(79,199,152,.85); }
+details.d-humor{  --sec-accent: rgba(255,193,77,.88); }
+details.d-easter{ --sec-accent: rgba(255,135,179,.78); }
 summary{
   list-style:none;
   cursor:pointer;

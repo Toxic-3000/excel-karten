@@ -1,11 +1,12 @@
-# Build 7.0k-N
+# Build 7.0k-P
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-N
+## Was neu ist in 7.0k-P
 
-- **Bugfix: XLSX‑Import läuft wieder:**
-  - Fehler „COL_PLATIN is not defined“ ist behoben.
+- **Hotfix: XLSX‑Import läuft wieder stabil:**
+  - Fehler **„txtHas is not defined“** ist behoben.
+  - Der vorherige Fix **„COL_PLATIN is not defined“** bleibt enthalten.
   - Trophy‑Tokens wie **„100%“** / **„Platin“** werden robuster erkannt.
   - Filter **„In Arbeit“** zeigt keine abgeschlossenen Spiele mehr an.
 
@@ -24,6 +25,10 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - **Desktop‑Lesbarkeit:**
   - Font‑Stack für Desktop angepasst (bevorzugt Segoe UI Variable, wenn vorhanden) + bessere Text‑Rendereinstellung.
+
+- **Optik (dezent, weniger „grau in grau“):**
+  - Die aufklappbaren Bereiche haben jetzt eine sehr feine **Farbleiste je Sektion** (Beschreibung/Store/Trophäen/Humor/Eastereggs).
+  - Dadurch wirkt die Karte strukturierter, ohne bunt zu werden.
 
 ## Enthaltene Features (aus den vorherigen Builds)
 
@@ -78,5 +83,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-M → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-M → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-N → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
+- ✅ 7.0k-N → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
 - ✅ 7.0k-N → **Bugfix XLSX Import** (COL_PLATIN) + **robustere Trophy‑Tokens** + **„In Arbeit“‑Filter korrekt**
+- ✅ 7.0k-O → **Hotfix**: `txtHas` fehlt nicht mehr (verhindert „XLSX: Fehler“ beim Einlesen)
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
