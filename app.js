@@ -40,13 +40,16 @@ console.log("Build 7.0l-B loaded");
     btnApply: $("btnApply"),
     btnClear: $("btnClear"),
     sortFieldRow: $("sortFieldRow"),
-    sortDirRow: $("sortDirRow"),
+    sortFieldSelect: $("sortFieldSelect"),
+    sortDirSelect: $("sortDirSelect"),
     favRow: $("favRow"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyRow: $("trophyRow"),
-    genreSelect: $("genreSelect"),
+    genreDetails: $("genreDetails"),
+    genreSummary: $("genreSummary"),
+    genreList: $("genreList"),
   };
 
 
@@ -451,25 +454,49 @@ console.log("Build 7.0l-B loaded");
   }
 
   function buildFilterUI(){
-    // Sort fields (chips)
-    const sortFields = [
-      {k:"ID", label:"ID"},
-      {k:"Spieletitel", label:"Titel"},
-      {k:"Metascore", label:"Metascore"},
-      {k:"Userwertung", label:"Userwertung"},
-      {k:"Spielzeit (Main)", label:"Main"},
-      {k:"Spielzeit (100%)", label:"100%"},
-      {k:"Genre", label:"Genre"},
-      {k:"Quelle", label:"Quelle"},
-      {k:"Verfügbarkeit", label:"Verfügbarkeit"},
-    ];
-    el.sortFieldRow.innerHTML = sortFields.map(sf => chipHtml("sortField", sf.k, sf.label, state.sortField === sf.k, true)).join("");
-    // Sortierrichtung bewusst NICHT "primary": wir nutzen hier den ruhigen Blau-Akzent,
-    // damit sich Auf-/Absteigend visuell von den Sortierfeldern abhebt.
-    el.sortDirRow.innerHTML = [
-      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", false),
-      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", false),
-    ].join("");
+    // Sortieren (Dropdowns – Variante B)
+const sortFields = [
+  {k:"ID", label:"ID"},
+  {k:"Spieletitel", label:"Titel"},
+  {k:"Metascore", label:"Metascore"},
+  {k:"Userwertung", label:"Userwertung"},
+  {k:"Spielzeit (Main)", label:"Main"},
+  {k:"Spielzeit (100%)", label:"100%"},
+  {k:"Genre", label:"Genre"},
+  {k:"Quelle", label:"Quelle"},
+  {k:"Verfügbarkeit", label:"Verfügbarkeit"},
+];
+
+// Render controls
+el.sortFieldRow.innerHTML = `
+  <div class="controlGrid">
+    <label class="control">
+      <span class="controlLabel">Sortieren nach</span>
+      <select id="sortFieldSelect" class="controlSelect" aria-label="Sortierfeld">
+        ${sortFields.map(sf => `<option value="${esc(sf.k)}">${esc(sf.label)}</option>`).join("")}
+      </select>
+    </label>
+    <label class="control">
+      <span class="controlLabel">Richtung</span>
+      <select id="sortDirSelect" class="controlSelect" aria-label="Sortierrichtung">
+        <option value="asc">Aufsteigend</option>
+        <option value="desc">Absteigend</option>
+      </select>
+    </label>
+  </div>
+`;
+
+// (Re)bind after render
+el.sortFieldSelect = el.dlg.querySelector("#sortFieldSelect");
+el.sortDirSelect = el.dlg.querySelector("#sortDirSelect");
+if (el.sortFieldSelect){
+  el.sortFieldSelect.value = state.sortField || "ID";
+  el.sortFieldSelect.onchange = () => { state.sortField = el.sortFieldSelect.value; };
+}
+if (el.sortDirSelect){
+  el.sortDirSelect.value = state.sortDir || "asc";
+  el.sortDirSelect.onchange = () => { state.sortDir = el.sortDirSelect.value; };
+}
 
     // Favorites toggle as chip (instead of checkbox)
     el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav);
@@ -494,39 +521,46 @@ console.log("Build 7.0l-B loaded");
     tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
 
-    // Genre dropdown (Multi-Select – ohne Suche)
-    if (el.genreSelect){
-      el.genreSelect.multiple = true;
+    // Genre (Multi-Select – ohne Suche, ordentlich als Liste)
+if (el.genreList && el.genreSummary){
+  const genres = Array.from(state.distinct.genres)
+    .filter(g => String(g||"").trim().length)
+    .sort((a,b) => a.localeCompare(b,"de"));
 
-      const genres = Array.from(state.distinct.genres)
-        .filter(Boolean)
-        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
+  const selected = state.filters.genres || new Set();
 
-      // Populate
-      el.genreSelect.innerHTML = "";
-      for (const g of genres){
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        el.genreSelect.appendChild(opt);
-      }
+  el.genreList.innerHTML = genres.map(g => {
+    const checked = selected.has(g) ? "checked" : "";
+    return `<label class="checkItem"><input type="checkbox" data-genre="${esc(g)}" ${checked} /> <span>${esc(g)}</span></label>`;
+  }).join("");
 
-      // Restore previous selection (if any)
-      const selected = state.filters.genres || new Set();
-      for (const opt of el.genreSelect.options){
-        opt.selected = selected.has(opt.value);
-      }
+  const refreshSummary = () => {
+    const n = (state.filters.genres?.size || 0);
+    el.genreSummary.textContent = `${n} ausgewählt`;
+  };
 
-      el.genreSelect.onchange = () => {
-        const s = new Set();
-        for (const opt of el.genreSelect.selectedOptions){
-          if (opt.value) s.add(opt.value);
-        }
-        state.filters.genres = s;
-      };
+  const syncFromUI = () => {
+    const s = new Set();
+    for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')){
+      if (cb.checked) s.add(cb.getAttribute("data-genre"));
     }
+    state.filters.genres = s;
+    refreshSummary();
+  };
 
-    // Wire chip clicks
+  // Initial
+  refreshSummary();
+
+  // Events
+  for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')){
+    cb.addEventListener("change", syncFromUI);
+  }
+
+  // Close details after selection on mobile? -> bewusst NICHT, damit man mehrere Genres in Ruhe wählen kann.
+}
+
+// Wire chip clicks
+ip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
       btn.addEventListener("click", () => onChip(btn));
     }
@@ -554,7 +588,19 @@ console.log("Build 7.0l-B loaded");
       btn.setAttribute("aria-pressed", pressed ? "false" : "true");
       return;
     }
-// toggle sets
+
+    if (group === "sortField"){
+      state.sortField = key;
+      if (el.sortFieldSelect) el.sortFieldSelect.value = key;
+      return;
+    }
+    if (group === "sortDir"){
+      state.sortDir = key;
+      if (el.sortDirSelect) el.sortDirSelect.value = key;
+      return;
+    }
+
+    // toggle sets
     btn.setAttribute("aria-pressed", pressed ? "false" : "true");
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
@@ -1185,11 +1231,6 @@ function renderTrophyDetails(row){
 
   function openMenuDialog(){
     // Keep dialog chips in sync with quick controls.
-    if (el.sortDirRow){
-      for (const b of el.sortDirRow.querySelectorAll(".chip")){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
-      }
-    }
     if (!el.dlg.open) el.dlg.showModal();
   }
 
@@ -1202,15 +1243,6 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
-    // Some mobile browsers are flaky with <select multiple> change events.
-    // Re-sync the selected genres on Apply to ensure multi-select works reliably.
-    if (el.genreSelect){
-      const s = new Set();
-      for (const opt of el.genreSelect.selectedOptions){
-        if (opt && opt.value) s.add(opt.value);
-      }
-      state.filters.genres = s;
-    }
     el.dlg.close();
     applyAndRender();
   });
@@ -1222,9 +1254,10 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    if (el.genreSelect){
-      for (const o of Array.from(el.genreSelect.options)) o.selected = false;
+    if (el.genreList){
+      for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')) cb.checked = false;
     }
+    if (el.genreSummary) el.genreSummary.textContent = "0 ausgewählt";
     // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");
@@ -1238,6 +1271,8 @@ function renderTrophyDetails(row){
     }
     state.sortField = "ID";
     state.sortDir = "asc";
+    if (el.sortFieldSelect) el.sortFieldSelect.value = "ID";
+    if (el.sortDirSelect) el.sortDirSelect.value = "asc";
   });
 
   // Sort chip handlers are live; apply takes effect when dialog applied

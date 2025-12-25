@@ -51,8 +51,9 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
 - Suche über **ID**, Titel/Genre/Subgenre/Entwickler
-- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
-- Filter: Favorit, Plattform, Quelle, Verfügbarkeit
+- Sortieren (Variante B): **Dropdown „Sortieren nach“** + **Dropdown „Richtung“** (ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit)
+- Filter: Favorit, Plattform, Quelle, Verfügbarkeit, Trophäenstatus
+  - Genre‑Filter: **Mehrfachauswahl als Liste** (ohne Suche), Anzeige als „x ausgewählt“
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
   - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Trophäen‑Status

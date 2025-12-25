@@ -89,8 +89,9 @@
       <div class="sheetBody">
         <div class="sect">
           <div class="sectTitle">Sortieren</div>
-          <div class="chipRow" id="sortFieldRow"></div>
-          <div class="chipRow" id="sortDirRow"></div>
+          <div id="sortControls" class="sortControls">
+            <div id="sortFieldRow"></div>
+          </div>
         </div>
 
         <div class="sect">
@@ -102,10 +103,14 @@
           </div>
 
           <div class="subsect" id="genreSect">
-            <div class="subTitle">Genre</div>
-            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen" multiple size="1">
-            </select>
-          </div>
+  <div class="subTitle">Genre</div>
+  <details id="genreDetails" class="multiSelect">
+    <summary><span id="genreSummary">0 ausgewählt</span></summary>
+    <div id="genreList" class="checkList"></div>
+  </details>
+</div>
+
+</div>
 
           <div class="subsect">
             <div class="subTitle">Plattform</div>
