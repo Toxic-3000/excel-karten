@@ -1,23 +1,36 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-J
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-K
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
 :root{
   --uiScale: 1;
-  --bg: Canvas;
-  --fg: CanvasText;
-  --muted: color-mix(in oklab, var(--fg) 60%, var(--bg) 40%);
-  --card: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  --border: color-mix(in oklab, var(--fg) 14%, var(--bg) 86%);
-  --shadow: 0 4px 12px rgba(0,0,0,.18), 0 26px 68px rgba(0,0,0,.20);
+
+  /* Softer, less “office-grey” base palette */
+  --bg: #f6f8ff;
+  --fg: #0f172a; /* slate-ish text for better desktop rendering */
+  --muted: color-mix(in oklab, var(--fg) 62%, var(--bg) 38%);
+
+  /* Surfaces */
+  --card: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
+  --border: color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+
+  /* Shadows (slightly clearer separation from background) */
+  --shadow: 0 10px 26px rgba(0,0,0,.12), 0 26px 68px rgba(0,0,0,.14);
+
   --r1: 16px;
   --r2: 22px;
+
+  /* Accents (kept tasteful) */
   --blue: #2a6fdb;
   --blue2:#1f57b5;
   --ok:#1f8f4a;
   --warn:#c59a00;
   --bad:#cc3b3b;
+
+  /* New: subtle highlight */
+  --glow: color-mix(in oklab, var(--blue) 22%, transparent);
 }
+
 
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -52,9 +65,10 @@ body{
   pointer-events:none;
   z-index:0;
   background:
-    radial-gradient(1100px 700px at 12% -10%, color-mix(in oklab, var(--blue) 10%, var(--bg) 90%), transparent 62%),
-    radial-gradient(1000px 700px at 88% -5%, color-mix(in oklab, var(--warn) 10%, var(--bg) 90%), transparent 62%),
-    var(--bg);
+    radial-gradient(1200px 760px at 12% -12%, color-mix(in oklab, var(--blue) 18%, var(--bg) 82%), transparent 62%),
+    radial-gradient(1080px 740px at 88% -8%, color-mix(in oklab, var(--warn) 14%, var(--bg) 86%), transparent 62%),
+    radial-gradient(900px 620px at 50% 110%, color-mix(in oklab, var(--blue2) 10%, var(--bg) 90%), transparent 60%),
+    linear-gradient(180deg, color-mix(in oklab, #ffffff 20%, var(--bg) 80%), var(--bg));
 }
 
 /* Ensure UI stays above the fixed background layer */
@@ -164,6 +178,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding: calc(14px * var(--uiScale));
   margin: 64px 0;
   transition: box-shadow .18s ease, transform .18s ease;
+}
+.card{position:relative; overflow:hidden}
+.card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; right:0;
+  height:2px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--blue) 55%, transparent), color-mix(in oklab, var(--warn) 45%, transparent));
+  opacity:.25;
 }
 
 .rowMeta{
@@ -652,6 +675,15 @@ summary::-webkit-details-marker{display:none}
 @media (min-width: 1100px){
   .wrap{max-width:1180px}
   .card{padding: calc(16px * var(--uiScale))}
+.card{position:relative; overflow:hidden}
+.card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; right:0;
+  height:2px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--blue) 55%, transparent), color-mix(in oklab, var(--warn) 45%, transparent));
+  opacity:.25;
+}
   .title{font-size: calc(26px * var(--uiScale))}
 }
 
@@ -759,4 +791,34 @@ summary::-webkit-details-marker{display:none}
   height: calc(44px * var(--uiScale));
   padding-right: calc(38px * var(--uiScale)); /* Platz für den Dropdown-Pfeil */
   overflow: hidden;
+}
+
+/* Subtle “less flat” interactions */
+.btn:hover{
+  border-color: color-mix(in oklab, var(--blue) 18%, var(--border) 82%);
+  background: color-mix(in oklab, var(--bg) 86%, #ffffff 14%);
+}
+.btn-primary:hover{
+  background: color-mix(in oklab, var(--blue) 34%, var(--bg) 66%);
+  border-color: color-mix(in oklab, var(--blue2) 65%, var(--border) 35%);
+}
+
+/* Badges/pills a touch less grey */
+.pill{
+  background: color-mix(in oklab, #ffffff 78%, var(--bg) 22%);
+}
+.pill-ok{ background: color-mix(in oklab, var(--ok) 10%, #ffffff 90%); }
+.pill-warn{ background: color-mix(in oklab, var(--warn) 10%, #ffffff 90%); }
+.pill-bad{ background: color-mix(in oklab, var(--bad) 10%, #ffffff 90%); }
+
+/* FAB polish */
+.fabBtn{
+  background: color-mix(in oklab, #ffffff 88%, var(--bg) 12%);
+  border-color: color-mix(in oklab, var(--blue) 18%, var(--border) 82%);
+}
+.fabBtn:hover{
+  border-color: color-mix(in oklab, var(--blue) 30%, var(--border) 70%);
+}
+.fabPanel{
+  background: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
 }
