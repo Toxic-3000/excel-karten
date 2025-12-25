@@ -681,9 +681,18 @@ summary::-webkit-details-marker{display:none}
   font-weight:600;
   padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
 }
+.chip.category[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 58%, var(--border) 42%);
+  background: color-mix(in oklab, var(--blue) 14%, var(--bg) 86%);
+  font-weight:650;
+}
 .chip.status{
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
   border-color: color-mix(in oklab, var(--border) 62%, var(--fg) 38%);
+}
+.chip.status[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 62%, var(--border) 38%);
+  background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
 }
 .chip.primary{
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
@@ -693,6 +702,16 @@ summary::-webkit-details-marker{display:none}
 .chip.primary[aria-pressed="true"]{
   border-color: color-mix(in oklab, var(--blue2) 70%, var(--border) 30%);
   background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+}
+
+/* Icon-only chips (Schnellfilter): kompakt, gut tappbar */
+.chip.iconOnly{
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  min-width: calc(44px * var(--uiScale));
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size: calc(18px * var(--uiScale));
 }
 .sheetActions{display:flex; gap: calc(10px * var(--uiScale)); justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
 .sheetFoot{margin-top:10px}

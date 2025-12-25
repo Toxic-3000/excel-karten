@@ -1,8 +1,19 @@
-# Build 7.0n-A
+# Build 7.0p-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0n-A
+## Was neu ist in 7.0p-A
+
+- **Filter-Badges: Auswahl leuchtet jetzt überall blau auf**
+  - Plattform / Quelle / Verfügbarkeit / Trophäenstatus zeigen den **Pressed‑State** wie die Primärfilter.
+  - Dadurch sind gesetzte Filter im jeweiligen Bereich sofort sichtbar und direkt wieder abwählbar.
+
+- **Schnellfilter als Icons (statt Text)**
+  - ⭐ Favoriten
+  - ⏳ In Arbeit
+  - 💤 Ungespielt
+  - ✅ 100%
+  - 💎 Platin
 
 - **Sortiermenü umgebaut (ruhiger & schneller):**
   - Im Dialog ist „Sortieren nach“ jetzt ein **Dropdown** statt vieler Chips (weniger Umbruch‑Chaos auf Mobile).

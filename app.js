@@ -1,12 +1,12 @@
-console.log("Build 7.0o-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0o-A
+console.log("Build 7.0p-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0p-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0o-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0p-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -558,13 +558,22 @@ console.log("Build 7.0o-A loaded");
     }
 
     // --- Schnellfilter (80%-Fälle) ---
+    // Icon-only, damit es nicht nach "Menü in einer Menü" aussieht.
     if (el.quickRow){
-      const important = ["In Arbeit","Ungespielt","Platin"];
       const parts = [];
-      parts.push(chipHtml("fav", "fav", "⭐ Favoriten", state.filters.fav, "primary"));
-      for (const t of important){
-        if (state.distinct.trophies.has(t)){
-          parts.push(chipHtml("trophy", t, t, state.filters.trophies.has(t), "primary"));
+      // ⭐ Favoriten
+      parts.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
+
+      // Trophäen-Quickfilter in fester Reihenfolge: ⏳ 💤 ✅ 💎
+      const quickTrophies = [
+        { key: "In Arbeit", icon: "⏳️", title: "In Arbeit" },
+        { key: "Ungespielt", icon: "💤", title: "Ungespielt" },
+        { key: "100%", icon: "✅️", title: "100%" },
+        { key: "Platin", icon: "💎", title: "Platin" },
+      ];
+      for (const qt of quickTrophies){
+        if (state.distinct.trophies.has(qt.key)){
+          parts.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
         }
       }
       el.quickRow.innerHTML = parts.join("");
@@ -638,7 +647,7 @@ console.log("Build 7.0o-A loaded");
     updateDialogMeta(true);
   }
 
-  function chipHtml(group, key, label, pressed, variant=false){
+  function chipHtml(group, key, label, pressed, variant=false, opts=null){
     // variant can be:
     // - false / undefined: normal
     // - true or "primary": primary/status-like
@@ -649,7 +658,11 @@ console.log("Build 7.0o-A loaded");
     if (variant === true || variant === "primary") cls += " primary";
     else if (variant === "category") cls += " category";
     else if (variant === "status") cls += " status";
-    return `<button type="button" class="${cls}" data-group="${esc(group)}" data-key="${esc(key)}" aria-pressed="${p}">${esc(label)}</button>`;
+    const o = opts && typeof opts === "object" ? opts : {};
+    if (o.iconOnly) cls += " iconOnly";
+    const title = (o.title != null) ? String(o.title) : "";
+    const titleAttr = title ? ` title="${esc(title)}" aria-label="${esc(title)}"` : "";
+    return `<button type="button" class="${cls}" data-group="${esc(group)}" data-key="${esc(key)}" aria-pressed="${p}"${titleAttr}>${esc(label)}</button>`;
   }
 
   function stripTagEmoji(label){
