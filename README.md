@@ -1,8 +1,8 @@
-# Build 7.0l-B
+# Build 7.0l-C
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0l-B
+## Was neu ist in 7.0l-C
 
 - **Bugfix: Trophäen-Filter „In Arbeit“**
   - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
@@ -79,7 +79,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0l-B → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
+- ✅ 7.0l-C → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
 
 
@@ -100,7 +100,7 @@ Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige i
 
 
 
-## Menü: Filter & Sortieren (Build 7.0l-B)
+## Menü: Filter & Sortieren (Build 7.0l-C)
 - Reiter: **Sortieren** / **Filtern** (aufgeräumter auf Mobile)
 - Sortierfeld als Dropdown, Reihenfolge als Toggle
 - Genre-Auswahl als Checklist-Dropdown **ohne Suche** (wie gewünscht)
