@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-K
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-L
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-K").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-L").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -710,18 +710,34 @@
     const dprog = parseKeyVals(prog);
 
     const any = (obj, token) => Object.values(obj).some(v => v === token);
-    const anyFrac = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
 
-    if (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt")) tags.add("Platin");
-    if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
+    // progress % derived from "X/Y (Z%)" strings
+    const pcts = Object.values(dprog)
+      .map(v => parseFrac(v)?.pct)
+      .filter(p => typeof p === "number" && !Number.isNaN(p));
+    const maxPct = pcts.length ? Math.max(...pcts) : null;
+
+    const isPlatin = (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt"));
+    const is100    = (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen"));
+    const isUnplayed = (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt");
+
+    // treat 99.5%+ as completed (covers rounding / missing explicit token)
+    const isComplete = isPlatin || is100 || (maxPct != null && maxPct >= 99.5);
+
+    if (isPlatin) tags.add("Platin");
+    if (is100 || (maxPct != null && maxPct >= 99.5)) tags.add("100%");
     if (gpl === "Nicht-Verfügbar" || any(dpl, "Nicht-Verfügbar")) tags.add("Kein Platin");
 
-    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
-        g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet") || anyFrac){
+    // "In Arbeit" means: started, but NOT completed.
+    const hasWorkToken = (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
+                         g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet"));
+    const hasProgress = (maxPct != null && maxPct > 0 && maxPct < 99.5);
+
+    if ((hasWorkToken || hasProgress) && !isComplete && !isUnplayed) {
       tags.add("In Arbeit");
     }
 
-    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
+    if (isUnplayed) tags.add("Ungespielt");
 
     if (!tags.size) tags.add("Unbekannt");
     return tags;
