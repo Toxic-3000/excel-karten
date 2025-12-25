@@ -5,7 +5,7 @@
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-M").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-N").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -709,7 +709,22 @@
     const dpl   = parseKeyVals(plat);
     const dprog = parseKeyVals(prog);
 
-    const any = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyEq = (obj, token) => Object.values(obj).some(v => v === token);
+    const anyMatch = (obj, fn) => Object.values(obj).some(fn);
+    const any = anyEq; // backwards compatible alias
+
+    const isPlatinDone = (t) => {
+      const s = String(t ?? "").trim();
+      // tolerate export variants: "Platin", but exclude "Kein Platin"
+      if (/^Kein\s+Platin$/i.test(s)) return false;
+      return s === "Platin-Erlangt" || /^Platin$/i.test(s);
+    };
+
+    const is100Done = (t) => {
+      const s = String(t ?? "").trim();
+      // tolerate variants like "100%", "100 %" in addition to "Abgeschlossen"
+      return s === "Abgeschlossen" || /\b100\s*%?\b/.test(s);
+    };
 
     // progress % derived from "X/Y (Z%)" strings
     const pcts = Object.values(dprog)
@@ -722,8 +737,8 @@
       if (f && f.pct != null) maxPct = Math.max(maxPct ?? 0, f.pct);
     }
 
-    const isPlatin = (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt"));
-    const is100    = (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen"));
+    const isPlatin = isPlatinDone(gpl) || anyMatch(dpl, isPlatinDone);
+    const is100    = is100Done(g100) || anyMatch(d100, is100Done);
     const isUnplayed = (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt");
 
     // treat 99.5%+ as completed (covers rounding / missing explicit token)
@@ -749,9 +764,10 @@
   }
 
   function trophySummary(row){
-    const pl = String(row[COL_PLATIN] ?? "").trim();
-    const g100 = String(row[COL_100] ?? "").trim();
-    const prog = String(row[COL_TROPH_PROG] ?? "").trim();
+    // Column names are centralized in the COL mapping.
+    const pl = String(row[COL.platin] ?? "").trim();
+    const g100 = String(row[COL.troph100] ?? "").trim();
+    const prog = String(row[COL.trophProg] ?? "").trim();
 
     const isPlatin = txtHas(pl, "platin");
     const isNoPlatin = txtHas(pl, "kein platin") || txtHas(pl, "no plat");

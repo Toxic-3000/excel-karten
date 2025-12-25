@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-M
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-N
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
@@ -878,7 +878,7 @@ summary::-webkit-details-marker{display:none}
 }
 
 
-/* ===== Build 7.0k-M: subtle color accents ===== */
+/* ===== Build 7.0k-N: subtle color accents ===== */
 .badge.platform.ps5{ background: rgba(78,140,255,.14); border-color: rgba(78,140,255,.26); }
 .badge.platform.ps4{ background: rgba(60,60,60,.10); border-color: rgba(60,60,60,.18); }
 .badge.platform.ps3{ background: rgba(120,120,120,.10); border-color: rgba(120,120,120,.18); }

@@ -1,8 +1,13 @@
-# Build 7.0k-M
+# Build 7.0k-N
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-M
+## Was neu ist in 7.0k-N
+
+- **Bugfix: XLSX‑Import läuft wieder:**
+  - Fehler „COL_PLATIN is not defined“ ist behoben.
+  - Trophy‑Tokens wie **„100%“** / **„Platin“** werden robuster erkannt.
+  - Filter **„In Arbeit“** zeigt keine abgeschlossenen Spiele mehr an.
 
 - **FAB „Ansicht“ (unaufdringlich, kein Sticky‑Menü):**
   - Unten rechts ein kleiner Button **„Aa“**.
@@ -72,5 +77,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-M → **Info‑Block Hybrid** (Genre als Text, Subgenre/Entwickler stacked, Kennzahlen als Tabelle)
 - ✅ 7.0k-M → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-M → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
-- ✅ 7.0k-M → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
+- ✅ 7.0k-N → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
+- ✅ 7.0k-N → **Bugfix XLSX Import** (COL_PLATIN) + **robustere Trophy‑Tokens** + **„In Arbeit“‑Filter korrekt**
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
