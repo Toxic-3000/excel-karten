@@ -1,8 +1,8 @@
-# Build 7.0k-P
+# Build 7.0k-Q
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-P
+## Was neu ist in 7.0k-Q
 
 - **Bugfix: Trophäen-Filter „In Arbeit“**
   - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
@@ -79,7 +79,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0k-P → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
+- ✅ 7.0k-Q → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
 
 
@@ -95,6 +95,9 @@ Regeln:
 - **Kein Platin** erscheint **nicht** im Header (nur im Trophäen-Akkordeon)
 - **100% ohne Platin** → `[100%]`
 - **In Arbeit ohne Platin** → `[In Arbeit]`
+
+Zusatz:
+- **Ungespielt** wird im Header angezeigt, wenn plattformbezogener Fortschritt erkannt wird und überall `0/x` steht.
 
 Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige im Akkordeon bleibt unverändert.
 

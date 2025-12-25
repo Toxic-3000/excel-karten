@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-P
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Q
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-P").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Q").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -804,7 +804,7 @@
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-P)
+// Kartenkopf: Trophy-Badges (Build 7.0k-Q)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -832,11 +832,14 @@ function trophyHeaderBadges(row){
   // Preferred: derive open/complete from "Trophäen Fortschritt" fractions (earned/total)
   const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
   let allComplete = false;
-  let anyPartial  = false;
-  if (fracs.length){
-    allComplete = fracs.every(f => f.a >= f.b);
-    anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
-  } else {
+        let anyPartial  = false;
+        let allZero    = false;
+        if (fracs.length){
+          allComplete = fracs.every(f => f.a >= f.b);
+          anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
+          allZero     = fracs.every(f => f.a <= 0);
+        } else {
+
     // Fallback: legacy tokens
     const anyWB = (gpl === "Wird-Bearbeitet" || hasToken(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || hasToken(d100, "Wird-Bearbeitet"));
     if (anyWB) anyPartial = true;
@@ -850,8 +853,9 @@ function trophyHeaderBadges(row){
       : [{icon:"💎", text:"Platin", cls:"ok"}];
   }
   if (anyPartial)  return [{icon:"⏳️", text:"In Arbeit", cls:"warn"}];
-  if (allComplete) return [{icon:"✅️", text:"100%", cls:"ok"}];
-  return [];
+        if (allComplete) return [{icon:"✅️", text:"100%", cls:"ok"}];
+        if (allZero)     return [{icon:"🕹️", text:"Ungespielt", cls:""}];
+        return [];
 }
 function classifyAvailability(av){
     const t = String(av ?? "").trim();
