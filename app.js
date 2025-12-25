@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Q
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-R
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Q").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-R").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -804,7 +804,7 @@
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-Q)
+// Kartenkopf: Trophy-Badges (Build 7.0k-R)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -814,7 +814,12 @@ function trophyHeaderBadges(row){
   const plat = String(row[COL.platin] ?? "").trim();
   const prog = String(row[COL.trophProg] ?? "").trim();
 
-  // Box-Teil: im Header nichts (Details im Akkordeon)
+  
+        // Wenn keinerlei Trophäenfelder befüllt sind, behandeln wir das im Header als "Ungespielt" (wie bisher).
+        if (!p100 && !plat && !prog) {
+          return [{icon:"🕹️", text:"Ungespielt", cls:""}];
+        }
+// Box-Teil: im Header nichts (Details im Akkordeon)
   if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
     return [];
   }

@@ -1,8 +1,8 @@
-# Build 7.0k-Q
+# Build 7.0k-R
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-Q
+## Was neu ist in 7.0k-R
 
 - **Bugfix: Trophäen-Filter „In Arbeit“**
   - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
@@ -79,7 +79,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0k-Q → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
+- ✅ 7.0k-R → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
 
 
@@ -101,3 +101,7 @@ Zusatz:
 
 Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige im Akkordeon bleibt unverändert.
 
+
+
+Zusatz:
+- Wenn **keinerlei** Trophäenfelder befüllt sind (Fortschritt/100%/Platin leer), wird im Kartenkopf **Ungespielt** angezeigt.
