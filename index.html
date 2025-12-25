@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Spieleliste</title>
+    <meta name="app-build" content="7.0k-V" />
+  <link rel="stylesheet" href="styles.7_0kV.css" />
+  <meta name="color-scheme" content="light dark" />
+</head>
+<body>
+  <!-- Static background layer (no parallax / no scroll drift) -->
+  <div class="appBg" aria-hidden="true"></div>
+  <header class="hdr">
+    <div class="topbar">
+      <div class="brand">
+        Spieleliste <span id="buildLabel" class="build">Build —</span>
+      </div>
+      <div class="topActions">
+        <button id="btnLoad" class="btn">Excel auswählen</button>
+        <button id="btnMenu" class="btn">Filter &amp; Sortieren</button>
+      </div>
+    </div>
+
+    <div class="subbar">
+      <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" />
+      <div class="pills">
+        <span id="pillFile" class="pill">Datei: —</span>
+        <span id="pillRows" class="pill">Treffer: —</span>
+        <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="empty" class="empty">
+      <div class="emptyCard">
+        <div class="emptyTitle">Excel laden</div>
+        <div class="emptyText">
+          Wähle deine <b>Spieleliste.xlsx</b> aus.
+          Danach erscheinen die Karten in der Kompaktansicht.
+        </div>
+        <div class="emptyActions">
+          <button id="btnLoad2" class="btn btn-primary">Excel auswählen</button>
+        </div>
+        <div class="emptyHint">
+          Tipp: Auf GitHub Pages müssen <b>index.html</b>, <b>styles.css</b>, <b>app.js</b> und <b>xlsx.full.min.js</b> im selben Ordner liegen.
+        </div>
+      </div>
+    </div>
+
+    <section id="cards" class="cards"></section>
+  </main>
+
+  <button id="btnTop" class="toTop" title="Nach oben">↑</button>
+
+  <!-- Floating quick access: unaufdringlich, kein Sticky-Header-Menü -->
+  <button id="fabView" class="fab" title="Ansicht" aria-label="Ansicht öffnen">Aa</button>
+  <div id="fabPanel" class="fabPanel" hidden>
+    <div class="fabHead">
+      <div class="fabTitle">Ansicht</div>
+      <button id="fabClose" class="fabClose" aria-label="Schließen">✕</button>
+    </div>
+
+    <div class="fabSect">
+      <div class="fabLabel">Textgröße</div>
+      <div id="fabScaleRow" class="chipRow fabChips" aria-label="Textgröße wählen"></div>
+    </div>
+
+    <div class="fabSect">
+      <div class="fabLabel">Sortierung</div>
+      <div id="fabSortDirRow" class="chipRow fabChips" aria-label="Sortierrichtung"></div>
+    </div>
+
+    <div class="fabActions">
+      <button id="fabOpenMenu" class="btn btn-primary">Filter &amp; Sortieren</button>
+    </div>
+  </div>
+
+  <input id="file" type="file" accept=".xlsx" hidden />
+
+  <dialog id="dlg" class="dlg">
+    <div class="sheet" role="dialog" aria-label="Filter und Sortierung">
+      <div class="sheetHead">
+        <div class="sheetTitle">Filter &amp; Sortieren</div>
+        <button id="btnClose" class="btn btn-icon" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="sheetBody">
+        <div class="sect">
+          <div class="sectTitle">Sortieren</div>
+          <div class="chipRow" id="sortFieldRow"></div>
+          <div class="chipRow" id="sortDirRow"></div>
+        </div>
+
+        <div class="sect">
+          <div class="sectTitle">Filter</div>
+
+          <div class="subsect" id="favSect">
+            <div class="subTitle">Favoriten</div>
+            <div class="chipRow" id="favRow"></div>
+          </div>
+
+          <div class="subsect" id="genreSect">
+            <div class="subTitle">Genre</div>
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen" multiple size="1">
+            </select>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Plattform</div>
+            <div class="chipRow" id="platRow"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Quelle</div>
+            <div class="chipRow" id="srcRow"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Verfügbarkeit</div>
+            <div class="chipRow" id="availRow"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Trophäenstatus</div>
+            <div class="chipRow" id="trophyRow"></div>
+          </div>
+        </div>
+
+        <div class="sheetActions">
+          <button id="btnClear" class="btn">Zurücksetzen</button>
+          <button id="btnApply" class="btn btn-primary">Anwenden</button>
+        </div>
+
+        <div class="sheetFoot">
+          <span class="muted">Alle Zustände werden als Badges angezeigt (inkl. „Unbekannt“, „Eingeschränkt“).</span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+
+  <script>
+    // Minimal fallback (Build 7.0k-V): show build + wire buttons to file picker even if app.js fails to load.
+    (function(){
+      try {
+        var buildLabel = document.getElementById("buildLabel");
+        if (buildLabel) buildLabel.textContent = "Build 7.0k-V";
+        var file = document.getElementById("file");
+        var b1 = document.getElementById("btnLoad");
+        var b2 = document.getElementById("btnLoad2");
+        if (file && b1) b1.addEventListener("click", function(){ file.click(); });
+        if (file && b2) b2.addEventListener("click", function(){ file.click(); });
+      } catch(e) {}
+    })();
+  </script>
+
+  <script src="xlsx.full.min.js"></script>
+  <script src="app.7_0kV.js"></script>
+</body>
+</html>
