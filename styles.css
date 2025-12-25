@@ -554,6 +554,65 @@ summary::-webkit-details-marker{display:none}
 .sect{margin-bottom: calc(18px * var(--uiScale))}
 .subsect{margin-top: calc(16px * var(--uiScale))}
 
+/* --- Dialog: Aktive Filter Bar (kompakt & antippbar) --- */
+.activeFilters{
+  display:flex;
+  flex-wrap:wrap;
+  gap: calc(10px * var(--uiScale));
+  margin-top: calc(10px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(10px * var(--uiScale));
+  border:1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--bg) 95%, var(--fg) 5%);
+}
+.afEmpty{opacity:.70; font-size: calc(12px * var(--uiScale));}
+.afChip{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  border-radius: 999px;
+  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-weight:650;
+  cursor:pointer;
+  user-select:none;
+}
+.afChip:active{
+  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+}
+.afX{opacity:.70; margin-left: calc(6px * var(--uiScale));}
+
+/* --- Dialog: Akkordeons (progressive Offenlegung) --- */
+.acc{
+  border:1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  overflow:hidden;
+  margin-top: calc(12px * var(--uiScale));
+}
+.acc > summary{
+  list-style:none;
+  cursor:pointer;
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: calc(10px * var(--uiScale));
+}
+.acc > summary::-webkit-details-marker{display:none}
+.accTitle{font-weight:650}
+.accSummary{opacity:.70; font-size: calc(12px * var(--uiScale));}
+.acc > summary::after{
+  content:"▾";
+  opacity:.55;
+  font-size: calc(14px * var(--uiScale));
+}
+.acc[open] > summary::after{content:"▴"}
+.accBody{
+  border-top:1px solid var(--border);
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  background: color-mix(in oklab, var(--bg) 97%, var(--fg) 3%);
+}
+
 .toggle{
   display:flex; gap:calc(10px * var(--uiScale)); align-items:center;
   border:1px solid var(--border);

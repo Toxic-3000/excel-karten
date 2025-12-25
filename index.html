@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0n-A" />
-  <link rel="stylesheet" href="styles.css?v=7.0n-A" />
+    <meta name="app-build" content="7.0o-A" />
+  <link rel="stylesheet" href="styles.css?v=7.0o-A" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -103,9 +103,13 @@
         <div class="sect">
           <div class="sectTitle">Filter</div>
 
-          <div class="subsect" id="favSect">
-            <div class="subTitle">Favoriten</div>
-            <div class="chipRow" id="favRow"></div>
+          <!-- Aktive Filter auf einen Blick (antippen = entfernen) -->
+          <div id="activeFilters" class="activeFilters" aria-label="Aktive Filter"></div>
+
+          <!-- Schnellfilter: häufige Fälle ohne Scrollen -->
+          <div class="subsect" id="quickSect">
+            <div class="subTitle">Schnellfilter</div>
+            <div class="chipRow" id="quickRow"></div>
           </div>
 
           <div class="subsect" id="genreSect">
@@ -115,23 +119,47 @@
           </div>
 
           <div class="subsect">
-            <div class="subTitle">Plattform</div>
-            <div class="chipRow" id="platRow"></div>
-          </div>
+            <div class="subTitle">Weitere Filter</div>
 
-          <div class="subsect">
-            <div class="subTitle">Quelle</div>
-            <div class="chipRow" id="srcRow"></div>
-          </div>
+            <details class="acc" id="platAcc">
+              <summary>
+                <span class="accTitle">Plattform</span>
+                <span id="platSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="platRow"></div>
+              </div>
+            </details>
 
-          <div class="subsect">
-            <div class="subTitle">Verfügbarkeit</div>
-            <div class="chipRow" id="availRow"></div>
-          </div>
+            <details class="acc" id="srcAcc">
+              <summary>
+                <span class="accTitle">Quelle</span>
+                <span id="srcSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="srcRow"></div>
+              </div>
+            </details>
 
-          <div class="subsect">
-            <div class="subTitle">Trophäenstatus</div>
-            <div class="chipRow" id="trophyRow"></div>
+            <details class="acc" id="availAcc">
+              <summary>
+                <span class="accTitle">Verfügbarkeit</span>
+                <span id="availSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="availRow"></div>
+              </div>
+            </details>
+
+            <details class="acc" id="trophyAcc">
+              <summary>
+                <span class="accTitle">Trophäenstatus</span>
+                <span id="trophySummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="trophyAllRow"></div>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -148,6 +176,6 @@
   </dialog>
 
   <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0n-A"></script>
+  <script src="app.js?v=7.0o-A"></script>
 </body>
 </html>

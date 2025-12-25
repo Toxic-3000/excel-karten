@@ -1,12 +1,12 @@
-console.log("Build 7.0n-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0n-A
+console.log("Build 7.0o-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0o-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0n-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0o-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -42,12 +42,19 @@ console.log("Build 7.0n-A loaded");
     btnClear: $("btnClear"),
     sortFieldRow: $("sortFieldRow"),
     sortDirRow: $("sortDirRow"),
-    favRow: $("favRow"),
+    activeFilters: $("activeFilters"),
+    quickRow: $("quickRow"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
-    trophyRow: $("trophyRow"),
+    trophyAllRow: $("trophyAllRow"),
     genreSelect: $("genreSelect"),
+
+    // Accordion summaries
+    platSummary: $("platSummary"),
+    srcSummary: $("srcSummary"),
+    availSummary: $("availSummary"),
+    trophySummary: $("trophySummary"),
   };
 
   // --- UI: Sortierung (Feld + Richtung) speichern ---
@@ -285,9 +292,7 @@ console.log("Build 7.0n-A loaded");
     },
     reminderCol: null,
     fileName: null,
-    ui: {
-      trophyExpanded: false,
-    },
+    ui: {},
   };
 
   function esc(s){
@@ -518,7 +523,7 @@ console.log("Build 7.0n-A loaded");
   }
 
   function buildFilterUI(){
-    // Sort field (dropdown) – ruhiger als Chip-Wolke, besonders auf Mobile.
+    // --- Sortieren (kompakt) ---
     if (el.sortFieldRow){
       el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
       const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
@@ -532,46 +537,40 @@ console.log("Build 7.0n-A loaded");
         };
       }
     }
-    // Sortierrichtung: ein einziger Toggle (↑/↓)
-    el.sortDirRow.innerHTML = `<button type="button" id="sortDirToggle" class="dirToggle" aria-label="Sortierrichtung umschalten"></button>`;
-    const sdBtn = el.sortDirRow.querySelector("#sortDirToggle");
-    if (sdBtn){
-      const paint = () => {
-        const asc = state.sortDir === "asc";
-        sdBtn.textContent = asc ? "↑" : "↓";
-        sdBtn.title = asc ? "Aufsteigend" : "Absteigend";
-        sdBtn.setAttribute("aria-pressed", asc ? "false" : "true");
-      };
-      paint();
-      sdBtn.onclick = () => {
-        state.sortDir = (state.sortDir === "asc") ? "desc" : "asc";
-        saveSortPrefs();
+    if (el.sortDirRow){
+      el.sortDirRow.innerHTML = `<button type="button" id="sortDirToggle" class="dirToggle" aria-label="Sortierrichtung umschalten"></button>`;
+      const sdBtn = el.sortDirRow.querySelector("#sortDirToggle");
+      if (sdBtn){
+        const paint = () => {
+          const asc = state.sortDir === "asc";
+          sdBtn.textContent = asc ? "↑" : "↓";
+          sdBtn.title = asc ? "Aufsteigend" : "Absteigend";
+          sdBtn.setAttribute("aria-pressed", asc ? "false" : "true");
+        };
         paint();
-        updateFabSortUI();
-      };
+        sdBtn.onclick = () => {
+          state.sortDir = (state.sortDir === "asc") ? "desc" : "asc";
+          saveSortPrefs();
+          paint();
+          updateFabSortUI();
+        };
+      }
     }
 
-    // Favorites toggle as chip (instead of checkbox)
-    el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav, "primary");
+    // --- Schnellfilter (80%-Fälle) ---
+    if (el.quickRow){
+      const important = ["In Arbeit","Ungespielt","Platin"];
+      const parts = [];
+      parts.push(chipHtml("fav", "fav", "⭐ Favoriten", state.filters.fav, "primary"));
+      for (const t of important){
+        if (state.distinct.trophies.has(t)){
+          parts.push(chipHtml("trophy", t, t, state.filters.trophies.has(t), "primary"));
+        }
+      }
+      el.quickRow.innerHTML = parts.join("");
+    }
 
-    // Platforms: show canonical order when possible
-    const plats = Array.from(state.distinct.platforms);
-    const order = ["PS3","PS4","PS5","Vita"];
-    plats.sort((a,b) => (order.indexOf(a) - order.indexOf(b)));
-    el.platRow.innerHTML = plats.map(p => chipHtml("plat", p, p, state.filters.platforms.has(p), "category")).join("");
-
-    // Sources and availability: show *all* states present
-    const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
-    // In der Kartenansicht darf das 🏷️-Symbol bleiben; im Filter-Dialog wirkt es aber unruhig.
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s), "category")).join("");
-
-    const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
-    el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a), "category")).join("");
-
-    // Trophäenstatus: standardmäßig kompakt (wichtigste + „Weitere…“)
-    buildTrophyRow();
-
-    // Genre dropdown (Single-Select)
+    // --- Genre (Dropdown) ---
     if (el.genreSelect){
       el.genreSelect.multiple = false;
       el.genreSelect.size = 1;
@@ -580,7 +579,6 @@ console.log("Build 7.0n-A loaded");
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      // Populate (inkl. "Alle")
       el.genreSelect.innerHTML = "";
       const optAll = document.createElement("option");
       optAll.value = "";
@@ -594,50 +592,50 @@ console.log("Build 7.0n-A loaded");
         el.genreSelect.appendChild(opt);
       }
 
-      // Restore selection
       el.genreSelect.value = state.filters.genre || "";
       el.genreSelect.onchange = () => {
         state.filters.genre = el.genreSelect.value || "";
+        updateDialogMeta();
       };
+    }
+
+    // --- Weitere Filter (Akkordeons) ---
+    // Plattform
+    if (el.platRow){
+      const plats = Array.from(state.distinct.platforms);
+      const order = ["PS3","PS4","PS5","Vita"];
+      plats.sort((a,b) => (order.indexOf(a) - order.indexOf(b)));
+      el.platRow.innerHTML = plats.map(p => chipHtml("plat", p, p, state.filters.platforms.has(p), "category")).join("");
+    }
+    // Quelle
+    if (el.srcRow){
+      const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
+      el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s), "category")).join("");
+    }
+    // Verfügbarkeit
+    if (el.availRow){
+      const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
+      el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a), "category")).join("");
+    }
+    // Trophäenstatus (alle im Akkordeon; schnelle Top-3 oben)
+    if (el.trophyAllRow){
+      const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
+      const tros = Array.from(state.distinct.trophies);
+      tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
+      const important = new Set(["In Arbeit","Ungespielt","Platin"]);
+      el.trophyAllRow.innerHTML = tros.map(t => {
+        const kind = important.has(t) ? "primary" : "status";
+        return chipHtml("trophy", t, t, state.filters.trophies.has(t), kind);
+      }).join("");
     }
 
     // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
       btn.addEventListener("click", () => onChip(btn));
     }
-  }
 
-
-  function buildTrophyRow(wire=false){
-    if (!el.trophyRow) return;
-
-    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
-    const tros = Array.from(state.distinct.trophies);
-    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
-
-    const important = ["In Arbeit","Ungespielt","Platin"];
-    const showAll = !!state.ui.trophyExpanded;
-
-    const visible = showAll ? tros : tros.filter(t => important.includes(t));
-    const hasMore = tros.some(t => !important.includes(t));
-
-    const chips = [];
-    for (const t of visible){
-      const kind = important.includes(t) ? "primary" : "status";
-      chips.push(chipHtml("trophy", t, t, state.filters.trophies.has(t), kind));
-    }
-
-    if (hasMore){
-      chips.push(chipHtml("trophyMore", "toggle", showAll ? "Weniger…" : "Weitere…", showAll, "category"));
-    }
-
-    el.trophyRow.innerHTML = chips.join("");
-
-    if (wire){
-      for (const btn of el.trophyRow.querySelectorAll(".chip")){
-        btn.addEventListener("click", () => onChip(btn));
-      }
-    }
+    // Active filter bar + summaries + apply count
+    updateDialogMeta(true);
   }
 
   function chipHtml(group, key, label, pressed, variant=false){
@@ -659,6 +657,179 @@ console.log("Build 7.0n-A loaded");
     return String(label ?? "").replace(/^\s*🏷\s*/u, "").trim();
   }
 
+  function cssEscape(s){
+    const v = String(s ?? "");
+    try{ return (window.CSS && typeof CSS.escape === "function") ? CSS.escape(v) : v; }
+    catch{ return v; }
+  }
+
+  function setAllChipPressed(group, key, pressed){
+    if (!el.dlg) return;
+    const g = cssEscape(group);
+    const k = cssEscape(key);
+    const nodes = el.dlg.querySelectorAll(`.chip[data-group="${g}"][data-key="${k}"]`);
+    for (const n of nodes){
+      n.setAttribute("aria-pressed", pressed ? "true" : "false");
+    }
+  }
+
+  function summarizeMulti(set, maxItems=2, mapFn=null){
+    if (!set || !set.size) return "Alle";
+    let arr = Array.from(set);
+    if (typeof mapFn === "function") arr = arr.map(mapFn);
+    if (arr.length <= maxItems) return arr.join(", ");
+    return `${arr.length} gewählt`;
+  }
+
+  function updateAccordionSummaries(){
+    if (el.platSummary) el.platSummary.textContent = summarizeMulti(state.filters.platforms);
+    if (el.srcSummary)  el.srcSummary.textContent  = summarizeMulti(state.filters.sources, 2, stripTagEmoji);
+    if (el.availSummary) el.availSummary.textContent = summarizeMulti(state.filters.availability);
+    if (el.trophySummary) el.trophySummary.textContent = summarizeMulti(state.filters.trophies);
+  }
+
+  function renderActiveFilterBar(){
+    if (!el.activeFilters) return;
+    const items = [];
+
+    if (state.filters.fav){
+      items.push({group:"fav", key:"fav", label:"⭐ Favoriten"});
+    }
+    if (state.filters.genre){
+      items.push({group:"genre", key: state.filters.genre, label:`Genre: ${state.filters.genre}`});
+    }
+    for (const p of state.filters.platforms){
+      items.push({group:"plat", key:p, label:p});
+    }
+    for (const s of state.filters.sources){
+      items.push({group:"src", key:s, label: stripTagEmoji(s)});
+    }
+    for (const a of state.filters.availability){
+      items.push({group:"avail", key:a, label:a});
+    }
+    for (const t of state.filters.trophies){
+      items.push({group:"trophy", key:t, label:t});
+    }
+
+    if (!items.length){
+      el.activeFilters.innerHTML = `<span class="afEmpty">Keine Filter aktiv</span>`;
+      return;
+    }
+
+    el.activeFilters.innerHTML = items.map(it => {
+      return `<button type="button" class="afChip" data-group="${esc(it.group)}" data-key="${esc(it.key)}">${esc(it.label)} <span class="afX">×</span></button>`;
+    }).join("");
+
+    for (const b of el.activeFilters.querySelectorAll(".afChip")){
+      b.addEventListener("click", () => {
+        const group = b.getAttribute("data-group");
+        const key = b.getAttribute("data-key");
+        if (group === "fav") state.filters.fav = false;
+        else if (group === "genre") state.filters.genre = "";
+        else if (group === "plat") state.filters.platforms.delete(key);
+        else if (group === "src") state.filters.sources.delete(key);
+        else if (group === "avail") state.filters.availability.delete(key);
+        else if (group === "trophy") state.filters.trophies.delete(key);
+
+        // Sync UI elements without nuking the whole dialog
+        if (group === "genre" && el.genreSelect){
+          el.genreSelect.value = "";
+        } else {
+          setAllChipPressed(group, key, false);
+        }
+        // Also sync quick/duplicate trophy chips
+        if (group === "trophy") setAllChipPressed("trophy", key, false);
+        if (group === "fav") setAllChipPressed("fav", "fav", false);
+
+        updateDialogMeta();
+      });
+    }
+  }
+
+  let _applyCountTimer = null;
+  function scheduleApplyCount(){
+    if (_applyCountTimer) clearTimeout(_applyCountTimer);
+    _applyCountTimer = setTimeout(updateApplyCount, 80);
+  }
+
+  function computeFilteredCount(){
+    if (!state.rows || !state.rows.length) return 0;
+    const qRaw = String(state.q ?? "");
+    const q = norm(qRaw);
+    const idQuery = parseIdQuery(qRaw);
+    const favOnly = state.filters.fav;
+    const platF = state.filters.platforms;
+    const srcF = state.filters.sources;
+    const avF = state.filters.availability;
+    const troF = state.filters.trophies;
+    const wantGenre = state.filters.genre ? norm(state.filters.genre) : "";
+
+    let n = 0;
+    for (const r of state.rows){
+      // search
+      if (q){
+        if (idQuery){
+          const rid = String(r[COL.id] ?? "").trim();
+          const rn = String(Number(rid));
+          if (rn !== idQuery) continue;
+        } else {
+          const hay = [
+            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
+            r[COL.source], r[COL.avail]
+          ].map(norm).join(" | ");
+          if (!hay.includes(q)) continue;
+        }
+      }
+      if (favOnly){
+        const f = String(r[COL.fav] ?? "").trim().toLowerCase();
+        if (f !== "x" && f !== "1" && f !== "true") continue;
+      }
+      if (wantGenre){
+        const got = norm(r[COL.genre]);
+        if (got !== wantGenre) continue;
+      }
+      if (platF.size){
+        const sys = splitPipe(r[COL.system]);
+        let ok = false;
+        for (const p of platF){ if (sys.includes(p)) { ok = true; break; } }
+        if (!ok) continue;
+      }
+      if (srcF.size){
+        const src = normalizeSourceValue(r[COL.source]);
+        if (!srcF.has(src)) continue;
+      }
+      if (avF.size){
+        const av = String(r[COL.avail] ?? "").trim();
+        if (!avF.has(av)) continue;
+      }
+      if (troF.size){
+        const tags = trophyTags(r);
+        let ok = false;
+        for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
+        if (!ok) continue;
+      }
+      n++;
+    }
+    return n;
+  }
+
+  function updateApplyCount(){
+    if (!el.btnApply) return;
+    if (!state.rows || !state.rows.length){
+      el.btnApply.textContent = "Anwenden";
+      return;
+    }
+    const n = computeFilteredCount();
+    el.btnApply.textContent = `Anwenden (${n})`;
+  }
+
+  function updateDialogMeta(forceNow=false){
+    updateAccordionSummaries();
+    renderActiveFilterBar();
+    if (forceNow) updateApplyCount();
+    else scheduleApplyCount();
+  }
+
   function onChip(btn){
     const group = btn.getAttribute("data-group");
     const key = btn.getAttribute("data-key");
@@ -667,27 +838,12 @@ console.log("Build 7.0n-A loaded");
     if (group === "fav"){
       // simple toggle
       state.filters.fav = !pressed;
-      btn.setAttribute("aria-pressed", pressed ? "false" : "true");
-      return;
-    }
-
-    if (group === "trophyMore"){
-      state.ui.trophyExpanded = !state.ui.trophyExpanded;
-      buildTrophyRow(true);
-      return;
-    }
-
-    if (group === "sortField"){
-      // exclusive
-      state.sortField = key;
-      for (const b of el.sortFieldRow.querySelectorAll(".chip")){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
-      }
+      setAllChipPressed("fav", "fav", !pressed);
+      updateDialogMeta();
       return;
     }
 
     // toggle sets
-    btn.setAttribute("aria-pressed", pressed ? "false" : "true");
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
               : group === "avail" ? state.filters.availability
@@ -696,6 +852,10 @@ console.log("Build 7.0n-A loaded");
     if (!set) return;
     if (pressed) set.delete(key);
     else set.add(key);
+
+    // Sync duplicates (v.a. Trophäen: Schnellfilter + Akkordeon)
+    setAllChipPressed(group, key, !pressed);
+    updateDialogMeta();
   }
 
   function parseScore(s){
@@ -1315,19 +1475,15 @@ function renderTrophyDetails(row){
   el.search.addEventListener("input", () => {
     state.q = el.search.value || "";
     applyAndRender();
+    // If the dialog is open, keep the "Anwenden (N)" count in sync with search.
+    if (el.dlg?.open) updateApplyCount();
   });
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 
   function openMenuDialog(){
-    // Keep dialog chips in sync with quick controls.
-    const sfSel = el.sortFieldRow?.querySelector?.("#sortFieldSelect");
-    if (sfSel) sfSel.value = state.sortField;
-    if (el.sortDirRow){
-      for (const b of el.sortDirRow.querySelectorAll(".chip")){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
-      }
-    }
+    // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
+    buildFilterUI();
     if (!el.dlg.open) el.dlg.showModal();
   }
 
@@ -1355,7 +1511,6 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    state.ui.trophyExpanded = false;
 
     state.sortField = "ID";
     state.sortDir = "asc";
