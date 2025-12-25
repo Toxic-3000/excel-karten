@@ -1,8 +1,17 @@
-# Build 7.0k-K
+# Build 7.0k-L
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-K
+## Was neu ist in 7.0k-L
+
+- **Bugfix: Trophäen-Filter „In Arbeit“**
+  - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
+  - **100%** bedeutet jetzt: **keine offenen Trophäen mehr** (alle Einträge `a==b`).
+  - **In Arbeit** bedeutet: **mindestens ein Eintrag** mit `0 < a < b`.
+  - Dadurch erscheinen **abgeschlossene Spiele nicht mehr** im Filter „In Arbeit“.
+  - **Platin** / **Kein Platin** bleiben unabhängig und können mit „In Arbeit“ koexistieren (z. B. DLC offen).
+
+## Enthaltene Features (aus 7.0k-K und vorher)
 
 - **FAB „Ansicht“ (unaufdringlich, kein Sticky‑Menü):**
   - Unten rechts ein kleiner Button **„Aa“**.
@@ -19,9 +28,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - **Desktop‑Lesbarkeit:**
   - Font‑Stack für Desktop angepasst (bevorzugt Segoe UI Variable, wenn vorhanden) + bessere Text‑Rendereinstellung.
-
-## Enthaltene Features (aus den vorherigen Builds)
-
 
 - **Suche ist schlauer:** Reine Zahl (z. B. `2064`) oder `ID:2064`/`#2064` matcht direkt auf die **ID (1–4 stellig)**.
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
@@ -73,4 +79,5 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
+- ✅ 7.0k-L → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)

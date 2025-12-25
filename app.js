@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-K
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-L
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-K").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-L").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -710,18 +710,46 @@
     const dprog = parseKeyVals(prog);
 
     const any = (obj, token) => Object.values(obj).some(v => v === token);
-    const anyFrac = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
 
+    // --- Base tags (independent of progress) ---
     if (gpl === "Platin-Erlangt" || any(dpl, "Platin-Erlangt")) tags.add("Platin");
-    if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
     if (gpl === "Nicht-Verfügbar" || any(dpl, "Nicht-Verfügbar")) tags.add("Kein Platin");
 
-    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") ||
-        g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet") || anyFrac){
-      tags.add("In Arbeit");
+    // "Ungespielt" may be explicitly set as a global token.
+    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
+
+    // --- Progress-derived status ---
+    // "Trophäen Fortschritt" stores earned/total (e.g. "PS3:50/50|PS4:12/18").
+    // Rule: 100% means no trophies open (all earned == total). In Arbeit means some open (0 < earned < total).
+    const fracs = Object.values(dprog)
+      .map(v => parseFrac(v))
+      .filter(Boolean);
+
+    if (fracs.length){
+      const allComplete = fracs.every(f => f.a >= f.b);
+      const anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
+      const allZero     = fracs.every(f => f.a <= 0);
+
+      if (allComplete){
+        tags.add("100%");
+        // do NOT add "In Arbeit" if nothing is open
+      } else if (anyPartial){
+        tags.add("In Arbeit");
+      } else if (allZero){
+        tags.add("Ungespielt");
+      }
+    } else {
+      // Fallback: keep legacy token support for the 100%-column if no progress fractions exist.
+      if (g100 === "Abgeschlossen" || any(d100, "Abgeschlossen")) tags.add("100%");
+      if ((gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet"))){
+        tags.add("In Arbeit");
+      }
     }
 
-    if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") tags.add("Ungespielt");
+    // If the sheet explicitly marks "Wird-Bearbeitet", allow it to coexist (e.g., manual override).
+    if (gpl === "Wird-Bearbeitet" || any(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || any(d100, "Wird-Bearbeitet")){
+      tags.add("In Arbeit");
+    }
 
     if (!tags.size) tags.add("Unbekannt");
     return tags;
@@ -746,11 +774,28 @@
     const dprog = parseKeyVals(prog);
 
     const has = (obj, token) => Object.values(obj).some(v => v === token);
-    const anyProg = Object.values(dprog).some(v => parseFrac(v)?.pct != null);
 
+    // Progress-derived overall status (preferred): show "In Arbeit" if anything is still open,
+    // even if the base game is already platinum (DLC open is still "in progress").
+    const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
+    if (fracs.length){
+      const allComplete = fracs.every(f => f.a >= f.b);
+      const anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
+      const allZero     = fracs.every(f => f.a <= 0);
+
+      if (allComplete){
+        if (gpl === "Platin-Erlangt" || has(dpl, "Platin-Erlangt")) return {icon:"💎", text:"Platin", cls:"ok"};
+        return {icon:"✅️", text:"100%", cls:"ok"};
+      }
+      if (anyPartial || (gpl === "Wird-Bearbeitet" || has(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || has(d100, "Wird-Bearbeitet")))
+        return {icon:"⏳️", text:"In Arbeit", cls:"warn"};
+      if (allZero) return {icon:"💤", text:"Ungespielt", cls:""};
+    }
+
+    // Fallbacks if no fractions exist
     if (gpl === "Platin-Erlangt" || has(dpl, "Platin-Erlangt")) return {icon:"💎", text:"Platin", cls:"ok"};
     if (g100 === "Abgeschlossen" || has(d100, "Abgeschlossen")) return {icon:"✅️", text:"100%", cls:"ok"};
-    if (gpl === "Wird-Bearbeitet" || has(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || has(d100, "Wird-Bearbeitet") || anyProg)
+    if (gpl === "Wird-Bearbeitet" || has(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || has(d100, "Wird-Bearbeitet"))
       return {icon:"⏳️", text:"In Arbeit", cls:"warn"};
     if (gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt") return {icon:"💤", text:"Ungespielt", cls:""};
     // fallback: if empty or unknown
