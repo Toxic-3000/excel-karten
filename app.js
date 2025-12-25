@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-W
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Y
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-W").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Y").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -766,6 +766,13 @@
     }
 
 
+
+// Explizites "Ungespielt" in den Feldern (klassischer Datensatz: Fortschritt/100%/Platin = Ungespielt)
+const isUngespielt = (s) => String(s || "").trim() === "Ungespielt";
+if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog)) {
+  return {icon:"💤", text:"Ungespielt", cls:""};
+}
+
     // Leer => Ungespielt (wie in früheren Builds)
     if (!p100 && !plat && !prog) return {icon:"💤", text:"Ungespielt", cls:""};
 
@@ -808,7 +815,7 @@
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-W)
+// Kartenkopf: Trophy-Badges (Build 7.0k-Y)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
