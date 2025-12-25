@@ -1,12 +1,12 @@
-console.log("Build 7.0l-C loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-C
+console.log("Build 7.0l-B loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-B
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0l-C").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0l-B").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -38,27 +38,16 @@ console.log("Build 7.0l-C loaded");
     dlg: $("dlg"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
-    btnClear: $("btnClear"),    sortDirRow: $("sortDirRow"),
-
-tabSort: $("tabSort"),
-tabFilter: $("tabFilter"),
-panelSort: $("panelSort"),
-panelFilter: $("panelFilter"),
-
-sortFieldSelect: $("sortFieldSelect"),
-
-genreDD: $("genreDD"),
-genreList: $("genreList"),
-genreMeta: $("genreMeta"),
-platMeta: $("platMeta"),
-srcMeta: $("srcMeta"),
-availMeta: $("availMeta"),
-trophyMeta: $("trophyMeta"),
+    btnClear: $("btnClear"),
+    sortFieldRow: $("sortFieldRow"),
+    sortDirRow: $("sortDirRow"),
     favRow: $("favRow"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
-    trophyRow: $("trophyRow"),  };
+    trophyRow: $("trophyRow"),
+    genreSelect: $("genreSelect"),
+  };
 
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
@@ -462,144 +451,86 @@ trophyMeta: $("trophyMeta"),
   }
 
   function buildFilterUI(){
-  if (!el.dlg) return;
-
-  // --- Sortieren ---
-  const sortFields = [
-    { k: "ID", label: "ID" },
-    { k: "title", label: "Titel" },
-    { k: "metascore", label: "Metascore" },
-    { k: "userscore", label: "Userwertung" },
-    { k: "main", label: "Main" },
-    { k: "hundred", label: "100%" },
-    { k: "genre", label: "Genre" },
-    { k: "source", label: "Quelle" },
-    { k: "availability", label: "Verfügbarkeit" },
-  ];
-
-  // Dropdown statt Chip-Wolke
-  if (el.sortFieldSelect){
-    el.sortFieldSelect.innerHTML = "";
-    for (const sf of sortFields){
-      const opt = document.createElement("option");
-      opt.value = sf.k;
-      opt.textContent = sf.label;
-      el.sortFieldSelect.appendChild(opt);
-    }
-    el.sortFieldSelect.value = state.sortField || "ID";
-    el.sortFieldSelect.onchange = () => {
-      state.sortField = el.sortFieldSelect.value;
-    };
-  }
-
-  if (el.sortDirRow){
+    // Sort fields (chips)
+    const sortFields = [
+      {k:"ID", label:"ID"},
+      {k:"Spieletitel", label:"Titel"},
+      {k:"Metascore", label:"Metascore"},
+      {k:"Userwertung", label:"Userwertung"},
+      {k:"Spielzeit (Main)", label:"Main"},
+      {k:"Spielzeit (100%)", label:"100%"},
+      {k:"Genre", label:"Genre"},
+      {k:"Quelle", label:"Quelle"},
+      {k:"Verfügbarkeit", label:"Verfügbarkeit"},
+    ];
+    el.sortFieldRow.innerHTML = sortFields.map(sf => chipHtml("sortField", sf.k, sf.label, state.sortField === sf.k, true)).join("");
+    // Sortierrichtung bewusst NICHT "primary": wir nutzen hier den ruhigen Blau-Akzent,
+    // damit sich Auf-/Absteigend visuell von den Sortierfeldern abhebt.
     el.sortDirRow.innerHTML = [
-      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc"),
-      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc"),
+      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", false),
+      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", false),
     ].join("");
-  }
 
-  // --- Filtern ---
-  if (el.favRow){
+    // Favorites toggle as chip (instead of checkbox)
     el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav);
-  }
 
-  if (el.genreList){
-    const genres = Array.from(state.distinct.genres)
-      .filter(Boolean)
-      .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
+    // Platforms: show canonical order when possible
+    const plats = Array.from(state.distinct.platforms);
+    const order = ["PS3","PS4","PS5","Vita"];
+    plats.sort((a,b) => (order.indexOf(a) - order.indexOf(b)));
+    el.platRow.innerHTML = plats.map(p => chipHtml("plat", p, p, state.filters.platforms.has(p))).join("");
 
-    el.genreList.innerHTML = "";
-    for (const g of genres){
-      const row = document.createElement("label");
-      row.className = "ddOpt";
+    // Sources and availability: show *all* states present
+    const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
+    // In der Kartenansicht darf das 🏷️-Symbol bleiben; im Filter-Dialog wirkt es aber unruhig.
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s))).join("");
 
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.value = g;
-      cb.checked = state.filters.genres.has(g);
+    const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
+    el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
 
-      cb.addEventListener("change", () => {
-        if (cb.checked) state.filters.genres.add(g);
-        else state.filters.genres.delete(g);
-        updateMenuMeta();
-      });
-
-      const sp = document.createElement("span");
-      sp.textContent = g;
-
-      row.appendChild(cb);
-      row.appendChild(sp);
-      el.genreList.appendChild(row);
-    }
-  }
-
-  if (el.platRow){
-    const plats = Array.from(state.distinct.platforms).filter(Boolean).sort();
-    el.platRow.innerHTML = plats.map(p => chipHtml("platform", p, p, state.filters.platforms.has(p))).join("");
-  }
-
-  if (el.srcRow){
-    const srcs = Array.from(state.distinct.sources).filter(Boolean).sort();
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("source", s, s, state.filters.sources.has(s))).join("");
-  }
-
-  if (el.availRow){
-    const avs = Array.from(state.distinct.availability).filter(Boolean).sort();
-    el.availRow.innerHTML = avs.map(a => chipHtml("availability", a, a, state.filters.availability.has(a))).join("");
-  }
-
-  if (el.trophyRow){
-    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil"];
-    const tros = Array.from(state.distinct.trophies)
-      .filter(Boolean)
-      .sort((a,b) => {
-        const aa = stripTagEmoji(a).trim();
-        const bb = stripTagEmoji(b).trim();
-        const ia = trophyOrder.indexOf(aa); 
-        const ib = trophyOrder.indexOf(bb);
-        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-      });
-
+    // Trophy status chips (show all tags that appear)
+    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
+    const tros = Array.from(state.distinct.trophies);
+    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
-  }
 
-  // Wire chip clicks (für Chip-Gruppen, nicht für Genre-Checkboxen)
-  for (const btn of el.dlg.querySelectorAll(".chip")){
-    btn.addEventListener("click", () => onChip(btn));
-  }
+    // Genre dropdown (Multi-Select – ohne Suche)
+    if (el.genreSelect){
+      el.genreSelect.multiple = true;
 
-  updateMenuMeta();
-}
+      const genres = Array.from(state.distinct.genres)
+        .filter(Boolean)
+        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
+      // Populate
+      el.genreSelect.innerHTML = "";
+      for (const g of genres){
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        el.genreSelect.appendChild(opt);
+      }
 
-    });
-    const sp = document.createElement("span");
-    sp.textContent = g;
-    row.appendChild(cb);
-    row.appendChild(sp);
-    el.genreList.appendChild(row);
-  }
-}
+      // Restore previous selection (if any)
+      const selected = state.filters.genres || new Set();
+      for (const opt of el.genreSelect.options){
+        opt.selected = selected.has(opt.value);
+      }
+
+      el.genreSelect.onchange = () => {
+        const s = new Set();
+        for (const opt of el.genreSelect.selectedOptions){
+          if (opt.value) s.add(opt.value);
+        }
+        state.filters.genres = s;
+      };
+    }
 
     // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
       btn.addEventListener("click", () => onChip(btn));
     }
-
-    updateMenuMeta();
   }
-
-
-function updateMenuMeta(){
-  // Kleine Zusammenfassungen in den <details>-Summaries (0 ausgewählt / x ausgewählt)
-  const c = (set) => (set && set.size) ? set.size : 0;
-  if (el.genreMeta) el.genreMeta.textContent = `${c(state.filters.genres)} ausgewählt`;
-  if (el.platMeta) el.platMeta.textContent = `${c(state.filters.platforms)} ausgewählt`;
-  if (el.srcMeta) el.srcMeta.textContent = `${c(state.filters.sources)} ausgewählt`;
-  if (el.availMeta) el.availMeta.textContent = `${c(state.filters.availability)} ausgewählt`;
-  if (el.trophyMeta) el.trophyMeta.textContent = `${c(state.filters.trophies)} ausgewählt`;
-}
 
   function chipHtml(group, key, label, pressed, primary=false){
     const p = pressed ? "true" : "false";
@@ -623,29 +554,7 @@ function updateMenuMeta(){
       btn.setAttribute("aria-pressed", pressed ? "false" : "true");
       return;
     }
-    if (group === "sortField"){
-      // exclusive
-      state.sortField = key;
-      if (el.sortFieldSelect) el.sortFieldSelect.value = key;
-      if (el.sortFieldRow){
-        for (const b of el.sortFieldRow.querySelectorAll(".chip")){
-          b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
-        }
-      }
-      updateMenuMeta();
-      return;
-    }
-      return;
-    }
-    if (group === "sortDir"){
-      state.sortDir = key;
-      for (const b of el.sortDirRow.querySelectorAll(".chip")){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
-      }
-      return;
-    }
-
-    // toggle sets
+// toggle sets
     btn.setAttribute("aria-pressed", pressed ? "false" : "true");
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
@@ -890,7 +799,7 @@ if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog)) {
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0l-C)
+// Kartenkopf: Trophy-Badges (Build 7.0l-B)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -1276,45 +1185,16 @@ function renderTrophyDetails(row){
 
   function openMenuDialog(){
     // Keep dialog chips in sync with quick controls.
-    if (el.sortFieldSelect) el.sortFieldSelect.value = state.sortField || "ID";
-    if (el.genreList){
-      for (const cb of el.genreList.querySelectorAll('input[type="checkbox"]')){
-        cb.checked = state.filters.genres.has(cb.value);
-      }
-    }
-    updateMenuMeta();
-
     if (el.sortDirRow){
       for (const b of el.sortDirRow.querySelectorAll(".chip")){
         b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
       }
     }
-    setMenuTab("sort");
     if (!el.dlg.open) el.dlg.showModal();
   }
 
   // Build the floating quick access UI (FAB) once.
   buildFab();
-
-
-// Menü-Reiter (Sortieren / Filtern)
-function setMenuTab(which){
-  const isSort = which === "sort";
-  if (el.panelSort) el.panelSort.classList.toggle("hidden", !isSort);
-  if (el.panelFilter) el.panelFilter.classList.toggle("hidden", isSort);
-  if (el.tabSort){
-    el.tabSort.classList.toggle("active", isSort);
-    el.tabSort.setAttribute("aria-selected", isSort ? "true" : "false");
-  }
-  if (el.tabFilter){
-    el.tabFilter.classList.toggle("active", !isSort);
-    el.tabFilter.setAttribute("aria-selected", !isSort ? "true" : "false");
-  }
-}
-
-if (el.tabSort) el.tabSort.addEventListener("click", () => setMenuTab("sort"));
-if (el.tabFilter) el.tabFilter.addEventListener("click", () => setMenuTab("filter"));
-
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
@@ -1322,6 +1202,15 @@ if (el.tabFilter) el.tabFilter.addEventListener("click", () => setMenuTab("filte
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
+    // Some mobile browsers are flaky with <select multiple> change events.
+    // Re-sync the selected genres on Apply to ensure multi-select works reliably.
+    if (el.genreSelect){
+      const s = new Set();
+      for (const opt of el.genreSelect.selectedOptions){
+        if (opt && opt.value) s.add(opt.value);
+      }
+      state.filters.genres = s;
+    }
     el.dlg.close();
     applyAndRender();
   });
@@ -1333,7 +1222,10 @@ if (el.tabFilter) el.tabFilter.addEventListener("click", () => setMenuTab("filte
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-// Reset chip pressed states
+    if (el.genreSelect){
+      for (const o of Array.from(el.genreSelect.options)) o.selected = false;
+    }
+    // Reset chip pressed states
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");
       if (group === "sortField"){

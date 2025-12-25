@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-C
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-B
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
@@ -824,60 +824,8 @@ summary::-webkit-details-marker{display:none}
 }
 
 
-/* --- Menü (Filter & Sortieren) Reiter + Dropdown-Details --- */
-
-.menuTabs{
-  display:flex;
-  gap:10px;
-  padding:10px 0 14px 0;
-}
-.tabBtn{
-  flex:1;
-  border-radius:999px;
-  padding:12px 14px;
-  border:1px solid rgba(0,0,0,.08);
-  background:rgba(255,255,255,.55);
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
-  font-weight:700;
-}
-.tabBtn.active{
-  background:#fff;
-}
-.menuPanel.hidden{ display:none; }
-
-.dd{
-  margin-top:12px;
-  border-radius:18px;
-  border:1px solid rgba(0,0,0,.08);
-  background: rgba(255,255,255,.55);
-  overflow:hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
-}
-.ddSum{
-  list-style:none;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:14px 14px;
-  cursor:pointer;
-  font-weight:800;
-}
-.ddSum::-webkit-details-marker{ display:none; }
-.ddMeta{
-  font-weight:700;
-  opacity:.65;
-  white-space:nowrap;
-}
-.ddBody{
-  padding:10px 14px 14px 14px;
-  border-top:1px solid rgba(0,0,0,.06);
-}
-.ddOpt{
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  padding:10px 6px;
-  border-radius:14px;
-}
-.ddOpt input{ transform: translateY(2px); }
+/* Sortiermenü (Build 7.0l-B) */
+.sortGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.sortCell{display:flex;flex-direction:column;gap:6px}
+.miniLabel{font-size:12px;color:rgba(0,0,0,.55);font-weight:600;letter-spacing:.2px}
+@media (max-width:420px){.sortGrid{grid-template-columns:1fr}}
