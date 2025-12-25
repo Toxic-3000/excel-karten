@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-S
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-T
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-S").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-T").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -702,24 +702,26 @@
       return tags;
     }
 
+
+    // EXPLIZIT_UNGESPIELT_TOKEN: Wenn keinerlei Trophäenfelder befüllt sind, behandeln wir das als "Ungespielt".
+    if (!p100 && !plat && !prog) {
+      tags.add("Ungespielt");
+      return tags;
+    }
     const g100 = (!p100.includes(":") ? p100 : "");
     const gpl  = (!plat.includes(":") ? plat : "");
 
     const d100  = parseKeyVals(p100);
     const dpl   = parseKeyVals(plat);
     const dprog = parseKeyVals(prog);
-    
-        // Expliziter Token "Ungespielt" (wie in 7.0k-K): Header soll "Ungespielt" anzeigen,
-        // auch wenn keine plattformbezogenen Fortschrittswerte erkannt werden.
-        const tokenUngespielt =
-          gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt" ||
-          Object.values(dpl).some(v => String(v).trim() === "Ungespielt") ||
-          Object.values(d100).some(v => String(v).trim() === "Ungespielt") ||
-          Object.values(dprog).some(v => String(v).trim() === "Ungespielt");
-        if (tokenUngespielt) {
-          return [{icon:"🕹️", text:"Ungespielt", cls:""}];
-        }
 
+    // EXPLIZIT_UNGESPIELT_TOKEN: "Ungespielt" kann auch ohne x/y-Werte in den Feldern stehen.
+    const tokenUngespielt =
+      gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt" ||
+      Object.values(dpl).some(v => String(v).trim() === "Ungespielt") ||
+      Object.values(d100).some(v => String(v).trim() === "Ungespielt") ||
+      Object.values(dprog).some(v => String(v).trim() === "Ungespielt");
+    if (tokenUngespielt) tags.add("Ungespielt");
 
     const any = (obj, token) => Object.values(obj).some(v => v === token);
 
@@ -814,27 +816,28 @@
     return {icon:"—", text:"Trophäen", cls:""};
   }
 
-  
-
-// Kartenkopf: Trophy-Badges (Build 7.0k-S)
+// Kartenkopf: Trophy-Badges (Build 7.0k-T)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
 // "Kein Platin" wird im Header nicht angezeigt.
 function trophyHeaderBadges(row){
-  const p100 = String(row[COL.troph100] ?? "").trim();
-  const plat = String(row[COL.platin] ?? "").trim();
-  const prog = String(row[COL.trophProg] ?? "").trim();
+  const tags = trophyTags(row); // Set<String>
 
-  
-        // Wenn keinerlei Trophäenfelder befüllt sind, behandeln wir das im Header als "Ungespielt" (wie bisher).
-        if (!p100 && !plat && !prog) {
-          return [{icon:"🕹️", text:"Ungespielt", cls:""}];
-        }
-// Box-Teil: im Header nichts (Details im Akkordeon)
-  if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
-    return [];
+  const hasPlatin = tags.has("Platin");
+  const inWork    = tags.has("In Arbeit");
+  const done100   = tags.has("100%");
+  const unplayed  = tags.has("Ungespielt");
+
+  if (hasPlatin){
+    return inWork ? ["Platin", "In Arbeit"] : ["Platin"];
   }
+  if (inWork) return ["In Arbeit"];
+  if (done100) return ["100%"];
+  if (unplayed) return ["Ungespielt"];
+  return [];
+}
+
 
   const g100 = (!p100.includes(":") ? p100 : "");
   const gpl  = (!plat.includes(":") ? plat : "");
@@ -849,14 +852,11 @@ function trophyHeaderBadges(row){
   // Preferred: derive open/complete from "Trophäen Fortschritt" fractions (earned/total)
   const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
   let allComplete = false;
-        let anyPartial  = false;
-        let allZero    = false;
-        if (fracs.length){
-          allComplete = fracs.every(f => f.a >= f.b);
-          anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
-          allZero     = fracs.every(f => f.a <= 0);
-        } else {
-
+  let anyPartial  = false;
+  if (fracs.length){
+    allComplete = fracs.every(f => f.a >= f.b);
+    anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
+  } else {
     // Fallback: legacy tokens
     const anyWB = (gpl === "Wird-Bearbeitet" || hasToken(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || hasToken(d100, "Wird-Bearbeitet"));
     if (anyWB) anyPartial = true;
@@ -870,9 +870,8 @@ function trophyHeaderBadges(row){
       : [{icon:"💎", text:"Platin", cls:"ok"}];
   }
   if (anyPartial)  return [{icon:"⏳️", text:"In Arbeit", cls:"warn"}];
-        if (allComplete) return [{icon:"✅️", text:"100%", cls:"ok"}];
-        if (allZero)     return [{icon:"🕹️", text:"Ungespielt", cls:""}];
-        return [];
+  if (allComplete) return [{icon:"✅️", text:"100%", cls:"ok"}];
+  return [];
 }
 function classifyAvailability(av){
     const t = String(av ?? "").trim();
@@ -1045,7 +1044,7 @@ function classifyAvailability(av){
               <div class="headDivider" aria-hidden="true"></div>
 
               <div class="badgeRow badgeRow-trophy">
-                ${trophyBadge}
+                ${trophyBadgesHtml}
               </div>
             </div>
 
