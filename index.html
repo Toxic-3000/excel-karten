@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
     <meta name="app-build" content="7.0l-A" />
-  <link rel="stylesheet" href="styles.css?v=7.0l-A" />
+  <link rel="stylesheet" href="styles.css?v=7.0l-B" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -86,47 +86,79 @@
         <button id="btnClose" class="btn btn-icon" aria-label="Schließen">✕</button>
       </div>
 
-      <div class="sheetBody">
-        <div class="sect">
-          <div class="sectTitle">Sortieren</div>
-          <div class="chipRow" id="sortFieldRow"></div>
-          <div class="chipRow" id="sortDirRow"></div>
-        </div>
+      
+<div class="sheetBody">
+  <div class="menuTabs" role="tablist" aria-label="Filter- und Sortier-Reiter">
+    <button id="tabSort" class="tabBtn active" role="tab" aria-selected="true">Sortieren</button>
+    <button id="tabFilter" class="tabBtn" role="tab" aria-selected="false">Filtern</button>
+  </div>
 
-        <div class="sect">
-          <div class="sectTitle">Filter</div>
+  <div id="panelSort" class="menuPanel" role="tabpanel">
+    <div class="subsect">
+      <div class="subTitle">Sortieren nach</div>
+      <select id="sortFieldSelect" class="filterDropdown" aria-label="Sortierfeld auswählen"></select>
+    </div>
 
-          <div class="subsect" id="favSect">
-            <div class="subTitle">Favoriten</div>
-            <div class="chipRow" id="favRow"></div>
-          </div>
+    <div class="subsect">
+      <div class="subTitle">Reihenfolge</div>
+      <div class="chipRow" id="sortDirRow"></div>
+    </div>
+  </div>
 
-          <div class="subsect" id="genreSect">
-            <div class="subTitle">Genre</div>
-            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen" multiple size="1">
-            </select>
-          </div>
+  <div id="panelFilter" class="menuPanel hidden" role="tabpanel">
+    <div class="subsect" id="favSect">
+      <div class="subTitle">Favoriten</div>
+      <div class="chipRow" id="favRow"></div>
+    </div>
 
-          <div class="subsect">
-            <div class="subTitle">Plattform</div>
-            <div class="chipRow" id="platRow"></div>
-          </div>
+    <details id="genreDD" class="dd">
+      <summary class="ddSum">
+        <span>Genre</span>
+        <span id="genreMeta" class="ddMeta">0 ausgewählt</span>
+      </summary>
+      <div id="genreList" class="ddBody" aria-label="Genre auswählen"></div>
+    </details>
 
-          <div class="subsect">
-            <div class="subTitle">Quelle</div>
-            <div class="chipRow" id="srcRow"></div>
-          </div>
+    <details id="platDD" class="dd">
+      <summary class="ddSum">
+        <span>Plattform</span>
+        <span id="platMeta" class="ddMeta">0 ausgewählt</span>
+      </summary>
+      <div class="ddBody">
+        <div class="chipRow" id="platRow"></div>
+      </div>
+    </details>
 
-          <div class="subsect">
-            <div class="subTitle">Verfügbarkeit</div>
-            <div class="chipRow" id="availRow"></div>
-          </div>
+    <details id="srcDD" class="dd">
+      <summary class="ddSum">
+        <span>Quelle</span>
+        <span id="srcMeta" class="ddMeta">0 ausgewählt</span>
+      </summary>
+      <div class="ddBody">
+        <div class="chipRow" id="srcRow"></div>
+      </div>
+    </details>
 
-          <div class="subsect">
-            <div class="subTitle">Trophäenstatus</div>
-            <div class="chipRow" id="trophyRow"></div>
-          </div>
-        </div>
+    <details id="availDD" class="dd">
+      <summary class="ddSum">
+        <span>Verfügbarkeit</span>
+        <span id="availMeta" class="ddMeta">0 ausgewählt</span>
+      </summary>
+      <div class="ddBody">
+        <div class="chipRow" id="availRow"></div>
+      </div>
+    </details>
+
+    <details id="trophyDD" class="dd">
+      <summary class="ddSum">
+        <span>Trophäenstatus</span>
+        <span id="trophyMeta" class="ddMeta">0 ausgewählt</span>
+      </summary>
+      <div class="ddBody">
+        <div class="chipRow" id="trophyRow"></div>
+      </div>
+    </details>
+  </div>
 
         <div class="sheetActions">
           <button id="btnClear" class="btn">Zurücksetzen</button>
@@ -141,6 +173,6 @@
   </dialog>
 
   <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0l-A"></script>
+  <script src="app.js?v=7.0l-B"></script>
 </body>
 </html>
