@@ -1,12 +1,12 @@
-console.log("Build 7.0m-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0m-A
+console.log("Build 7.0n-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0n-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0m-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0n-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -267,8 +267,8 @@ console.log("Build 7.0m-A loaded");
     q: "",
     filters: {
       fav: false,
-      // Multi-Genre Filter: leer = kein Genre-Filter (alle Genres)
-      genres: new Set(),
+      // Genre Filter (Dropdown): leer = kein Genre-Filter (alle Genres)
+      genre: "",
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
@@ -285,6 +285,9 @@ console.log("Build 7.0m-A loaded");
     },
     reminderCol: null,
     fileName: null,
+    ui: {
+      trophyExpanded: false,
+    },
   };
 
   function esc(s){
@@ -529,46 +532,61 @@ console.log("Build 7.0m-A loaded");
         };
       }
     }
-    // Sortierrichtung bewusst NICHT "primary": wir nutzen hier den ruhigen Blau-Akzent,
-    // damit sich Auf-/Absteigend visuell von den Sortierfeldern abhebt.
-    el.sortDirRow.innerHTML = [
-      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", false),
-      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", false),
-    ].join("");
+    // Sortierrichtung: ein einziger Toggle (↑/↓)
+    el.sortDirRow.innerHTML = `<button type="button" id="sortDirToggle" class="dirToggle" aria-label="Sortierrichtung umschalten"></button>`;
+    const sdBtn = el.sortDirRow.querySelector("#sortDirToggle");
+    if (sdBtn){
+      const paint = () => {
+        const asc = state.sortDir === "asc";
+        sdBtn.textContent = asc ? "↑" : "↓";
+        sdBtn.title = asc ? "Aufsteigend" : "Absteigend";
+        sdBtn.setAttribute("aria-pressed", asc ? "false" : "true");
+      };
+      paint();
+      sdBtn.onclick = () => {
+        state.sortDir = (state.sortDir === "asc") ? "desc" : "asc";
+        saveSortPrefs();
+        paint();
+        updateFabSortUI();
+      };
+    }
 
     // Favorites toggle as chip (instead of checkbox)
-    el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav);
+    el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav, "primary");
 
     // Platforms: show canonical order when possible
     const plats = Array.from(state.distinct.platforms);
     const order = ["PS3","PS4","PS5","Vita"];
     plats.sort((a,b) => (order.indexOf(a) - order.indexOf(b)));
-    el.platRow.innerHTML = plats.map(p => chipHtml("plat", p, p, state.filters.platforms.has(p))).join("");
+    el.platRow.innerHTML = plats.map(p => chipHtml("plat", p, p, state.filters.platforms.has(p), "category")).join("");
 
     // Sources and availability: show *all* states present
     const srcs = Array.from(state.distinct.sources).sort((a,b)=>a.localeCompare(b,"de"));
     // In der Kartenansicht darf das 🏷️-Symbol bleiben; im Filter-Dialog wirkt es aber unruhig.
-    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s))).join("");
+    el.srcRow.innerHTML = srcs.map(s => chipHtml("src", s, stripTagEmoji(s), state.filters.sources.has(s), "category")).join("");
 
     const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
-    el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a))).join("");
+    el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a), "category")).join("");
 
-    // Trophy status chips (show all tags that appear)
-    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
-    const tros = Array.from(state.distinct.trophies);
-    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
-    el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
+    // Trophäenstatus: standardmäßig kompakt (wichtigste + „Weitere…“)
+    buildTrophyRow();
 
-    // Genre dropdown (Multi-Select – ohne Suche)
+    // Genre dropdown (Single-Select)
     if (el.genreSelect){
-      el.genreSelect.multiple = true;
+      el.genreSelect.multiple = false;
+      el.genreSelect.size = 1;
 
       const genres = Array.from(state.distinct.genres)
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      // Populate
+      // Populate (inkl. "Alle")
       el.genreSelect.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "";
+      optAll.textContent = "Alle";
+      el.genreSelect.appendChild(optAll);
+
       for (const g of genres){
         const opt = document.createElement("option");
         opt.value = g;
@@ -576,18 +594,10 @@ console.log("Build 7.0m-A loaded");
         el.genreSelect.appendChild(opt);
       }
 
-      // Restore previous selection (if any)
-      const selected = state.filters.genres || new Set();
-      for (const opt of el.genreSelect.options){
-        opt.selected = selected.has(opt.value);
-      }
-
+      // Restore selection
+      el.genreSelect.value = state.filters.genre || "";
       el.genreSelect.onchange = () => {
-        const s = new Set();
-        for (const opt of el.genreSelect.selectedOptions){
-          if (opt.value) s.add(opt.value);
-        }
-        state.filters.genres = s;
+        state.filters.genre = el.genreSelect.value || "";
       };
     }
 
@@ -597,9 +607,50 @@ console.log("Build 7.0m-A loaded");
     }
   }
 
-  function chipHtml(group, key, label, pressed, primary=false){
+
+  function buildTrophyRow(wire=false){
+    if (!el.trophyRow) return;
+
+    const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
+    const tros = Array.from(state.distinct.trophies);
+    tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
+
+    const important = ["In Arbeit","Ungespielt","Platin"];
+    const showAll = !!state.ui.trophyExpanded;
+
+    const visible = showAll ? tros : tros.filter(t => important.includes(t));
+    const hasMore = tros.some(t => !important.includes(t));
+
+    const chips = [];
+    for (const t of visible){
+      const kind = important.includes(t) ? "primary" : "status";
+      chips.push(chipHtml("trophy", t, t, state.filters.trophies.has(t), kind));
+    }
+
+    if (hasMore){
+      chips.push(chipHtml("trophyMore", "toggle", showAll ? "Weniger…" : "Weitere…", showAll, "category"));
+    }
+
+    el.trophyRow.innerHTML = chips.join("");
+
+    if (wire){
+      for (const btn of el.trophyRow.querySelectorAll(".chip")){
+        btn.addEventListener("click", () => onChip(btn));
+      }
+    }
+  }
+
+  function chipHtml(group, key, label, pressed, variant=false){
+    // variant can be:
+    // - false / undefined: normal
+    // - true or "primary": primary/status-like
+    // - "category": lighter (Plattform/Quelle/Verfügbarkeit)
+    // - "status": normal-but-slightly-stronger (z.B. Trophäen)
     const p = pressed ? "true" : "false";
-    const cls = primary ? "chip primary" : "chip";
+    let cls = "chip";
+    if (variant === true || variant === "primary") cls += " primary";
+    else if (variant === "category") cls += " category";
+    else if (variant === "status") cls += " status";
     return `<button type="button" class="${cls}" data-group="${esc(group)}" data-key="${esc(key)}" aria-pressed="${p}">${esc(label)}</button>`;
   }
 
@@ -620,21 +671,18 @@ console.log("Build 7.0m-A loaded");
       return;
     }
 
+    if (group === "trophyMore"){
+      state.ui.trophyExpanded = !state.ui.trophyExpanded;
+      buildTrophyRow(true);
+      return;
+    }
+
     if (group === "sortField"){
       // exclusive
       state.sortField = key;
       for (const b of el.sortFieldRow.querySelectorAll(".chip")){
         b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
       }
-      return;
-    }
-    if (group === "sortDir"){
-      state.sortDir = key;
-      saveSortPrefs();
-      for (const b of el.sortDirRow.querySelectorAll(".chip")){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
-      }
-      updateFabSortUI();
       return;
     }
 
@@ -691,14 +739,11 @@ console.log("Build 7.0m-A loaded");
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f !== "x" && f !== "1" && f !== "true") return false;
       }
-      // Genre filter (Multi-Select; exact match against dropdown values, normalized)
-      if (state.filters.genres && state.filters.genres.size){
-        const gNorm = norm(r[COL.genre]);
-        let ok = false;
-        for (const sel of state.filters.genres){
-          if (gNorm === norm(sel)) { ok = true; break; }
-        }
-        if (!ok) return false;
+      // Genre filter (Dropdown; exact match, normalized)
+      if (state.filters.genre){
+        const want = norm(state.filters.genre);
+        const got  = norm(r[COL.genre]);
+        if (want && got !== want) return false;
       }
 
       // platform filter: system contains at least one selected
@@ -1295,14 +1340,9 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
-    // Some mobile browsers are flaky with <select multiple> change events.
-    // Re-sync the selected genres on Apply to ensure multi-select works reliably.
+    // Sync genre dropdown (single select)
     if (el.genreSelect){
-      const s = new Set();
-      for (const opt of el.genreSelect.selectedOptions){
-        if (opt && opt.value) s.add(opt.value);
-      }
-      state.filters.genres = s;
+      state.filters.genre = el.genreSelect.value || "";
     }
     el.dlg.close();
     applyAndRender();
@@ -1310,30 +1350,18 @@ function renderTrophyDetails(row){
 
   el.btnClear.addEventListener("click", () => {
     state.filters.fav = false;
-    state.filters.genres.clear();
+    state.filters.genre = "";
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    if (el.genreSelect){
-      for (const o of Array.from(el.genreSelect.options)) o.selected = false;
-    }
-    // Reset chip pressed states (sortDir + filters)
-    for (const b of el.dlg.querySelectorAll(".chip")){
-      const group = b.getAttribute("data-group");
-      if (group === "sortDir"){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === "asc" ? "true" : "false");
-      } else {
-        b.setAttribute("aria-pressed", "false");
-      }
-    }
+    state.ui.trophyExpanded = false;
 
     state.sortField = "ID";
     state.sortDir = "asc";
     saveSortPrefs();
 
-    const sfSel = el.sortFieldRow?.querySelector?.("#sortFieldSelect");
-    if (sfSel) sfSel.value = state.sortField;
+    buildFilterUI();
     updateFabSortFieldUI();
     updateFabSortUI();
   });

@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0m-A" />
-  <link rel="stylesheet" href="styles.css?v=7.0m-A" />
+    <meta name="app-build" content="7.0n-A" />
+  <link rel="stylesheet" href="styles.css?v=7.0n-A" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -94,8 +94,10 @@
       <div class="sheetBody">
         <div class="sect">
           <div class="sectTitle">Sortieren</div>
-          <div class="chipRow" id="sortFieldRow"></div>
-          <div class="chipRow" id="sortDirRow"></div>
+          <div class="sortBar">
+            <div id="sortFieldRow" class="sortField"></div>
+            <div id="sortDirRow" class="sortDir"></div>
+          </div>
         </div>
 
         <div class="sect">
@@ -108,7 +110,7 @@
 
           <div class="subsect" id="genreSect">
             <div class="subTitle">Genre</div>
-            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen" multiple size="1">
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
             </select>
           </div>
 
@@ -146,6 +148,6 @@
   </dialog>
 
   <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0m-A"></script>
+  <script src="app.js?v=7.0n-A"></script>
 </body>
 </html>

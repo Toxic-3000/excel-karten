@@ -575,6 +575,32 @@ summary::-webkit-details-marker{display:none}
 
 /* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
 #sortDirRow{margin-top: calc(12px * var(--uiScale));}
+
+/* Sort block: dropdown + direction toggle side-by-side */
+.sortBar{
+  display:flex;
+  gap: calc(12px * var(--uiScale));
+  align-items:center;
+}
+.sortBar .sortField{ flex: 1 1 auto; }
+.sortBar .sortDir{ flex: 0 0 auto; }
+
+.dirToggle{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius: 999px;
+  width: calc(52px * var(--uiScale));
+  height: calc(44px * var(--uiScale));
+  font-size: calc(18px * var(--uiScale));
+  font-weight: 750;
+  cursor:pointer;
+  user-select:none;
+}
+.dirToggle:active{
+  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+}
+
 .chip{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
@@ -588,9 +614,26 @@ summary::-webkit-details-marker{display:none}
   border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
   background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
 }
+
+/* Chip variants: category vs status/primary (no loud colors, just contrast) */
+.chip.category{
+  background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+  border-color: color-mix(in oklab, var(--border) 78%, var(--bg) 22%);
+  font-weight:600;
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+}
+.chip.status{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  border-color: color-mix(in oklab, var(--border) 62%, var(--fg) 38%);
+}
+.chip.primary{
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  border-color: color-mix(in oklab, var(--blue2) 25%, var(--border) 75%);
+}
+
 .chip.primary[aria-pressed="true"]{
-  background: color-mix(in oklab, var(--ok) 16%, var(--bg) 84%);
-  border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%);
+  border-color: color-mix(in oklab, var(--blue2) 70%, var(--border) 30%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
 }
 .sheetActions{display:flex; gap: calc(10px * var(--uiScale)); justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
 .sheetFoot{margin-top:10px}
