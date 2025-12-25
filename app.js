@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-R
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-S
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-R").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-S").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -708,6 +708,18 @@
     const d100  = parseKeyVals(p100);
     const dpl   = parseKeyVals(plat);
     const dprog = parseKeyVals(prog);
+    
+        // Expliziter Token "Ungespielt" (wie in 7.0k-K): Header soll "Ungespielt" anzeigen,
+        // auch wenn keine plattformbezogenen Fortschrittswerte erkannt werden.
+        const tokenUngespielt =
+          gpl === "Ungespielt" || g100 === "Ungespielt" || prog === "Ungespielt" ||
+          Object.values(dpl).some(v => String(v).trim() === "Ungespielt") ||
+          Object.values(d100).some(v => String(v).trim() === "Ungespielt") ||
+          Object.values(dprog).some(v => String(v).trim() === "Ungespielt");
+        if (tokenUngespielt) {
+          return [{icon:"🕹️", text:"Ungespielt", cls:""}];
+        }
+
 
     const any = (obj, token) => Object.values(obj).some(v => v === token);
 
@@ -804,7 +816,7 @@
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-R)
+// Kartenkopf: Trophy-Badges (Build 7.0k-S)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
