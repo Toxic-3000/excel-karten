@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-N
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-O
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-N").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-O").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -804,51 +804,52 @@
 
   
 
-// Header badge composition (Build 7.0k-N)
-// - Normalerweise 1 Badge
-// - Ausnahme: "Platin" + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
-// - "Kein Platin" erscheint NICHT im Header (nur im Akkordeon)
-// - Bei "Platin" + "100%" wird im Header nur "Platin" gezeigt.
+// Kartenkopf: Trophy-Badges (Build 7.0k-O)
+// Standard: 1 Badge
+// Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
+// Platin + 100% -> im Header nur [Platin]
+// "Kein Platin" wird im Header nicht angezeigt.
 function trophyHeaderBadges(row){
   const p100 = String(row[COL.troph100] ?? "").trim();
   const plat = String(row[COL.platin] ?? "").trim();
   const prog = String(row[COL.trophProg] ?? "").trim();
 
+  // Box-Teil: im Header nichts (Details im Akkordeon)
   if (p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:") || prog.startsWith("BOX_TEIL:")){
-    // Box-Teil bleibt im Akkordeon; Header zeigt keinen Trophy-Badge
     return [];
   }
 
+  const g100 = (!p100.includes(":") ? p100 : "");
   const gpl  = (!plat.includes(":") ? plat : "");
-  const dpl  = parseKeyVals(plat);
+
+  const d100  = parseKeyVals(p100);
+  const dpl   = parseKeyVals(plat);
   const dprog = parseKeyVals(prog);
 
-  const has = (obj, token) => Object.values(obj).some(v => v === token);
+  const hasToken = (obj, token) => Object.values(obj).some(v => v === token);
+  const hasPlatinum = (gpl === "Platin-Erlangt" || hasToken(dpl, "Platin-Erlangt"));
 
-  const hasPlatinum = (gpl === "Platin-Erlangt" || has(dpl, "Platin-Erlangt"));
-
-  // Prefer progress fractions from "Trophäen Fortschritt"
+  // Preferred: derive open/complete from "Trophäen Fortschritt" fractions (earned/total)
   const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
-  let allComplete = false, anyPartial = false;
+  let allComplete = false;
+  let anyPartial  = false;
   if (fracs.length){
     allComplete = fracs.every(f => f.a >= f.b);
     anyPartial  = fracs.some(f => f.a > 0 && f.a < f.b);
   } else {
-    // Fallback: legacy "Wird-Bearbeitet" token indicates open work
-    const g100 = (!p100.includes(":") ? p100 : "");
-    const d100 = parseKeyVals(p100);
-    const anyWB = (gpl === "Wird-Bearbeitet" || has(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || Object.values(d100).some(v => v === "Wird-Bearbeitet"));
+    // Fallback: legacy tokens
+    const anyWB = (gpl === "Wird-Bearbeitet" || hasToken(dpl, "Wird-Bearbeitet") || g100 === "Wird-Bearbeitet" || hasToken(d100, "Wird-Bearbeitet"));
     if (anyWB) anyPartial = true;
-    const anyDone = (g100 === "Abgeschlossen" || Object.values(d100).some(v => v === "Abgeschlossen"));
+    const anyDone = (g100 === "Abgeschlossen" || hasToken(d100, "Abgeschlossen"));
     if (anyDone) allComplete = true;
   }
 
-  // Compose header badges
   if (hasPlatinum){
-    if (anyPartial) return [{icon:"💎", text:"Platin", cls:"ok"}, {icon:"⏳", text:"In Arbeit", cls:""}];
-    return [{icon:"💎", text:"Platin", cls:"ok"}]; // includes Platin+100% case
+    return anyPartial
+      ? [{icon:"💎", text:"Platin", cls:"ok"}, {icon:"⏳️", text:"In Arbeit", cls:"warn"}]
+      : [{icon:"💎", text:"Platin", cls:"ok"}];
   }
-  if (anyPartial) return [{icon:"⏳", text:"In Arbeit", cls:""}];
+  if (anyPartial)  return [{icon:"⏳️", text:"In Arbeit", cls:"warn"}];
   if (allComplete) return [{icon:"✅️", text:"100%", cls:"ok"}];
   return [];
 }
@@ -932,10 +933,10 @@ function classifyAvailability(av){
 
       const reminder = state.reminderCol ? String(row[state.reminderCol] ?? "").trim() : "";
 
-      // Trophy short (Header: 1 Badge normally, 2 Badges only for "Platin + In Arbeit")
+      // Trophy short
       const tBadges = trophyHeaderBadges(row);
-      const trophyBadges = tBadges.map(ts => badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`));
-      // badge rows
+      const trophyBadge = tBadges.map(ts => badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`)).join("");
+// badge rows
       const platBadges = sys.map(p => badge("platform", p));
       const srcLabel = (src === "Unbekannt" ? "🏷️ Unbekannt" : src);
   const srcBadge = badge("source " + classifySource(src), srcLabel);
@@ -1264,16 +1265,3 @@ function renderTrophyDetails(row){
     document.title = `Spieleliste – Build ${BUILD}`;
   });
 })();
-// Header Trophy Badges (Build 7.0k-N)
-function getHeaderTrophyBadges(tags) {
-  const hasPlatinum = tags.has("Platin");
-  const inWork      = tags.has("In Arbeit");
-  const complete    = tags.has("100%");
-
-  if (hasPlatinum) {
-    return inWork ? ["Platin", "In Arbeit"] : ["Platin"];
-  }
-  if (inWork)   return ["In Arbeit"];
-  if (complete) return ["100%"];
-  return [];
-}
