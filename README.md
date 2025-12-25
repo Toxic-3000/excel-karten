@@ -1,8 +1,8 @@
-# Build 7.0k-L
+# Build 7.0k-N
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0k-L
+## Was neu ist in 7.0k-N
 
 - **Bugfix: Trophäen-Filter „In Arbeit“**
   - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
@@ -79,5 +79,22 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-H → **Typo-Schema auf Store & Humorstatistik** + **Werteblock-Rhythmus** + **Landscape Info breiter**
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
-- ✅ 7.0k-L → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
+- ✅ 7.0k-N → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
+
+
+## Kartenkopf – Trophäenbadges (Header)
+
+Im Kartenkopf wird der Trophäenstatus bewusst **kompakt** gehalten.
+
+- Standard: **1 Badge**
+- Ausnahme: **Platin + offene Trophäen** → **2 Badges**: `[Platin] [In Arbeit]`
+
+Regeln:
+- **Platin + 100%** → im Header **nur** `[Platin]` (wie bisher)
+- **Kein Platin** erscheint **nicht** im Header (nur im Trophäen-Akkordeon)
+- **100% ohne Platin** → `[100%]`
+- **In Arbeit ohne Platin** → `[In Arbeit]`
+
+Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige im Akkordeon bleibt unverändert.
+
