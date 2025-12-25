@@ -1,8 +1,14 @@
-# Build 7.0l-A
+# Build 7.0m-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0l-A
+## Was neu ist in 7.0m-A
+
+- **Sortiermenü umgebaut (ruhiger & schneller):**
+  - Im Dialog ist „Sortieren nach“ jetzt ein **Dropdown** statt vieler Chips (weniger Umbruch‑Chaos auf Mobile).
+  - Im FAB „Ansicht“ gibt es zusätzlich **Quick‑Sort‑Chips** für die wichtigsten Felder (ID, Titel, Meta, User, Main, 100%).
+  - Sortierfeld + Richtung werden **persistiert** (LocalStorage), damit deine bevorzugte Reihenfolge bleibt.
+  - Tie‑Breaker: Bei gleichen Werten wird stabil nach **ID** sortiert (weniger „Zittern“ bei ähnlichen Daten).
 
 - **Bugfix: Trophäen-Filter „In Arbeit“**
   - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
@@ -51,9 +57,8 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
 - Suche über **ID**, Titel/Genre/Subgenre/Entwickler
-- Sortieren (Variante B): **Dropdown „Sortieren nach“** + **Dropdown „Richtung“** (ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit)
-- Filter: Favorit, Plattform, Quelle, Verfügbarkeit, Trophäenstatus
-  - Genre‑Filter: **Mehrfachauswahl als Liste** (ohne Suche), Anzeige als „x ausgewählt“
+- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
+- Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter
   - Badge‑Zeilen: Plattform(en); Quelle+Verfügbarkeit; Trophäen‑Status
@@ -81,6 +86,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0k-I → **Typografie‑Feinschliff** (Label/Value‑Hierarchie, Zahlenbild) + **Scores no‑wrap** + **Skalierung feinere Schritte**
 - ✅ 7.0k-K → **FAB „Ansicht“** (Textgröße + Sort‑Richtung immer erreichbar) + **Typo‑Rollen klarer** + **Desktop‑Font‑Stack**
 - ✅ 7.0l-A → **Trophäen-Logik-Fix**: „In Arbeit“ basiert auf offenen Trophäen (earned/total) statt „irgendein Fortschritt“
+- ✅ 7.0m-A → **Sortiermenü-Rework** (Dropdown im Dialog + Quick-Sort im FAB + Sort-Persistenz)
 - ⏭️ Nächstes Thema: **Header/Controls** weiter beruhigen (Spacing, evtl. Optionen gruppieren)
 
 

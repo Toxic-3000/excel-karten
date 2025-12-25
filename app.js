@@ -1,12 +1,12 @@
-console.log("Build 7.0l-B loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-B
+console.log("Build 7.0m-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0m-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0l-B").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0m-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -27,6 +27,7 @@ console.log("Build 7.0l-B loaded");
     fabPanel: $("fabPanel"),
     fabClose: $("fabClose"),
     fabScaleRow: $("fabScaleRow"),
+    fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
@@ -40,17 +41,49 @@ console.log("Build 7.0l-B loaded");
     btnApply: $("btnApply"),
     btnClear: $("btnClear"),
     sortFieldRow: $("sortFieldRow"),
-    sortFieldSelect: $("sortFieldSelect"),
-    sortDirSelect: $("sortDirSelect"),
+    sortDirRow: $("sortDirRow"),
     favRow: $("favRow"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyRow: $("trophyRow"),
-    genreDetails: $("genreDetails"),
-    genreSummary: $("genreSummary"),
-    genreList: $("genreList"),
+    genreSelect: $("genreSelect"),
   };
+
+  // --- UI: Sortierung (Feld + Richtung) speichern ---
+  const SORT_FIELD_KEY = "spieleliste_sortField";
+  const SORT_DIR_KEY   = "spieleliste_sortDir";
+
+  const SORT_FIELDS = [
+    {k:"ID", label:"ID"},
+    {k:"Spieletitel", label:"Titel"},
+    {k:"Metascore", label:"Metascore"},
+    {k:"Userwertung", label:"Userwertung"},
+    {k:"Spielzeit (Main)", label:"Main"},
+    {k:"Spielzeit (100%)", label:"100%"},
+    {k:"Genre", label:"Genre"},
+    {k:"Quelle", label:"Quelle"},
+    {k:"Verfügbarkeit", label:"Verfügbarkeit"},
+  ];
+
+  function loadSortPrefs(){
+    const sf = (localStorage.getItem(SORT_FIELD_KEY) || "").trim();
+    const sd = (localStorage.getItem(SORT_DIR_KEY) || "").trim();
+    const validSf = SORT_FIELDS.some(x => x.k === sf);
+    const validSd = (sd === "asc" || sd === "desc");
+    return {
+      sortField: validSf ? sf : "ID",
+      sortDir: validSd ? sd : "asc",
+    };
+  }
+  function saveSortPrefs(){
+    try{
+      localStorage.setItem(SORT_FIELD_KEY, String(state.sortField));
+      localStorage.setItem(SORT_DIR_KEY, String(state.sortDir));
+    }catch(_){/* ignore */}
+  }
+
+  const SORT_PREFS = loadSortPrefs();
 
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
@@ -101,6 +134,13 @@ console.log("Build 7.0l-B loaded");
     }
   }
 
+  function updateFabSortFieldUI(){
+    if (!el.fabSortFieldRow) return;
+    for (const b of el.fabSortFieldRow.querySelectorAll(".chip")){
+      b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortField ? "true" : "false");
+    }
+  }
+
   function closeFab(){
     if (!el.fabPanel) return;
     el.fabPanel.hidden = true;
@@ -127,6 +167,19 @@ console.log("Build 7.0l-B loaded");
       ].join("");
     }
 
+    // Build quick sort field chips (compact subset)
+    if (el.fabSortFieldRow){
+      const quick = [
+        {k:"ID", label:"ID"},
+        {k:"Spieletitel", label:"Titel"},
+        {k:"Metascore", label:"Meta"},
+        {k:"Userwertung", label:"User"},
+        {k:"Spielzeit (Main)", label:"Main"},
+        {k:"Spielzeit (100%)", label:"100%"},
+      ];
+      el.fabSortFieldRow.innerHTML = quick.map(sf => chipHtml("quickSortField", sf.k, sf.label, state.sortField === sf.k)).join("");
+    }
+
     // Wire FAB open/close
     el.fabView.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -149,8 +202,16 @@ console.log("Build 7.0l-B loaded");
           applyScale(currentScalePreset);
           return;
         }
+        if (group === "quickSortField"){
+          state.sortField = key;
+          saveSortPrefs();
+          updateFabSortFieldUI();
+          applyAndRender();
+          return;
+        }
         if (group === "quickSortDir"){
           state.sortDir = key;
+          saveSortPrefs();
           updateFabSortUI();
           applyAndRender();
           return;
@@ -213,8 +274,8 @@ console.log("Build 7.0l-B loaded");
       availability: new Set(),
       trophies: new Set(),
     },
-    sortField: "ID",
-    sortDir: "asc",
+    sortField: SORT_PREFS.sortField,
+    sortDir: SORT_PREFS.sortDir,
     distinct: {
       platforms: new Set(),
       sources: new Set(),
@@ -454,49 +515,26 @@ console.log("Build 7.0l-B loaded");
   }
 
   function buildFilterUI(){
-    // Sortieren (Dropdowns – Variante B)
-const sortFields = [
-  {k:"ID", label:"ID"},
-  {k:"Spieletitel", label:"Titel"},
-  {k:"Metascore", label:"Metascore"},
-  {k:"Userwertung", label:"Userwertung"},
-  {k:"Spielzeit (Main)", label:"Main"},
-  {k:"Spielzeit (100%)", label:"100%"},
-  {k:"Genre", label:"Genre"},
-  {k:"Quelle", label:"Quelle"},
-  {k:"Verfügbarkeit", label:"Verfügbarkeit"},
-];
-
-// Render controls
-el.sortFieldRow.innerHTML = `
-  <div class="controlGrid">
-    <label class="control">
-      <span class="controlLabel">Sortieren nach</span>
-      <select id="sortFieldSelect" class="controlSelect" aria-label="Sortierfeld">
-        ${sortFields.map(sf => `<option value="${esc(sf.k)}">${esc(sf.label)}</option>`).join("")}
-      </select>
-    </label>
-    <label class="control">
-      <span class="controlLabel">Richtung</span>
-      <select id="sortDirSelect" class="controlSelect" aria-label="Sortierrichtung">
-        <option value="asc">Aufsteigend</option>
-        <option value="desc">Absteigend</option>
-      </select>
-    </label>
-  </div>
-`;
-
-// (Re)bind after render
-el.sortFieldSelect = el.dlg.querySelector("#sortFieldSelect");
-el.sortDirSelect = el.dlg.querySelector("#sortDirSelect");
-if (el.sortFieldSelect){
-  el.sortFieldSelect.value = state.sortField || "ID";
-  el.sortFieldSelect.onchange = () => { state.sortField = el.sortFieldSelect.value; };
-}
-if (el.sortDirSelect){
-  el.sortDirSelect.value = state.sortDir || "asc";
-  el.sortDirSelect.onchange = () => { state.sortDir = el.sortDirSelect.value; };
-}
+    // Sort field (dropdown) – ruhiger als Chip-Wolke, besonders auf Mobile.
+    if (el.sortFieldRow){
+      el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
+      const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
+      if (sel){
+        sel.innerHTML = SORT_FIELDS.map(sf => `<option value="${esc(sf.k)}">${esc(sf.label)}</option>`).join("");
+        sel.value = state.sortField;
+        sel.onchange = () => {
+          state.sortField = sel.value;
+          saveSortPrefs();
+          updateFabSortFieldUI();
+        };
+      }
+    }
+    // Sortierrichtung bewusst NICHT "primary": wir nutzen hier den ruhigen Blau-Akzent,
+    // damit sich Auf-/Absteigend visuell von den Sortierfeldern abhebt.
+    el.sortDirRow.innerHTML = [
+      chipHtml("sortDir", "asc", "Aufsteigend", state.sortDir === "asc", false),
+      chipHtml("sortDir", "desc", "Absteigend", state.sortDir === "desc", false),
+    ].join("");
 
     // Favorites toggle as chip (instead of checkbox)
     el.favRow.innerHTML = chipHtml("fav", "fav", "⭐ Nur Favoriten", state.filters.fav);
@@ -521,46 +559,39 @@ if (el.sortDirSelect){
     tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
     el.trophyRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t))).join("");
 
-    // Genre (Multi-Select – ohne Suche, ordentlich als Liste)
-if (el.genreList && el.genreSummary){
-  const genres = Array.from(state.distinct.genres)
-    .filter(g => String(g||"").trim().length)
-    .sort((a,b) => a.localeCompare(b,"de"));
+    // Genre dropdown (Multi-Select – ohne Suche)
+    if (el.genreSelect){
+      el.genreSelect.multiple = true;
 
-  const selected = state.filters.genres || new Set();
+      const genres = Array.from(state.distinct.genres)
+        .filter(Boolean)
+        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-  el.genreList.innerHTML = genres.map(g => {
-    const checked = selected.has(g) ? "checked" : "";
-    return `<label class="checkItem"><input type="checkbox" data-genre="${esc(g)}" ${checked} /> <span>${esc(g)}</span></label>`;
-  }).join("");
+      // Populate
+      el.genreSelect.innerHTML = "";
+      for (const g of genres){
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        el.genreSelect.appendChild(opt);
+      }
 
-  const refreshSummary = () => {
-    const n = (state.filters.genres?.size || 0);
-    el.genreSummary.textContent = `${n} ausgewählt`;
-  };
+      // Restore previous selection (if any)
+      const selected = state.filters.genres || new Set();
+      for (const opt of el.genreSelect.options){
+        opt.selected = selected.has(opt.value);
+      }
 
-  const syncFromUI = () => {
-    const s = new Set();
-    for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')){
-      if (cb.checked) s.add(cb.getAttribute("data-genre"));
+      el.genreSelect.onchange = () => {
+        const s = new Set();
+        for (const opt of el.genreSelect.selectedOptions){
+          if (opt.value) s.add(opt.value);
+        }
+        state.filters.genres = s;
+      };
     }
-    state.filters.genres = s;
-    refreshSummary();
-  };
 
-  // Initial
-  refreshSummary();
-
-  // Events
-  for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')){
-    cb.addEventListener("change", syncFromUI);
-  }
-
-  // Close details after selection on mobile? -> bewusst NICHT, damit man mehrere Genres in Ruhe wählen kann.
-}
-
-// Wire chip clicks
-ip clicks
+    // Wire chip clicks
     for (const btn of el.dlg.querySelectorAll(".chip")){
       btn.addEventListener("click", () => onChip(btn));
     }
@@ -590,13 +621,20 @@ ip clicks
     }
 
     if (group === "sortField"){
+      // exclusive
       state.sortField = key;
-      if (el.sortFieldSelect) el.sortFieldSelect.value = key;
+      for (const b of el.sortFieldRow.querySelectorAll(".chip")){
+        b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
+      }
       return;
     }
     if (group === "sortDir"){
       state.sortDir = key;
-      if (el.sortDirSelect) el.sortDirSelect.value = key;
+      saveSortPrefs();
+      for (const b of el.sortDirRow.querySelectorAll(".chip")){
+        b.setAttribute("aria-pressed", b.getAttribute("data-key") === key ? "true" : "false");
+      }
+      updateFabSortUI();
       return;
     }
 
@@ -709,12 +747,19 @@ ip clicks
         const ha = parseHours(A), hb = parseHours(B);
         if (ha != null && hb != null) return (ha - hb) * dir;
       }
-      return String(A).localeCompare(String(B), "de") * dir;
+      let cmp = String(A).localeCompare(String(B), "de") * dir;
+      // Stabiler Tie-Breaker: immer nach ID (aufsteigend), damit Sortierung ruhig bleibt.
+      if (cmp === 0 && sf !== "ID"){
+        const ia = Number(a[COL.id] ?? ""), ib = Number(b[COL.id] ?? "");
+        if (Number.isFinite(ia) && Number.isFinite(ib)) return ia - ib;
+      }
+      return cmp;
     });
 
     el.pillRows.textContent = `Treffer: ${out.length}`;
     // Keep FAB quick controls in sync (in case sortDir changed via dialog).
     updateFabSortUI();
+    updateFabSortFieldUI();
     render(out);
   }
 
@@ -845,7 +890,7 @@ if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog)) {
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0l-B)
+// Kartenkopf: Trophy-Badges (Build 7.0l-A)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -1231,6 +1276,13 @@ function renderTrophyDetails(row){
 
   function openMenuDialog(){
     // Keep dialog chips in sync with quick controls.
+    const sfSel = el.sortFieldRow?.querySelector?.("#sortFieldSelect");
+    if (sfSel) sfSel.value = state.sortField;
+    if (el.sortDirRow){
+      for (const b of el.sortDirRow.querySelectorAll(".chip")){
+        b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortDir ? "true" : "false");
+      }
+    }
     if (!el.dlg.open) el.dlg.showModal();
   }
 
@@ -1243,6 +1295,15 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   el.btnApply.addEventListener("click", () => {
+    // Some mobile browsers are flaky with <select multiple> change events.
+    // Re-sync the selected genres on Apply to ensure multi-select works reliably.
+    if (el.genreSelect){
+      const s = new Set();
+      for (const opt of el.genreSelect.selectedOptions){
+        if (opt && opt.value) s.add(opt.value);
+      }
+      state.filters.genres = s;
+    }
     el.dlg.close();
     applyAndRender();
   });
@@ -1254,25 +1315,27 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    if (el.genreList){
-      for (const cb of el.genreList.querySelectorAll('input[type="checkbox"][data-genre]')) cb.checked = false;
+    if (el.genreSelect){
+      for (const o of Array.from(el.genreSelect.options)) o.selected = false;
     }
-    if (el.genreSummary) el.genreSummary.textContent = "0 ausgewählt";
-    // Reset chip pressed states
+    // Reset chip pressed states (sortDir + filters)
     for (const b of el.dlg.querySelectorAll(".chip")){
       const group = b.getAttribute("data-group");
-      if (group === "sortField"){
-        b.setAttribute("aria-pressed", b.getAttribute("data-key") === "ID" ? "true" : "false");
-      } else if (group === "sortDir"){
+      if (group === "sortDir"){
         b.setAttribute("aria-pressed", b.getAttribute("data-key") === "asc" ? "true" : "false");
       } else {
         b.setAttribute("aria-pressed", "false");
       }
     }
+
     state.sortField = "ID";
     state.sortDir = "asc";
-    if (el.sortFieldSelect) el.sortFieldSelect.value = "ID";
-    if (el.sortDirSelect) el.sortDirSelect.value = "asc";
+    saveSortPrefs();
+
+    const sfSel = el.sortFieldRow?.querySelector?.("#sortFieldSelect");
+    if (sfSel) sfSel.value = state.sortField;
+    updateFabSortFieldUI();
+    updateFabSortUI();
   });
 
   // Sort chip handlers are live; apply takes effect when dialog applied

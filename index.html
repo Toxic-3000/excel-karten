@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0l-B" />
-  <link rel="stylesheet" href="styles.css?v=7.0l-B" />
+    <meta name="app-build" content="7.0m-A" />
+  <link rel="stylesheet" href="styles.css?v=7.0m-A" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -68,6 +68,11 @@
     </div>
 
     <div class="fabSect">
+      <div class="fabLabel">Sortieren nach</div>
+      <div id="fabSortFieldRow" class="chipRow fabChips" aria-label="Sortierfeld wählen"></div>
+    </div>
+
+    <div class="fabSect">
       <div class="fabLabel">Sortierung</div>
       <div id="fabSortDirRow" class="chipRow fabChips" aria-label="Sortierrichtung"></div>
     </div>
@@ -89,9 +94,8 @@
       <div class="sheetBody">
         <div class="sect">
           <div class="sectTitle">Sortieren</div>
-          <div id="sortControls" class="sortControls">
-            <div id="sortFieldRow"></div>
-          </div>
+          <div class="chipRow" id="sortFieldRow"></div>
+          <div class="chipRow" id="sortDirRow"></div>
         </div>
 
         <div class="sect">
@@ -103,14 +107,10 @@
           </div>
 
           <div class="subsect" id="genreSect">
-  <div class="subTitle">Genre</div>
-  <details id="genreDetails" class="multiSelect">
-    <summary><span id="genreSummary">0 ausgewählt</span></summary>
-    <div id="genreList" class="checkList"></div>
-  </details>
-</div>
-
-</div>
+            <div class="subTitle">Genre</div>
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen" multiple size="1">
+            </select>
+          </div>
 
           <div class="subsect">
             <div class="subTitle">Plattform</div>
@@ -146,6 +146,6 @@
   </dialog>
 
   <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0l-B"></script>
+  <script src="app.js?v=7.0m-A"></script>
 </body>
 </html>
