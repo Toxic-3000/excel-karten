@@ -1,11 +1,12 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-Z
+console.log("Build 7.0k-AA loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-AA
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-Z").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-AA").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -815,7 +816,7 @@ if (isUngespielt(p100) || isUngespielt(plat) || isUngespielt(prog)) {
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-Z)
+// Kartenkopf: Trophy-Badges (Build 7.0k-AA)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
