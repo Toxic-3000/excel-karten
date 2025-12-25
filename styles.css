@@ -1,8 +1,12 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-K
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-M
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
 :root{
+  --accent: #4e8cff;
+  --accent-weak: rgba(78,140,255,.14);
+  --accent-border: rgba(78,140,255,.30);
+
   --uiScale: 1;
 
   /* Softer, less “office-grey” base palette */
@@ -254,6 +258,56 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .badge.ok{background: color-mix(in oklab, var(--ok) 18%, var(--bg) 82%)}
 .badge.warn{background: color-mix(in oklab, var(--warn) 18%, var(--bg) 82%)}
 .badge.bad{background: color-mix(in oklab, var(--bad) 18%, var(--bg) 82%)}
+
+/* Subtilere Farbakzente gegen "grau in grau" */
+.badge.platform.ps5{
+  background: color-mix(in oklab, var(--accent) 18%, var(--bg2) 82%);
+  border-color: color-mix(in oklab, var(--accent) 22%, var(--border) 78%);
+}
+.badge.platform.ps4{
+  background: color-mix(in oklab, #0a0b14 8%, var(--bg2) 92%);
+}
+.badge.platform.ps3{
+  background: color-mix(in oklab, var(--accent2) 14%, var(--bg2) 86%);
+  border-color: color-mix(in oklab, var(--accent2) 18%, var(--border) 82%);
+}
+.badge.platform.vita{
+  background: color-mix(in oklab, #7b61ff 16%, var(--bg2) 84%);
+  border-color: color-mix(in oklab, #7b61ff 18%, var(--border) 82%);
+}
+
+.badge.source.psplus{
+  background: color-mix(in oklab, var(--accent) 14%, var(--bg2) 86%);
+  border-color: color-mix(in oklab, var(--accent) 16%, var(--border) 84%);
+}
+.badge.source.digital{
+  background: color-mix(in oklab, #111 6%, var(--bg2) 94%);
+}
+.badge.source.retail{
+  background: color-mix(in oklab, #ffb300 14%, var(--bg2) 86%);
+  border-color: color-mix(in oklab, #ffb300 16%, var(--border) 84%);
+}
+.badge.source.unknown{
+  background: color-mix(in oklab, #666 8%, var(--bg2) 92%);
+}
+
+.badge.avail.available,
+.badge.avail.verfuegbar{
+  background: color-mix(in oklab, var(--ok) 16%, var(--bg2) 84%);
+  border-color: color-mix(in oklab, var(--ok) 18%, var(--border) 82%);
+}
+.badge.avail.delisted{
+  background: color-mix(in oklab, var(--bad) 12%, var(--bg2) 88%);
+  border-color: color-mix(in oklab, var(--bad) 14%, var(--border) 86%);
+}
+.badge.avail.restricted,
+.badge.avail.eingeschraenkt{
+  background: color-mix(in oklab, var(--warn) 12%, var(--bg2) 88%);
+  border-color: color-mix(in oklab, var(--warn) 14%, var(--border) 86%);
+}
+.badge.avail.unknown{
+  background: color-mix(in oklab, #666 8%, var(--bg2) 92%);
+}
 
 .info{
   margin-top: calc(10px * var(--uiScale));
@@ -821,4 +875,29 @@ summary::-webkit-details-marker{display:none}
 }
 .fabPanel{
   background: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
+}
+
+
+/* ===== Build 7.0k-M: subtle color accents ===== */
+.badge.platform.ps5{ background: rgba(78,140,255,.14); border-color: rgba(78,140,255,.26); }
+.badge.platform.ps4{ background: rgba(60,60,60,.10); border-color: rgba(60,60,60,.18); }
+.badge.platform.ps3{ background: rgba(120,120,120,.10); border-color: rgba(120,120,120,.18); }
+.badge.platform.vita{ background: rgba(140,90,255,.12); border-color: rgba(140,90,255,.22); }
+.badge.source.psplus{ background: rgba(110,170,255,.12); border-color: rgba(110,170,255,.22); }
+.badge.source.digital{ background: rgba(120,200,170,.12); border-color: rgba(120,200,170,.22); }
+.badge.source.retail{ background: rgba(255,180,80,.12); border-color: rgba(255,180,80,.22); }
+.badge.source.unknown{ background: rgba(140,140,140,.10); border-color: rgba(140,140,140,.18); }
+.badge.avail.available{ background: rgba(120,200,170,.12); border-color: rgba(120,200,170,.24); }
+.badge.avail.delisted{ background: rgba(240,120,120,.12); border-color: rgba(240,120,120,.24); }
+.badge.avail.restricted{ background: rgba(255,180,80,.12); border-color: rgba(255,180,80,.24); }
+
+.infoBox{
+  background: color-mix(in oklab, var(--accent) 10%, #fff 90%);
+  border-color: color-mix(in oklab, var(--accent) 18%, var(--border) 82%);
+  border-left: 4px solid color-mix(in oklab, var(--accent) 34%, var(--border) 66%);
+}
+.infoBox .label{ color: rgba(30,40,60,.72); }
+
+.card{
+  border: 1px solid rgba(0,0,0,.05);
 }
