@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-O
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-P
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-O").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-P").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -804,7 +804,7 @@
 
   
 
-// Kartenkopf: Trophy-Badges (Build 7.0k-O)
+// Kartenkopf: Trophy-Badges (Build 7.0k-P)
 // Standard: 1 Badge
 // Ausnahme: Platin + offene Trophäen -> 2 Badges: [Platin] [In Arbeit]
 // Platin + 100% -> im Header nur [Platin]
@@ -827,7 +827,7 @@ function trophyHeaderBadges(row){
   const dprog = parseKeyVals(prog);
 
   const hasToken = (obj, token) => Object.values(obj).some(v => v === token);
-  const hasPlatinum = (gpl === "Platin-Erlangt" || hasToken(dpl, "Platin-Erlangt"));
+  const hasPlatinum = (gpl === "Platin-Erlangt" || hasToken(dpl, "Platin-Erlangt") || /platin/i.test(gpl) || Object.values(dpl).some(v => /platin/i.test(String(v))));
 
   // Preferred: derive open/complete from "Trophäen Fortschritt" fractions (earned/total)
   const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
