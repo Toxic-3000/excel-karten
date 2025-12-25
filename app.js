@@ -1,11 +1,11 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-L
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0k-M
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-L").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0k-M").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -1215,3 +1215,16 @@ function renderTrophyDetails(row){
     document.title = `Spieleliste – Build ${BUILD}`;
   });
 })();
+// Header Trophy Badges (Build 7.0k-M)
+function getHeaderTrophyBadges(tags) {
+  const hasPlatinum = tags.has("Platin");
+  const inWork      = tags.has("In Arbeit");
+  const complete    = tags.has("100%");
+
+  if (hasPlatinum) {
+    return inWork ? ["Platin", "In Arbeit"] : ["Platin"];
+  }
+  if (inWork)   return ["In Arbeit"];
+  if (complete) return ["100%"];
+  return [];
+}
