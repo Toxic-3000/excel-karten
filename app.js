@@ -6,7 +6,7 @@ console.log("Build 7.0u-A1 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A1").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -49,7 +49,13 @@ console.log("Build 7.0u-A1 loaded");
     availRow: $("availRow"),
     trophyAllRow: $("trophyAllRow"),
     trophyPresetRow: $("trophyPresetRow"),
-    genreSelect: $("genreSelect"),
+    genreBtn: $("genreBtn"),
+    genreSummaryText: $("genreSummaryText"),
+    genreOverlay: $("genreOverlay"),
+    genreList: $("genreList"),
+    btnGenreBack: $("btnGenreBack"),
+    btnGenreDone: $("btnGenreDone"),
+    btnGenreClear: $("btnGenreClear"),
 
     // Accordion summaries
     platSummary: $("platSummary"),
@@ -639,42 +645,27 @@ console.log("Build 7.0u-A1 loaded");
       `;
     }
 
-    // --- Genre (Dropdown -> Multi via "add to selection") ---
-    // UX: select one genre to add it to the active set; the dropdown then snaps back to "Alle".
-    // Selected genres are shown in the "Aktive Filter" bar and are removable there.
-    if (el.genreSelect){
-      el.genreSelect.multiple = false;
-      el.genreSelect.size = 1;
+    // --- Genre (Multi-Select Picker) ---
+    // Mehrfachauswahl mit Checkmarks; Auswahl wird in der Aktiv-Filter-Leiste angezeigt.
+    // Der Button zeigt nur eine kompakte Zusammenfassung ("Alle" bzw. "n gewählt").
+    state.distinct.genresSorted = Array.from(state.distinct.genres)
+      .filter(Boolean)
+      .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      const genres = Array.from(state.distinct.genres)
-        .filter(Boolean)
-        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
-
-      el.genreSelect.innerHTML = "";
-      const optAll = document.createElement("option");
-      optAll.value = "";
-      optAll.textContent = "Alle";
-      el.genreSelect.appendChild(optAll);
-
-      for (const g of genres){
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        el.genreSelect.appendChild(opt);
-      }
-
-      // Always render as "Alle"; selections live in state.filters.genres
-      el.genreSelect.value = "";
-      el.genreSelect.onchange = () => {
-        const v = el.genreSelect.value || "";
-        if (!v){
-          state.filters.genres.clear();
-        } else {
-          state.filters.genres.add(v);
-        }
-        // Snap back to "Alle" so the dropdown behaves like an "Add" control.
-        el.genreSelect.value = "";
+    if (el.genreBtn){
+      el.genreBtn.onclick = () => setGenreOverlay(true);
+    }
+    if (el.btnGenreBack){
+      el.btnGenreBack.onclick = () => setGenreOverlay(false);
+    }
+    if (el.btnGenreDone){
+      el.btnGenreDone.onclick = () => setGenreOverlay(false);
+    }
+    if (el.btnGenreClear){
+      el.btnGenreClear.onclick = () => {
+        state.filters.genres.clear();
         updateDialogMeta();
+        if (!el.genreOverlay?.hidden) renderGenrePicker();
       };
     }
 
@@ -701,11 +692,8 @@ console.log("Build 7.0u-A1 loaded");
       const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
       const tros = Array.from(state.distinct.trophies);
       tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
-      const important = new Set(["In Arbeit","Ungespielt","Platin"]);
-      el.trophyAllRow.innerHTML = tros.map(t => {
-        const kind = important.has(t) ? "primary" : "status";
-        return chipHtml("trophy", t, t, state.filters.trophies.has(t), kind);
-      }).join("");
+      // Diese Status-Badges sollen optisch wie die anderen Filter-Badges wirken (nicht dunkler hervorgehoben).
+      el.trophyAllRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t), "category")).join("");
     }
     if (el.trophyPresetRow){
       const presets = [
@@ -802,6 +790,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (el.platSummary) el.platSummary.textContent = summarizeMulti(state.filters.platforms);
     if (el.srcSummary)  el.srcSummary.textContent  = summarizeMulti(state.filters.sources, 2, stripTagEmoji);
     if (el.availSummary) el.availSummary.textContent = summarizeMulti(state.filters.availability);
+    if (el.genreSummaryText) el.genreSummaryText.textContent = summarizeMulti(state.filters.genres);
 
     if (el.trophySummary){
       const base = summarizeMulti(state.filters.trophies);
@@ -976,6 +965,57 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     }
     const n = computeFilteredCount();
     el.btnApply.textContent = `Anwenden (${n})`;
+  }
+
+
+  // --- Genre Picker Overlay ---
+  let cachedGenreOptions = [];
+
+  function setGenreOverlayOpen(open){
+    if (!el.genreOverlay) return;
+    el.genreOverlay.hidden = !open;
+    el.genreOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open){
+      renderGenreOverlay();
+      const body = el.genreOverlay.querySelector('.overlayBody');
+      if (body) body.scrollTop = 0;
+    }
+  }
+
+  function renderGenreOverlay(){
+    if (!el.genreList) return;
+    const selected = new Set(state.filters.genres);
+    const rows = [{ value: '__ALL__', label: 'Alle' }, ...cachedGenreOptions.map(g => ({ value: g, label: g }))];
+
+    el.genreList.innerHTML = rows.map(r => {
+      const isOn = (r.value === '__ALL__') ? (selected.size === 0) : selected.has(r.value);
+      return `
+        <button type="button" class="listRow" data-value="${escapeHtml(r.value)}" aria-pressed="${isOn}">
+          <span class="check" aria-hidden="true">✓</span>
+          <span class="label">${escapeHtml(r.label)}</span>
+        </button>
+      `;
+    }).join('');
+
+    // one-time delegated click handler
+    if (!el.genreList.dataset.bound){
+      el.genreList.dataset.bound = '1';
+      el.genreList.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.listRow');
+        if (!btn) return;
+        const v = btn.getAttribute('data-value');
+        if (v === '__ALL__'){
+          state.filters.genres = [];
+        } else {
+          const set = new Set(state.filters.genres);
+          if (set.has(v)) set.delete(v); else set.add(v);
+          state.filters.genres = Array.from(set);
+        }
+        applyFilters();
+        updateDialogMeta();
+        renderGenreOverlay();
+      });
+    }
   }
 
   function updateDialogMeta(forceNow=false){

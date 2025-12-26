@@ -1,15 +1,19 @@
-# Build 7.0u-A1
+# Build 7.0u-A2
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0u-A1
+## Was neu ist in 7.0u-A2
 
-- **Pull-to-Refresh deaktiviert (Android/Chrome):**
-  - Kein versehentliches Seiten-Reload mehr durch Runterziehen am Listenanfang.
+- **Genre-Picker verbessert:**
+  - Mehrfachauswahl bleibt wie bisher möglich – **jetzt mit sichtbaren Checkmarks** in der Auswahl.
+  - Im Dialog siehst du oben weiterhin die aktiven Genre-Filter als Chips (mit ✕ zum Entfernen).
 
-- **Badge-Konsistenz (Trophäen):**
-  - Trophäen-Badges sind jetzt in der Kartenansicht in der Breite näher an den übrigen Badges.
-  - Hervorhebung läuft weiterhin über Stil/Färbung statt über „Sondergröße“.
+- **Trophäen-Status-Chips ruhiger:**
+  - Die Status-Badges (Platin/100%/In Arbeit/Ungespielt …) nutzen jetzt die **gleiche neutrale Inaktiv-Farbe** wie Delisted/Unbekannt etc.
+  - Die **Fortschritts-Badges** (≤3/≤5/≥90/≥75) bleiben wie gewünscht unverändert.
+
+- **Pull-to-Refresh bleibt deaktiviert (Android/Chrome):**
+  - Kein versehentliches Reload durch Runterziehen am Listenanfang.
 
 ---
 
