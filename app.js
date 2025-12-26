@@ -1,12 +1,12 @@
-console.log("Build 7.0t-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0t-A
+console.log("Build 7.0t-A1 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0t-A1
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A1").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -1712,9 +1712,34 @@ function renderTrophyDetails(row){
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 
-  // Prevent background scroll while the bottom-sheet dialog is open (mobile overscroll quirks).
+  // Prevent background scroll while the bottom-sheet dialog is open.
+  // On mobile (especially Android/Chrome), only using overflow:hidden can cause
+  // "short" initial sheet layouts after the user scrolled the page (visual viewport
+  // vs layout viewport mismatch). A body-position freeze is more reliable.
+  let _savedScrollY = 0;
   function setModalOpen(isOpen){
-    document.documentElement.classList.toggle("modalOpen", !!isOpen);
+    const html = document.documentElement;
+    if (isOpen){
+      _savedScrollY = window.scrollY || html.scrollTop || 0;
+      html.classList.add("modalOpen");
+      // Freeze the page
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${_savedScrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+    }else{
+      html.classList.remove("modalOpen");
+      // Unfreeze and restore
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      const y = _savedScrollY || 0;
+      _savedScrollY = 0;
+      window.scrollTo(0, y);
+    }
   }
 
   function openMenuDialog(){
@@ -1722,6 +1747,17 @@ function renderTrophyDetails(row){
     buildFilterUI();
     if (!el.dlg.open) el.dlg.showModal();
     setModalOpen(true);
+
+    // Force a stable layout pass so the sheet doesn't start "short" on mobile
+    // when the browser UI changes the visual viewport.
+    const body = el.dlg.querySelector('.sheetBody');
+    if (body) body.scrollTop = 0;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Touch a layout property to make sure the browser commits sizing.
+        void el.dlg.offsetHeight;
+      });
+    });
   }
 
   // Build the floating quick access UI (FAB) once.
