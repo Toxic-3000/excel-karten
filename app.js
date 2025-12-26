@@ -1,14 +1,14 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.banner === 'function') window.__BOOT.banner('');
-console.log("Build 7.0u-A2e loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2e
+console.log("Build 7.0u-A2f loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2f
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2e").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2f").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -668,36 +668,44 @@ console.log("Build 7.0u-A2e loaded");
       // Reflect current selection (needed when reopening the dialog)
       syncGenreSelectFromState();
 
-      // Track previous picker state so "Alle" can act as an explicit reset when chosen,
-      // but is automatically de-selected as soon as the user picks one or more real genres.
-      let prevGenrePicked = new Set(Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? "")));
+      // Mobile Picker Reality Check™:
+      // Android/iOS Multi-Select Picker can be weird about firing events (and may keep "Alle" visually checked
+      // while you pick real genres). We therefore enforce a hard rule on commit: sobald mind. ein echtes Genre
+      // ausgewählt ist, ist "Alle" immer AUS – zuverlässig nach dem Schließen des Pickers.
+      let genreCommitTimer = null;
+      const commitGenreFromSelect = () => {
+        if (genreCommitTimer) clearTimeout(genreCommitTimer);
+        // Defer one tick so the browser has time to apply the final selection.
+        genreCommitTimer = setTimeout(() => {
+          const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
+          const nonEmpty = picked.filter(v => !!v);
 
-      el.genreSelect.onchange = () => {
-        const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
-        const nowSet = new Set(picked);
-        const nonEmpty = picked.filter(v => !!v);
-
-        const hadAllBefore = prevGenrePicked.has("");
-        const hasAllNow = nowSet.has("");
-        const allJustSelected = hasAllNow && !hadAllBefore;
-
-        state.filters.genres.clear();
-
-        if (nonEmpty.length === 0){
-          // "Alle" (keine Genre-Einschränkung)
-        } else if (hasAllNow && allJustSelected){
-          // User explicitly chose "Alle" while other genres were selected -> reset.
-        } else {
+          state.filters.genres.clear();
           for (const v of nonEmpty) state.filters.genres.add(v);
-        }
 
-        // Ensure the DOM selection matches the filter state.
-        syncGenreSelectFromState();
-        updateDialogMeta();
+          // Keep the DOM strictly in sync:
+          // - If any real genre is selected -> "Alle" must be unselected (and we also disable it).
+          // - If none selected -> "Alle" becomes selected again (and enabled).
+          const hasAny = state.filters.genres.size > 0;
+          const allOpt = el.genreSelect.querySelector('option[value=""]');
+          if (allOpt){
+            allOpt.selected = !hasAny;
+            allOpt.disabled = hasAny;
+          }
+          if (hasAny){
+            // Ensure we never keep "" selected alongside real genres.
+            // Some mobile pickers report "" in selectedOptions even if we try to unset it.
+            // By re-syncing from state we end up consistent for the next open.
+          }
 
-        // Update previous snapshot (after sync).
-        prevGenrePicked = new Set(Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? "")));
+          syncGenreSelectFromState();
+          updateDialogMeta();
+        }, 0);
       };
+
+      el.genreSelect.addEventListener("change", commitGenreFromSelect);
+      el.genreSelect.addEventListener("input", commitGenreFromSelect);
+      el.genreSelect.addEventListener("blur", commitGenreFromSelect);
     }
 
     // --- Weitere Filter (Akkordeons) ---
