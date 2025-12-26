@@ -1,14 +1,14 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.banner === 'function') window.__BOOT.banner('');
-console.log("Build 7.0u-A2c loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2c
+console.log("Build 7.0u-A2e loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2e
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2e").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -668,20 +668,35 @@ console.log("Build 7.0u-A2c loaded");
       // Reflect current selection (needed when reopening the dialog)
       syncGenreSelectFromState();
 
+      // Track previous picker state so "Alle" can act as an explicit reset when chosen,
+      // but is automatically de-selected as soon as the user picks one or more real genres.
+      let prevGenrePicked = new Set(Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? "")));
+
       el.genreSelect.onchange = () => {
         const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
-        const wantsAll = (!picked.length) || picked.includes("");
+        const nowSet = new Set(picked);
+        const nonEmpty = picked.filter(v => !!v);
+
+        const hadAllBefore = prevGenrePicked.has("");
+        const hasAllNow = nowSet.has("");
+        const allJustSelected = hasAllNow && !hadAllBefore;
 
         state.filters.genres.clear();
-        if (!wantsAll){
-          for (const v of picked){
-            if (v) state.filters.genres.add(v);
-          }
+
+        if (nonEmpty.length === 0){
+          // "Alle" (keine Genre-Einschränkung)
+        } else if (hasAllNow && allJustSelected){
+          // User explicitly chose "Alle" while other genres were selected -> reset.
+        } else {
+          for (const v of nonEmpty) state.filters.genres.add(v);
         }
 
-        // Ensure "Alle" isn't selected alongside real values.
+        // Ensure the DOM selection matches the filter state.
         syncGenreSelectFromState();
         updateDialogMeta();
+
+        // Update previous snapshot (after sync).
+        prevGenrePicked = new Set(Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? "")));
       };
     }
 

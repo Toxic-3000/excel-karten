@@ -1,8 +1,8 @@
-# Build 7.0u-A2
+# Build 7.0u-A2e
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0u-A2
+## Was neu ist in 7.0u-A2e
 
 - **Genre-Dropdown im Sortiermenü:**
   - Mehrfachauswahl ist jetzt ein echtes Multi-Select – bereits gewählte Genres werden im Picker **sichtbar markiert**.
