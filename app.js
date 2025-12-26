@@ -1,12 +1,12 @@
-console.log("Build 7.0u-A3 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A3
+console.log("Build 7.0u-A2 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A3").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A1").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -49,13 +49,7 @@ console.log("Build 7.0u-A3 loaded");
     availRow: $("availRow"),
     trophyAllRow: $("trophyAllRow"),
     trophyPresetRow: $("trophyPresetRow"),
-    genreBtn: $("genreBtn"),
-    genreSummaryText: $("genreSummaryText"),
-    genreOverlay: $("genreOverlay"),
-    genreList: $("genreList"),
-    btnGenreBack: $("btnGenreBack"),
-    btnGenreDone: $("btnGenreDone"),
-    btnGenreClear: $("btnGenreClear"),
+    genreSelect: $("genreSelect"),
 
     // Accordion summaries
     platSummary: $("platSummary"),
@@ -645,30 +639,47 @@ console.log("Build 7.0u-A3 loaded");
       `;
     }
 
-    // --- Genre (Multi-Select Picker) ---
-    // Mehrfachauswahl mit Checkmarks; Auswahl wird in der Aktiv-Filter-Leiste angezeigt.
-    // Der Button zeigt nur eine kompakte Zusammenfassung ("Alle" bzw. "n gewählt").
-    state.distinct.genresSorted = Array.from(state.distinct.genres)
-      .filter(Boolean)
-      .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
+    // --- Genre (Dropdown: echtes Multi-Select mit Markierung) ---
+    // UX: Mehrfachauswahl direkt im Select (Android/iOS Picker), inkl. sichtbarer Markierung.
+    // "Alle" = kein Genre-Filter (Set ist leer).
+    if (el.genreSelect){
+      el.genreSelect.multiple = true;
+      el.genreSelect.size = 1; // kompakt wie Dropdown (CSS macht den Rest)
 
-    // Cache for the genre overlay (some mobile browsers behave oddly with <dialog> + cached refs)
-    cachedGenreOptions = state.distinct.genresSorted.slice();
+      const genres = Array.from(state.distinct.genres)
+        .filter(Boolean)
+        .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-    if (el.genreBtn){
-      el.genreBtn.onclick = () => setGenreOverlay(true);
-    }
-    if (el.btnGenreBack){
-      el.btnGenreBack.onclick = () => setGenreOverlay(false);
-    }
-    if (el.btnGenreDone){
-      el.btnGenreDone.onclick = () => setGenreOverlay(false);
-    }
-    if (el.btnGenreClear){
-      el.btnGenreClear.onclick = () => {
+      el.genreSelect.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "";
+      optAll.textContent = "Alle";
+      el.genreSelect.appendChild(optAll);
+
+      for (const g of genres){
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        el.genreSelect.appendChild(opt);
+      }
+
+      // Reflect current selection (needed when reopening the dialog)
+      syncGenreSelectFromState();
+
+      el.genreSelect.onchange = () => {
+        const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
+        const wantsAll = (!picked.length) || picked.includes("");
+
         state.filters.genres.clear();
+        if (!wantsAll){
+          for (const v of picked){
+            if (v) state.filters.genres.add(v);
+          }
+        }
+
+        // Ensure "Alle" isn't selected alongside real values.
+        syncGenreSelectFromState();
         updateDialogMeta();
-        if (!el.genreOverlay?.hidden) renderGenreOverlay();
       };
     }
 
@@ -695,8 +706,10 @@ console.log("Build 7.0u-A3 loaded");
       const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
       const tros = Array.from(state.distinct.trophies);
       tros.sort((a,b) => (trophyOrder.indexOf(a) - trophyOrder.indexOf(b)));
-      // Diese Status-Badges sollen optisch wie die anderen Filter-Badges wirken (nicht dunkler hervorgehoben).
-      el.trophyAllRow.innerHTML = tros.map(t => chipHtml("trophy", t, t, state.filters.trophies.has(t), "category")).join("");
+      // Inaktive Status-Chips sollen nicht "dunkler" wirken als andere Kategorien.
+      el.trophyAllRow.innerHTML = tros.map(t => {
+        return chipHtml("trophy", t, t, state.filters.trophies.has(t), "category");
+      }).join("");
     }
     if (el.trophyPresetRow){
       const presets = [
@@ -741,11 +754,26 @@ console.log("Build 7.0u-A3 loaded");
     return String(label ?? "").replace(/^\s*🏷\s*/u, "").trim();
   }
 
-  function cssEscape(s){
-    const v = String(s ?? "");
-    try{ return (window.CSS && typeof CSS.escape === "function") ? CSS.escape(v) : v; }
-    catch{ return v; }
+  function cssEscape\(s\)\{
+    const v = String\(s \?\? \"\"\);
+    try\{ return \(window\.CSS && typeof CSS\.escape === \"function\"\) \? CSS\.escape\(v\) : v; \}
+    catch\{ return v; \}
+  \}
+
+  function syncGenreSelectFromState(){
+    if (!el.genreSelect) return;
+    const sel = el.genreSelect;
+    const has = (state.filters.genres && state.filters.genres.size);
+    for (const opt of sel.options){
+      const v = String(opt.value ?? "");
+      if (!v){
+        opt.selected = !has;
+      } else {
+        opt.selected = !!has && state.filters.genres.has(v);
+      }
+    }
   }
+
 
   function setAllChipPressed(group, key, pressed){
     if (!el.dlg) return;
@@ -793,7 +821,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (el.platSummary) el.platSummary.textContent = summarizeMulti(state.filters.platforms);
     if (el.srcSummary)  el.srcSummary.textContent  = summarizeMulti(state.filters.sources, 2, stripTagEmoji);
     if (el.availSummary) el.availSummary.textContent = summarizeMulti(state.filters.availability);
-    if (el.genreSummaryText) el.genreSummaryText.textContent = summarizeMulti(state.filters.genres);
 
     if (el.trophySummary){
       const base = summarizeMulti(state.filters.trophies);
@@ -848,7 +875,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         const group = b.getAttribute("data-group");
         const key = b.getAttribute("data-key");
         if (group === "fav") state.filters.fav = false;
-        else if (group === "genre") state.filters.genres.delete(key);
+        else if (group === "genre") { state.filters.genres.delete(key); syncGenreSelectFromState(); }
         else if (group === "plat") state.filters.platforms.delete(key);
         else if (group === "src") state.filters.sources.delete(key);
         else if (group === "avail") state.filters.availability.delete(key);
@@ -857,7 +884,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         else if (group === "shortMain") state.filters.shortMain5 = false;
 
         // Sync UI elements without nuking the whole dialog
-        // Genre uses a dropdown-as-add-control; no chip to sync there.
+        // Genre: sync Select-State (Multi-Select).
         setAllChipPressed(group, key, false);
         // Also sync quick/duplicate chips
         if (group === "trophy") setAllChipPressed("trophy", key, false);
@@ -968,72 +995,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     }
     const n = computeFilteredCount();
     el.btnApply.textContent = `Anwenden (${n})`;
-  }
-
-
-  // --- Genre Picker Overlay ---
-  // Filled in buildFilterUI() from state.distinct.genresSorted
-  let cachedGenreOptions = [];
-
-  function setGenreOverlayOpen(open){
-    if (!el.genreOverlay) return;
-    el.genreOverlay.hidden = !open;
-    el.genreOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
-    if (open){
-      renderGenreOverlay();
-      const body = el.genreOverlay.querySelector('.overlayBody');
-      if (body) body.scrollTop = 0;
-    }
-  }
-
-  function renderGenreOverlay(){
-    // Some mobile browsers behave oddly with <dialog> top-layer; re-query each render
-    if (!el.genreList) el.genreList = document.getElementById('genreList');
-    if (!el.genreList) return;
-
-    const options = (Array.isArray(state.distinct.genresSorted) && state.distinct.genresSorted.length)
-      ? state.distinct.genresSorted
-      : (Array.isArray(cachedGenreOptions) ? cachedGenreOptions : []);
-
-    const selected = (state.filters.genres instanceof Set)
-      ? new Set(state.filters.genres)
-      : new Set(state.filters.genres || []);
-
-    const rows = [{ value: '__ALL__', label: 'Alle' }, ...options.map(g => ({ value: g, label: g }))];
-
-    el.genreList.innerHTML = rows.map(r => {
-      const isOn = (r.value === '__ALL__') ? (selected.size === 0) : selected.has(r.value);
-      return `
-        <button type="button" class="listItem" data-value="${esc(r.value)}" aria-pressed="${isOn}">
-          <span class="check" aria-hidden="true">✓</span>
-          <span class="txt">${esc(r.label)}</span>
-        </button>
-      `;
-    }).join('');
-
-    // one-time delegated click handler
-    if (!el.genreList.dataset.bound){
-      el.genreList.dataset.bound = '1';
-      el.genreList.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('.listItem');
-        if (!btn) return;
-        const v = btn.getAttribute('data-value');
-        const next = (state.filters.genres instanceof Set)
-          ? new Set(state.filters.genres)
-          : new Set(state.filters.genres || []);
-
-        if (v === '__ALL__'){
-          next.clear();
-        } else {
-          if (next.has(v)) next.delete(v); else next.add(v);
-        }
-
-        // keep as Set (other code expects .size/.clear)
-        state.filters.genres = next;
-        updateDialogMeta();
-        renderGenreOverlay();
-      });
-    }
   }
 
   function updateDialogMeta(forceNow=false){

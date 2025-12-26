@@ -1,21 +1,30 @@
-# Build 7.0u-A3
+# Build 7.0u-A2
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0u-A3
+## Was neu ist in 7.0u-A2
 
-- **Genre-Picker verbessert:**
-  - Mehrfachauswahl bleibt wie bisher möglich – **jetzt mit sichtbaren Checkmarks** in der Auswahl.
-  - Im Dialog siehst du oben weiterhin die aktiven Genre-Filter als Chips (mit ✕ zum Entfernen).
+- **Genre-Dropdown im Sortiermenü:**
+  - Mehrfachauswahl ist jetzt ein echtes Multi-Select – bereits gewählte Genres werden im Picker **sichtbar markiert**.
+  - „Alle“ setzt den Genre-Filter sauber zurück.
 
-- **Trophäen-Status-Chips ruhiger:**
-  - Die Status-Badges (Platin/100%/In Arbeit/Ungespielt …) nutzen jetzt die **gleiche neutrale Inaktiv-Farbe** wie Delisted/Unbekannt etc.
-  - Die **Fortschritts-Badges** (≤3/≤5/≥90/≥75) bleiben wie gewünscht unverändert.
-
-- **Pull-to-Refresh bleibt deaktiviert (Android/Chrome):**
-  - Kein versehentliches Reload durch Runterziehen am Listenanfang.
+- **Trophäen-Badges im Sortiermenü (Status):**
+  - Platin / 100% / In Arbeit / usw. haben jetzt **die gleiche Inaktiv-Farbe** wie andere Kategorien (z. B. Verfügbarkeit).
+  - **Aktiv-Einfärbung bleibt**, Fortschritts-Presets (≤3, ≤5, ≥90%, ≥75%) bleiben unverändert.
 
 ---
+
+## Was vorher schon drin war (7.0u-A1)
+
+- **Pull-to-Refresh deaktiviert (Android/Chrome):**
+  - Kein versehentliches Seiten-Reload mehr durch Runterziehen am Listenanfang.
+
+- **Badge-Konsistenz (Trophäen):**
+  - Trophäen-Badges sind jetzt in der Kartenansicht in der Breite näher an den übrigen Badges.
+  - Hervorhebung läuft weiterhin über Stil/Färbung statt über „Sondergröße“.
+
+---
+
 
 ## Was vorher schon drin war (7.0s-A)
 

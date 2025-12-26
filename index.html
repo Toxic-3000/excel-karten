@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-  <meta name="app-build" content="7.0u-A3" />
+    <meta name="app-build" content="7.0u-A1" />
   <link rel="stylesheet" href="styles.css?v=7.0t-A" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -114,12 +114,7 @@
 
           <div class="subsect" id="genreSect">
             <div class="subTitle">Genre</div>
-            <button id="genreBtn" class="filterDropdown" type="button" aria-label="Genre auswählen">
-              <span id="genreSummaryText">Alle</span>
-              <span class="dropdownCaret">▾</span>
-            </button>
-          </div>
-<select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
             </select>
           </div>
 
@@ -179,26 +174,11 @@
         <div class="sheetFoot">
           <span class="muted">Alle Zustände werden als Badges angezeigt (inkl. „Unbekannt“, „Eingeschränkt“).</span>
         </div>
-<!-- Genre Picker Overlay (Multi-Select mit Checkmarks) -->
-<div id="genreOverlay" class="sheetOverlay" hidden aria-hidden="true">
-  <div class="overlayHead">
-    <button id="btnGenreBack" class="btn btn-ghost" type="button">Zurück</button>
-    <div class="overlayTitle">Genre</div>
-    <button id="btnGenreDone" class="btn btn-primary" type="button">Fertig</button>
-  </div>
-  <div class="overlayBody">
-    <div id="genreList" class="list"></div>
-  </div>
-  <div class="overlayFoot">
-    <button id="btnGenreClear" class="btn" type="button">Alle</button>
-  </div>
-</div>
-
       </div>
     </div>
   </dialog>
 
   <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0u-A3"></script>
+  <script src="app.js?v=7.0t-A"></script>
 </body>
 </html>
