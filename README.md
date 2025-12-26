@@ -1,8 +1,8 @@
-# Build 7.0u-A2
+# Build 7.0u-A3
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0u-A2
+## Was neu ist in 7.0u-A3
 
 - **Genre-Picker verbessert:**
   - Mehrfachauswahl bleibt wie bisher möglich – **jetzt mit sichtbaren Checkmarks** in der Auswahl.

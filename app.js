@@ -1,12 +1,12 @@
-console.log("Build 7.0u-A1 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A1
+console.log("Build 7.0u-A3 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A3
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A3").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -665,7 +665,7 @@ console.log("Build 7.0u-A1 loaded");
       el.btnGenreClear.onclick = () => {
         state.filters.genres.clear();
         updateDialogMeta();
-        if (!el.genreOverlay?.hidden) renderGenrePicker();
+        if (!el.genreOverlay?.hidden) renderGenreOverlay();
       };
     }
 
@@ -969,9 +969,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
 
   // --- Genre Picker Overlay ---
-  let cachedGenreOptions = [];
 
-  function setGenreOverlayOpen(open){
+  function setGenreOverlay(open){
     if (!el.genreOverlay) return;
     el.genreOverlay.hidden = !open;
     el.genreOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -984,35 +983,38 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
   function renderGenreOverlay(){
     if (!el.genreList) return;
-    const selected = new Set(state.filters.genres);
-    const rows = [{ value: '__ALL__', label: 'Alle' }, ...cachedGenreOptions.map(g => ({ value: g, label: g }))];
+
+    const selected = state.filters.genres; // Set
+    const genres = Array.from(state.distinct.genres || []).sort((a,b)=>String(a).localeCompare(String(b),'de',{sensitivity:'base'}));
+
+    const rows = [{ value: '__ALL__', label: 'Alle' }, ...genres.map(g => ({ value: g, label: g }))];
 
     el.genreList.innerHTML = rows.map(r => {
       const isOn = (r.value === '__ALL__') ? (selected.size === 0) : selected.has(r.value);
       return `
-        <button type="button" class="listRow" data-value="${escapeHtml(r.value)}" aria-pressed="${isOn}">
-          <span class="check" aria-hidden="true">✓</span>
-          <span class="label">${escapeHtml(r.label)}</span>
+        <button type="button" class="listItem" data-value="${esc(r.value)}" aria-pressed="${isOn}">
+          <span class="left">
+            <span class="check" aria-hidden="true">${isOn ? '✓' : ''}</span>
+            <span class="txt">${esc(r.label)}</span>
+          </span>
         </button>
       `;
     }).join('');
 
-    // one-time delegated click handler
     if (!el.genreList.dataset.bound){
       el.genreList.dataset.bound = '1';
       el.genreList.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('.listRow');
+        const btn = ev.target.closest('.listItem');
         if (!btn) return;
         const v = btn.getAttribute('data-value');
         if (v === '__ALL__'){
-          state.filters.genres = [];
+          state.filters.genres.clear();
         } else {
-          const set = new Set(state.filters.genres);
-          if (set.has(v)) set.delete(v); else set.add(v);
-          state.filters.genres = Array.from(set);
+          if (state.filters.genres.has(v)) state.filters.genres.delete(v);
+          else state.filters.genres.add(v);
         }
         applyFilters();
-        updateDialogMeta();
+        updateDialogMeta(true);
         renderGenreOverlay();
       });
     }
