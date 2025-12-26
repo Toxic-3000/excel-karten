@@ -1,8 +1,8 @@
-# Build 7.0t-A3
+# Build 7.0t-A4
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0t-A3
+## Was neu ist in 7.0t-A4
 
 - **Sortiermenü neu sortiert (wie die Karte):**
   - Reihenfolge folgt jetzt strikt der Karte: **ID → Titel → Quelle → Verfügbarkeit → Genre → (Entwickler folgt) → Main → 100% → Metascore → Userwertung → Trophäen**.
