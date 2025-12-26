@@ -756,11 +756,11 @@ console.log("Build 7.0u-A2c loaded");
     return String(label ?? "").replace(/^\s*🏷\s*/u, "").trim();
   }
 
-  function cssEscape\(s\)\{
-    const v = String\(s \?\? \"\"\);
-    try\{ return \(window\.CSS && typeof CSS\.escape === \"function\"\) \? CSS\.escape\(v\) : v; \}
-    catch\{ return v; \}
-  \}
+  function cssEscape(s){
+    const v = String(s ?? "");
+    try{ return (window.CSS && typeof CSS.escape === "function") ? CSS.escape(v) : v; }
+    catch{ return v; }
+  }
 
   function syncGenreSelectFromState(){
     if (!el.genreSelect) return;
