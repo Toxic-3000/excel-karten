@@ -83,7 +83,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-bottom:1px solid var(--border);
 }
 .topbar{
-  display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:space-between;
+  display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:flex-start;
   padding: calc(14px * var(--uiScale)) calc(12px * var(--uiScale)) calc(10px * var(--uiScale));
 }
 .brand{
@@ -190,7 +190,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 .rowMeta{
-  display:flex; justify-content:space-between; align-items:center; gap:calc(10px * var(--uiScale));
+  display:flex; justify-content:flex-start; align-items:center; gap:calc(10px * var(--uiScale));
 }
 .idBadge{
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
@@ -415,7 +415,7 @@ summary{
   padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:650;
   display:flex;
-  justify-content:space-between;
+  justify-content:flex-start;
   align-items:center;
 }
 summary::-webkit-details-marker{display:none}
@@ -492,7 +492,7 @@ summary::-webkit-details-marker{display:none}
   box-shadow: var(--shadow);
   padding: calc(12px * var(--uiScale));
 }
-.fabHead{display:flex; align-items:center; justify-content:space-between; gap: calc(10px * var(--uiScale));}
+.fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 .fabClose{
   border:1px solid var(--border);
@@ -529,7 +529,7 @@ summary::-webkit-details-marker{display:none}
   border-bottom:1px solid var(--border);
   padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
-  justify-content:space-between;
+  justify-content:flex-start;
   align-items:center;
 }
 .sheetTitle{font-weight:650}
@@ -593,22 +593,21 @@ summary::-webkit-details-marker{display:none}
   list-style:none;
   cursor:pointer;
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-  display:grid;
-  grid-template-columns: 1fr var(--accSummaryW, 132px) auto;
+  display:flex;
   align-items:center;
-  column-gap: calc(10px * var(--uiScale));
+  justify-content:flex-start;
+  gap: calc(10px * var(--uiScale));
 }
 .acc > summary::-webkit-details-marker{display:none}
 .accTitle{font-weight:650}
-.accSummary{
-  opacity:.70;
-  font-size: calc(12px * var(--uiScale));
-  justify-self:end;
+.accSummary{opacity:.70; font-size: calc(12px * var(--uiScale));
+  margin-left:auto;
+  min-width: calc(88px * var(--uiScale));
+  max-width: calc(120px * var(--uiScale));
   text-align:right;
-  width: var(--accSummaryW, 132px);
+  white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  white-space:nowrap;
 }
 .acc > summary::after{
   content:"▾";
@@ -620,20 +619,6 @@ summary::-webkit-details-marker{display:none}
   border-top:1px solid var(--border);
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   background: color-mix(in oklab, var(--bg) 97%, var(--fg) 3%);
-}
-
-.accDivider{
-  height:1px;
-  background: var(--border);
-  opacity:0.85;
-  margin: calc(12px * var(--uiScale)) 0;
-}
-.accHint{
-  font-size: calc(12px * var(--uiScale));
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  opacity: .55;
-  margin: 0 0 calc(10px * var(--uiScale));
 }
 
 .toggle{
@@ -654,10 +639,6 @@ summary::-webkit-details-marker{display:none}
   gap: calc(12px * var(--uiScale));
 }
 .chipRow > .chip{margin:0}
-
-.chipRow2{
-  margin-top: calc(10px * var(--uiScale));
-}
 
 /* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
 #sortDirRow{margin-top: calc(12px * var(--uiScale));}
@@ -787,7 +768,7 @@ summary::-webkit-details-marker{display:none}
   .subbar{
     flex-direction:row;
     align-items:center;
-    justify-content:space-between;
+    justify-content:flex-start;
     gap:calc(12px * var(--uiScale));
   }
   .search{flex:1; max-width:none}
@@ -969,4 +950,24 @@ summary::-webkit-details-marker{display:none}
 }
 .fabPanel{
   background: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
+}
+
+
+/* Schnellfilter: 2 Zeilen (Icon-only) */
+#quickRow{display:flex; flex-direction:column; gap: calc(12px * var(--uiScale));}
+#quickRow .quickLine{flex-wrap:wrap;}
+
+.accSubTitle{
+  margin-top: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  font-size: calc(12px * var(--uiScale));
+  opacity: .7;
+  font-weight: 650;
+}
+
+/* Regel-Presets (Fortschritt) etwas kompakter und "regeliger" als Status-Chips */
+.chip.rule{
+  border-radius: 14px;
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-weight: 700;
 }

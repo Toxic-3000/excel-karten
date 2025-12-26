@@ -44,12 +44,11 @@ console.log("Build 7.0q-A loaded");
     sortDirRow: $("sortDirRow"),
     activeFilters: $("activeFilters"),
     quickRow: $("quickRow"),
-    quickRow2: $("quickRow2"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyAllRow: $("trophyAllRow"),
-    trophyProgRow: $("trophyProgRow"),
+    trophyPresetRow: $("trophyPresetRow"),
     genreSelect: $("genreSelect"),
 
     // Accordion summaries
@@ -63,6 +62,7 @@ console.log("Build 7.0q-A loaded");
   const SORT_FIELD_KEY = "spieleliste_sortField";
   const SORT_DIR_KEY   = "spieleliste_sortDir";
 
+  
   const SORT_FIELDS = [
     {k:"ID", label:"ID"},
     {k:"Spieletitel", label:"Titel"},
@@ -76,6 +76,7 @@ console.log("Build 7.0q-A loaded");
     {k:"Quelle", label:"Quelle"},
     {k:"Verfügbarkeit", label:"Verfügbarkeit"},
   ];
+
 
   function loadSortPrefs(){
     const sf = (localStorage.getItem(SORT_FIELD_KEY) || "").trim();
@@ -284,11 +285,8 @@ console.log("Build 7.0q-A loaded");
       sources: new Set(),
       availability: new Set(),
       trophies: new Set(),
-      // Progress presets (mutually exclusive within trophy rules)
-      trophyOpenMax: null, // number|null (e.g. 3 or 5)
-      trophyPctMin: null,  // number|null (e.g. 90 or 75)
-      // Time quickfilter
-      mainHoursMax: null,  // number|null (e.g. 5)
+      trophyPreset: "",
+      shortMain5: false,
     },
     sortField: SORT_PREFS.sortField,
     sortDir: SORT_PREFS.sortDir,
@@ -569,9 +567,11 @@ console.log("Build 7.0q-A loaded");
     // --- Schnellfilter (80%-Fälle) ---
     // Icon-only, damit es nicht nach "Menü in einer Menü" aussieht.
     if (el.quickRow){
-      const parts1 = [];
+      const row1 = [];
+      const row2 = [];
+
       // ⭐ Favoriten
-      parts1.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
+      row1.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
 
       // Trophäen-Quickfilter in fester Reihenfolge: ⏳ 💤 ✅ 💎
       const quickTrophies = [
@@ -582,22 +582,19 @@ console.log("Build 7.0q-A loaded");
       ];
       for (const qt of quickTrophies){
         if (state.distinct.trophies.has(qt.key)){
-          parts1.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
+          row1.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
         }
       }
-      el.quickRow.innerHTML = parts1.join("");
-    }
 
-    // --- Schnellfilter (Zeile 2: zielorientierte Presets) ---
-    if (el.quickRow2){
-      const parts2 = [];
-      // 🎯 ≤ 3 Trophäen fehlen
-      parts2.push(chipHtml("trophyRule", "open3", "🎯", state.filters.trophyOpenMax === 3, "primary", { title: "≤ 3 Trophäen fehlen", iconOnly: true }));
-      // 🔥 Fortschritt ≥ 90 %
-      parts2.push(chipHtml("trophyRule", "pct90", "🔥", state.filters.trophyPctMin === 90, "primary", { title: "Fortschritt ≥ 90 %", iconOnly: true }));
-      // ⏱ ≤ 5h Main
-      parts2.push(chipHtml("timeRule", "h5", "⏱️", state.filters.mainHoursMax === 5, "primary", { title: "≤ 5 Stunden Spielzeit (Main)", iconOnly: true }));
-      el.quickRow2.innerHTML = parts2.join("");
+      // Ziel-/Zeit-Schnellfilter (zweite Zeile)
+      row2.push(chipHtml("trophyPreset", "open3", "🎯", state.filters.trophyPreset === "open3", "primary", { title: "≤ 3 Trophäen fehlen", iconOnly: true }));
+      row2.push(chipHtml("trophyPreset", "pct90", "🔢", state.filters.trophyPreset === "pct90", "primary", { title: "Fortschritt ≥ 90 %", iconOnly: true }));
+      row2.push(chipHtml("shortMain", "le5", "⏱️", state.filters.shortMain5, "primary", { title: "Spielzeit ≤ 5 Std. (Main)", iconOnly: true }));
+
+      el.quickRow.innerHTML = `
+        <div class="chipRow quickLine">${row1.join("")}</div>
+        <div class="chipRow quickLine">${row2.join("")}</div>
+      `;
     }
 
     // --- Genre (Dropdown) ---
@@ -647,7 +644,7 @@ console.log("Build 7.0q-A loaded");
       const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
       el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a), "category")).join("");
     }
-    // Trophäen (alle im Akkordeon; wichtige Statuswerte optisch betonter)
+    // Trophäen (Status + Fortschritt)
     if (el.trophyAllRow){
       const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
       const tros = Array.from(state.distinct.trophies);
@@ -658,22 +655,14 @@ console.log("Build 7.0q-A loaded");
         return chipHtml("trophy", t, t, state.filters.trophies.has(t), kind);
       }).join("");
     }
-
-    // Trophäen: Fortschritts-Presets (max. 1 aktiv)
-    if (el.trophyProgRow){
+    if (el.trophyPresetRow){
       const presets = [
         {k:"open3", label:"≤ 3 fehlen"},
         {k:"open5", label:"≤ 5 fehlen"},
         {k:"pct90", label:"≥ 90 %"},
         {k:"pct75", label:"≥ 75 %"},
       ];
-      el.trophyProgRow.innerHTML = presets.map(p => {
-        const pressed = (p.k === "open3" && state.filters.trophyOpenMax === 3)
-                    || (p.k === "open5" && state.filters.trophyOpenMax === 5)
-                    || (p.k === "pct90" && state.filters.trophyPctMin === 90)
-                    || (p.k === "pct75" && state.filters.trophyPctMin === 75);
-        return chipHtml("trophyRule", p.k, p.label, pressed, "status", { title: trophyRuleTitle(p.k) });
-      }).join("");
+      el.trophyPresetRow.innerHTML = presets.map(p => chipHtml("trophyPreset", p.k, p.label, state.filters.trophyPreset === p.k, "rule", { title: trophyPresetLabelLong(p.k) })).join("");
     }
 
     // Wire chip clicks
@@ -696,6 +685,7 @@ console.log("Build 7.0q-A loaded");
     if (variant === true || variant === "primary") cls += " primary";
     else if (variant === "category") cls += " category";
     else if (variant === "status") cls += " status";
+    else if (variant === "rule") cls += " rule";
     const o = opts && typeof opts === "object" ? opts : {};
     if (o.iconOnly) cls += " iconOnly";
     const title = (o.title != null) ? String(o.title) : "";
@@ -724,7 +714,30 @@ console.log("Build 7.0q-A loaded");
     }
   }
 
-  function summarizeMulti(set, maxItems=2, mapFn=null){
+  
+  function trophyPresetLabelLong(k){
+    if (!k) return "";
+    if (k === "open3") return "≤ 3 Trophäen fehlen";
+    if (k === "open5") return "≤ 5 Trophäen fehlen";
+    if (k === "pct90") return "Fortschritt ≥ 90 %";
+    if (k === "pct75") return "Fortschritt ≥ 75 %";
+    return String(k);
+  }
+  function trophyPresetLabelShort(k){
+    if (!k) return "";
+    if (k === "open3") return "≤3";
+    if (k === "open5") return "≤5";
+    if (k === "pct90") return "≥90%";
+    if (k === "pct75") return "≥75%";
+    return String(k);
+  }
+  function trophyPresetIcon(k){
+    if (!k) return "";
+    if (k === "open3" || k === "open5") return "🎯";
+    if (k === "pct90" || k === "pct75") return "🔢";
+    return "";
+  }
+function summarizeMulti(set, maxItems=2, mapFn=null){
     if (!set || !set.size) return "Alle";
     let arr = Array.from(set);
     if (typeof mapFn === "function") arr = arr.map(mapFn);
@@ -732,62 +745,16 @@ console.log("Build 7.0q-A loaded");
     return `${arr.length} gewählt`;
   }
 
-  function trophyRuleTitle(k){
-    switch (k){
-      case "open3": return "≤ 3 Trophäen fehlen";
-      case "open5": return "≤ 5 Trophäen fehlen";
-      case "pct90": return "Fortschritt ≥ 90 %";
-      case "pct75": return "Fortschritt ≥ 75 %";
-      default: return "";
-    }
-  }
-
-  function trophyRuleShort(k){
-    switch (k){
-      case "open3": return "≤ 3 fehlen";
-      case "open5": return "≤ 5 fehlen";
-      case "pct90": return "≥ 90 %";
-      case "pct75": return "≥ 75 %";
-      default: return "";
-    }
-  }
-
-  function currentTrophyRuleKey(){
-    if (state.filters.trophyOpenMax === 3) return "open3";
-    if (state.filters.trophyOpenMax === 5) return "open5";
-    if (state.filters.trophyPctMin === 90) return "pct90";
-    if (state.filters.trophyPctMin === 75) return "pct75";
-    return null;
-  }
-
-  function syncTrophyRuleUI(){
-    const active = currentTrophyRuleKey();
-    const keys = ["open3","open5","pct90","pct75"];
-    for (const k of keys) setAllChipPressed("trophyRule", k, active === k);
-    // Also keep the Quick row icons consistent (they use the same group)
-  }
-
-  function syncTimeRuleUI(){
-    setAllChipPressed("timeRule", "h5", state.filters.mainHoursMax === 5);
-  }
-
-  function summarizeTrophySection(){
-    const tags = Array.from(state.filters.trophies);
-    const rule = currentTrophyRuleKey();
-    const count = tags.length + (rule ? 1 : 0);
-    if (!count) return "Alle";
-    if (count > 2) return `${count} gewählt`;
-    const parts = [];
-    for (const t of tags) parts.push(t);
-    if (rule) parts.push(trophyRuleShort(rule));
-    return parts.join(", ");
-  }
-
   function updateAccordionSummaries(){
     if (el.platSummary) el.platSummary.textContent = summarizeMulti(state.filters.platforms);
     if (el.srcSummary)  el.srcSummary.textContent  = summarizeMulti(state.filters.sources, 2, stripTagEmoji);
     if (el.availSummary) el.availSummary.textContent = summarizeMulti(state.filters.availability);
-    if (el.trophySummary) el.trophySummary.textContent = summarizeTrophySection();
+
+    if (el.trophySummary){
+      const base = summarizeMulti(state.filters.trophies);
+      const p = trophyPresetLabelShort(state.filters.trophyPreset);
+      el.trophySummary.textContent = p ? (base === "Alle" ? p : `${base} · ${p}`) : base;
+    }
   }
 
   function renderActiveFilterBar(){
@@ -812,18 +779,11 @@ console.log("Build 7.0q-A loaded");
     for (const t of state.filters.trophies){
       items.push({group:"trophy", key:t, label:t});
     }
-
-    // Fortschritts-Presets (Trophäen)
-    const tr = currentTrophyRuleKey();
-    if (tr){
-      const label = (tr.startsWith("open"))
-        ? `🎯 ${trophyRuleShort(tr)}`
-        : `🔥 ${trophyRuleShort(tr)}`;
-      items.push({group:"trophyRule", key:tr, label});
+    if (state.filters.trophyPreset){
+      items.push({group:"trophyPreset", key: state.filters.trophyPreset, label: `${trophyPresetIcon(state.filters.trophyPreset)} ${trophyPresetLabelLong(state.filters.trophyPreset)}`});
     }
-    // Zeit-Preset
-    if (state.filters.mainHoursMax === 5){
-      items.push({group:"timeRule", key:"h5", label:"⏱ ≤ 5h Main"});
+    if (state.filters.shortMain5){
+      items.push({group:"shortMain", key: "le5", label: "⏱ ≤ 5h (Main)"});
     }
 
     if (!items.length){
@@ -845,26 +805,21 @@ console.log("Build 7.0q-A loaded");
         else if (group === "src") state.filters.sources.delete(key);
         else if (group === "avail") state.filters.availability.delete(key);
         else if (group === "trophy") state.filters.trophies.delete(key);
-        else if (group === "trophyRule"){
-          state.filters.trophyOpenMax = null;
-          state.filters.trophyPctMin = null;
-        }
-        else if (group === "timeRule") state.filters.mainHoursMax = null;
+        else if (group === "trophyPreset") state.filters.trophyPreset = "";
+        else if (group === "shortMain") state.filters.shortMain5 = false;
 
         // Sync UI elements without nuking the whole dialog
         if (group === "genre" && el.genreSelect){
           el.genreSelect.value = "";
         } else {
-          if (group === "trophyRule"){
-            syncTrophyRuleUI();
-          } else if (group === "timeRule"){
-            setAllChipPressed("timeRule", "h5", false);
-          } else {
-            setAllChipPressed(group, key, false);
-          }
+          setAllChipPressed(group, key, false);
         }
-        // Also sync quick/duplicate trophy chips
+        // Also sync quick/duplicate chips
         if (group === "trophy") setAllChipPressed("trophy", key, false);
+        if (group === "trophyPreset"){
+          for (const k of ["open3","open5","pct90","pct75"]) setAllChipPressed("trophyPreset", k, false);
+        }
+        if (group === "shortMain") setAllChipPressed("shortMain", "le5", false);
         if (group === "fav") setAllChipPressed("fav", "fav", false);
 
         updateDialogMeta();
@@ -887,6 +842,8 @@ console.log("Build 7.0q-A loaded");
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
     const avF = state.filters.availability;
+    const trophyPreset = state.filters.trophyPreset || "";
+    const shortMain5 = !!state.filters.shortMain5;
     const troF = state.filters.trophies;
     const wantGenre = state.filters.genre ? norm(state.filters.genre) : "";
 
@@ -935,20 +892,18 @@ console.log("Build 7.0q-A loaded");
         if (!ok) continue;
       }
 
-      // Trophy progress presets
-      if (state.filters.trophyOpenMax != null){
-        const open = trophyOpenCount(r);
-        if (open == null || open > state.filters.trophyOpenMax) continue;
-      }
-      if (state.filters.trophyPctMin != null){
-        const pct = trophyProgressPct(r);
-        if (pct == null || pct < state.filters.trophyPctMin) continue;
+      if (trophyPreset){
+        const agg = trophyAggregate(r);
+        if (!agg) continue;
+        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open <= 3)) continue; }
+        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open <= 5)) continue; }
+        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.pct >= 90)) continue; }
+        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.pct >= 75)) continue; }
       }
 
-      // Time preset (Main)
-      if (state.filters.mainHoursMax != null){
+      if (shortMain5){
         const h = parseHours(r[COL.main]);
-        if (h == null || h > state.filters.mainHoursMax) continue;
+        if (h == null || !(h <= 5)) continue;
       }
       n++;
     }
@@ -985,31 +940,25 @@ console.log("Build 7.0q-A loaded");
       return;
     }
 
-    if (group === "trophyRule"){
-      // Mutually exclusive presets: selecting one clears the others.
-      if (pressed){
-        state.filters.trophyOpenMax = null;
-        state.filters.trophyPctMin = null;
-      } else {
-        state.filters.trophyOpenMax = null;
-        state.filters.trophyPctMin = null;
-        if (key === "open3") state.filters.trophyOpenMax = 3;
-        else if (key === "open5") state.filters.trophyOpenMax = 5;
-        else if (key === "pct90") state.filters.trophyPctMin = 90;
-        else if (key === "pct75") state.filters.trophyPctMin = 75;
+    if (group === "trophyPreset"){
+      // Exclusive preset: toggle off when tapped again
+      const next = (state.filters.trophyPreset === key) ? "" : key;
+      state.filters.trophyPreset = next;
+      for (const k of ["open3","open5","pct90","pct75"]){
+        setAllChipPressed("trophyPreset", k, next === k);
       }
-      syncTrophyRuleUI();
       updateDialogMeta();
       return;
     }
 
-    if (group === "timeRule"){
-      // Only one preset for now.
-      state.filters.mainHoursMax = (pressed ? null : 5);
-      syncTimeRuleUI();
+    if (group === "shortMain"){
+      state.filters.shortMain5 = !pressed;
+      setAllChipPressed("shortMain", "le5", state.filters.shortMain5);
       updateDialogMeta();
       return;
     }
+
+    // toggle sets
 
     // toggle sets
     const set = group === "plat" ? state.filters.platforms
@@ -1037,31 +986,6 @@ console.log("Build 7.0q-A loaded");
     return Number.isFinite(n) ? n : null;
   }
 
-  function trophyAggregate(row){
-    // Aggregate per-platform fractions like "PS4:12/18|PS5:7/18" into one.
-    const prog = String(row[COL.trophProg] ?? "").trim();
-    if (!prog || prog.startsWith("BOX_TEIL:")) return null;
-    const dprog = parseKeyVals(prog);
-    const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
-    if (!fracs.length) return null;
-    let earned = 0, total = 0;
-    for (const f of fracs){ earned += f.a; total += f.b; }
-    if (!total) return null;
-    const open = Math.max(0, total - earned);
-    const pct = (earned / total) * 100;
-    return { earned, total, open, pct };
-  }
-
-  function trophyProgressPct(row){
-    const agg = trophyAggregate(row);
-    return agg ? agg.pct : null;
-  }
-
-  function trophyOpenCount(row){
-    const agg = trophyAggregate(row);
-    return agg ? agg.open : null;
-  }
-
   function applyAndRender(){
     const qRaw = String(state.q ?? "");
     const q = norm(qRaw);
@@ -1070,6 +994,8 @@ console.log("Build 7.0q-A loaded");
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
     const avF = state.filters.availability;
+    const trophyPreset = state.filters.trophyPreset || "";
+    const shortMain5 = !!state.filters.shortMain5;
 
     let out = state.rows.filter(r => {
       // search
@@ -1125,20 +1051,20 @@ console.log("Build 7.0q-A loaded");
         if (!ok) return false;
       }
 
-      // Trophy progress presets
-      if (state.filters.trophyOpenMax != null){
-        const open = trophyOpenCount(r);
-        if (open == null || open > state.filters.trophyOpenMax) return false;
-      }
-      if (state.filters.trophyPctMin != null){
-        const pct = trophyProgressPct(r);
-        if (pct == null || pct < state.filters.trophyPctMin) return false;
+      // Trophäen-Fortschritt Presets (exklusiv)
+      if (trophyPreset){
+        const agg = trophyAggregate(r);
+        if (!agg) return false;
+        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open <= 3)) return false; }
+        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open <= 5)) return false; }
+        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.pct >= 90)) return false; }
+        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.pct >= 75)) return false; }
       }
 
-      // Time preset (Main)
-      if (state.filters.mainHoursMax != null){
+      // Spielzeit-Preset
+      if (shortMain5){
         const h = parseHours(r[COL.main]);
-        if (h == null || h > state.filters.mainHoursMax) return false;
+        if (h == null || !(h <= 5)) return false;
       }
       return true;
     });
@@ -1162,22 +1088,24 @@ console.log("Build 7.0q-A loaded");
         if (ha != null && hb != null) return (ha - hb) * dir;
       }
       if (sf === "__trophyPct"){
-        const pa = trophyProgressPct(a), pb = trophyProgressPct(b);
-        if (pa == null && pb == null) {
-          // fall through to stable ID tie-breaker
-        }
-        if (pa == null) return 1; // unknown last
-        if (pb == null) return -1;
-        if (pa !== pb) return (pa - pb) * dir;
+        const pa = trophyAggregate(a)?.pct;
+        const pb = trophyAggregate(b)?.pct;
+        const na = (pa == null) ? null : Number(pa);
+        const nb = (pb == null) ? null : Number(pb);
+        if (na == null && nb == null) {/* fallthrough */}
+        else if (na == null) return 1;
+        else if (nb == null) return -1;
+        else return (na - nb) * dir;
       }
       if (sf === "__trophyOpen"){
-        const oa = trophyOpenCount(a), ob = trophyOpenCount(b);
-        if (oa == null && ob == null) {
-          // fall through
-        }
-        if (oa == null) return 1;
-        if (ob == null) return -1;
-        if (oa !== ob) return (oa - ob) * dir;
+        const oa = trophyAggregate(a)?.open;
+        const ob = trophyAggregate(b)?.open;
+        const na = (oa == null) ? null : Number(oa);
+        const nb = (ob == null) ? null : Number(ob);
+        if (na == null && nb == null) {/* fallthrough */}
+        else if (na == null) return 1;
+        else if (nb == null) return -1;
+        else return (na - nb) * dir;
       }
       let cmp = String(A).localeCompare(String(B), "de") * dir;
       // Stabiler Tie-Breaker: immer nach ID (aufsteigend), damit Sortierung ruhig bleibt.
@@ -1261,6 +1189,34 @@ console.log("Build 7.0q-A loaded");
     if (!tags.size) tags.add("Unbekannt");
     return tags;
   }
+
+  function trophyAggregate(row){
+    const prog = String(row[COL.trophProg] ?? "").trim();
+    const p100 = String(row[COL.troph100] ?? "").trim();
+    const plat = String(row[COL.platin] ?? "").trim();
+
+    // Box-Teil / keine Daten
+    if (prog.startsWith("BOX_TEIL:") || p100.startsWith("BOX_TEIL:") || plat.startsWith("BOX_TEIL:")) return null;
+
+    const dprog = parseKeyVals(prog);
+    const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
+
+    if (fracs.length){
+      const earned = fracs.reduce((s,f)=>s+f.a,0);
+      const total  = fracs.reduce((s,f)=>s+f.b,0);
+      if (!total) return null;
+      const pct = (earned/total)*100;
+      const open = Math.max(0, total-earned);
+      return {earned, total, pct, open};
+    }
+
+    // Fallbacks: infer pct for completed/unplayed, but open count may be unknown.
+    const tags = trophyTags(row);
+    if (tags.has("Platin") || tags.has("100%")) return {earned:0,total:0,pct:100,open:0};
+    if (tags.has("Ungespielt")) return {earned:0,total:0,pct:0,open:null};
+    return null;
+  }
+
 
   function trophySummary(row){
     const p100 = String(row[COL.troph100] ?? "").trim();
@@ -1738,9 +1694,8 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
-    state.filters.trophyOpenMax = null;
-    state.filters.trophyPctMin = null;
-    state.filters.mainHoursMax = null;
+    state.filters.trophyPreset = "";
+    state.filters.shortMain5 = false;
 
     state.sortField = "ID";
     state.sortDir = "asc";
