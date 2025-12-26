@@ -1,12 +1,12 @@
-console.log("Build 7.0s-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0s-A
+console.log("Build 7.0t-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0t-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0s-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -63,25 +63,42 @@ console.log("Build 7.0s-A loaded");
   const SORT_DIR_KEY   = "spieleliste_sortDir";
 
   
+  // Sortier-Reihenfolge strikt nach Erscheinung auf der Karte (oben → unten)
+  // und zusätzlich in sinnvollen Gruppen für die native Select-UI.
+  // "Plattform" und "Entwickler" sind als Platzhalter vorbereitet (disabled),
+  // bis diese Sortierfelder als echte Datenfelder verfügbar sind.
   const SORT_FIELDS = [
-    {k:"ID", label:"ID"},
-    {k:"Spieletitel", label:"Titel"},
-    {k:"Metascore", label:"Metascore"},
-    {k:"Userwertung", label:"Userwertung"},
-    {k:"Spielzeit (Main)", label:"Main"},
-    {k:"Spielzeit (100%)", label:"100%"},
-    {k:"__trophyPct", label:"Trophäen-Fortschritt (%)"},
-    {k:"__trophyOpen", label:"Offene Trophäen (Anzahl)"},
-    {k:"Genre", label:"Genre"},
-    {k:"Quelle", label:"Quelle"},
-    {k:"Verfügbarkeit", label:"Verfügbarkeit"},
+    // Identität
+    {k:"ID", label:"ID", group:"Identität"},
+    {k:"Spieletitel", label:"Titel", group:"Identität"},
+    {k:"__platform", label:"Plattform (folgt)", group:"Identität", disabled:true},
+
+    // Besitz
+    {k:"Quelle", label:"Quelle", group:"Besitz"},
+    {k:"Verfügbarkeit", label:"Verfügbarkeit", group:"Besitz"},
+
+    // Einordnung
+    {k:"Genre", label:"Genre", group:"Einordnung"},
+    {k:"__developer", label:"Entwickler (folgt)", group:"Einordnung", disabled:true},
+
+    // Spielzeit
+    {k:"Spielzeit (Main)", label:"Main", group:"Spielzeit"},
+    {k:"Spielzeit (100%)", label:"100%", group:"Spielzeit"},
+
+    // Bewertungen
+    {k:"Metascore", label:"Metascore", group:"Bewertungen"},
+    {k:"Userwertung", label:"Userwertung", group:"Bewertungen"},
+
+    // Trophäen
+    {k:"__trophyPct", label:"Trophäen-Fortschritt (%)", group:"Trophäen"},
+    {k:"__trophyOpen", label:"Offene Trophäen (Anzahl)", group:"Trophäen"},
   ];
 
 
   function loadSortPrefs(){
     const sf = (localStorage.getItem(SORT_FIELD_KEY) || "").trim();
     const sd = (localStorage.getItem(SORT_DIR_KEY) || "").trim();
-    const validSf = SORT_FIELDS.some(x => x.k === sf);
+    const validSf = SORT_FIELDS.some(x => x.k === sf && !x.disabled);
     const validSd = (sd === "asc" || sd === "desc");
     return {
       sortField: validSf ? sf : "ID",
@@ -535,10 +552,34 @@ console.log("Build 7.0s-A loaded");
       el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
       const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
       if (sel){
-        sel.innerHTML = SORT_FIELDS.map(sf => `<option value="${esc(sf.k)}">${esc(sf.label)}</option>`).join("");
-        sel.value = state.sortField;
+        // Native select UIs (Android/iOS) profitieren stark von optischen Gruppen.
+        // Wir bauen daher <optgroup>-Blöcke, bleiben aber bei der Karten-Reihenfolge.
+        const byGroup = new Map();
+        for (const sf of SORT_FIELDS){
+          const g = sf.group || "";
+          if (!byGroup.has(g)) byGroup.set(g, []);
+          byGroup.get(g).push(sf);
+        }
+        const groupsInOrder = Array.from(new Set(SORT_FIELDS.map(x => x.group || "")));
+        sel.innerHTML = groupsInOrder.map(g => {
+          const items = byGroup.get(g) || [];
+          const opts = items.map(sf => {
+            const dis = sf.disabled ? " disabled" : "";
+            return `<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`;
+          }).join("");
+          // If no group label, fall back to flat list.
+          if (!g) return opts;
+          return `<optgroup label="${esc(g)}">${opts}</optgroup>`;
+        }).join("");
+
+        // Ensure current selection is valid; fallback to ID.
+        const isValid = SORT_FIELDS.some(x => x.k === state.sortField && !x.disabled);
+        sel.value = isValid ? state.sortField : "ID";
         sel.onchange = () => {
-          state.sortField = sel.value;
+          // Ignore disabled placeholder choices just in case a browser lets them through.
+          const picked = sel.value;
+          const ok = SORT_FIELDS.some(x => x.k === picked && !x.disabled);
+          state.sortField = ok ? picked : "ID";
           saveSortPrefs();
           updateFabSortFieldUI();
         };
@@ -1671,10 +1712,16 @@ function renderTrophyDetails(row){
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 
+  // Prevent background scroll while the bottom-sheet dialog is open (mobile overscroll quirks).
+  function setModalOpen(isOpen){
+    document.documentElement.classList.toggle("modalOpen", !!isOpen);
+  }
+
   function openMenuDialog(){
     // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
     buildFilterUI();
     if (!el.dlg.open) el.dlg.showModal();
+    setModalOpen(true);
   }
 
   // Build the floating quick access UI (FAB) once.
@@ -1684,6 +1731,10 @@ function renderTrophyDetails(row){
     openMenuDialog();
   });
   el.btnClose.addEventListener("click", () => el.dlg.close());
+
+  // Ensure the background lock always resets (button, ESC, backdrop click, etc.).
+  el.dlg.addEventListener("close", () => setModalOpen(false));
+  el.dlg.addEventListener("cancel", () => setModalOpen(false));
 
   el.btnApply.addEventListener("click", () => {
     // Sync genre dropdown (single select)

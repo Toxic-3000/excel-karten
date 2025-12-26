@@ -1,8 +1,23 @@
-# Build 7.0s-A
+# Build 7.0t-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0s-A
+## Was neu ist in 7.0t-A
+
+- **Sortiermenü neu sortiert (wie die Karte):**
+  - Reihenfolge folgt jetzt strikt der Karte: **ID → Titel → Quelle → Verfügbarkeit → Genre → (Entwickler folgt) → Main → 100% → Metascore → Userwertung → Trophäen**.
+  - Zusätzlich in **native Select‑Gruppen** (Identität / Besitz / Einordnung / Spielzeit / Bewertungen / Trophäen), damit Android/iOS weniger „zufällig“ wirkt.
+  - **Plattform** und **Entwickler** sind als **disabled Platzhalter** vorbereitet (erscheinen als „… folgt“).
+
+- **Modal-/Scroll-Fix:**
+  - Beim Scrollen im Sortier-Picker wird der **Hintergrund nicht mehr mitgescrollt** (Lock + Overscroll‑Containment).
+
+- **Header-Fix im Dialog:**
+  - Das **X** sitzt jetzt sauber rechts mit Abstand (kein „an der Überschrift kleben“).
+
+---
+
+## Was vorher schon drin war (7.0s-A)
 
 - **Trophäen-Sektion aufgeräumt:**
   - „Trophäenstatus“ heißt jetzt **„Trophäen“**.
@@ -66,7 +81,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
 - Suche über **ID**, Titel/Genre/Subgenre/Entwickler
-- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, **Trophäen‑Fortschritt (%)**, **Offene Trophäen**, Genre, Quelle, Verfügbarkeit
+- Sortieren (Dialog): **ID**, **Titel**, **Quelle**, **Verfügbarkeit**, **Genre**, **Main**, **100%**, **Metascore**, **Userwertung**, **Trophäen‑Fortschritt (%)**, **Offene Trophäen (Anzahl)**
 - Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter

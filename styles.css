@@ -510,6 +510,12 @@ summary::-webkit-details-marker{display:none}
 /* Bottom sheet */
 .dlg{border:0;padding:0;background:transparent}
 .dlg::backdrop{background: rgba(0,0,0,.35)}
+.dlg{overscroll-behavior: contain;}
+
+/* Prevent background scroll while modal is open (mobile overscroll / select-picker quirks) */
+html.modalOpen, html.modalOpen body{overflow:hidden; height:100%;}
+html.modalOpen body{touch-action:none;}
+
 .sheet{
   position:fixed;
   left:0; right:0; bottom:0;
@@ -522,6 +528,7 @@ summary::-webkit-details-marker{display:none}
   max-height: 86vh;
   display:flex;
   flex-direction:column;
+  overscroll-behavior: contain;
 }
 .sheetHead{
   position:sticky; top:0;
@@ -529,13 +536,17 @@ summary::-webkit-details-marker{display:none}
   border-bottom:1px solid var(--border);
   padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
-  justify-content:flex-start;
+  justify-content:space-between;
   align-items:center;
+  gap: calc(12px * var(--uiScale));
 }
-.sheetTitle{font-weight:650}
+.sheetTitle{font-weight:650; flex: 1 1 auto; min-width: 0;}
 .sheetBody{
   padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(16px * var(--uiScale));
   overflow:auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 .sectTitle{
   font-size: calc(12px * var(--uiScale));
