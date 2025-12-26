@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0u-A2" />
-  <link rel="stylesheet" href="styles.css?v=7.0u-A2" />
+    <meta name="app-build" content="7.0u-A2c" />
+  <link rel="stylesheet" href="styles.css?v=7.0u-A2c" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -178,7 +178,74 @@
     </div>
   </dialog>
 
-  <script src="xlsx.full.min.js"></script>
-  <script src="app.js?v=7.0u-A2"></script>
+  <script>
+    (function(){
+      function banner(msg){
+        // Create only on demand.
+        if (!msg) {
+          const old = document.getElementById('bootBanner');
+          if (old) old.remove();
+          return;
+        }
+        let el = document.getElementById('bootBanner');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = 'bootBanner';
+          el.setAttribute('role','status');
+          el.style.position = 'fixed';
+          el.style.left = '12px';
+          el.style.right = '12px';
+          el.style.bottom = '12px';
+          el.style.zIndex = '9999';
+          el.style.padding = '10px 12px';
+          el.style.borderRadius = '14px';
+          el.style.boxShadow = '0 8px 30px rgba(0,0,0,.18)';
+          el.style.background = 'rgba(255, 240, 200, .95)';
+          el.style.color = '#222';
+          el.style.font = '600 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial';
+          el.style.backdropFilter = 'blur(8px)';
+          el.style.webkitBackdropFilter = 'blur(8px)';
+          el.style.border = '1px solid rgba(0,0,0,.08)';
+          document.body.appendChild(el);
+        }
+        el.textContent = msg;
+      }
+
+      window.__BOOT = { banner };
+
+      window.addEventListener('error', function(e){
+        const f = e && e.filename ? e.filename.split('/').pop() : '';
+        const loc = (f ? ` (${f}:${e.lineno||0})` : '');
+        banner(`JS-Fehler: ${e.message||'unbekannt'}${loc}`);
+      });
+      window.addEventListener('unhandledrejection', function(e){
+        const r = e && e.reason;
+        const msg = (r && r.message) ? r.message : String(r);
+        banner(`Promise-Fehler: ${msg}`);
+      });
+
+      document.addEventListener('DOMContentLoaded', function(){
+        const m = document.querySelector('meta[name="app-build"]');
+        const b = (m && m.getAttribute('content')) ? m.getAttribute('content').trim() : '';
+        const bl = document.getElementById('buildLabel');
+        if (bl && b) bl.textContent = `Build ${b}`;
+
+        // After a short delay, check whether libs + app are alive.
+        setTimeout(function(){
+          if (!window.XLSX) {
+            banner('xlsx.full.min.js wurde nicht geladen (XLSX fehlt). Prüfe Dateiname/Ordner auf GitHub Pages.');
+            return;
+          }
+          if (!window.__APP_LOADED) {
+            banner('app.js wurde nicht geladen oder ist abgebrochen. Prüfe, ob app.js im selben Ordner liegt und kein 404 liefert.');
+            return;
+          }
+        }, 700);
+      });
+    })();
+  </script>
+
+  <script src="xlsx.full.min.js" onerror="window.__BOOT && window.__BOOT.banner('xlsx.full.min.js konnte nicht geladen werden (404?). Prüfe den Ordner auf GitHub Pages.')"></script>
+  <script src="app.js?v=7.0u-A2c" onerror="window.__BOOT && window.__BOOT.banner('app.js konnte nicht geladen werden (404?). Prüfe den Ordner auf GitHub Pages.')"></script>
 </body>
 </html>

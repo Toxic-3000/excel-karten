@@ -1,12 +1,14 @@
-console.log("Build 7.0u-A2 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2
+window.__APP_LOADED = true;
+if (window.__BOOT && typeof window.__BOOT.banner === 'function') window.__BOOT.banner('');
+console.log("Build 7.0u-A2c loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2c
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A1").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A2c").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
