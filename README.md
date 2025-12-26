@@ -1,8 +1,8 @@
-# Build 7.0u-A
+# Build 7.0u-A1
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0u-A
+## Was neu ist in 7.0u-A1
 
 - **Pull-to-Refresh deaktiviert (Android/Chrome):**
   - Kein versehentliches Seiten-Reload mehr durch Runterziehen am Listenanfang.

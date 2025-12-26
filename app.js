@@ -1,12 +1,12 @@
-console.log("Build 7.0u-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A
+console.log("Build 7.0u-A1 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A1
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A1").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -296,8 +296,8 @@ console.log("Build 7.0u-A loaded");
     q: "",
     filters: {
       fav: false,
-      // Genre Filter (Dropdown): leer = kein Genre-Filter (alle Genres)
-      genre: "",
+      // Genre Filter: Multi-Select (Set). Leer = kein Genre-Filter (alle Genres)
+      genres: new Set(),
       platforms: new Set(),
       sources: new Set(),
       availability: new Set(),
@@ -639,7 +639,9 @@ console.log("Build 7.0u-A loaded");
       `;
     }
 
-    // --- Genre (Dropdown) ---
+    // --- Genre (Dropdown -> Multi via "add to selection") ---
+    // UX: select one genre to add it to the active set; the dropdown then snaps back to "Alle".
+    // Selected genres are shown in the "Aktive Filter" bar and are removable there.
     if (el.genreSelect){
       el.genreSelect.multiple = false;
       el.genreSelect.size = 1;
@@ -661,9 +663,17 @@ console.log("Build 7.0u-A loaded");
         el.genreSelect.appendChild(opt);
       }
 
-      el.genreSelect.value = state.filters.genre || "";
+      // Always render as "Alle"; selections live in state.filters.genres
+      el.genreSelect.value = "";
       el.genreSelect.onchange = () => {
-        state.filters.genre = el.genreSelect.value || "";
+        const v = el.genreSelect.value || "";
+        if (!v){
+          state.filters.genres.clear();
+        } else {
+          state.filters.genres.add(v);
+        }
+        // Snap back to "Alle" so the dropdown behaves like an "Add" control.
+        el.genreSelect.value = "";
         updateDialogMeta();
       };
     }
@@ -807,8 +817,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (state.filters.fav){
       items.push({group:"fav", key:"fav", label:"⭐ Favoriten"});
     }
-    if (state.filters.genre){
-      items.push({group:"genre", key: state.filters.genre, label:`Genre: ${state.filters.genre}`});
+    if (state.filters.genres && state.filters.genres.size){
+      const gs = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+      for (const g of gs){
+        items.push({group:"genre", key: g, label:`Genre: ${g}`});
+      }
     }
     for (const p of state.filters.platforms){
       items.push({group:"plat", key:p, label:p});
@@ -843,7 +856,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         const group = b.getAttribute("data-group");
         const key = b.getAttribute("data-key");
         if (group === "fav") state.filters.fav = false;
-        else if (group === "genre") state.filters.genre = "";
+        else if (group === "genre") state.filters.genres.delete(key);
         else if (group === "plat") state.filters.platforms.delete(key);
         else if (group === "src") state.filters.sources.delete(key);
         else if (group === "avail") state.filters.availability.delete(key);
@@ -852,11 +865,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         else if (group === "shortMain") state.filters.shortMain5 = false;
 
         // Sync UI elements without nuking the whole dialog
-        if (group === "genre" && el.genreSelect){
-          el.genreSelect.value = "";
-        } else {
-          setAllChipPressed(group, key, false);
-        }
+        // Genre uses a dropdown-as-add-control; no chip to sync there.
+        setAllChipPressed(group, key, false);
         // Also sync quick/duplicate chips
         if (group === "trophy") setAllChipPressed("trophy", key, false);
         if (group === "trophyPreset"){
@@ -888,7 +898,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const trophyPreset = state.filters.trophyPreset || "";
     const shortMain5 = !!state.filters.shortMain5;
     const troF = state.filters.trophies;
-    const wantGenre = state.filters.genre ? norm(state.filters.genre) : "";
+    const wantGenres = (state.filters.genres && state.filters.genres.size)
+      ? new Set(Array.from(state.filters.genres).map(norm))
+      : null;
 
     let n = 0;
     for (const r of state.rows){
@@ -910,9 +922,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f !== "x" && f !== "1" && f !== "true") continue;
       }
-      if (wantGenre){
+      if (wantGenres){
         const got = norm(r[COL.genre]);
-        if (got !== wantGenre) continue;
+        if (!wantGenres.has(got)) continue;
       }
       if (platF.size){
         const sys = splitPipe(r[COL.system]);
@@ -1064,11 +1076,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f !== "x" && f !== "1" && f !== "true") return false;
       }
-      // Genre filter (Dropdown; exact match, normalized)
-      if (state.filters.genre){
-        const want = norm(state.filters.genre);
+      // Genre filter (multi-select; exact match, normalized)
+      if (state.filters.genres && state.filters.genres.size){
+        const want = new Set(Array.from(state.filters.genres).map(norm));
         const got  = norm(r[COL.genre]);
-        if (want && got !== want) return false;
+        if (!want.has(got)) return false;
       }
 
       // platform filter: system contains at least one selected
@@ -1809,17 +1821,13 @@ function renderTrophyDetails(row){
   el.dlg.addEventListener("cancel", () => setModalOpen(false));
 
   el.btnApply.addEventListener("click", () => {
-    // Sync genre dropdown (single select)
-    if (el.genreSelect){
-      state.filters.genre = el.genreSelect.value || "";
-    }
     el.dlg.close();
     applyAndRender();
   });
 
   el.btnClear.addEventListener("click", () => {
     state.filters.fav = false;
-    state.filters.genre = "";
+    state.filters.genres.clear();
     state.filters.platforms.clear();
     state.filters.sources.clear();
     state.filters.availability.clear();

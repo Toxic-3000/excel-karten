@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0l-A
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A1
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
@@ -490,6 +490,9 @@ summary::-webkit-details-marker{display:none}
   bottom: calc(70px * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
+  max-height: calc(100dvh - 120px);
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
   border:1px solid var(--border);
   border-radius: 22px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
@@ -551,6 +554,21 @@ html.modalOpen body{touch-action:none;}
 
 /* Mobile: make the filter dialog a true full-height sheet (no top gap). */
 @media (max-width: 700px){
+  .sheet{
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .sheetHead{
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px * var(--uiScale));
+  }
+}
+
+/* Landscape phones/tablets: even if the viewport is wide, a small height should still
+   render the sheet as true fullscreen to avoid a visible top gap. */
+@media (max-height: 520px){
   .sheet{
     top: 0;
     bottom: 0;
@@ -737,26 +755,42 @@ html.modalOpen body{touch-action:none;}
   padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
 }
 .chip.category[aria-pressed="true"]{
-  border-color: color-mix(in oklab, var(--blue2) 58%, var(--border) 42%);
-  background: color-mix(in oklab, var(--blue) 14%, var(--bg) 86%);
+  border-color: color-mix(in oklab, var(--blue2) 72%, var(--border) 28%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--blue2) 72%, transparent 28%);
   font-weight:650;
+}
+
+/* "Rule" chips (Fortschritt-Quickfilter) should also clearly show selection */
+.chip.rule[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 72%, var(--border) 28%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--blue2) 72%, transparent 28%);
 }
 .chip.status{
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
   border-color: color-mix(in oklab, var(--border) 62%, var(--fg) 38%);
+  /* Keep status chips (esp. Trophäen) visually consistent in size.
+     Highlight should come from contrast, not larger padding. */
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+  font-weight:600;
 }
 .chip.status[aria-pressed="true"]{
   border-color: color-mix(in oklab, var(--blue2) 62%, var(--border) 38%);
   background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
+  font-weight:650;
 }
 .chip.primary{
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
   border-color: color-mix(in oklab, var(--blue2) 25%, var(--border) 75%);
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+  font-weight:600;
 }
 
 .chip.primary[aria-pressed="true"]{
   border-color: color-mix(in oklab, var(--blue2) 70%, var(--border) 30%);
   background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  font-weight:650;
 }
 
 /* Icon-only chips (Schnellfilter): kompakt, gut tappbar */
