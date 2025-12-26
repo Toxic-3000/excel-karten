@@ -1,12 +1,12 @@
-console.log("Build 7.0p-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0p-A
+console.log("Build 7.0q-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0q-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0p-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0q-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -44,10 +44,12 @@ console.log("Build 7.0p-A loaded");
     sortDirRow: $("sortDirRow"),
     activeFilters: $("activeFilters"),
     quickRow: $("quickRow"),
+    quickRow2: $("quickRow2"),
     platRow: $("platRow"),
     srcRow: $("srcRow"),
     availRow: $("availRow"),
     trophyAllRow: $("trophyAllRow"),
+    trophyProgRow: $("trophyProgRow"),
     genreSelect: $("genreSelect"),
 
     // Accordion summaries
@@ -68,6 +70,8 @@ console.log("Build 7.0p-A loaded");
     {k:"Userwertung", label:"Userwertung"},
     {k:"Spielzeit (Main)", label:"Main"},
     {k:"Spielzeit (100%)", label:"100%"},
+    {k:"__trophyPct", label:"Trophäen-Fortschritt (%)"},
+    {k:"__trophyOpen", label:"Offene Trophäen (Anzahl)"},
     {k:"Genre", label:"Genre"},
     {k:"Quelle", label:"Quelle"},
     {k:"Verfügbarkeit", label:"Verfügbarkeit"},
@@ -280,6 +284,11 @@ console.log("Build 7.0p-A loaded");
       sources: new Set(),
       availability: new Set(),
       trophies: new Set(),
+      // Progress presets (mutually exclusive within trophy rules)
+      trophyOpenMax: null, // number|null (e.g. 3 or 5)
+      trophyPctMin: null,  // number|null (e.g. 90 or 75)
+      // Time quickfilter
+      mainHoursMax: null,  // number|null (e.g. 5)
     },
     sortField: SORT_PREFS.sortField,
     sortDir: SORT_PREFS.sortDir,
@@ -560,9 +569,9 @@ console.log("Build 7.0p-A loaded");
     // --- Schnellfilter (80%-Fälle) ---
     // Icon-only, damit es nicht nach "Menü in einer Menü" aussieht.
     if (el.quickRow){
-      const parts = [];
+      const parts1 = [];
       // ⭐ Favoriten
-      parts.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
+      parts1.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
 
       // Trophäen-Quickfilter in fester Reihenfolge: ⏳ 💤 ✅ 💎
       const quickTrophies = [
@@ -573,10 +582,22 @@ console.log("Build 7.0p-A loaded");
       ];
       for (const qt of quickTrophies){
         if (state.distinct.trophies.has(qt.key)){
-          parts.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
+          parts1.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
         }
       }
-      el.quickRow.innerHTML = parts.join("");
+      el.quickRow.innerHTML = parts1.join("");
+    }
+
+    // --- Schnellfilter (Zeile 2: zielorientierte Presets) ---
+    if (el.quickRow2){
+      const parts2 = [];
+      // 🎯 ≤ 3 Trophäen fehlen
+      parts2.push(chipHtml("trophyRule", "open3", "🎯", state.filters.trophyOpenMax === 3, "primary", { title: "≤ 3 Trophäen fehlen", iconOnly: true }));
+      // 🔥 Fortschritt ≥ 90 %
+      parts2.push(chipHtml("trophyRule", "pct90", "🔥", state.filters.trophyPctMin === 90, "primary", { title: "Fortschritt ≥ 90 %", iconOnly: true }));
+      // ⏱ ≤ 5h Main
+      parts2.push(chipHtml("timeRule", "h5", "⏱️", state.filters.mainHoursMax === 5, "primary", { title: "≤ 5 Stunden Spielzeit (Main)", iconOnly: true }));
+      el.quickRow2.innerHTML = parts2.join("");
     }
 
     // --- Genre (Dropdown) ---
@@ -626,7 +647,7 @@ console.log("Build 7.0p-A loaded");
       const avs = Array.from(state.distinct.availability).sort((a,b)=>a.localeCompare(b,"de"));
       el.availRow.innerHTML = avs.map(a => chipHtml("avail", a, a, state.filters.availability.has(a), "category")).join("");
     }
-    // Trophäenstatus (alle im Akkordeon; schnelle Top-3 oben)
+    // Trophäen (alle im Akkordeon; wichtige Statuswerte optisch betonter)
     if (el.trophyAllRow){
       const trophyOrder = ["Platin","100%","In Arbeit","Ungespielt","Kein Platin","Box-Teil","Unbekannt"];
       const tros = Array.from(state.distinct.trophies);
@@ -635,6 +656,23 @@ console.log("Build 7.0p-A loaded");
       el.trophyAllRow.innerHTML = tros.map(t => {
         const kind = important.has(t) ? "primary" : "status";
         return chipHtml("trophy", t, t, state.filters.trophies.has(t), kind);
+      }).join("");
+    }
+
+    // Trophäen: Fortschritts-Presets (max. 1 aktiv)
+    if (el.trophyProgRow){
+      const presets = [
+        {k:"open3", label:"≤ 3 fehlen"},
+        {k:"open5", label:"≤ 5 fehlen"},
+        {k:"pct90", label:"≥ 90 %"},
+        {k:"pct75", label:"≥ 75 %"},
+      ];
+      el.trophyProgRow.innerHTML = presets.map(p => {
+        const pressed = (p.k === "open3" && state.filters.trophyOpenMax === 3)
+                    || (p.k === "open5" && state.filters.trophyOpenMax === 5)
+                    || (p.k === "pct90" && state.filters.trophyPctMin === 90)
+                    || (p.k === "pct75" && state.filters.trophyPctMin === 75);
+        return chipHtml("trophyRule", p.k, p.label, pressed, "status", { title: trophyRuleTitle(p.k) });
       }).join("");
     }
 
@@ -694,11 +732,62 @@ console.log("Build 7.0p-A loaded");
     return `${arr.length} gewählt`;
   }
 
+  function trophyRuleTitle(k){
+    switch (k){
+      case "open3": return "≤ 3 Trophäen fehlen";
+      case "open5": return "≤ 5 Trophäen fehlen";
+      case "pct90": return "Fortschritt ≥ 90 %";
+      case "pct75": return "Fortschritt ≥ 75 %";
+      default: return "";
+    }
+  }
+
+  function trophyRuleShort(k){
+    switch (k){
+      case "open3": return "≤ 3 fehlen";
+      case "open5": return "≤ 5 fehlen";
+      case "pct90": return "≥ 90 %";
+      case "pct75": return "≥ 75 %";
+      default: return "";
+    }
+  }
+
+  function currentTrophyRuleKey(){
+    if (state.filters.trophyOpenMax === 3) return "open3";
+    if (state.filters.trophyOpenMax === 5) return "open5";
+    if (state.filters.trophyPctMin === 90) return "pct90";
+    if (state.filters.trophyPctMin === 75) return "pct75";
+    return null;
+  }
+
+  function syncTrophyRuleUI(){
+    const active = currentTrophyRuleKey();
+    const keys = ["open3","open5","pct90","pct75"];
+    for (const k of keys) setAllChipPressed("trophyRule", k, active === k);
+    // Also keep the Quick row icons consistent (they use the same group)
+  }
+
+  function syncTimeRuleUI(){
+    setAllChipPressed("timeRule", "h5", state.filters.mainHoursMax === 5);
+  }
+
+  function summarizeTrophySection(){
+    const tags = Array.from(state.filters.trophies);
+    const rule = currentTrophyRuleKey();
+    const count = tags.length + (rule ? 1 : 0);
+    if (!count) return "Alle";
+    if (count > 2) return `${count} gewählt`;
+    const parts = [];
+    for (const t of tags) parts.push(t);
+    if (rule) parts.push(trophyRuleShort(rule));
+    return parts.join(", ");
+  }
+
   function updateAccordionSummaries(){
     if (el.platSummary) el.platSummary.textContent = summarizeMulti(state.filters.platforms);
     if (el.srcSummary)  el.srcSummary.textContent  = summarizeMulti(state.filters.sources, 2, stripTagEmoji);
     if (el.availSummary) el.availSummary.textContent = summarizeMulti(state.filters.availability);
-    if (el.trophySummary) el.trophySummary.textContent = summarizeMulti(state.filters.trophies);
+    if (el.trophySummary) el.trophySummary.textContent = summarizeTrophySection();
   }
 
   function renderActiveFilterBar(){
@@ -724,6 +813,19 @@ console.log("Build 7.0p-A loaded");
       items.push({group:"trophy", key:t, label:t});
     }
 
+    // Fortschritts-Presets (Trophäen)
+    const tr = currentTrophyRuleKey();
+    if (tr){
+      const label = (tr.startsWith("open"))
+        ? `🎯 ${trophyRuleShort(tr)}`
+        : `🔥 ${trophyRuleShort(tr)}`;
+      items.push({group:"trophyRule", key:tr, label});
+    }
+    // Zeit-Preset
+    if (state.filters.mainHoursMax === 5){
+      items.push({group:"timeRule", key:"h5", label:"⏱ ≤ 5h Main"});
+    }
+
     if (!items.length){
       el.activeFilters.innerHTML = `<span class="afEmpty">Keine Filter aktiv</span>`;
       return;
@@ -743,12 +845,23 @@ console.log("Build 7.0p-A loaded");
         else if (group === "src") state.filters.sources.delete(key);
         else if (group === "avail") state.filters.availability.delete(key);
         else if (group === "trophy") state.filters.trophies.delete(key);
+        else if (group === "trophyRule"){
+          state.filters.trophyOpenMax = null;
+          state.filters.trophyPctMin = null;
+        }
+        else if (group === "timeRule") state.filters.mainHoursMax = null;
 
         // Sync UI elements without nuking the whole dialog
         if (group === "genre" && el.genreSelect){
           el.genreSelect.value = "";
         } else {
-          setAllChipPressed(group, key, false);
+          if (group === "trophyRule"){
+            syncTrophyRuleUI();
+          } else if (group === "timeRule"){
+            setAllChipPressed("timeRule", "h5", false);
+          } else {
+            setAllChipPressed(group, key, false);
+          }
         }
         // Also sync quick/duplicate trophy chips
         if (group === "trophy") setAllChipPressed("trophy", key, false);
@@ -821,6 +934,22 @@ console.log("Build 7.0p-A loaded");
         for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
         if (!ok) continue;
       }
+
+      // Trophy progress presets
+      if (state.filters.trophyOpenMax != null){
+        const open = trophyOpenCount(r);
+        if (open == null || open > state.filters.trophyOpenMax) continue;
+      }
+      if (state.filters.trophyPctMin != null){
+        const pct = trophyProgressPct(r);
+        if (pct == null || pct < state.filters.trophyPctMin) continue;
+      }
+
+      // Time preset (Main)
+      if (state.filters.mainHoursMax != null){
+        const h = parseHours(r[COL.main]);
+        if (h == null || h > state.filters.mainHoursMax) continue;
+      }
       n++;
     }
     return n;
@@ -856,6 +985,32 @@ console.log("Build 7.0p-A loaded");
       return;
     }
 
+    if (group === "trophyRule"){
+      // Mutually exclusive presets: selecting one clears the others.
+      if (pressed){
+        state.filters.trophyOpenMax = null;
+        state.filters.trophyPctMin = null;
+      } else {
+        state.filters.trophyOpenMax = null;
+        state.filters.trophyPctMin = null;
+        if (key === "open3") state.filters.trophyOpenMax = 3;
+        else if (key === "open5") state.filters.trophyOpenMax = 5;
+        else if (key === "pct90") state.filters.trophyPctMin = 90;
+        else if (key === "pct75") state.filters.trophyPctMin = 75;
+      }
+      syncTrophyRuleUI();
+      updateDialogMeta();
+      return;
+    }
+
+    if (group === "timeRule"){
+      // Only one preset for now.
+      state.filters.mainHoursMax = (pressed ? null : 5);
+      syncTimeRuleUI();
+      updateDialogMeta();
+      return;
+    }
+
     // toggle sets
     const set = group === "plat" ? state.filters.platforms
               : group === "src" ? state.filters.sources
@@ -880,6 +1035,31 @@ console.log("Build 7.0p-A loaded");
   function parseHours(s){
     const n = parseFloat(String(s ?? "").replace(",", "."));
     return Number.isFinite(n) ? n : null;
+  }
+
+  function trophyAggregate(row){
+    // Aggregate per-platform fractions like "PS4:12/18|PS5:7/18" into one.
+    const prog = String(row[COL.trophProg] ?? "").trim();
+    if (!prog || prog.startsWith("BOX_TEIL:")) return null;
+    const dprog = parseKeyVals(prog);
+    const fracs = Object.values(dprog).map(v => parseFrac(v)).filter(Boolean);
+    if (!fracs.length) return null;
+    let earned = 0, total = 0;
+    for (const f of fracs){ earned += f.a; total += f.b; }
+    if (!total) return null;
+    const open = Math.max(0, total - earned);
+    const pct = (earned / total) * 100;
+    return { earned, total, open, pct };
+  }
+
+  function trophyProgressPct(row){
+    const agg = trophyAggregate(row);
+    return agg ? agg.pct : null;
+  }
+
+  function trophyOpenCount(row){
+    const agg = trophyAggregate(row);
+    return agg ? agg.open : null;
   }
 
   function applyAndRender(){
@@ -944,6 +1124,22 @@ console.log("Build 7.0p-A loaded");
         for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
         if (!ok) return false;
       }
+
+      // Trophy progress presets
+      if (state.filters.trophyOpenMax != null){
+        const open = trophyOpenCount(r);
+        if (open == null || open > state.filters.trophyOpenMax) return false;
+      }
+      if (state.filters.trophyPctMin != null){
+        const pct = trophyProgressPct(r);
+        if (pct == null || pct < state.filters.trophyPctMin) return false;
+      }
+
+      // Time preset (Main)
+      if (state.filters.mainHoursMax != null){
+        const h = parseHours(r[COL.main]);
+        if (h == null || h > state.filters.mainHoursMax) return false;
+      }
       return true;
     });
 
@@ -964,6 +1160,24 @@ console.log("Build 7.0p-A loaded");
       if (sf === "Spielzeit (Main)" || sf === "Spielzeit (100%)"){
         const ha = parseHours(A), hb = parseHours(B);
         if (ha != null && hb != null) return (ha - hb) * dir;
+      }
+      if (sf === "__trophyPct"){
+        const pa = trophyProgressPct(a), pb = trophyProgressPct(b);
+        if (pa == null && pb == null) {
+          // fall through to stable ID tie-breaker
+        }
+        if (pa == null) return 1; // unknown last
+        if (pb == null) return -1;
+        if (pa !== pb) return (pa - pb) * dir;
+      }
+      if (sf === "__trophyOpen"){
+        const oa = trophyOpenCount(a), ob = trophyOpenCount(b);
+        if (oa == null && ob == null) {
+          // fall through
+        }
+        if (oa == null) return 1;
+        if (ob == null) return -1;
+        if (oa !== ob) return (oa - ob) * dir;
       }
       let cmp = String(A).localeCompare(String(B), "de") * dir;
       // Stabiler Tie-Breaker: immer nach ID (aufsteigend), damit Sortierung ruhig bleibt.
@@ -1524,6 +1738,9 @@ function renderTrophyDetails(row){
     state.filters.sources.clear();
     state.filters.availability.clear();
     state.filters.trophies.clear();
+    state.filters.trophyOpenMax = null;
+    state.filters.trophyPctMin = null;
+    state.filters.mainHoursMax = null;
 
     state.sortField = "ID";
     state.sortDir = "asc";

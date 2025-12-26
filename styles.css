@@ -593,14 +593,23 @@ summary::-webkit-details-marker{display:none}
   list-style:none;
   cursor:pointer;
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-  display:flex;
+  display:grid;
+  grid-template-columns: 1fr var(--accSummaryW, 132px) auto;
   align-items:center;
-  justify-content:space-between;
-  gap: calc(10px * var(--uiScale));
+  column-gap: calc(10px * var(--uiScale));
 }
 .acc > summary::-webkit-details-marker{display:none}
 .accTitle{font-weight:650}
-.accSummary{opacity:.70; font-size: calc(12px * var(--uiScale));}
+.accSummary{
+  opacity:.70;
+  font-size: calc(12px * var(--uiScale));
+  justify-self:end;
+  text-align:right;
+  width: var(--accSummaryW, 132px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 .acc > summary::after{
   content:"▾";
   opacity:.55;
@@ -611,6 +620,20 @@ summary::-webkit-details-marker{display:none}
   border-top:1px solid var(--border);
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   background: color-mix(in oklab, var(--bg) 97%, var(--fg) 3%);
+}
+
+.accDivider{
+  height:1px;
+  background: var(--border);
+  opacity:0.85;
+  margin: calc(12px * var(--uiScale)) 0;
+}
+.accHint{
+  font-size: calc(12px * var(--uiScale));
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .55;
+  margin: 0 0 calc(10px * var(--uiScale));
 }
 
 .toggle{
@@ -631,6 +654,10 @@ summary::-webkit-details-marker{display:none}
   gap: calc(12px * var(--uiScale));
 }
 .chipRow > .chip{margin:0}
+
+.chipRow2{
+  margin-top: calc(10px * var(--uiScale));
+}
 
 /* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
 #sortDirRow{margin-top: calc(12px * var(--uiScale));}

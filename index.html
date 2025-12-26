@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0p-A" />
+    <meta name="app-build" content="7.0q-A" />
   <link rel="stylesheet" href="styles.css?v=7.0o-A" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -110,6 +110,7 @@
           <div class="subsect" id="quickSect">
             <div class="subTitle">Schnellfilter</div>
             <div class="chipRow" id="quickRow"></div>
+            <div class="chipRow chipRow2" id="quickRow2"></div>
           </div>
 
           <div class="subsect" id="genreSect">
@@ -153,11 +154,14 @@
 
             <details class="acc" id="trophyAcc">
               <summary>
-                <span class="accTitle">Trophäenstatus</span>
+                <span class="accTitle">Trophäen</span>
                 <span id="trophySummary" class="accSummary">Alle</span>
               </summary>
               <div class="accBody">
                 <div class="chipRow" id="trophyAllRow"></div>
+                <div class="accDivider"></div>
+                <div class="accHint">Fortschritt</div>
+                <div class="chipRow" id="trophyProgRow"></div>
               </div>
             </details>
           </div>
