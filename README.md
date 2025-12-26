@@ -1,21 +1,15 @@
-# Build 7.0t-A4
+# Build 7.0u-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0t-A4
+## Was neu ist in 7.0u-A
 
-- **Sortiermenü neu sortiert (wie die Karte):**
-  - Reihenfolge folgt jetzt strikt der Karte: **ID → Titel → Quelle → Verfügbarkeit → Genre → (Entwickler folgt) → Main → 100% → Metascore → Userwertung → Trophäen**.
-  - Zusätzlich in **native Select‑Gruppen** (Identität / Besitz / Einordnung / Spielzeit / Bewertungen / Trophäen), damit Android/iOS weniger „zufällig“ wirkt.
-  - **Plattform** und **Entwickler** sind als **disabled Platzhalter** vorbereitet (erscheinen als „… folgt“).
+- **Pull-to-Refresh deaktiviert (Android/Chrome):**
+  - Kein versehentliches Seiten-Reload mehr durch Runterziehen am Listenanfang.
 
-- **Modal-/Scroll-Fix (persistenter Top‑Gap behoben):**
-  - Das Dialog‑Overlay spannt jetzt **immer 100dvh** (statt VisualViewport‑Offsets), damit es **nicht dauerhaft „zu klein“** startet.
-  - Die Bottom‑Sheet‑Höhe wird ebenfalls gegen **100dvh** berechnet (stabil, unabhängig vom vorherigen Scroll‑Zustand).
-  - Hintergrund wird weiterhin per **body-position lock** eingefroren.
-
-- **Header-Fix im Dialog:**
-  - Das **X** sitzt jetzt sauber rechts mit Abstand (kein „an der Überschrift kleben“).
+- **Badge-Konsistenz (Trophäen):**
+  - Trophäen-Badges sind jetzt in der Kartenansicht in der Breite näher an den übrigen Badges.
+  - Hervorhebung läuft weiterhin über Stil/Färbung statt über „Sondergröße“.
 
 ---
 

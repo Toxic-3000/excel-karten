@@ -1,12 +1,12 @@
-console.log("Build 7.0t-A4 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0t-A4
+console.log("Build 7.0u-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A4").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0u-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;

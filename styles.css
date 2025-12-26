@@ -35,6 +35,10 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 
+/* Android/Chrome: prevent pull-to-refresh / page reload on overscroll.
+   (We target Android only for now; iOS behavior is intentionally ignored.) */
+html, body{ overscroll-behavior-y: none; }
+
 /* Ensure form controls inherit our scaled typography.
    Some mobile browsers keep default UI font sizes on buttons/inputs unless forced. */
 button, input, select, textarea{ font: inherit; }
@@ -248,7 +252,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .badge.source{min-width: calc(108px * var(--uiScale)); justify-content:center}
 .badge.avail{min-width: calc(128px * var(--uiScale)); justify-content:center}
 .badge.genre{min-width: calc(140px * var(--uiScale)); justify-content:center}
-.badge.trophy{min-width: calc(150px * var(--uiScale)); justify-content:center}
+.badge.trophy{min-width: calc(128px * var(--uiScale)); justify-content:center}
 .badge.note{min-width: calc(150px * var(--uiScale)); justify-content:center}
 
 .badge.ok{background: color-mix(in oklab, var(--ok) 18%, var(--bg) 82%)}
