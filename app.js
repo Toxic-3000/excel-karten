@@ -652,6 +652,9 @@ console.log("Build 7.0u-A3 loaded");
       .filter(Boolean)
       .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
+    // Cache for the genre overlay (some mobile browsers behave oddly with <dialog> + cached refs)
+    cachedGenreOptions = state.distinct.genresSorted.slice();
+
     if (el.genreBtn){
       el.genreBtn.onclick = () => setGenreOverlay(true);
     }
@@ -969,8 +972,10 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
 
   // --- Genre Picker Overlay ---
+  // Filled in buildFilterUI() from state.distinct.genresSorted
+  let cachedGenreOptions = [];
 
-  function setGenreOverlay(open){
+  function setGenreOverlayOpen(open){
     if (!el.genreOverlay) return;
     el.genreOverlay.hidden = !open;
     el.genreOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -982,39 +987,50 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function renderGenreOverlay(){
+    // Some mobile browsers behave oddly with <dialog> top-layer; re-query each render
+    if (!el.genreList) el.genreList = document.getElementById('genreList');
     if (!el.genreList) return;
 
-    const selected = state.filters.genres; // Set
-    const genres = Array.from(state.distinct.genres || []).sort((a,b)=>String(a).localeCompare(String(b),'de',{sensitivity:'base'}));
+    const options = (Array.isArray(state.distinct.genresSorted) && state.distinct.genresSorted.length)
+      ? state.distinct.genresSorted
+      : (Array.isArray(cachedGenreOptions) ? cachedGenreOptions : []);
 
-    const rows = [{ value: '__ALL__', label: 'Alle' }, ...genres.map(g => ({ value: g, label: g }))];
+    const selected = (state.filters.genres instanceof Set)
+      ? new Set(state.filters.genres)
+      : new Set(state.filters.genres || []);
+
+    const rows = [{ value: '__ALL__', label: 'Alle' }, ...options.map(g => ({ value: g, label: g }))];
 
     el.genreList.innerHTML = rows.map(r => {
       const isOn = (r.value === '__ALL__') ? (selected.size === 0) : selected.has(r.value);
       return `
         <button type="button" class="listItem" data-value="${esc(r.value)}" aria-pressed="${isOn}">
-          <span class="left">
-            <span class="check" aria-hidden="true">${isOn ? '✓' : ''}</span>
-            <span class="txt">${esc(r.label)}</span>
-          </span>
+          <span class="check" aria-hidden="true">✓</span>
+          <span class="txt">${esc(r.label)}</span>
         </button>
       `;
     }).join('');
 
+    // one-time delegated click handler
     if (!el.genreList.dataset.bound){
       el.genreList.dataset.bound = '1';
       el.genreList.addEventListener('click', (ev) => {
         const btn = ev.target.closest('.listItem');
         if (!btn) return;
         const v = btn.getAttribute('data-value');
+        const next = (state.filters.genres instanceof Set)
+          ? new Set(state.filters.genres)
+          : new Set(state.filters.genres || []);
+
         if (v === '__ALL__'){
-          state.filters.genres.clear();
+          next.clear();
         } else {
-          if (state.filters.genres.has(v)) state.filters.genres.delete(v);
-          else state.filters.genres.add(v);
+          if (next.has(v)) next.delete(v); else next.add(v);
         }
-        applyFilters();
-        updateDialogMeta(true);
+
+        // keep as Set (other code expects .size/.clear)
+        state.filters.genres = next;
+        updateDialogMeta();
         renderGenreOverlay();
       });
     }
