@@ -1,4 +1,4 @@
-console.log("Build 7.0t-A1 loaded");
+console.log("Build 7.0t-A2 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.0t-A1
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
@@ -6,7 +6,7 @@ console.log("Build 7.0t-A1 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A1").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0t-A2").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -1717,6 +1717,39 @@ function renderTrophyDetails(row){
   // "short" initial sheet layouts after the user scrolled the page (visual viewport
   // vs layout viewport mismatch). A body-position freeze is more reliable.
   let _savedScrollY = 0;
+
+  // --- Visual viewport anchoring (Android address bar / dynamic viewport quirks) ---
+  // Some mobile browsers (notably Android/Chrome) can report a layout viewport that
+  // doesn't match the visual viewport after the page has been scrolled. When a modal
+  // opens, this can cause the sheet to render "too small" with a top gap until the
+  // user drags/scrolls (which triggers a reflow). We anchor the dialog to the visual
+  // viewport using CSS variables fed by `window.visualViewport`.
+  function updateVisualViewportVars(){
+    const vv = window.visualViewport;
+    const root = document.documentElement;
+    if (vv){
+      root.style.setProperty('--vvTop', `${Math.round(vv.offsetTop)}px`);
+      root.style.setProperty('--vvLeft', `${Math.round(vv.offsetLeft)}px`);
+      root.style.setProperty('--vvWidth', `${Math.round(vv.width)}px`);
+      root.style.setProperty('--vvHeight', `${Math.round(vv.height)}px`);
+    }else{
+      // Fallback for older browsers
+      root.style.setProperty('--vvTop', `0px`);
+      root.style.setProperty('--vvLeft', `0px`);
+      root.style.setProperty('--vvWidth', `100%`);
+      root.style.setProperty('--vvHeight', `${window.innerHeight}px`);
+    }
+  }
+
+  // Keep vars warm (also helps with address bar show/hide while scrolling).
+  updateVisualViewportVars();
+  try{
+    if (window.visualViewport){
+      window.visualViewport.addEventListener('resize', updateVisualViewportVars);
+      window.visualViewport.addEventListener('scroll', updateVisualViewportVars);
+    }
+  }catch(_){/* ignore */}
+  window.addEventListener('resize', updateVisualViewportVars, {passive:true});
   function setModalOpen(isOpen){
     const html = document.documentElement;
     if (isOpen){
@@ -1745,16 +1778,19 @@ function renderTrophyDetails(row){
   function openMenuDialog(){
     // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
     buildFilterUI();
-    if (!el.dlg.open) el.dlg.showModal();
+    // Update viewport vars BEFORE opening so the first paint anchors correctly.
+    updateVisualViewportVars();
     setModalOpen(true);
+    if (!el.dlg.open) el.dlg.showModal();
 
     // Force a stable layout pass so the sheet doesn't start "short" on mobile
     // when the browser UI changes the visual viewport.
     const body = el.dlg.querySelector('.sheetBody');
     if (body) body.scrollTop = 0;
+    // Double-rAF: allow the browser to settle the visual viewport, then force a reflow.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        // Touch a layout property to make sure the browser commits sizing.
+        updateVisualViewportVars();
         void el.dlg.offsetHeight;
       });
     });
