@@ -602,8 +602,8 @@ summary::-webkit-details-marker{display:none}
 .accTitle{font-weight:650}
 .accSummary{opacity:.70; font-size: calc(12px * var(--uiScale));
   margin-left:auto;
-  min-width: calc(88px * var(--uiScale));
-  max-width: calc(120px * var(--uiScale));
+  /* Keep summaries (e.g. "Alle") perfectly aligned across sections */
+  flex: 0 0 calc(120px * var(--uiScale));
   text-align:right;
   white-space:nowrap;
   overflow:hidden;

@@ -1,32 +1,30 @@
-# Build 7.0p-A
+# Build 7.0s-A
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0p-A
+## Was neu ist in 7.0s-A
 
-- **Filter-Badges: Auswahl leuchtet jetzt überall blau auf**
-  - Plattform / Quelle / Verfügbarkeit / Trophäenstatus zeigen den **Pressed‑State** wie die Primärfilter.
-  - Dadurch sind gesetzte Filter im jeweiligen Bereich sofort sichtbar und direkt wieder abwählbar.
+- **Trophäen-Sektion aufgeräumt:**
+  - „Trophäenstatus“ heißt jetzt **„Trophäen“**.
+  - In „Trophäen“ gibt es zusätzlich **Fortschritts‑Presets**: `≤3`, `≤5`, `≥90%`, `≥75%`.
 
-- **Schnellfilter als Icons (statt Text)**
-  - ⭐ Favoriten
-  - ⏳ In Arbeit
-  - 💤 Ungespielt
-  - ✅ 100%
-  - 💎 Platin
+- **Schnellfilter als reine Icons (2 Zeilen):**
+  - Zeile 1: ⭐ ⏳ 💤 ✅ 💎
+  - Zeile 2: 🎯 (≤3 fehlen), 🔥 (≥90%), ⏱️ (Main ≤5h)
 
-- **Sortiermenü umgebaut (ruhiger & schneller):**
-  - Im Dialog ist „Sortieren nach“ jetzt ein **Dropdown** statt vieler Chips (weniger Umbruch‑Chaos auf Mobile).
-  - Im FAB „Ansicht“ gibt es zusätzlich **Quick‑Sort‑Chips** für die wichtigsten Felder (ID, Titel, Meta, User, Main, 100%).
-  - Sortierfeld + Richtung werden **persistiert** (LocalStorage), damit deine bevorzugte Reihenfolge bleibt.
-  - Tie‑Breaker: Bei gleichen Werten wird stabil nach **ID** sortiert (weniger „Zittern“ bei ähnlichen Daten).
+- **Neue Sortieroptionen:**
+  - **Trophäen‑Fortschritt (%)**
+  - **Offene Trophäen (Anzahl)**
 
-- **Bugfix: Trophäen-Filter „In Arbeit“**
-  - „Trophäen Fortschritt“ wird als **erhalten/gesamt** ausgewertet (z. B. `PS3:50/50`).
-  - **100%** bedeutet jetzt: **keine offenen Trophäen mehr** (alle Einträge `a==b`).
-  - **In Arbeit** bedeutet: **mindestens ein Eintrag** mit `0 < a < b`.
-  - Dadurch erscheinen **abgeschlossene Spiele nicht mehr** im Filter „In Arbeit“.
-  - **Platin** / **Kein Platin** bleiben unabhängig und können mit „In Arbeit“ koexistieren (z. B. DLC offen).
+- **Bugfix (Trophäen‑Fortschritt, konsistent):**
+  - **Alle** Fortschritts‑Presets (`≤3`, `≤5`, `≥90%`, `≥75%`) berücksichtigen jetzt **nur Spiele mit tatsächlich offenen Trophäen** (`open > 0`).
+  - Mixed‑Plattform‑Fälle funktionieren weiterhin: z. B. **PS4 Platin**, aber **PS5 noch offen** → zählt korrekt.
+
+- **Mini‑UI‑Feinschliff:**
+  - Schnellfilter‑Icon für **≥90%** ist jetzt **🔥** (statt „🔢“), damit es sich klar von ✅/💎 unterscheidet.
+
+- **UI-Fix:**
+  - Die Summary‑Texte (z. B. „Alle“) in den Akkordeon‑Köpfen haben jetzt eine **fixe Breite** und stehen dadurch in der Gesamtansicht **sauber untereinander**.
 
 ## Enthaltene Features (aus 7.0k-K und vorher)
 
@@ -68,7 +66,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 
 - XLSX lokal auswählen und einlesen (Sheet: „Spieleliste Komplett“)
 - Suche über **ID**, Titel/Genre/Subgenre/Entwickler
-- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, Genre, Quelle, Verfügbarkeit
+- Sortieren: ID, Titel, Metascore, Userwertung, 🕒 Main‑Story, 🕒 Komplett, **Trophäen‑Fortschritt (%)**, **Offene Trophäen**, Genre, Quelle, Verfügbarkeit
 - Filter: Favorit, Plattform, Quelle, Verfügbarkeit
 - Kartenlayout:
   - Kopf: **ID links**, **Favorit‑Icon rechts**, Titel darunter

@@ -1,12 +1,12 @@
-console.log("Build 7.0q-A loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0q-A
+console.log("Build 7.0s-A loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0s-A
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0q-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0s-A").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -588,7 +588,8 @@ console.log("Build 7.0q-A loaded");
 
       // Ziel-/Zeit-Schnellfilter (zweite Zeile)
       row2.push(chipHtml("trophyPreset", "open3", "🎯", state.filters.trophyPreset === "open3", "primary", { title: "≤ 3 Trophäen fehlen", iconOnly: true }));
-      row2.push(chipHtml("trophyPreset", "pct90", "🔢", state.filters.trophyPreset === "pct90", "primary", { title: "Fortschritt ≥ 90 %", iconOnly: true }));
+      // 🔥 = "nahe dran" (≥ 90 %), soll sich klar von ✅/💎 unterscheiden.
+      row2.push(chipHtml("trophyPreset", "pct90", "🔥", state.filters.trophyPreset === "pct90", "primary", { title: "Fortschritt ≥ 90 %", iconOnly: true }));
       row2.push(chipHtml("shortMain", "le5", "⏱️", state.filters.shortMain5, "primary", { title: "Spielzeit ≤ 5 Std. (Main)", iconOnly: true }));
 
       el.quickRow.innerHTML = `
@@ -734,7 +735,8 @@ console.log("Build 7.0q-A loaded");
   function trophyPresetIcon(k){
     if (!k) return "";
     if (k === "open3" || k === "open5") return "🎯";
-    if (k === "pct90" || k === "pct75") return "🔢";
+    if (k === "pct90") return "🔥";
+    if (k === "pct75") return "🔢";
     return "";
   }
 function summarizeMulti(set, maxItems=2, mapFn=null){
@@ -895,10 +897,13 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       if (trophyPreset){
         const agg = trophyAggregate(r);
         if (!agg) continue;
-        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open <= 3)) continue; }
-        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open <= 5)) continue; }
-        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.pct >= 90)) continue; }
-        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.pct >= 75)) continue; }
+        // Presets should only match games where something is still open.
+        // Important: per-platform combinations exist (e.g. PS4 platinum but PS5 still in progress),
+        // so we use the aggregated "open" count across all progress fractions.
+        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 3)) continue; }
+        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 5)) continue; }
+        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 90)) continue; }
+        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 75)) continue; }
       }
 
       if (shortMain5){
@@ -1055,10 +1060,12 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       if (trophyPreset){
         const agg = trophyAggregate(r);
         if (!agg) return false;
-        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open <= 3)) return false; }
-        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open <= 5)) return false; }
-        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.pct >= 90)) return false; }
-        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.pct >= 75)) return false; }
+        // Presets should not include already completed titles (open trophies == 0).
+        // Aggregation covers mixed platform states (e.g. PS4 complete, PS5 still open).
+        if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 3)) return false; }
+        else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 5)) return false; }
+        else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 90)) return false; }
+        else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 75)) return false; }
       }
 
       // Spielzeit-Preset
