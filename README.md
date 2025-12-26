@@ -1,16 +1,17 @@
-# Build 7.0t-A2
+# Build 7.0t-A3
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0t-A2
+## Was neu ist in 7.0t-A3
 
 - **Sortiermenü neu sortiert (wie die Karte):**
   - Reihenfolge folgt jetzt strikt der Karte: **ID → Titel → Quelle → Verfügbarkeit → Genre → (Entwickler folgt) → Main → 100% → Metascore → Userwertung → Trophäen**.
   - Zusätzlich in **native Select‑Gruppen** (Identität / Besitz / Einordnung / Spielzeit / Bewertungen / Trophäen), damit Android/iOS weniger „zufällig“ wirkt.
   - **Plattform** und **Entwickler** sind als **disabled Platzhalter** vorbereitet (erscheinen als „… folgt“).
 
-- **Modal-/Scroll-Fix (VisualViewport-Anker):**
-  - Der Dialog wird jetzt an die **VisualViewport** gebunden (CSS‑Variablen), damit er auch nach vorherigem Scrollen **ohne oberen Leerraum** startet.
+- **Modal-/Scroll-Fix (persistenter Top‑Gap behoben):**
+  - Das Dialog‑Overlay spannt jetzt **immer 100dvh** (statt VisualViewport‑Offsets), damit es **nicht dauerhaft „zu klein“** startet.
+  - Die Bottom‑Sheet‑Höhe wird ebenfalls gegen **100dvh** berechnet (stabil, unabhängig vom vorherigen Scroll‑Zustand).
   - Hintergrund wird weiterhin per **body-position lock** eingefroren.
 
 - **Header-Fix im Dialog:**

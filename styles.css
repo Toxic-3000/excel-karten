@@ -512,19 +512,14 @@ summary::-webkit-details-marker{display:none}
 .dlg::backdrop{background: rgba(0,0,0,.35)}
 .dlg{
   overscroll-behavior: contain;
-  /* Ensure the dialog spans the full viewport.
-     This reduces "short" initial layouts on mobile when the browser UI
-     (address bar) affects the visual viewport. */
+  /* Fullscreen fixed modal surface.
+     Using 100dvh prevents Android/Chrome address-bar quirks where the dialog
+     can render with a persistent top gap (especially after the page was
+     previously scrolled). */
   position: fixed;
-  /* Anchor to the *visual viewport* via JS-provided CSS vars.
-     On Android/Chrome, when the page was previously scrolled, the visual
-     viewport can be offset/reshaped by the address bar. Using these vars
-     prevents the sheet from starting "too small" with a top gap until
-     the user drags. */
-  top: var(--vvTop, 0px);
-  left: var(--vvLeft, 0px);
-  width: var(--vvWidth, 100%);
-  height: var(--vvHeight, 100dvh);
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
   margin: 0;
 }
 
@@ -542,7 +537,9 @@ html.modalOpen body{touch-action:none;}
   border:1px solid var(--border);
   border-radius: 22px 22px 0 0;
   box-shadow: var(--shadow);
-  max-height: calc(var(--vvHeight, 100dvh) * 0.86);
+  /* Size against the dynamic viewport, not visualViewport vars.
+     This keeps the sheet height stable and avoids "starts short" gaps. */
+  max-height: calc(100dvh * 0.90);
   display:flex;
   flex-direction:column;
   overscroll-behavior: contain;
