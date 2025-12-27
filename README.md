@@ -1,8 +1,8 @@
-# Build 7.0v-D1d
+# Build 7.0v-D1e
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-D1d
+## Was neu ist in 7.0v-D1e
 
 - **Mobile (Android) Sortiermenü abgeschlossen:**
   - Sortieren nach **Plattform** (Primärplattform nach Priorität: PS5 > PS4 > PS3 > Vita).
@@ -16,12 +16,18 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
   - Hintergrund: keine nativen `<select>`‑Overlays im Desktop‑Dialog (verhindert Fokus/Scroll‑Probleme).
 
 - **Genre‑Auswahl jetzt sauber synchronisiert:**
-  - Wenn du Genres **über das Filterfeld (Chips mit X)** entfernst, wird das **sofort** im Genre‑Dropdown reflektiert (keine „hängenden“ Häkchen mehr).
+  - Entfernst du Genres **über das Filterfeld (Chips mit X)**, wird das **sofort** im Genre‑Dropdown reflektiert.
   - Die Dropdown‑Beschriftung ist kompakt: `Genre: <erstes> +N`.
 
-- **Desktop‑Dialog wirkt weniger „abgeschnitten“:**
-  - Der Sheet‑Dialog hat auf Desktop jetzt einen kleinen Rahmen (oben/unten), statt nur unten zu kleben.
-  - Kleinere Typo‑Tuning‑Anpassungen an den Desktop‑Dropdowns.
+- **Desktop/Tablet: Dropdowns nicht mehr abgeschnitten:**
+  - Dropdown‑Panels werden im Sheet in eine eigene „Float‑Layer“ gerendert.
+  - Dadurch werden sie nicht mehr vom scrollenden Dialog‑Body abgeschnitten (z. B. im Windows‑Tabletmodus).
+
+- **Desktop/Tablet: sauberes Clipping an den runden Ecken:**
+  - Inhalte (Sticky‑Header/Body) werden jetzt korrekt an den abgerundeten Sheet‑Ecken geclippt (wirkt nicht mehr so, als würde es „über den Rahmen hinaus“ laufen).
+
+- **Tablet‑Layout (z. B. 1280×800):**
+  - Sheet bekommt etwas mehr Höhe (kleinere obere/untere Lücke), damit mehr Inhalt sichtbar ist.
 
 ---
 

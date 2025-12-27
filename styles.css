@@ -605,6 +605,8 @@ html.modalOpen body{touch-action:none;}
   border:1px solid var(--border);
   border-radius: 22px 22px 0 0;
   box-shadow: var(--shadow);
+  /* Clip sticky header/body to the rounded frame on Desktop/Tablet */
+  overflow: hidden;
   /* Size against the dynamic viewport, not visualViewport vars.
      This keeps the sheet height stable and avoids "starts short" gaps. */
   max-height: calc(100dvh * 0.90);
@@ -622,6 +624,15 @@ html.modalOpen body{touch-action:none;}
     bottom: 4vh;
     max-height: calc(100dvh - 8vh);
     border-radius: 22px;
+  }
+}
+
+/* Tablet-ish: give the sheet a bit more height (e.g. 1280×800). */
+@media (min-width: 701px) and (max-width: 1100px) and (min-height: 521px){
+  .sheet{
+    top: 2vh;
+    bottom: 2vh;
+    max-height: calc(100dvh - 4vh);
   }
 }
 
@@ -661,6 +672,8 @@ html.modalOpen body{touch-action:none;}
   position:sticky; top:0;
   background:var(--card);
   border-bottom:1px solid var(--border);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
   padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
   justify-content:space-between;
@@ -675,6 +688,17 @@ html.modalOpen body{touch-action:none;}
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
 }
+
+/* Floating layer inside the sheet.
+   Used to render desktop dropdown panels above the scroll container
+   while still being clipped to the sheet's rounded frame. */
+.sheetFloats{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index: 90;
+}
+.sheetFloats .ddPanel{ pointer-events:auto; }
 .sectTitle{
   font-size: calc(12px * var(--uiScale));
   letter-spacing:.14em;
@@ -1278,10 +1302,10 @@ html.modalOpen body{touch-action:none;}
   overflow: auto;
   padding: 10px;
   border-radius: 18px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.92);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 88%, var(--bg) 12%);
   box-shadow: 0 18px 40px rgba(0,0,0,.14);
-  z-index: 50;
+  z-index: 120;
   backdrop-filter: blur(10px);
 }
 .ddItem{

@@ -771,13 +771,91 @@ console.log("Build 7.0v-D1d loaded");
   // because some browsers can lose focus / crash on scroll while a native select is open.
   let __openDesktopPanel = null;
 
+  function __getSheetFloatLayer(){
+    const sheet = el.dlg?.querySelector?.(".sheet");
+    if (!sheet) return null;
+    let floats = sheet.querySelector(".sheetFloats");
+    if (!floats){
+      floats = document.createElement("div");
+      floats.className = "sheetFloats";
+      sheet.appendChild(floats);
+    }
+    return floats;
+  }
+
+  function __portalPanel(panel){
+    if (!panel || panel.__portal) return;
+    const floats = __getSheetFloatLayer();
+    if (!floats) return;
+    panel.__portal = { parent: panel.parentNode, next: panel.nextSibling };
+    floats.appendChild(panel);
+    panel.classList.add("isPortal");
+    // make sure clicks inside the panel don't bubble up and auto-close it
+    panel.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  function __unportalPanel(panel){
+    const p = panel?.__portal;
+    if (!panel || !p) return;
+    panel.classList.remove("isPortal");
+    // restore original DOM position
+    try{
+      if (p.next && p.next.parentNode === p.parent) p.parent.insertBefore(panel, p.next);
+      else p.parent.appendChild(panel);
+    } catch {
+      // ignore
+    }
+    panel.__portal = null;
+    // clear inline positioning from portal mode
+    panel.style.top = "";
+    panel.style.bottom = "";
+    panel.style.left = "";
+    panel.style.right = "";
+    panel.style.width = "";
+    panel.style.maxHeight = "";
+  }
+
+  function __positionPanelInSheet(panel, btn){
+    const sheet = el.dlg?.querySelector?.(".sheet");
+    if (!sheet || !panel || !btn) return;
+    const sr = sheet.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    const pad = 12;
+
+    // width constrained to the sheet
+    const maxW = Math.max(240, sr.width - pad * 2);
+    const width = Math.min(560, maxW);
+    panel.style.width = `${width}px`;
+
+    // horizontal placement
+    let left = br.left - sr.left;
+    left = Math.max(pad, Math.min(left, sr.width - width - pad));
+    panel.style.left = `${left}px`;
+    panel.style.right = "auto";
+
+    // choose open direction based on available space
+    const spaceBelow = sr.bottom - br.bottom - pad;
+    const spaceAbove = br.top - sr.top - pad;
+    const preferUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+
+    if (preferUp){
+      panel.style.bottom = `${(sr.bottom - br.top) + 8}px`;
+      panel.style.top = "auto";
+      panel.style.maxHeight = `${Math.max(160, Math.min(420, spaceAbove))}px`;
+    } else {
+      panel.style.top = `${(br.bottom - sr.top) + 8}px`;
+      panel.style.bottom = "auto";
+      panel.style.maxHeight = `${Math.max(160, Math.min(420, spaceBelow))}px`;
+    }
+  }
+
   function __closeDesktopPanel(){
     if (__openDesktopPanel){
       __openDesktopPanel.hidden = true;
       // also sync aria-expanded on its trigger if present
-      const host = __openDesktopPanel.closest?.(".dd");
-      const btn = host?.querySelector?.(".ddBtn");
+      const btn = __openDesktopPanel.__portal?.hostBtn || __openDesktopPanel.closest?.(".dd")?.querySelector?.(".ddBtn");
       if (btn) btn.setAttribute("aria-expanded", "false");
+      __unportalPanel(__openDesktopPanel);
       __openDesktopPanel = null;
     }
   }
@@ -786,15 +864,20 @@ console.log("Build 7.0v-D1d loaded");
     if (!panel) return;
     if (__openDesktopPanel && __openDesktopPanel !== panel){
       __openDesktopPanel.hidden = true;
-      const host = __openDesktopPanel.closest?.(".dd");
-      const btn = host?.querySelector?.(".ddBtn");
+      const btn = __openDesktopPanel.__portal?.hostBtn || __openDesktopPanel.closest?.(".dd")?.querySelector?.(".ddBtn");
       if (btn) btn.setAttribute("aria-expanded", "false");
+      __unportalPanel(__openDesktopPanel);
     }
     const willOpen = panel.hidden;
     panel.hidden = !willOpen ? true : false;
     const host = panel.closest?.(".dd");
     const btn = host?.querySelector?.(".ddBtn");
     if (btn) btn.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+
+    if (!panel.hidden && IS_DESKTOP){
+      __portalPanel(panel);
+      __positionPanelInSheet(panel, btn || host);
+    }
     __openDesktopPanel = panel.hidden ? null : panel;
   }
 
@@ -802,12 +885,28 @@ console.log("Build 7.0v-D1d loaded");
   document.addEventListener("click", (e) => {
     if (!IS_DESKTOP) return;
     if (e.target?.closest?.(".dd")) return;
+    if (e.target?.closest?.(".ddPanel")) return;
     __closeDesktopPanel();
   });
   document.addEventListener("keydown", (e) => {
     if (!IS_DESKTOP) return;
     if (e.key === "Escape") __closeDesktopPanel();
   });
+
+  // Close any open dropdown when the sheet body scrolls (Desktop/Tablet).
+  // Prevents clipped panels / awkward positioning on touch-capable desktops.
+  if (IS_DESKTOP){
+    const sb = el.dlg?.querySelector?.(".sheetBody");
+    if (sb && !sb.__ddCloseOnScroll){
+      sb.addEventListener("scroll", __closeDesktopPanel, {passive:true});
+      sb.__ddCloseOnScroll = true;
+    }
+    // Safe global: close open panels on resize.
+    if (!window.__ddCloseOnResize){
+      window.addEventListener("resize", __closeDesktopPanel, {passive:true});
+      window.__ddCloseOnResize = true;
+    }
+  }
 
 
   function buildFilterUI(){
@@ -1221,7 +1320,8 @@ console.log("Build 7.0v-D1d loaded");
     // via the active filter bar or other UI elements.
     if (IS_DESKTOP && el.genreRowDesktop){
       const btn = el.genreRowDesktop.querySelector("#genreBtn");
-      const panel = el.genreRowDesktop.querySelector("#genrePanel");
+      // Panel can be portaled into the sheet float layer.
+      const panel = el.dlg?.querySelector?.("#genrePanel");
       if (btn && panel){
         const labEl = btn.querySelector(".ddBtnLabel");
         // Compact label: either "Alle" or "<Erstes> +N" to stay readable.
