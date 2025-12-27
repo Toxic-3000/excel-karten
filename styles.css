@@ -1291,10 +1291,6 @@ html.modalOpen body{touch-action:none;}
   box-shadow: 0 8px 24px rgba(0,0,0,.08);
   font-weight: 650;
 }
-.ddBtn:focus-visible{
-  outline: 2px solid color-mix(in oklab, var(--blue) 70%, white 30%);
-  outline-offset: 2px;
-}
 .ddBtn:active{ transform: translateY(1px); }
 .ddCaret{ opacity: .65; }
 .ddPanel{
@@ -1324,10 +1320,6 @@ html.modalOpen body{touch-action:none;}
   text-align: left;
   font: inherit;
   cursor: pointer;
-}
-.ddItem:focus-visible{
-  outline: 2px solid color-mix(in oklab, var(--blue) 70%, white 30%);
-  outline-offset: 2px;
 }
 .ddItem:hover{ background: rgba(0,0,0,.05); }
 .ddItem:active{ background: rgba(0,0,0,.07); }
