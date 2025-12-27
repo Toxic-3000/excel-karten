@@ -917,6 +917,40 @@ html.modalOpen body{touch-action:none;}
   .pills{justify-content:flex-end}
 }
 
+
+
+
+/* --- Responsive: Landscape header refinement (phones, small height) --- */
+/* Ziel: Suche bekommt volle Breite, Actions rechtsbündig, Info-Chips geordnet. */
+/* Portrait bleibt unberührt. */
+@media (orientation: landscape) and (max-height: 520px){
+  /* Topbar: Titel links, Aktionen rechts */
+  .topbar{justify-content:space-between;}
+  .brand{flex: 1 1 auto; min-width: 0;}
+  .topActions{margin-left:auto; justify-content:flex-end; flex-wrap:wrap;}
+
+  /* Subbar: immer gestapelt, damit die Suche nicht gequetscht wird */
+  .subbar{flex-direction:column; align-items:stretch; justify-content:flex-start;}
+  .searchRow{width:100%; max-width:none;}
+  .searchRow .search{width:100%;}
+
+  /* Info-Chips: ruhige, kontrollierte Verteilung */
+  .pills{
+    width:100%;
+    display:grid;
+    grid-template-columns: 1fr auto auto; /* Datei | Treffer | XLSX */
+    gap: calc(10px * var(--uiScale));
+    align-items:center;
+  }
+  #pillFile{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  #pillRows, #pillXlsx{white-space:nowrap;}
+}
+
 /* --- Responsive: Landscape cards (mobile landscape & small tablets) --- */
 @media (min-width: 520px) and (orientation: landscape){
   .topGrid{
