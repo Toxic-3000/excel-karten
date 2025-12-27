@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1e
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1g
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -1379,8 +1379,8 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* ------------------------------
-   Build 7.1e – Desktop/Tablet Typo Tuning
-   - Ziel: ruhigere Hierarchie, bessere Lesebreite, angenehmer Rhythmus
+   Build 7.1g – Desktop/Tablet Feintuning
+   - Ziel: ruhigere Hierarchie + kompaktere Karten auf großen Viewports
    - Wichtig: Android Phone bleibt unberührt (Gate über Viewport-Höhe)
 ------------------------------ */
 @media (min-width: 701px) and (min-height: 521px){
@@ -1445,7 +1445,20 @@ html.modalOpen body{touch-action:none;}
   .small{ font-size: calc(12.5px * var(--uiScale)); }
 }
 
+/* Desktop / Windows-Tablet: Karten etwas kompakter, ohne Android-Phone-Layouts anzutasten */
 @media (min-width: 1100px) and (min-height: 521px){
-  .wrap{ max-width: 1180px; }
+  /* Gesamtbreite etwas reduzieren, damit Header/Infoblock kompakter wirken */
+  .wrap{ max-width: 1040px; }
+
+  /* Weniger “Luft” in der Karte */
+  .card{ padding: calc(14px * var(--uiScale)); }
+  .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
+  .head{ gap: calc(6px * var(--uiScale)); }
+
+  /* Zwei-Spalten-Kopf: linke Spalte etwas schmaler → weniger Leerlauf */
+  .topGrid{ grid-template-columns: 0.65fr 1.35fr; }
+
+  /* Infoblock minimal dichter */
+  .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
 }
 
