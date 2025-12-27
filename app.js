@@ -1,15 +1,16 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.0v-D1a loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1a
+console.log("Build 7.0v-D1b loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1b
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1a").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1b").trim();
+  const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -55,6 +56,7 @@ console.log("Build 7.0v-D1a loaded");
     trophyAllRow: $("trophyAllRow"),
     trophyPresetRow: $("trophyPresetRow"),
     genreSelect: $("genreSelect"),
+    genreRowDesktop: $("genreRowDesktop"),
 
     // Accordion summaries
     platSummary: $("platSummary"),
@@ -767,40 +769,46 @@ console.log("Build 7.0v-D1a loaded");
   function buildFilterUI(){
     // --- Sortieren (kompakt) ---
     if (el.sortFieldRow){
-      el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
-      const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
-      if (sel){
-        // Native select UIs (Android/iOS) profitieren stark von optischen Gruppen.
-        // Wir bauen daher <optgroup>-Blöcke, bleiben aber bei der Karten-Reihenfolge.
-        const byGroup = new Map();
-        for (const sf of SORT_FIELDS){
-          const g = sf.group || "";
-          if (!byGroup.has(g)) byGroup.set(g, []);
-          byGroup.get(g).push(sf);
-        }
-        const groupsInOrder = Array.from(new Set(SORT_FIELDS.map(x => x.group || "")));
-        sel.innerHTML = groupsInOrder.map(g => {
-          const items = byGroup.get(g) || [];
-          const opts = items.map(sf => {
-            const dis = sf.disabled ? " disabled" : "";
-            return `<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`;
+      if (IS_DESKTOP){
+        // Desktop: avoid native <select> inside overlay (causes focus/scroll issues in desktop browsers).
+        const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
+        el.sortFieldRow.innerHTML = `<div class="chipRow sortFieldChips">${enabled.map(sf => chipHtml("sortField", sf.k, sf.label, (state.sortField===sf.k), false, { title: "Sortieren nach: " + sf.label })).join("")}</div>`;
+      } else {
+        el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
+        const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
+        if (sel){
+          // Native select UIs (Android/iOS) profitieren stark von optischen Gruppen.
+          // Wir bauen daher <optgroup>-Blöcke, bleiben aber bei der Karten-Reihenfolge.
+          const byGroup = new Map();
+          for (const sf of SORT_FIELDS){
+            const g = sf.group || "";
+            if (!byGroup.has(g)) byGroup.set(g, []);
+            byGroup.get(g).push(sf);
+          }
+          const groupsInOrder = Array.from(new Set(SORT_FIELDS.map(x => x.group || "")));
+          sel.innerHTML = groupsInOrder.map(g => {
+            const items = byGroup.get(g) || [];
+            const opts = items.map(sf => {
+              const dis = sf.disabled ? " disabled" : "";
+              return `<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`;
+            }).join("");
+            // If no group label, fall back to flat list.
+            if (!g) return opts;
+            return `<optgroup label="${esc(g)}">${opts}</optgroup>`;
           }).join("");
-          // If no group label, fall back to flat list.
-          if (!g) return opts;
-          return `<optgroup label="${esc(g)}">${opts}</optgroup>`;
-        }).join("");
 
-        // Ensure current selection is valid; fallback to ID.
-        const isValid = SORT_FIELDS.some(x => x.k === state.sortField && !x.disabled);
-        sel.value = isValid ? state.sortField : "ID";
-        sel.onchange = () => {
-          // Ignore disabled placeholder choices just in case a browser lets them through.
-          const picked = sel.value;
-          const ok = SORT_FIELDS.some(x => x.k === picked && !x.disabled);
-          state.sortField = ok ? picked : "ID";
-          saveSortPrefs();
-          updateFabSortFieldUI();
-        };
+          // Ensure current selection is valid; fallback to ID.
+          const isValid = SORT_FIELDS.some(x => x.k === state.sortField && !x.disabled);
+          sel.value = isValid ? state.sortField : "ID";
+          sel.onchange = () => {
+            // Ignore disabled placeholder choices just in case a browser lets them through.
+            const picked = sel.value;
+            const ok = SORT_FIELDS.some(x => x.k === picked && !x.disabled);
+            state.sortField = ok ? picked : "ID";
+            saveSortPrefs();
+            updateFabSortFieldUI();
+          };
+        }
       }
     }
     if (el.sortDirRow){
@@ -861,67 +869,70 @@ console.log("Build 7.0v-D1a loaded");
     // UX: Mehrfachauswahl direkt im Select (Android/iOS Picker), inkl. sichtbarer Markierung.
     // "Alle" = kein Genre-Filter (Set ist leer).
     if (el.genreSelect){
-      el.genreSelect.multiple = true;
-      el.genreSelect.size = 1; // kompakt wie Dropdown (CSS macht den Rest)
-
       const genres = Array.from(state.distinct.genres)
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      el.genreSelect.innerHTML = "";
-      const optAll = document.createElement("option");
-      optAll.value = "";
-      optAll.textContent = "Alle";
-      el.genreSelect.appendChild(optAll);
+      // Desktop: avoid native <select> inside overlay (causes focus/scroll issues).
+      // Mobile: keep native multi-select picker.
+      if (IS_DESKTOP){
+        if (el.genreRowDesktop){
+          const chips = [];
+          // "Alle" = no genre filter
+          chips.push(chipHtml("genrePick", "", "Alle", (state.filters.genres.size === 0), false, { title: "Alle Genres" }));
+          for (const g of genres){
+            chips.push(chipHtml("genrePick", g, g, state.filters.genres.has(g), false, { title: g }));
+          }
+          el.genreRowDesktop.innerHTML = chips.join("");
+        }
+        // No event wiring on the hidden select in desktop mode.
+      } else {
+        el.genreSelect.multiple = true;
+        el.genreSelect.size = 1; // kompakt wie Dropdown (CSS macht den Rest)
 
-      for (const g of genres){
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        el.genreSelect.appendChild(opt);
+        el.genreSelect.innerHTML = "";
+        const optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = "Alle";
+        el.genreSelect.appendChild(optAll);
+
+        for (const g of genres){
+          const opt = document.createElement("option");
+          opt.value = g;
+          opt.textContent = g;
+          el.genreSelect.appendChild(opt);
+        }
+
+        const commitGenreFromSelect = () => {
+          // Hard rule: sobald mind. ein echtes Genre gewählt ist, ist "Alle" deaktiviert.
+          // Android liefert teils dennoch "" in selectedOptions; wir normalisieren on commit.
+          setTimeout(() => {
+            const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
+            const nonEmpty = picked.filter(v => v);
+            if (nonEmpty.length === 0){
+              state.filters.genres.clear();
+            } else {
+              state.filters.genres.clear();
+              for (const v of nonEmpty) state.filters.genres.add(v);
+            }
+
+            // Try to keep the select consistent for the next open.
+            const allOpt = el.genreSelect.querySelector('option[value=""]');
+            if (allOpt){
+              const hasAny = state.filters.genres.size > 0;
+              if (hasAny) allOpt.selected = false;
+              else allOpt.selected = true;
+            }
+
+            syncGenreSelectFromState();
+            updateDialogMeta();
+          }, 0);
+        };
+
+        el.genreSelect.addEventListener("change", commitGenreFromSelect);
+        el.genreSelect.addEventListener("input", commitGenreFromSelect);
+        el.genreSelect.addEventListener("blur", commitGenreFromSelect);
       }
-
-      // Reflect current selection (needed when reopening the dialog)
-      syncGenreSelectFromState();
-
-      // Mobile Picker Reality Check™:
-      // Android/iOS Multi-Select Picker can be weird about firing events (and may keep "Alle" visually checked
-      // while you pick real genres). We therefore enforce a hard rule on commit: sobald mind. ein echtes Genre
-      // ausgewählt ist, ist "Alle" immer AUS – zuverlässig nach dem Schließen des Pickers.
-      let genreCommitTimer = null;
-      const commitGenreFromSelect = () => {
-        if (genreCommitTimer) clearTimeout(genreCommitTimer);
-        // Defer one tick so the browser has time to apply the final selection.
-        genreCommitTimer = setTimeout(() => {
-          const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
-          const nonEmpty = picked.filter(v => !!v);
-
-          state.filters.genres.clear();
-          for (const v of nonEmpty) state.filters.genres.add(v);
-
-          // Keep the DOM strictly in sync:
-          // - If any real genre is selected -> "Alle" must be unselected (and we also disable it).
-          // - If none selected -> "Alle" becomes selected again (and enabled).
-          const hasAny = state.filters.genres.size > 0;
-          const allOpt = el.genreSelect.querySelector('option[value=""]');
-          if (allOpt){
-            allOpt.selected = !hasAny;
-            allOpt.disabled = hasAny;
-          }
-          if (hasAny){
-            // Ensure we never keep "" selected alongside real genres.
-            // Some mobile pickers report "" in selectedOptions even if we try to unset it.
-            // By re-syncing from state we end up consistent for the next open.
-          }
-
-          syncGenreSelectFromState();
-          updateDialogMeta();
-        }, 0);
-      };
-
-      el.genreSelect.addEventListener("change", commitGenreFromSelect);
-      el.genreSelect.addEventListener("input", commitGenreFromSelect);
-      el.genreSelect.addEventListener("blur", commitGenreFromSelect);
     }
 
     // --- Weitere Filter (Akkordeons) ---
@@ -1002,15 +1013,27 @@ console.log("Build 7.0v-D1a loaded");
   }
 
   function syncGenreSelectFromState(){
-    if (!el.genreSelect) return;
-    const sel = el.genreSelect;
-    const has = (state.filters.genres && state.filters.genres.size);
-    for (const opt of sel.options){
-      const v = String(opt.value ?? "");
-      if (!v){
-        opt.selected = !has;
-      } else {
-        opt.selected = !!has && state.filters.genres.has(v);
+    // Mobile select
+    if (el.genreSelect){
+      const sel = el.genreSelect;
+      const has = (state.filters.genres && state.filters.genres.size);
+      for (const opt of sel.options){
+        const v = String(opt.value ?? "");
+        if (!v){
+          opt.selected = !has;
+        } else {
+          opt.selected = !!has && state.filters.genres.has(v);
+        }
+      }
+    }
+
+    // Desktop chips (genrePick)
+    if (el.dlg){
+      const hasAny = state.filters.genres && state.filters.genres.size > 0;
+      for (const b of el.dlg.querySelectorAll('.chip[data-group="genrePick"]')){
+        const k = String(b.getAttribute("data-key") ?? "");
+        const pressed = (!k) ? !hasAny : (state.filters.genres.has(k));
+        b.setAttribute("aria-pressed", pressed ? "true" : "false");
       }
     }
   }
@@ -1249,6 +1272,41 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const group = btn.getAttribute("data-group");
     const key = btn.getAttribute("data-key");
     const pressed = btn.getAttribute("aria-pressed") === "true";
+
+    if (group === "sortField"){
+      // Exclusive selection
+      state.sortField = key || "ID";
+      // reset all
+      for (const b of el.dlg.querySelectorAll('.chip[data-group="sortField"]')){ b.setAttribute("aria-pressed","false"); }
+      // Mark selected
+      for (const b of el.dlg.querySelectorAll('.chip[data-group="sortField"]')){
+        b.setAttribute("aria-pressed", (b.getAttribute("data-key") === state.sortField) ? "true" : "false");
+      }
+      saveSortPrefs();
+      updateFabSortFieldUI();
+      updateDialogMeta();
+      return;
+    }
+
+    if (group === "genrePick"){
+      // "Alle" (key="") clears the genre filter.
+      if (!key){
+        state.filters.genres.clear();
+      } else {
+        if (state.filters.genres.has(key)) state.filters.genres.delete(key);
+        else state.filters.genres.add(key);
+      }
+      // Enforce exclusivity for "Alle"
+      if (state.filters.genres.size > 0){
+        setAllChipPressed("genrePick", "", false);
+      } else {
+        setAllChipPressed("genrePick", "", true);
+      }
+      // Sync select (mobile) + desktop chips
+      syncGenreSelectFromState();
+      updateDialogMeta();
+      return;
+    }
 
     if (group === "fav"){
       // simple toggle

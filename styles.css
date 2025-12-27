@@ -1231,3 +1231,11 @@ html.modalOpen body{touch-action:none;}
     background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   }
 }
+
+
+/* Desktop-only genre chips (avoid native <select> inside overlay on desktop) */
+.genreDesktop{ display:none; }
+@media (hover:hover) and (pointer:fine){
+  #genreSelect{ display:none !important; }
+  .genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
+}
