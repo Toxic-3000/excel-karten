@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.0v-D loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D
+console.log("Build 7.0v-D1a loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1a
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1a").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -70,13 +70,14 @@ console.log("Build 7.0v-D loaded");
   
   // Sortier-Reihenfolge strikt nach Erscheinung auf der Karte (oben → unten)
   // und zusätzlich in sinnvollen Gruppen für die native Select-UI.
-  // "Plattform" und "Entwickler" sind als Platzhalter vorbereitet (disabled),
-  // bis diese Sortierfelder als echte Datenfelder verfügbar sind.
+  // Hinweis: "Plattform" und "Entwickler" sind echte Sortierfelder.
+  // Plattform = Primärplattform nach Priorität (PS5 > PS4 > PS3 > Vita).
+  // Entwickler = erster Entwickler-Eintrag, normalisiert ("The " nur fürs Sortieren ignoriert).
   const SORT_FIELDS = [
     // Identität
     {k:"ID", label:"ID", group:"Identität"},
     {k:"Spieletitel", label:"Titel", group:"Identität"},
-    {k:"__platform", label:"Plattform (folgt)", group:"Identität", disabled:true},
+    {k:"__platform", label:"Plattform", group:"Identität"},
 
     // Besitz
     {k:"Quelle", label:"Quelle", group:"Besitz"},
@@ -84,7 +85,7 @@ console.log("Build 7.0v-D loaded");
 
     // Einordnung
     {k:"Genre", label:"Genre", group:"Einordnung"},
-    {k:"__developer", label:"Entwickler (folgt)", group:"Einordnung", disabled:true},
+    {k:"__developer", label:"Entwickler", group:"Einordnung"},
 
     // Spielzeit
     {k:"Spielzeit (Main)", label:"Main", group:"Spielzeit"},
@@ -553,6 +554,45 @@ console.log("Build 7.0v-D loaded");
   }
   function splitPipe(s){
     return String(s ?? "").split("|").map(x => x.trim()).filter(Boolean);
+  }
+
+  // --- Sort helpers (Mobile + Desktop) ---
+  const PLATFORM_PRIORITY = ["PS5","PS4","PS3","Vita"]; // höchste Priorität zuerst
+
+  function normalizePlatformToken(t){
+    const s = String(t ?? "").trim();
+    if (!s) return "";
+    const lc = s.toLowerCase();
+    if (lc.includes("ps5")) return "PS5";
+    if (lc.includes("ps4")) return "PS4";
+    if (lc.includes("ps3")) return "PS3";
+    if (lc.includes("vita")) return "Vita";
+    return s;
+  }
+
+  function primaryPlatform(row){
+    const sys = splitPipe(row?.[COL.system]).map(normalizePlatformToken).filter(Boolean);
+    if (!sys.length) return "";
+    for (const p of PLATFORM_PRIORITY){
+      if (sys.includes(p)) return p;
+    }
+    return sys[0];
+  }
+
+  function platformRank(p){
+    const idx = PLATFORM_PRIORITY.indexOf(p);
+    return idx >= 0 ? idx : 999;
+  }
+
+  function developerSortKey(row){
+    let s = String(row?.[COL.dev] ?? "").trim();
+    if (!s) return "";
+    // erster Entwickler vor typischen Trennern
+    s = s.split(/[\/;\,\|]/)[0].trim();
+    s = s.replace(/\s+/g, " ");
+    // "The " nur fürs Sortieren ignorieren
+    s = s.replace(/^the\s+/i, "");
+    return s;
   }
   function parseKeyVals(s){
     // "PS4:12/18|PS5:7/18" -> {PS4:"12/18", PS5:"7/18"}
@@ -1402,6 +1442,36 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         else if (na == null) return 1;
         else if (nb == null) return -1;
         else return (na - nb) * dir;
+      }
+
+      if (sf === "__platform"){
+        const pa = primaryPlatform(a);
+        const pb = primaryPlatform(b);
+        const ra = pa ? platformRank(pa) : 999;
+        const rb = pb ? platformRank(pb) : 999;
+        if (ra !== rb) return (ra - rb) * dir;
+        // tie-breaker within same primary platform: Title then ID (handled below)
+        const ta = String(a[COL.title] ?? "");
+        const tb = String(b[COL.title] ?? "");
+        const c = ta.localeCompare(tb, "de");
+        if (c !== 0) return c * dir;
+      }
+
+      if (sf === "__developer"){
+        const da = developerSortKey(a);
+        const db = developerSortKey(b);
+        if (!da && !db) {/* fallthrough */}
+        else if (!da) return 1;
+        else if (!db) return -1;
+        else {
+          const c = da.localeCompare(db, "de");
+          if (c !== 0) return c * dir;
+        }
+        // same dev: fall back to title/id
+        const ta = String(a[COL.title] ?? "");
+        const tb = String(b[COL.title] ?? "");
+        const c2 = ta.localeCompare(tb, "de");
+        if (c2 !== 0) return c2 * dir;
       }
       let cmp = String(A).localeCompare(String(B), "de") * dir;
       // Stabiler Tie-Breaker: immer nach ID (aufsteigend), damit Sortierung ruhig bleibt.

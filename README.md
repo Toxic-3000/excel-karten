@@ -1,8 +1,17 @@
-# Build 7.0v-D
+# Build 7.0v-D1a
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-D
+## Was neu ist in 7.0v-D1a
+
+- **Mobile (Android) Sortiermenü abgeschlossen:**
+  - Sortieren nach **Plattform** (Primärplattform nach Priorität: PS5 > PS4 > PS3 > Vita).
+  - Sortieren nach **Entwickler** (erster Entwickler-Eintrag, normalisiert; führendes „The “ wird nur fürs Sortieren ignoriert).
+  - Stabile Tie‑Breaker: erst Titel, dann ID (damit Sortierung nicht „wackelt“).
+
+---
+
+## Übernommen aus 7.0v-D
 - **Desktop-Lesbarkeit (nur Desktop, Portrait/Mobile unverändert):**
   - Ruhigere Typografie (etwas mehr Zeilenhöhe) + größere Innenabstände.
   - Prosa bekommt eine angenehmere Zeilenlänge (kein „über die ganze Karte laufen“).
@@ -138,7 +147,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 
-## Ist‑Zustand (Build 7.0v-C)
+## Ist‑Zustand (Build 7.0v-D1a)
 
 - ✅ Kompaktansicht‑only (Variante A), stabiler Kartenheader + Akkordeon‑Reihenfolge: **Beschreibung → Store → Trophäen → Humorstatistik**
 - ✅ Excel‑Import rein clientseitig (keine Server‑Abhängigkeit)
