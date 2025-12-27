@@ -1,8 +1,8 @@
-# Build 7.0v-B
+# Build 7.0v-B1
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-B
+## Was neu ist in 7.0v-B1
 
 - **Regressionschutz (unsichtbar im Normalbetrieb):**
   - Wenn **XLSX** oder **app.js** fehlt/abbricht, erscheint eine klare Meldung (kein "Button tut nichts" / kein stummer Totzustand).
@@ -126,7 +126,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 
-## Ist‑Zustand (Build 7.0v-B)
+## Ist‑Zustand (Build 7.0v-B1)
 
 - ✅ Kompaktansicht‑only (Variante A), stabiler Kartenheader + Akkordeon‑Reihenfolge: **Beschreibung → Store → Trophäen → Humorstatistik**
 - ✅ Excel‑Import rein clientseitig (keine Server‑Abhängigkeit)
@@ -165,7 +165,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0u-A2f → Genre „Alle“ exklusiv/deterministisch stabilisiert
 - ✅ 7.0u-A2g → Feldsuche + ausklappbare Such‑Hilfe
 - ✅ 7.0v-A → Konsolidierung & Dokumentation (Referenzstand)
-- ✅ 7.0v-B → Regressionsschutz (Fehlermeldungen + Auto-Disable, ohne den Header zu "verplakatieren")
+- ✅ 7.0v-B1 → Regressionsschutz (Fehlermeldungen + Auto-Disable, ohne den Header zu "verplakatieren")
 
 - ⏭️ Nächstes Thema (regulärer Patchplan): **Suche‑V2** (Quotes/Exakt/Negationen robuster) → danach **Desktop‑Lesbarkeit** (Typo/Spacing)
 
@@ -201,3 +201,8 @@ Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige i
 - **Suche erweitern:** zusätzliche Präfixe (z. B. Quelle/Verfügbarkeit/Plattform als „first-class“), optionale exakte Matches (`id=643`).
 - **Desktop‑Lesbarkeit:** Typo‑Feinschliff für große Viewports (Zeilenlänge, Tabellenrhythmus, Badge‑Breiten).
 - **Performance (große XLSX):** schnelleres Rendern (z. B. Chunking/Virtualisierung), ohne die ruhige Optik zu verlieren.
+
+
+## Änderungen in 7.0v-B1
+- Such-Hilfe ist jetzt ein dezentes ⓘ-Icon rechts neben der Suche (statt Button).
+- In Landscape wird der Header wieder gestapelt, damit die Suche genug Platz hat.
