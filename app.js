@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.0v-D1c loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1c
+console.log("Build 7.0v-D1d loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1d
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1d").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
 
   // Keep build string consistent in UI + browser title.
@@ -972,9 +972,14 @@ console.log("Build 7.0v-D1c loaded");
       // Mobile: keep native multi-select picker.
       if (IS_DESKTOP){
         if (el.genreRowDesktop){
+          // Compact label: first selected + optional "+N".
           const label = (state.filters.genres.size === 0)
             ? "Genre: Alle"
-            : `Genre: ${state.filters.genres.size} gewählt`;
+            : (() => {
+                const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+                const n = arr.length;
+                return `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
+              })();
 
           el.genreRowDesktop.innerHTML = `
             <div class="dd" id="genreDD">
@@ -1012,9 +1017,12 @@ console.log("Build 7.0v-D1c loaded");
 
           const refresh = () => {
             const labEl = btn?.querySelector?.(".ddBtnLabel");
-            const nextLabel = (state.filters.genres.size === 0)
-              ? "Genre: Alle"
-              : `Genre: ${state.filters.genres.size} gewählt`;
+            let nextLabel = "Genre: Alle";
+            const n = state.filters.genres.size;
+            if (n > 0){
+              const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+              nextLabel = `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
+            }
             if (labEl) labEl.textContent = nextLabel;
 
             for (const it of panel?.querySelectorAll?.(".ddItem") || []){
@@ -1206,6 +1214,30 @@ console.log("Build 7.0v-D1c loaded");
         const k = String(b.getAttribute("data-key") ?? "");
         const pressed = (!k) ? !hasAny : (state.filters.genres.has(k));
         b.setAttribute("aria-pressed", pressed ? "true" : "false");
+      }
+    }
+
+    // Desktop custom dropdown (Genre) – needs manual refresh when filters are changed
+    // via the active filter bar or other UI elements.
+    if (IS_DESKTOP && el.genreRowDesktop){
+      const btn = el.genreRowDesktop.querySelector("#genreBtn");
+      const panel = el.genreRowDesktop.querySelector("#genrePanel");
+      if (btn && panel){
+        const labEl = btn.querySelector(".ddBtnLabel");
+        // Compact label: either "Alle" or "<Erstes> +N" to stay readable.
+        let nextLabel = "Genre: Alle";
+        const n = state.filters.genres?.size || 0;
+        if (n > 0){
+          const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+          nextLabel = `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
+        }
+        if (labEl) labEl.textContent = nextLabel;
+
+        for (const it of panel.querySelectorAll(".ddItem")){
+          const v = it.getAttribute("data-value") || "";
+          const active = v ? state.filters.genres.has(v) : (state.filters.genres.size === 0);
+          it.classList.toggle("is-active", active);
+        }
       }
     }
   }

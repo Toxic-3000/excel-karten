@@ -613,6 +613,18 @@ html.modalOpen body{touch-action:none;}
   overscroll-behavior: contain;
 }
 
+/* Desktop: give the sheet a cleaner "framed" look.
+   Anchoring only to the bottom can feel like it's "cut off".
+   This keeps Android/mobile behavior intact (mobile has its own queries above). */
+@media (min-width: 701px) and (min-height: 521px){
+  .sheet{
+    top: 4vh;
+    bottom: 4vh;
+    max-height: calc(100dvh - 8vh);
+    border-radius: 22px;
+  }
+}
+
 /* Mobile: make the filter dialog a true full-height sheet (no top gap). */
 @media (max-width: 700px){
   .sheet{
@@ -1240,7 +1252,7 @@ html.modalOpen body{touch-action:none;}
   .genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
 }
 
-/* --- Desktop custom dropdowns (Build 7.0v-D1c) --- */
+/* --- Desktop custom dropdowns (Build 7.0v-D1d) --- */
 .dd{ position: relative; display: inline-block; width: 100%; max-width: 560px; }
 .ddBtn{
   width: 100%;
@@ -1248,12 +1260,12 @@ html.modalOpen body{touch-action:none;}
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,.10);
   background: rgba(255,255,255,.72);
   box-shadow: 0 8px 24px rgba(0,0,0,.08);
-  font-weight: 700;
+  font-weight: 650;
 }
 .ddBtn:active{ transform: translateY(1px); }
 .ddCaret{ opacity: .65; }
@@ -1262,7 +1274,7 @@ html.modalOpen body{touch-action:none;}
   left: 0;
   top: calc(100% + 8px);
   width: min(560px, calc(100vw - 64px));
-  max-height: 360px;
+  max-height: 320px;
   overflow: auto;
   padding: 10px;
   border-radius: 18px;
