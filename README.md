@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1g)
+# Spieleliste – Webansicht (Build 7.1h)
 
 Kompakte, schnelle Webansicht für deine persönliche Spieleliste auf Basis einer **lokal ausgewählten Excel-Datei (.xlsx)**.
 Alles läuft **clientseitig im Browser** (kein Backend) und ist für GitHub Pages gedacht.
@@ -48,7 +48,7 @@ Tastatur (Desktop/Tablet):
 
 - Verarbeitung der Excel-Datei erfolgt lokal im Browser.
 
-- Keine Daten werden hochgeladen oder gespeichert (Stand 7.1g).
+- Keine Daten werden hochgeladen oder gespeichert (Stand 7.1h).
 
 - In 7.1b/7.1c: Suche ist leicht **debounced** und Filter nutzen vorberechnete Normalisierungen für flüssigeres Tippen.
 

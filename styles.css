@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1g
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1h
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -1021,18 +1021,24 @@ html.modalOpen body{touch-action:none;}
 
 /* --- Responsive: Desktop readability --- */
 @media (min-width: 1100px){
-  .wrap{max-width:1180px}
-  .card{padding: calc(16px * var(--uiScale))}
+  /* Desktop/Windows-Tablet: kompakteres Layout (weniger "Luft" in Kopf/Accordion) */
+  .wrap{max-width:1040px}
+  .card{padding: calc(14px * var(--uiScale)); margin: 48px 0}
+  .title{font-size: calc(24px * var(--uiScale))}
+}
+
+/* Dezente Top-Kantenlinie: global, nicht nur Desktop */
 .card{position:relative; overflow:hidden}
 .card::before{
   content:"";
   position:absolute;
   left:0; top:0; right:0;
   height:2px;
-  background: linear-gradient(90deg, color-mix(in oklab, var(--blue) 55%, transparent), color-mix(in oklab, var(--warn) 45%, transparent));
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--blue) 55%, transparent),
+    color-mix(in oklab, var(--warn) 45%, transparent)
+  );
   opacity:.25;
-}
-  .title{font-size: calc(26px * var(--uiScale))}
 }
 
 
@@ -1379,7 +1385,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* ------------------------------
-   Build 7.1g – Desktop/Tablet Feintuning
+   Build 7.1h – Desktop/Tablet Feintuning
    - Ziel: ruhigere Hierarchie + kompaktere Karten auf großen Viewports
    - Wichtig: Android Phone bleibt unberührt (Gate über Viewport-Höhe)
 ------------------------------ */
@@ -1455,8 +1461,8 @@ html.modalOpen body{touch-action:none;}
   .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
   .head{ gap: calc(6px * var(--uiScale)); }
 
-  /* Zwei-Spalten-Kopf: linke Spalte etwas schmaler → weniger Leerlauf */
-  .topGrid{ grid-template-columns: 0.65fr 1.35fr; }
+  /* Zwei-Spalten-Kopf: linke Spalte fix schmaler → weniger Leerlauf im Header */
+  .topGrid{ grid-template-columns: 320px 1fr; gap: calc(16px * var(--uiScale)); }
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
