@@ -1,14 +1,15 @@
 window.__APP_LOADED = true;
-if (window.__BOOT && typeof window.__BOOT.banner === 'function') window.__BOOT.banner('');
-console.log("Build 7.0u-A2g loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A2g
+if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
+if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
+console.log("Build 7.0v-B loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-B
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-A").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-B").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -1847,6 +1848,14 @@ function renderTrophyDetails(row){
 
   // Events
   function openFilePicker(){
+    if (!window.XLSX){
+      try{
+        window.__BOOT && window.__BOOT.disableLoad && window.__BOOT.disableLoad(true);
+        window.__BOOT && window.__BOOT.noticeLoad && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: XLSX-Bibliothek fehlt (xlsx.full.min.js).');
+        window.__BOOT && window.__BOOT.noticeTop && window.__BOOT.noticeTop('Hinweis: XLSX wurde nicht geladen – prüfe, ob xlsx.full.min.js im selben Ordner liegt.');
+      }catch(_){/* ignore */}
+      return;
+    }
     el.file.value = "";
     el.file.click();
   }

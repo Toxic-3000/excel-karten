@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.0v-A" />
-  <link rel="stylesheet" href="styles.css?v=7.0u-A2g" />
+    <meta name="app-build" content="7.0v-B" />
+  <link rel="stylesheet" href="styles.css?v=7.0v-B" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -38,6 +38,9 @@
         <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
       </div>
     </div>
+
+    <!-- Systemhinweis: bleibt im Normalfall unsichtbar, erscheint nur bei echten Fehlern -->
+    <div id="sysNoticeTop" class="sysNotice" hidden></div>
   </header>
 
   <main class="wrap">
@@ -51,6 +54,9 @@
         <div class="emptyActions">
           <button id="btnLoad2" class="btn btn-primary">Excel auswählen</button>
         </div>
+
+        <!-- Hinweis nur im Fehlerfall (z.B. XLSX fehlt / JS nicht initialisiert) -->
+        <div id="sysNoticeLoad" class="sysNotice" hidden></div>
         <div class="emptyHint">
           Tipp: Auf GitHub Pages müssen <b>index.html</b>, <b>styles.css</b>, <b>app.js</b> und <b>xlsx.full.min.js</b> im selben Ordner liegen.
         </div>
@@ -188,72 +194,68 @@
 
   <script>
     (function(){
-      function banner(msg){
-        // Create only on demand.
-        if (!msg) {
-          const old = document.getElementById('bootBanner');
-          if (old) old.remove();
-          return;
-        }
-        let el = document.getElementById('bootBanner');
-        if (!el) {
-          el = document.createElement('div');
-          el.id = 'bootBanner';
-          el.setAttribute('role','status');
-          el.style.position = 'fixed';
-          el.style.left = '12px';
-          el.style.right = '12px';
-          el.style.bottom = '12px';
-          el.style.zIndex = '9999';
-          el.style.padding = '10px 12px';
-          el.style.borderRadius = '14px';
-          el.style.boxShadow = '0 8px 30px rgba(0,0,0,.18)';
-          el.style.background = 'rgba(255, 240, 200, .95)';
-          el.style.color = '#222';
-          el.style.font = '600 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial';
-          el.style.backdropFilter = 'blur(8px)';
-          el.style.webkitBackdropFilter = 'blur(8px)';
-          el.style.border = '1px solid rgba(0,0,0,.08)';
-          document.body.appendChild(el);
-        }
+      function setNotice(id, msg){
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (!msg) { el.hidden = true; el.textContent = ''; return; }
         el.textContent = msg;
+        el.hidden = false;
       }
 
-      window.__BOOT = { banner };
+      function setBuild(){
+        var m = document.querySelector('meta[name="app-build"]');
+        var b = (m && m.getAttribute('content')) ? m.getAttribute('content').trim() : '';
+        var bl = document.getElementById('buildLabel');
+        if (bl && b) bl.textContent = 'Build ' + b;
+      }
+
+      function disableLoadButtons(disabled){
+        var b1 = document.getElementById('btnLoad');
+        var b2 = document.getElementById('btnLoad2');
+        if (b1) b1.disabled = !!disabled;
+        if (b2) b2.disabled = !!disabled;
+      }
+
+      window.__BOOT = {
+        noticeTop: function(msg){ setNotice('sysNoticeTop', msg); },
+        noticeLoad: function(msg){ setNotice('sysNoticeLoad', msg); },
+        disableLoad: disableLoadButtons,
+        setBuild: setBuild,
+      };
 
       window.addEventListener('error', function(e){
-        const f = e && e.filename ? e.filename.split('/').pop() : '';
-        const loc = (f ? ` (${f}:${e.lineno||0})` : '');
-        banner(`JS-Fehler: ${e.message||'unbekannt'}${loc}`);
+        var f = e && e.filename ? e.filename.split('/').pop() : '';
+        var loc = (f ? ' (' + f + ':' + (e.lineno||0) + ')' : '');
+        setNotice('sysNoticeTop', 'JS-Fehler: ' + (e.message||'unbekannt') + loc);
       });
       window.addEventListener('unhandledrejection', function(e){
-        const r = e && e.reason;
-        const msg = (r && r.message) ? r.message : String(r);
-        banner(`Promise-Fehler: ${msg}`);
+        var r = e && e.reason;
+        var msg = (r && r.message) ? r.message : String(r);
+        setNotice('sysNoticeTop', 'Promise-Fehler: ' + msg);
       });
 
       document.addEventListener('DOMContentLoaded', function(){
-        const m = document.querySelector('meta[name="app-build"]');
-        const b = (m && m.getAttribute('content')) ? m.getAttribute('content').trim() : '';
-        const bl = document.getElementById('buildLabel');
-        if (bl && b) bl.textContent = `Build ${b}`;
+        setBuild();
 
-        // After a short delay, check whether libs + app are alive.
+        // Kurzer Selbsttest: nur sichtbar, wenn wirklich etwas fehlt.
         setTimeout(function(){
           if (!window.XLSX) {
-            banner('xlsx.full.min.js wurde nicht geladen (XLSX fehlt). Prüfe Dateiname/Ordner auf GitHub Pages.');
+            disableLoadButtons(true);
+            setNotice('sysNoticeLoad', 'Excel-Import nicht verfügbar: XLSX-Bibliothek fehlt (xlsx.full.min.js).');
+            setNotice('sysNoticeTop', 'Hinweis: XLSX wurde nicht geladen – prüfe, ob xlsx.full.min.js im selben Ordner liegt.');
             return;
           }
           if (!window.__APP_LOADED) {
-            banner('app.js wurde nicht geladen oder ist abgebrochen. Prüfe, ob app.js im selben Ordner liegt und kein 404 liefert.');
-            return;
+            disableLoadButtons(true);
+            setNotice('sysNoticeLoad', 'Excel-Import nicht verfügbar: app.js wurde nicht geladen oder ist abgebrochen.');
+            setNotice('sysNoticeTop', 'Hinweis: app.js wurde nicht korrekt initialisiert (404 oder Scriptfehler).');
           }
-        }, 700);
+        }, 600);
       });
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.0u-A2g" onerror="window.__BOOT && window.__BOOT.banner('xlsx.full.min.js konnte nicht geladen werden (404?). Prüfe den Ordner auf GitHub Pages.')"></script>
-  <script src="app.js?v=7.0u-A2g" onerror="window.__BOOT && window.__BOOT.banner('app.js konnte nicht geladen werden (404?). Prüfe den Ordner auf GitHub Pages.')"></script>
+  <script src="xlsx.full.min.js?v=7.0v-B" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.0v-B" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>

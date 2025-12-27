@@ -1,8 +1,19 @@
-# Build 7.0v-A
+# Build 7.0v-B
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-A
+## Was neu ist in 7.0v-B
+
+- **Regressionschutz (unsichtbar im Normalbetrieb):**
+  - Wenn **XLSX** oder **app.js** fehlt/abbricht, erscheint eine klare Meldung (kein "Button tut nichts" / kein stummer Totzustand).
+  - Meldungen werden **nur im Fehlerfall** angezeigt:
+    - oben unter der Suche (allgemein)
+    - im "Excel laden"-Kasten (importbezogen)
+  - Die "Excel auswählen"-Buttons werden im Fehlerfall automatisch deaktiviert.
+
+---
+
+## Übernommen aus 7.0v-A
 
 - **Suche: Feldsuche + ausklappbare Such‑Hilfe (standardmäßig versteckt):**
   - Freitext bleibt wie gehabt (global über mehrere Felder).
@@ -18,9 +29,6 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - **Trophäen‑Badges im Sortiermenü (Status):**
   - Platin / 100% / In Arbeit / Ungespielt / … nutzen **inaktiv** die gleiche neutrale Optik wie z. B. Verfügbarkeit.
   - **Aktiv‑Einfärbung bleibt**, Fortschritts‑Presets (≤3, ≤5, ≥90%, ≥75%) bleiben unverändert.
-
-- **Stabilität (wichtigster Fix):**
-  - JS‑Initialisierung ist wieder robust (Build‑Label & „Excel auswählen“ funktionieren zuverlässig – kein „Build —“ mehr).
 
 ---
 
@@ -118,7 +126,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 
-## Ist‑Zustand (Build 7.0v-A)
+## Ist‑Zustand (Build 7.0v-B)
 
 - ✅ Kompaktansicht‑only (Variante A), stabiler Kartenheader + Akkordeon‑Reihenfolge: **Beschreibung → Store → Trophäen → Humorstatistik**
 - ✅ Excel‑Import rein clientseitig (keine Server‑Abhängigkeit)
@@ -126,6 +134,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ Genre‑Multi‑Select inkl. „Alle“‑Exklusivität (deterministisch)
 - ✅ Trophäen‑Statusbadges im Sortiermenü inaktiv neutral, aktiv farbig; Fortschritts‑Presets unverändert
 - ✅ Suche: ID‑Shortcuts + Feldsuche + ausklappbare Such‑Hilfe
+- ✅ Regressionschutz: Fehlermeldungen nur im Fehlerfall; „Excel auswählen“ wird bei fehlender XLSX/app.js automatisch deaktiviert
 - ℹ️ Bekannte Eigenheit (Mobile‑Picker): Manche Browser aktualisieren Häkchen im nativen Multi‑Select visuell erst nach Schließen/Neuöffnen – der Filterzustand selbst ist korrekt.
 
 
@@ -156,8 +165,9 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0u-A2f → Genre „Alle“ exklusiv/deterministisch stabilisiert
 - ✅ 7.0u-A2g → Feldsuche + ausklappbare Such‑Hilfe
 - ✅ 7.0v-A → Konsolidierung & Dokumentation (Referenzstand)
+- ✅ 7.0v-B → Regressionsschutz (Fehlermeldungen + Auto-Disable, ohne den Header zu "verplakatieren")
 
-- ⏭️ Nächstes Thema (regulärer Patchplan): **Header/Controls** weiter beruhigen (Spacing, ggf. Optionen gruppieren)
+- ⏭️ Nächstes Thema (regulärer Patchplan): **Suche‑V2** (Quotes/Exakt/Negationen robuster) → danach **Desktop‑Lesbarkeit** (Typo/Spacing)
 
 
 ## Zwischenbuilds 7.0u-A2 (Patchablauf im Detail)
