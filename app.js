@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1a loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1a
+console.log("Build 7.1e loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1e
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1e").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -906,8 +906,61 @@ console.log("Build 7.1a loaded");
     if (!panel.hidden && isSheetDesktop()){
       __portalPanel(panel);
       __positionPanelInSheet(panel, btn || host);
+      __wireDropdownKeynav(panel);
+    }
+    // Focus the current item when opening (keyboard accessibility)
+    if (!panel.hidden){
+      try{
+        const cur = panel.querySelector('.ddItem.is-active') || panel.querySelector('.ddItem');
+        cur?.focus?.({preventScroll:true});
+      }catch(_){/* ignore */}
     }
     __openDesktopPanel = panel.hidden ? null : panel;
+  }
+
+  // Keyboard navigation for custom dropdown panels
+  function __wireDropdownKeynav(panel){
+    if (!panel || panel.__keynav) return;
+    panel.__keynav = true;
+    panel.addEventListener('keydown', (e) => {
+      const items = Array.from(panel.querySelectorAll('.ddItem'));
+      if (!items.length) return;
+      const idx = items.indexOf(document.activeElement);
+      const focusAt = (i) => {
+        const it = items[Math.max(0, Math.min(items.length - 1, i))];
+        try{ it?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+      };
+
+      switch(e.key){
+        case 'ArrowDown':
+          e.preventDefault();
+          focusAt((idx < 0 ? 0 : idx + 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          focusAt((idx < 0 ? 0 : idx - 1));
+          break;
+        case 'Home':
+          e.preventDefault();
+          focusAt(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          focusAt(items.length - 1);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          __closeDesktopPanel();
+          break;
+        case 'Enter':
+        case ' ':
+          if (document.activeElement && document.activeElement.classList?.contains('ddItem')){
+            e.preventDefault();
+            document.activeElement.click();
+          }
+          break;
+      }
+    });
   }
 
   // Close dropdowns when clicking elsewhere (desktop only)
@@ -2491,6 +2544,7 @@ function renderTrophyDetails(row){
   // "short" initial sheet layouts after the user scrolled the page (visual viewport
   // vs layout viewport mismatch). A body-position freeze is more reliable.
   let _savedScrollY = 0;
+  let _lastFocusedBeforeMenu = null;
 
   // --- Visual viewport anchoring (Android address bar / dynamic viewport quirks) ---
   // Some mobile browsers (notably Android/Chrome) can report a layout viewport that
@@ -2550,12 +2604,17 @@ function renderTrophyDetails(row){
   }
 
   function openMenuDialog(){
+    // Remember focus to restore after closing the dialog (accessibility)
+    try{ _lastFocusedBeforeMenu = document.activeElement; }catch(_){ _lastFocusedBeforeMenu = null; }
     // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
     buildFilterUI();
     // Update viewport vars BEFORE opening so the first paint anchors correctly.
     updateVisualViewportVars();
     setModalOpen(true);
     if (!el.dlg.open) el.dlg.showModal();
+
+    // Move focus into the dialog (close button is a safe, predictable target)
+    try{ el.btnClose?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
 
     // Force a stable layout pass so the sheet doesn't start "short" on mobile
     // when the browser UI changes the visual viewport.
@@ -2579,8 +2638,49 @@ function renderTrophyDetails(row){
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   // Ensure the background lock always resets (button, ESC, backdrop click, etc.).
-  el.dlg.addEventListener("close", () => setModalOpen(false));
-  el.dlg.addEventListener("cancel", () => setModalOpen(false));
+  el.dlg.addEventListener("close", () => {
+    setModalOpen(false);
+    // Restore focus to the element that opened the dialog (usually the menu button)
+    const prev = _lastFocusedBeforeMenu;
+    _lastFocusedBeforeMenu = null;
+    try{ prev?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+  });
+  // On ESC: close an open desktop dropdown first; only then allow the dialog to close.
+  el.dlg.addEventListener("cancel", (e) => {
+    try{
+      if (typeof __closeDesktopPanel === 'function' && typeof __openDesktopPanel !== 'undefined' && __openDesktopPanel){
+        e.preventDefault();
+        __closeDesktopPanel();
+        return;
+      }
+    }catch(_){/* ignore */}
+    setModalOpen(false);
+  });
+
+  // Simple focus trap inside the dialog (desktop/tablet). Keeps TAB navigation inside the sheet.
+  el.dlg.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const sheet = el.dlg.querySelector(".sheet");
+    if (!sheet) return;
+    const focusables = Array.from(sheet.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(n => !n.disabled && n.getAttribute('aria-hidden') !== 'true' && n.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey){
+      if (active === first || !sheet.contains(active)){
+        e.preventDefault();
+        try{ last.focus(); }catch(_){/* ignore */}
+      }
+    }else{
+      if (active === last){
+        e.preventDefault();
+        try{ first.focus(); }catch(_){/* ignore */}
+      }
+    }
+  });
 
   el.btnApply.addEventListener("click", () => {
     el.dlg.close();
