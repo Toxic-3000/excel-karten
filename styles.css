@@ -1,6 +1,6 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1c
-   - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
-   - FAB "Ansicht" statt Sticky-Scale-Button
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1d
+   - Desktop/Windows-Tablet: Schrift-Skalierung (A/A+/A++/A+++) konsistent
+   - Android Phone (Portrait/Landscape) bleibt unverändert
 */
 :root{
   --uiScale: 1;
@@ -332,8 +332,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   overflow:hidden;
 }
 
-/* Info-block gets a tiny boost to keep dense text comfortable at higher scales */
+/* Info-block boost (phone default). We keep this behavior for Android phones.
+   Desktop/Windows-Tablet override below to ensure A/A+/A++/A+++ scales consistently. */
 .info{ font-size: calc(1rem * 1.03); }
+
+/* Desktop + Windows-Tablet (e.g., 1280×800): ensure font scaling follows --uiScale.
+   We intentionally gate by viewport size (not pointer/hover) to keep Android phones untouched. */
+@media (min-width: 701px) and (min-height: 521px){
+  .info{ font-size: 1.03em; }
+}
 
 /* --- Info-Block: Hybrid-Layout (ohne Akkordeon) ---
    - Genre/Subgenre/Entwickler: untereinander, volle Breite
@@ -1233,7 +1240,8 @@ html.modalOpen body{touch-action:none;}
 
   .info{
     padding: calc(14px * var(--uiScale));
-    font-size: calc(1rem * 1.05);
+    /* Keep scaling consistent with A/A+/A++/A+++ (body uses --uiScale). */
+    font-size: 1.05em;
   }
 
   .k{
@@ -1249,7 +1257,8 @@ html.modalOpen body{touch-action:none;}
   .detailsBody{
     padding: calc(14px * var(--uiScale)) calc(14px * var(--uiScale)) calc(16px * var(--uiScale));
     line-height: 1.65;
-    font-size: calc(1rem * 1.02);
+    /* Use em so the preset scale applies on Desktop/Tablet, too. */
+    font-size: 1.02em;
   }
 
   /* Prosa nicht über die ganze Kartenbreite laufen lassen */
