@@ -1,5 +1,5 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1e
-   - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1d
+   - Desktop/Windows-Tablet: Schrift-Skalierung (A/A+/A++/A+++) konsistent
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
 :root{
@@ -1352,76 +1352,5 @@ html.modalOpen body{touch-action:none;}
   background: rgba(255,255,255,.75);
   font-weight: 800;
   cursor: pointer;
-}
-
-/* ------------------------------
-   Build 7.1e – Desktop/Tablet Typo Tuning
-   - Ziel: ruhigere Hierarchie, bessere Lesebreite, angenehmer Rhythmus
-   - Wichtig: Android Phone bleibt unberührt (Gate über Viewport-Höhe)
------------------------------- */
-@media (min-width: 701px) and (min-height: 521px){
-  body{
-    font-size: calc(16.5px * var(--uiScale));
-    line-height: 1.55;
-  }
-
-  .wrap{
-    max-width: 1120px;
-    padding-left: calc(18px * var(--uiScale));
-    padding-right: calc(18px * var(--uiScale));
-  }
-
-  .card{
-    padding: calc(18px * var(--uiScale));
-    margin: 64px 0;
-  }
-
-  .title{
-    font-size: calc(24px * var(--uiScale));
-    line-height: 1.18;
-    margin: 12px 0 10px;
-  }
-
-  .badge{
-    font-size: calc(13px * var(--uiScale));
-    height: calc(27px * var(--uiScale));
-  }
-
-  .info{
-    padding: calc(14px * var(--uiScale));
-    font-size: 1.02em;
-  }
-
-  .k{
-    font-size: calc(13.2px * var(--uiScale));
-    letter-spacing: 0.02em;
-    line-height: 1.25;
-  }
-  .v{
-    font-size: calc(15.6px * var(--uiScale));
-    line-height: 1.35;
-  }
-
-  summary{
-    font-size: calc(15px * var(--uiScale));
-    padding: calc(13px * var(--uiScale)) calc(14px * var(--uiScale));
-  }
-
-  .detailsBody{
-    font-size: 1em;
-    line-height: 1.72;
-    padding: calc(14px * var(--uiScale)) calc(16px * var(--uiScale)) calc(16px * var(--uiScale));
-  }
-
-  .detailsBody .pre{
-    max-width: 78ch;
-    margin-right: auto;
-  }
-
-  .small{ font-size: calc(12.5px * var(--uiScale)); }
-}
-
-@media (min-width: 1100px) and (min-height: 521px){
-  .wrap{ max-width: 1180px; }
 }
 
