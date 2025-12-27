@@ -9,7 +9,7 @@ console.log("Build 7.1a loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1a").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1b").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -737,8 +737,29 @@ console.log("Build 7.1a loaded");
         if (v && /^https?:\/\//i.test(v)) row.__storeUrl = v;
       }
 
-      // Trophy tags (for filter)
-      for (const t of trophyTags(row)) state.distinct.trophies.add(t);
+      // Precomputed fields for fast filtering/search (Build 7.1b)
+      // Note: we only cache normalized values and derived aggregates; we do NOT change the user-visible data.
+      const _id = String(row[COL.id] ?? '').trim();
+      row.__id = _id;
+      const _idNum = Number(_id);
+      row.__idNum = Number.isFinite(_idNum) ? _idNum : null;
+
+      // Platforms: keep a parsed array for OR-matching
+      const _sysRaw = String(row[COL.system] ?? '').trim();
+      row.__sysArr = splitPipe(_sysRaw);
+
+      // Normalized genre for exact matching
+      row.__genreN = norm(String(row[COL.genre] ?? '').trim() || 'Unbekannt');
+
+      // Cached developer sort key (first developer; case-insensitive; ignore leading "The ")
+      row.__devKey = developerSortKey(row) || '';
+
+      // Cached trophy tags + aggregate (used in filters/sorts)
+      row.__tTags = trophyTags(row);
+      row.__tAgg = trophyAggregate(row);
+
+      // Trophy tags (for distinct filter UI)
+      for (const t of row.__tTags) state.distinct.trophies.add(t);
 
       // Platforms distinct from System (pipe-separated)
       const sys = String(row[COL.system] ?? "").trim();
@@ -756,6 +777,13 @@ console.log("Build 7.1a loaded");
       }
       const av = String(row[COL.avail] ?? "").trim();
       if (av) state.distinct.availability.add(av);
+
+      // Cached full-text search haystack (free text search)
+      // Keep it compact: only fields that are searched globally.
+      row.__hay = [
+        row[COL.title], row[COL.genre], row[COL.sub], row[COL.dev],
+        row[COL.source], row[COL.avail]
+      ].map(normSearch).join(' ');
     }
 
     state.rows = rows;
@@ -1476,81 +1504,113 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
   function computeFilteredCount(){
     if (!state.rows || !state.rows.length) return 0;
+
     const qRaw = String(state.q ?? "");
-    const q = norm(qRaw);
-    const idQuery = parseIdQuery(qRaw);
+    const sq = parseStructuredQuery(qRaw);
+    const freeRaw = String(sq.free ?? "");
+    const qTokens = normSearch(freeRaw).split(/\s+/).filter(Boolean);
+    const idQuery = parseIdQuery(freeRaw || qRaw);
+
     const favOnly = state.filters.fav;
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
     const avF = state.filters.availability;
+    const troF = state.filters.trophies;
     const trophyPreset = state.filters.trophyPreset || "";
     const shortMain5 = !!state.filters.shortMain5;
-    const troF = state.filters.trophies;
-    const wantGenres = (state.filters.genres && state.filters.genres.size)
+
+    const wantGenresN = (state.filters.genres && state.filters.genres.size)
       ? new Set(Array.from(state.filters.genres).map(norm))
       : null;
 
     let n = 0;
     for (const r of state.rows){
-      // search
-      if (q){
+      // structured terms
+      if (sq.terms.length){
+        let ok = true;
+        for (const term of sq.terms){
+          const hit = rowMatchesTerm(r, term);
+          if (term.neg){ if (hit) { ok = false; break; } }
+          else { if (!hit) { ok = false; break; } }
+        }
+        if (!ok) continue;
+      }
+
+      // free text
+      if (freeRaw.trim()){
         if (idQuery){
-          const rid = String(r[COL.id] ?? "").trim();
-          const rn = String(Number(rid));
-          if (rn !== idQuery) continue;
-        } else {
-          const hay = [
+          const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
+          const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
+          if (rn !== idQuery && rid !== idQuery) continue;
+        } else if (qTokens.length){
+          const hay = (r.__hay || [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
             r[COL.source], r[COL.avail]
-          ].map(norm).join(" | ");
-          if (!hay.includes(q)) continue;
+          ].map(normSearch).join(" "));
+          let ok = true;
+          for (const t of qTokens){
+            if (!hay.includes(t)) { ok = false; break; }
+          }
+          if (!ok) continue;
         }
       }
+
+      // fav
       if (favOnly){
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
-        if (f !== "x" && f !== "1" && f !== "true") continue;
+        if (f != "x" && f != "1" && f != "true") continue;
       }
-      if (wantGenres){
-        const got = norm(r[COL.genre]);
-        if (!wantGenres.has(got)) continue;
+
+      // genre (exact match)
+      if (wantGenresN){
+        const got = r.__genreN || norm(r[COL.genre]);
+        if (!wantGenresN.has(got)) continue;
       }
+
+      // platform (OR match)
       if (platF.size){
-        const sys = splitPipe(r[COL.system]);
+        const sys = r.__sysArr || splitPipe(r[COL.system]);
         let ok = false;
         for (const p of platF){ if (sys.includes(p)) { ok = true; break; } }
         if (!ok) continue;
       }
+
+      // source
       if (srcF.size){
-        const src = normalizeSourceValue(r[COL.source]);
+        const src = String(r[COL.source] ?? "").trim();
         if (!srcF.has(src)) continue;
       }
+
+      // availability
       if (avF.size){
         const av = String(r[COL.avail] ?? "").trim();
         if (!avF.has(av)) continue;
       }
+
+      // trophies OR
       if (troF.size){
-        const tags = trophyTags(r);
+        const tags = r.__tTags || trophyTags(r);
         let ok = false;
         for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
         if (!ok) continue;
       }
 
+      // trophy presets
       if (trophyPreset){
-        const agg = trophyAggregate(r);
+        const agg = r.__tAgg || trophyAggregate(r);
         if (!agg) continue;
-        // Presets should only match games where something is still open.
-        // Important: per-platform combinations exist (e.g. PS4 platinum but PS5 still in progress),
-        // so we use the aggregated "open" count across all progress fractions.
         if (trophyPreset === "open3"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 3)) continue; }
         else if (trophyPreset === "open5"){ if (!(agg.open != null && agg.open > 0 && agg.open <= 5)) continue; }
         else if (trophyPreset === "pct90"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 90)) continue; }
         else if (trophyPreset === "pct75"){ if (!(agg.pct != null && agg.open != null && agg.open > 0 && agg.pct >= 75)) continue; }
       }
 
+      // short main
       if (shortMain5){
         const h = parseHours(r[COL.main]);
-        if (h == null || !(h <= 5)) continue;
+        if (h == null || h > 5) continue;
       }
+
       n++;
     }
     return n;
@@ -1667,6 +1727,21 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     return Number.isFinite(n) ? n : null;
   }
 
+  // Apply pipeline: most UI actions should apply immediately, but typing in the search box
+  // should not re-render on every keystroke (especially with big lists).
+  let __applyTimer = 0;
+  function scheduleApplyAndRender(delayMs){
+    const d = (delayMs == null) ? 0 : Math.max(0, Number(delayMs) || 0);
+    if (__applyTimer) window.clearTimeout(__applyTimer);
+    if (!d) { applyAndRender(); return; }
+    __applyTimer = window.setTimeout(() => {
+      __applyTimer = 0;
+      applyAndRender();
+      // Keep the dialog's "Anwenden (N)" count in sync when open.
+      if (el.dlg?.open) updateApplyCount();
+    }, d);
+  }
+
   function applyAndRender(){
     const qRaw = String(state.q ?? "");
     const sq = parseStructuredQuery(qRaw);
@@ -1680,6 +1755,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const avF = state.filters.availability;
     const trophyPreset = state.filters.trophyPreset || "";
     const shortMain5 = !!state.filters.shortMain5;
+
+    const wantGenresN = (state.filters.genres && state.filters.genres.size) ? new Set(Array.from(state.filters.genres).map(norm)) : null;
 
     let out = state.rows.filter(r => {
       // search
@@ -1696,14 +1773,14 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       if (freeRaw.trim()){
         // Smarter search: if the free-text looks like an ID (1–4 digits), match by ID.
         if (idQuery){
-          const rid = String(r[COL.id] ?? "").trim();
-          const rn = String(Number(rid));
+          const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
+          const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) return false;
         } else if (qTokens.length){
-          const hay = [
+          const hay = (r.__hay || [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
             r[COL.source], r[COL.avail]
-          ].map(normSearch).join(" ");
+          ].map(normSearch).join(" "));
           // AND-semantics for tokens: every token must appear somewhere.
           for (const t of qTokens){
             if (!hay.includes(t)) return false;
@@ -1716,22 +1793,21 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (f !== "x" && f !== "1" && f !== "true") return false;
       }
       // Genre filter (multi-select; exact match, normalized)
-      if (state.filters.genres && state.filters.genres.size){
-        const want = new Set(Array.from(state.filters.genres).map(norm));
-        const got  = norm(r[COL.genre]);
-        if (!want.has(got)) return false;
+      if (wantGenresN){
+        const got = r.__genreN || norm(r[COL.genre]);
+        if (!wantGenresN.has(got)) return false;
       }
 
       // platform filter: system contains at least one selected
       if (platF.size){
-        const sys = splitPipe(r[COL.system]);
+        const sys = r.__sysArr || splitPipe(r[COL.system]);
         let ok = false;
         for (const p of platF){ if (sys.includes(p)) { ok = true; break; } }
         if (!ok) return false;
       }
       // source
       if (srcF.size){
-        const src = normalizeSourceValue(r[COL.source]);
+        const src = String(r[COL.source] ?? "").trim();
         if (!srcF.has(src)) return false;
       }
       // availability
@@ -1742,7 +1818,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       // trophies filter (multi-select OR)
       const troF = state.filters.trophies;
       if (troF.size){
-        const tags = trophyTags(r);
+        const tags = r.__tTags || trophyTags(r);
         let ok = false;
         for (const t of troF){ if (tags.has(t)) { ok = true; break; } }
         if (!ok) return false;
@@ -1750,7 +1826,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
       // Trophäen-Fortschritt Presets (exklusiv)
       if (trophyPreset){
-        const agg = trophyAggregate(r);
+        const agg = r.__tAgg || trophyAggregate(r);
         if (!agg) return false;
         // Presets should not include already completed titles (open trophies == 0).
         // Aggregation covers mixed platform states (e.g. PS4 complete, PS5 still open).
@@ -1787,8 +1863,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (ha != null && hb != null) return (ha - hb) * dir;
       }
       if (sf === "__trophyPct"){
-        const pa = trophyAggregate(a)?.pct;
-        const pb = trophyAggregate(b)?.pct;
+        const pa = (a.__tAgg || trophyAggregate(a))?.pct;
+        const pb = (b.__tAgg || trophyAggregate(b))?.pct;
         const na = (pa == null) ? null : Number(pa);
         const nb = (pb == null) ? null : Number(pb);
         if (na == null && nb == null) {/* fallthrough */}
@@ -1797,8 +1873,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         else return (na - nb) * dir;
       }
       if (sf === "__trophyOpen"){
-        const oa = trophyAggregate(a)?.open;
-        const ob = trophyAggregate(b)?.open;
+        const oa = (a.__tAgg || trophyAggregate(a))?.open;
+        const ob = (b.__tAgg || trophyAggregate(b))?.open;
         const na = (oa == null) ? null : Number(oa);
         const nb = (ob == null) ? null : Number(ob);
         if (na == null && nb == null) {/* fallthrough */}
@@ -1821,8 +1897,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       }
 
       if (sf === "__developer"){
-        const da = developerSortKey(a);
-        const db = developerSortKey(b);
+        const da = a.__devKey || developerSortKey(a);
+        const db = b.__devKey || developerSortKey(b);
         if (!da && !db) {/* fallthrough */}
         else if (!da) return 1;
         else if (!db) return -1;
@@ -2405,9 +2481,7 @@ function renderTrophyDetails(row){
 
   el.search.addEventListener("input", () => {
     state.q = el.search.value || "";
-    applyAndRender();
-    // If the dialog is open, keep the "Anwenden (N)" count in sync with search.
-    if (el.dlg?.open) updateApplyCount();
+    scheduleApplyAndRender(160);
   });
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
