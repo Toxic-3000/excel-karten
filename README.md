@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1d)
+# Spieleliste – Webansicht (Build 7.1e)
 
 Kompakte, schnelle Webansicht für deine persönliche Spieleliste auf Basis einer **lokal ausgewählten Excel-Datei (.xlsx)**.
 Alles läuft **clientseitig im Browser** (kein Backend) und ist für GitHub Pages gedacht.
@@ -48,12 +48,11 @@ Tastatur (Desktop/Tablet):
 
 - Verarbeitung der Excel-Datei erfolgt lokal im Browser.
 
-- Keine Daten werden hochgeladen oder gespeichert (Stand 7.1d).
+- Keine Daten werden hochgeladen oder gespeichert (Stand 7.1e).
 
 - In 7.1b/7.1c: Suche ist leicht **debounced** und Filter nutzen vorberechnete Normalisierungen für flüssigeres Tippen.
 
-- In 7.1d: Desktop/Windows-Tablet skaliert die Typografie jetzt konsistent mit den A/A+/A++/A+++ Presets.
-- In 7.1d: Desktop/Windows-Tablet **Textskalierung (A/A+/A++/A+++)** ist jetzt durchgängig konsistent.
+- Desktop/Windows-Tablet: Typografie skaliert konsistent mit den A/A+/A++/A+++ Presets und ist für längeres Lesen optimiert (Lesebreite, Hierarchie, Rhythmus).
 
 ## Bekannte Einschränkungen
 
