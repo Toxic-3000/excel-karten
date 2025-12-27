@@ -1,8 +1,8 @@
-# Build 7.0v-D1e
+# Build 7.0v-D1f
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-D1e
+## Was neu ist in 7.0v-D1f
 
 - **Mobile (Android) Sortiermenü abgeschlossen:**
   - Sortieren nach **Plattform** (Primärplattform nach Priorität: PS5 > PS4 > PS3 > Vita).

@@ -1271,7 +1271,7 @@ html.modalOpen body{touch-action:none;}
 
 /* Desktop-only genre chips (avoid native <select> inside overlay on desktop) */
 .genreDesktop{ display:none; }
-@media (hover:hover) and (pointer:fine){
+@media (min-width: 701px) and (min-height: 521px){
   #genreSelect{ display:none !important; }
   .genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
 }

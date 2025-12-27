@@ -11,6 +11,7 @@ console.log("Build 7.0v-D1d loaded");
   "use strict";
   const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-D1d").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
+  const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -874,7 +875,7 @@ console.log("Build 7.0v-D1d loaded");
     const btn = host?.querySelector?.(".ddBtn");
     if (btn) btn.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
 
-    if (!panel.hidden && IS_DESKTOP){
+    if (!panel.hidden && isSheetDesktop()){
       __portalPanel(panel);
       __positionPanelInSheet(panel, btn || host);
     }
@@ -883,19 +884,19 @@ console.log("Build 7.0v-D1d loaded");
 
   // Close dropdowns when clicking elsewhere (desktop only)
   document.addEventListener("click", (e) => {
-    if (!IS_DESKTOP) return;
+    if (!isSheetDesktop()) return;
     if (e.target?.closest?.(".dd")) return;
     if (e.target?.closest?.(".ddPanel")) return;
     __closeDesktopPanel();
   });
   document.addEventListener("keydown", (e) => {
-    if (!IS_DESKTOP) return;
+    if (!isSheetDesktop()) return;
     if (e.key === "Escape") __closeDesktopPanel();
   });
 
   // Close any open dropdown when the sheet body scrolls (Desktop/Tablet).
   // Prevents clipped panels / awkward positioning on touch-capable desktops.
-  if (IS_DESKTOP){
+  if (isSheetDesktop()){
     const sb = el.dlg?.querySelector?.(".sheetBody");
     if (sb && !sb.__ddCloseOnScroll){
       sb.addEventListener("scroll", __closeDesktopPanel, {passive:true});
@@ -912,7 +913,7 @@ console.log("Build 7.0v-D1d loaded");
   function buildFilterUI(){
     // --- Sortieren (kompakt) ---
     if (el.sortFieldRow){
-      if (IS_DESKTOP){
+      if (isSheetDesktop()){
         // Desktop: custom dropdown (compact) instead of a large chip cloud.
         const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
         const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
@@ -1069,7 +1070,7 @@ console.log("Build 7.0v-D1d loaded");
 
       // Desktop: avoid native <select> inside overlay (causes focus/scroll issues).
       // Mobile: keep native multi-select picker.
-      if (IS_DESKTOP){
+      if (isSheetDesktop()){
         if (el.genreRowDesktop){
           // Compact label: first selected + optional "+N".
           const label = (state.filters.genres.size === 0)
@@ -1318,7 +1319,7 @@ console.log("Build 7.0v-D1d loaded");
 
     // Desktop custom dropdown (Genre) – needs manual refresh when filters are changed
     // via the active filter bar or other UI elements.
-    if (IS_DESKTOP && el.genreRowDesktop){
+    if (isSheetDesktop() && el.genreRowDesktop){
       const btn = el.genreRowDesktop.querySelector("#genreBtn");
       // Panel can be portaled into the sheet float layer.
       const panel = el.dlg?.querySelector?.("#genrePanel");
