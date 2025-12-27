@@ -1,25 +1,32 @@
-# Build 7.0v-B1
+# Build 7.0v-C
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-B1
+## Was neu ist in 7.0v-C
 
-- **Regressionschutz (unsichtbar im Normalbetrieb):**
-  - Wenn **XLSX** oder **app.js** fehlt/abbricht, erscheint eine klare Meldung (kein "Button tut nichts" / kein stummer Totzustand).
-  - Meldungen werden **nur im Fehlerfall** angezeigt:
-    - oben unter der Suche (allgemein)
-    - im "Excel laden"-Kasten (importbezogen)
-  - Die "Excel auswählen"-Buttons werden im Fehlerfall automatisch deaktiviert.
+- **Suche V2 (präziser + robuster, ohne extra UI):**
+  - Feldsuche unterstützt jetzt **Quotes** für Werte mit Leerzeichen: `genre:"Action Adventure"`.
+  - `:` bedeutet **enthält** (Teiltreffer), `=` bedeutet **exakt**: z. B. `id=643` oder `genre="Action Adventure"`.
+  - Negationen sind konsequent: `-genre:sport`, `-dev:ubisoft`.
+  - Freitext ist „freundlicher“ bei Trennzeichen: **Bindestriche/Slashes** werden bei der Suche wie Leerzeichen behandelt (z. B. „Point-and-Click“).
+  - Freitext nutzt AND-Semantik über Tokens (mehrere Worte müssen vorkommen, Reihenfolge egal).
+
+- **README aktualisiert (gebündelt):**
+  - vB/vB1/vB2 und die neue Suchsyntax sind jetzt konsistent dokumentiert.
+
+- **Regressionsschutz bleibt aktiv (unsichtbar im Normalbetrieb):**
+  - Wenn **XLSX** oder **app.js** fehlt/abbricht, erscheint eine klare Meldung (kein „Button tut nichts“).
+  - Meldungen werden nur im Fehlerfall angezeigt (unter der Suche / im „Excel laden“-Kasten), und „Excel auswählen“ wird dann deaktiviert.
 
 ---
 
 ## Übernommen aus 7.0v-A
 
-- **Suche: Feldsuche + ausklappbare Such‑Hilfe (standardmäßig versteckt):**
-  - Freitext bleibt wie gehabt (global über mehrere Felder).
-  - Zusätzlich kannst du gezielt in Feldern suchen – per Präfix:
-    - `id:643` · `titel:metro`/`t:metro` · `genre:adventure`/`g:adventure` · `sg:horror` · `dev:remedy`
-    - Ausschließen geht auch: `-genre:sport`
+- **Suche: Freitext + Feldsuche (mit ⓘ‑Suchhilfe):**
+  - Standard: Freitext sucht global über mehrere Felder.
+  - Feldsuche per Präfix: `id:643` · `titel:metro`/`t:metro` · `genre:adventure`/`g:adventure` · `sg:horror` · `dev:remedy` · `quelle:psn` · `verfügbarkeit:delisted` · `p:ps5`.
+  - Ausschließen: `-genre:sport`.
+  - Such‑Hilfe ist standardmäßig verborgen und wird über das **ⓘ** neben der Suche geöffnet.
 
 - **Genre‑Dropdown im Sortiermenü (Multi‑Select, sauber):**
   - Gewählte Genres werden im Picker **sichtbar markiert**.
@@ -90,7 +97,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
   - Feldsuche per Präfix (z. B. `genre:adventure`, `dev:remedy`) + Ausschluss per `-…`.
 
 - **Such‑Hilfe ist unaufdringlich:**
-  - Standardmäßig verborgen; per Klick auf „Such‑Hilfe ▾“ werden Beispiele eingeblendet.
+  - Standardmäßig verborgen; per Tap auf das **ⓘ** rechts neben der Suche werden Beispiele eingeblendet.
 
 - **Dialogtext vereinfacht:** Im Startzustand steht jetzt „Wähle deine **Spieleliste.xlsx** aus.“
 
@@ -126,14 +133,14 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 
-## Ist‑Zustand (Build 7.0v-B1)
+## Ist‑Zustand (Build 7.0v-C)
 
 - ✅ Kompaktansicht‑only (Variante A), stabiler Kartenheader + Akkordeon‑Reihenfolge: **Beschreibung → Store → Trophäen → Humorstatistik**
 - ✅ Excel‑Import rein clientseitig (keine Server‑Abhängigkeit)
-- ✅ Filter/Sortiermenü stabil in Portrait & Landscape
+- ✅ Filter/Sortiermenü stabil in Portrait & Landscape; Landscape-Header nutzt mehr Breite (Actions rechts, Suche volle Zeile)
 - ✅ Genre‑Multi‑Select inkl. „Alle“‑Exklusivität (deterministisch)
 - ✅ Trophäen‑Statusbadges im Sortiermenü inaktiv neutral, aktiv farbig; Fortschritts‑Presets unverändert
-- ✅ Suche: ID‑Shortcuts + Feldsuche + ausklappbare Such‑Hilfe
+- ✅ Suche: ID‑Shortcuts + Feldsuche (Quotes, '=' exakt, '-' Negation) + Such‑Hilfe über ⓘ
 - ✅ Regressionschutz: Fehlermeldungen nur im Fehlerfall; „Excel auswählen“ wird bei fehlender XLSX/app.js automatisch deaktiviert
 - ℹ️ Bekannte Eigenheit (Mobile‑Picker): Manche Browser aktualisieren Häkchen im nativen Multi‑Select visuell erst nach Schließen/Neuöffnen – der Filterzustand selbst ist korrekt.
 
@@ -165,9 +172,12 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - ✅ 7.0u-A2f → Genre „Alle“ exklusiv/deterministisch stabilisiert
 - ✅ 7.0u-A2g → Feldsuche + ausklappbare Such‑Hilfe
 - ✅ 7.0v-A → Konsolidierung & Dokumentation (Referenzstand)
-- ✅ 7.0v-B1 → Regressionsschutz (Fehlermeldungen + Auto-Disable, ohne den Header zu "verplakatieren")
+- ✅ 7.0v-B → Regressionsschutz (Fehlermeldungen + Auto-Disable, ohne den Header zu "verplakatieren")
+- ✅ 7.0v-B1 → Header/Controls beruhigt: Such‑Hilfe als **ⓘ** + Landscape stapelt Suche
+- ✅ 7.0v-B2 → Landscape-Header: Actions rechtsbündig, Statuschips geordnet (Datei | Treffer | XLSX)
+- ✅ 7.0v-C → Suche V2 (Quotes, '=' exakt, Negationen konsistent) + README konsolidiert
 
-- ⏭️ Nächstes Thema (regulärer Patchplan): **Suche‑V2** (Quotes/Exakt/Negationen robuster) → danach **Desktop‑Lesbarkeit** (Typo/Spacing)
+- ⏭️ Nächstes Thema (regulärer Patchplan): **Desktop‑Lesbarkeit** (Typo/Spacing)
 
 
 ## Zwischenbuilds 7.0u-A2 (Patchablauf im Detail)
@@ -198,11 +208,24 @@ Die Regeln betreffen ausschließlich die **Header-Anzeige**. Die Detailanzeige i
 ## Geplante Funktionen/Änderungen (Roadmap)
 
 - **Header/Controls beruhigen:** Spacing/Hierarchie weiter glätten, ggf. Gruppenbildung (ohne Funktionsverlust).
-- **Suche erweitern:** zusätzliche Präfixe (z. B. Quelle/Verfügbarkeit/Plattform als „first-class“), optionale exakte Matches (`id=643`).
+- **Suche erweitern:** zusätzliche Präfixe (z. B. Metascore/Userwertung/Spielzeit), ggf. einfache Operatoren/Ranges (>=, <=, ..) und optionale OR‑Gruppen.
 - **Desktop‑Lesbarkeit:** Typo‑Feinschliff für große Viewports (Zeilenlänge, Tabellenrhythmus, Badge‑Breiten).
 - **Performance (große XLSX):** schnelleres Rendern (z. B. Chunking/Virtualisierung), ohne die ruhige Optik zu verlieren.
 
 
-## Änderungen in 7.0v-B1
-- Such-Hilfe ist jetzt ein dezentes ⓘ-Icon rechts neben der Suche (statt Button).
-- In Landscape wird der Header wieder gestapelt, damit die Suche genug Platz hat.
+## Änderungen seit 7.0v-A (Kurzüberblick)
+
+### 7.0v-B
+- Regressionsschutz: keine "toten" Excel-Buttons mehr ohne Hinweis. Fehlermeldungen nur im Fehlerfall.
+
+### 7.0v-B1
+- Such‑Hilfe ist jetzt ein dezentes **ⓘ** rechts neben der Suche (statt Button).
+- In Landscape wird der Header gestapelt, damit die Suche genug Platz hat.
+
+### 7.0v-B2
+- Landscape: **Excel auswählen** + **Filter & Sortieren** rechtsbündig.
+- Statuschips (Datei/Treffer/XLSX) ruhiger geordnet.
+
+### 7.0v-C
+- Suche V2: Quotes (`genre:"Action Adventure"`), exakt über `=`, Negationen stabil, Freitext robuster bei Trennzeichen.
+- README konsolidiert (Patchpfad vB–vC + aktuelle Suchsyntax).

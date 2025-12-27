@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.0v-B2 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-B2
+console.log("Build 7.0v-C loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-C
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-B2").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.0v-C").trim();
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -358,6 +358,21 @@ console.log("Build 7.0v-B2 loaded");
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
   }
 
+  // Search-normalization: aims to make "Point-and-Click" ≈ "point and click"
+  // while staying deterministic (no fuzzy magic).
+  function normSearch(s){
+    return String(s ?? "")
+      .toLowerCase()
+      .normalize("NFKD")
+      // unify various dash/hyphen characters + separators
+      .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-")
+      .replace(/[\-_/|]+/g, " ")
+      // soften punctuation
+      .replace(/[.,;:()\[\]{}]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
 
   function normalizeSourceValue(s){
     // Some sheets may already contain the 🏷 emoji (legacy). We normalize to the plain value
@@ -380,15 +395,12 @@ console.log("Build 7.0v-B2 loaded");
   }
 
   // --- Search: field-specific query helpers ---
-  function tokenizeQuery(raw){
-    const s = String(raw ?? "").trim();
-    if (!s) return [];
-    const out = [];
-    const re = /"([^\"]*)"|(\S+)/g;
-    let m;
-    while ((m = re.exec(s))) out.push(m[1] ?? m[2]);
-    return out;
-  }
+  // Supports:
+  // - id:643 (contains)
+  // - id=643 (exact)
+  // - genre:"Action Adventure" (quoted, with spaces)
+  // - -genre:sport (exclude)
+  // Unknown prefixes fall back to free-text search.
 
   const FIELD_MAP = {
     id: "id",
@@ -413,62 +425,127 @@ console.log("Build 7.0v-B2 loaded");
   };
 
   function parseStructuredQuery(raw){
-    const tokens = tokenizeQuery(raw);
+    const s = String(raw ?? "");
     const terms = [];
-    const rest = [];
-    for (const token of tokens){
-      let tok = token;
-      let neg = false;
-      if (tok.startsWith("-")){
-        neg = true;
-        tok = tok.slice(1);
+    const freeParts = [];
+
+    const isKeyChar = (ch) => /[A-Za-zÄÖÜäöüß]/.test(ch);
+
+    function readQuoted(startIdx){
+      // reads "..." with basic escape support (\")
+      let i = startIdx + 1;
+      let out = "";
+      while (i < s.length){
+        const ch = s[i];
+        if (ch === "\\" && i + 1 < s.length){
+          const nxt = s[i + 1];
+          if (nxt === '"' || nxt === "\\"){
+            out += nxt;
+            i += 2;
+            continue;
+          }
+        }
+        if (ch === '"') return { value: out, next: i + 1 };
+        out += ch;
+        i++;
       }
-      const m = tok.match(/^([A-Za-zÄÖÜäöüß]+)\s*[:=]\s*(.+)$/);
-      if (!m){
-        rest.push(token);
-        continue;
-      }
-      const key = norm(m[1]);
-      const field = FIELD_MAP[key];
-      if (!field){
-        rest.push(token);
-        continue;
-      }
-      const value = String(m[2] ?? "").trim();
-      if (!value){
-        rest.push(token);
-        continue;
-      }
-      terms.push({field, value, neg});
+      // no closing quote → treat as raw remainder
+      return { value: s.slice(startIdx), next: s.length };
     }
-    return { terms, free: rest.join(" ").trim() };
+
+    let i = 0;
+    while (i < s.length){
+      // skip whitespace
+      while (i < s.length && /\s/.test(s[i])) i++;
+      if (i >= s.length) break;
+
+      // quoted free-text token
+      if (s[i] === '"'){
+        const q = readQuoted(i);
+        freeParts.push(q.value);
+        i = q.next;
+        continue;
+      }
+
+      // attempt to parse: [-]key[:=]value
+      let j = i;
+      let neg = false;
+      if (s[j] === '-') { neg = true; j++; }
+
+      const keyStart = j;
+      while (j < s.length && isKeyChar(s[j])) j++;
+      const keyRaw = s.slice(keyStart, j);
+      const opChar = s[j];
+      const hasOp = (opChar === ':' || opChar === '=');
+
+      if (keyRaw && hasOp){
+        const key = norm(keyRaw);
+        const field = FIELD_MAP[key];
+        if (field){
+          j++; // consume op
+          while (j < s.length && /\s/.test(s[j])) j++;
+
+          let val = "";
+          if (j < s.length && s[j] === '"'){
+            const q = readQuoted(j);
+            val = q.value;
+            j = q.next;
+          } else {
+            const vStart = j;
+            while (j < s.length && !/\s/.test(s[j])) j++;
+            val = s.slice(vStart, j);
+          }
+
+          val = String(val ?? "").trim();
+          if (val){
+            terms.push({ field, value: val, neg, op: (opChar === '=' ? 'eq' : 'contains') });
+            i = j;
+            continue;
+          }
+        }
+      }
+
+      // fallback: read as free token
+      const tStart = i;
+      while (i < s.length && !/\s/.test(s[i])) i++;
+      freeParts.push(s.slice(tStart, i));
+    }
+
+    return { terms, free: freeParts.join(" ").trim() };
   }
 
   function rowMatchesTerm(r, term){
-    const v = norm(term.value);
+    const v = normSearch(term.value);
     if (!v) return true;
+    const mode = term.op || "contains";
     switch (term.field){
       case "id": {
         const rid = String(r[COL.id] ?? "").trim();
         const ridNum = String(Number(rid));
         const want = String(term.value ?? "").replace(/^#/, "").trim();
+        if (!want) return true;
+        if (mode === "eq"){
+          const wn = String(Number(want));
+          if (wn && wn !== "NaN") return ridNum === wn || rid === wn;
+          return rid === want;
+        }
         return rid.includes(want) || ridNum.includes(want);
       }
       case "title":
-        return norm(r[COL.title]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.title]) === v) : normSearch(r[COL.title]).includes(v);
       case "genre":
-        return norm(r[COL.genre]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.genre]) === v) : normSearch(r[COL.genre]).includes(v);
       case "sub":
-        return norm(r[COL.sub]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.sub]) === v) : normSearch(r[COL.sub]).includes(v);
       case "dev":
-        return norm(r[COL.dev]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.dev]) === v) : normSearch(r[COL.dev]).includes(v);
       case "source":
-        return norm(r[COL.source]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.source]) === v) : normSearch(r[COL.source]).includes(v);
       case "avail":
-        return norm(r[COL.avail]).includes(v);
+        return mode === "eq" ? (normSearch(r[COL.avail]) === v) : normSearch(r[COL.avail]).includes(v);
       case "platform": {
-        const sys = splitPipe(r[COL.system]).map(norm);
-        return sys.some(s => s.includes(v));
+        const sys = splitPipe(r[COL.system]).map(normSearch);
+        return mode === "eq" ? sys.some(s => s === v) : sys.some(s => s.includes(v));
       }
       default:
         return false;
@@ -1190,8 +1267,10 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   function applyAndRender(){
     const qRaw = String(state.q ?? "");
     const sq = parseStructuredQuery(qRaw);
-    const q = norm(sq.free);
-    const idQuery = (sq.terms.length ? null : parseIdQuery(qRaw));
+    const freeRaw = String(sq.free ?? "");
+    const qTokens = normSearch(freeRaw).split(/\s+/).filter(Boolean);
+    // ID shortcuts should work even with additional terms (e.g. "genre:adventure 643")
+    const idQuery = parseIdQuery(freeRaw || qRaw);
     const favOnly = state.filters.fav;
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
@@ -1211,18 +1290,21 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
           }
         }
       }
-      if (q){
+      if (freeRaw.trim()){
         // Smarter search: if the free-text looks like an ID (1–4 digits), match by ID.
         if (idQuery){
           const rid = String(r[COL.id] ?? "").trim();
           const rn = String(Number(rid));
-          if (rn !== idQuery) return false;
-        } else {
+          if (rn !== idQuery && rid !== idQuery) return false;
+        } else if (qTokens.length){
           const hay = [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
             r[COL.source], r[COL.avail]
-          ].map(norm).join(" | ");
-          if (!hay.includes(q)) return false;
+          ].map(normSearch).join(" ");
+          // AND-semantics for tokens: every token must appear somewhere.
+          for (const t of qTokens){
+            if (!hay.includes(t)) return false;
+          }
         }
       }
       // fav
