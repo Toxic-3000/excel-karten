@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0u-A1
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D
    - Typografie: klarere Rollen (Label vs. Inhalt) ohne kleinere Schrift
    - FAB "Ansicht" statt Sticky-Scale-Button
 */
@@ -1162,4 +1162,72 @@ html.modalOpen body{touch-action:none;}
     max-width: none;
   }
   .pills{justify-content:flex-start}
+}
+
+/* --- Desktop readability pass (Build 7.0v-D) ---
+   Ziel: ruhigere Typografie, bessere Scanbarkeit, angenehmere Zeilenlängen
+   ohne neue UI-Elemente und ohne Layout-Änderungen in Portrait/Mobile.
+*/
+@media (min-width: 980px){
+  body{
+    font-size: calc(17.5px * var(--uiScale));
+    line-height: 1.5;
+  }
+
+  .wrap{
+    max-width: 1120px;
+    padding-left: calc(18px * var(--uiScale));
+    padding-right: calc(18px * var(--uiScale));
+  }
+
+  .cards{ padding: 8px 6px; }
+
+  .card{
+    padding: calc(18px * var(--uiScale));
+    margin: 72px 0;
+  }
+
+  .title{
+    font-size: calc(26px * var(--uiScale));
+    margin: 12px 0 10px;
+  }
+
+  .badgeRow{ gap: calc(7px * var(--uiScale)); }
+  .badge{ font-size: calc(13.5px * var(--uiScale)); }
+
+  .info{
+    padding: calc(14px * var(--uiScale));
+    font-size: calc(1rem * 1.05);
+  }
+
+  .k{
+    font-size: calc(14px * var(--uiScale));
+    letter-spacing: 0.03em;
+  }
+  .v{
+    font-size: calc(16px * var(--uiScale));
+    line-height: 1.3;
+  }
+
+  summary{ padding: calc(13px * var(--uiScale)) calc(14px * var(--uiScale)); }
+  .detailsBody{
+    padding: calc(14px * var(--uiScale)) calc(14px * var(--uiScale)) calc(16px * var(--uiScale));
+    line-height: 1.65;
+    font-size: calc(1rem * 1.02);
+  }
+
+  /* Prosa nicht über die ganze Kartenbreite laufen lassen */
+  .detailsBody .pre{
+    max-width: 82ch;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* Subgenre/Entwickler-Text etwas luftiger */
+  .infoItem .vText{ line-height: 1.45; }
+
+  /* Desktop: kleine Hover-Hilfe ohne "neue" Effekte */
+  summary:hover{
+    background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  }
 }

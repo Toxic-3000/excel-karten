@@ -1,8 +1,13 @@
-# Build 7.0v-C
+# Build 7.0v-D
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-C
+## Was neu ist in 7.0v-D
+- **Desktop-Lesbarkeit (nur Desktop, Portrait/Mobile unverändert):**
+  - Ruhigere Typografie (etwas mehr Zeilenhöhe) + größere Innenabstände.
+  - Prosa bekommt eine angenehmere Zeilenlänge (kein „über die ganze Karte laufen“).
+  - Dezentes Hover-Feedback auf Akkordeon-Headern (nur Desktop).
+
 
 - **Suche V2 (präziser + robuster, ohne extra UI):**
   - Feldsuche unterstützt jetzt **Quotes** für Werte mit Leerzeichen: `genre:"Action Adventure"`.
