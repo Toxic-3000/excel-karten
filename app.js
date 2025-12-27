@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.0v-D1b loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1b
+console.log("Build 7.0v-D1c loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.0v-D1c
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
@@ -766,13 +766,108 @@ console.log("Build 7.0v-D1b loaded");
     applyAndRender();
   }
 
+  // --- Desktop dropdown helpers (Build 7.0v-D1c) ---
+  // We deliberately avoid native <select> elements inside the dialog overlay on desktop,
+  // because some browsers can lose focus / crash on scroll while a native select is open.
+  let __openDesktopPanel = null;
+
+  function __closeDesktopPanel(){
+    if (__openDesktopPanel){
+      __openDesktopPanel.hidden = true;
+      // also sync aria-expanded on its trigger if present
+      const host = __openDesktopPanel.closest?.(".dd");
+      const btn = host?.querySelector?.(".ddBtn");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+      __openDesktopPanel = null;
+    }
+  }
+
+  function __toggleDesktopPanel(panel){
+    if (!panel) return;
+    if (__openDesktopPanel && __openDesktopPanel !== panel){
+      __openDesktopPanel.hidden = true;
+      const host = __openDesktopPanel.closest?.(".dd");
+      const btn = host?.querySelector?.(".ddBtn");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    }
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen ? true : false;
+    const host = panel.closest?.(".dd");
+    const btn = host?.querySelector?.(".ddBtn");
+    if (btn) btn.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+    __openDesktopPanel = panel.hidden ? null : panel;
+  }
+
+  // Close dropdowns when clicking elsewhere (desktop only)
+  document.addEventListener("click", (e) => {
+    if (!IS_DESKTOP) return;
+    if (e.target?.closest?.(".dd")) return;
+    __closeDesktopPanel();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!IS_DESKTOP) return;
+    if (e.key === "Escape") __closeDesktopPanel();
+  });
+
+
   function buildFilterUI(){
     // --- Sortieren (kompakt) ---
     if (el.sortFieldRow){
       if (IS_DESKTOP){
-        // Desktop: avoid native <select> inside overlay (causes focus/scroll issues in desktop browsers).
+        // Desktop: custom dropdown (compact) instead of a large chip cloud.
         const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
-        el.sortFieldRow.innerHTML = `<div class="chipRow sortFieldChips">${enabled.map(sf => chipHtml("sortField", sf.k, sf.label, (state.sortField===sf.k), false, { title: "Sortieren nach: " + sf.label })).join("")}</div>`;
+        const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
+
+        el.sortFieldRow.innerHTML = `
+          <div class="dd" id="sortFieldDD">
+            <button type="button" class="ddBtn" id="sortFieldBtn" aria-haspopup="listbox" aria-expanded="false" title="Sortieren nach">
+              <span class="ddBtnLabel">Sortieren nach: ${esc(cur?.label ?? "ID")}</span>
+              <span class="ddCaret">▾</span>
+            </button>
+            <div class="ddPanel" id="sortFieldPanel" role="listbox" hidden>
+              ${enabled.map(sf => `
+                <button type="button" class="ddItem ${state.sortField===sf.k ? "is-active" : ""}" data-value="${esc(sf.k)}">
+                  <span class="ddMark">✓</span>
+                  <span class="ddText">${esc(sf.label)}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+
+        const dd = el.sortFieldRow.querySelector("#sortFieldDD");
+        const btn = el.sortFieldRow.querySelector("#sortFieldBtn");
+        const panel = el.sortFieldRow.querySelector("#sortFieldPanel");
+
+        if (dd) dd.addEventListener("click", (e) => e.stopPropagation());
+
+        if (btn && panel){
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            __toggleDesktopPanel(panel);
+          });
+
+          for (const it of panel.querySelectorAll(".ddItem")){
+            it.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const key = it.getAttribute("data-value") || "ID";
+              state.sortField = key;
+              saveSortPrefs();
+
+              // Update visuals
+              const label = enabled.find(sf => sf.k === key)?.label || key;
+              const labEl = btn.querySelector(".ddBtnLabel");
+              if (labEl) labEl.textContent = "Sortieren nach: " + label;
+              for (const b of panel.querySelectorAll(".ddItem")){
+                b.classList.toggle("is-active", (b.getAttribute("data-value") === key));
+              }
+
+              updateFabSortFieldUI();
+              updateDialogMeta();
+              __closeDesktopPanel();
+            });
+          }
+        }
       } else {
         el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
         const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
@@ -877,13 +972,90 @@ console.log("Build 7.0v-D1b loaded");
       // Mobile: keep native multi-select picker.
       if (IS_DESKTOP){
         if (el.genreRowDesktop){
-          const chips = [];
-          // "Alle" = no genre filter
-          chips.push(chipHtml("genrePick", "", "Alle", (state.filters.genres.size === 0), false, { title: "Alle Genres" }));
-          for (const g of genres){
-            chips.push(chipHtml("genrePick", g, g, state.filters.genres.has(g), false, { title: g }));
+          const label = (state.filters.genres.size === 0)
+            ? "Genre: Alle"
+            : `Genre: ${state.filters.genres.size} gewählt`;
+
+          el.genreRowDesktop.innerHTML = `
+            <div class="dd" id="genreDD">
+              <button type="button" class="ddBtn" id="genreBtn" aria-haspopup="listbox" aria-expanded="false" title="Genre wählen">
+                <span class="ddBtnLabel">${esc(label)}</span>
+                <span class="ddCaret">▾</span>
+              </button>
+              <div class="ddPanel" id="genrePanel" role="listbox" hidden>
+                <button type="button" class="ddItem ${state.filters.genres.size===0 ? "is-active" : ""}" data-value="">
+                  <span class="ddMark">✓</span>
+                  <span class="ddText">Alle</span>
+                </button>
+                <div class="ddDivider"></div>
+                <div class="ddList">
+                  ${genres.map(g => `
+                    <button type="button" class="ddItem ${state.filters.genres.has(g) ? "is-active" : ""}" data-value="${esc(g)}">
+                      <span class="ddMark">✓</span>
+                      <span class="ddText">${esc(g)}</span>
+                    </button>
+                  `).join("")}
+                </div>
+                <div class="ddFooter">
+                  <button type="button" class="ddDone">Fertig</button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          const dd = el.genreRowDesktop.querySelector("#genreDD");
+          const btn = el.genreRowDesktop.querySelector("#genreBtn");
+          const panel = el.genreRowDesktop.querySelector("#genrePanel");
+          const done = el.genreRowDesktop.querySelector(".ddDone");
+
+          if (dd) dd.addEventListener("click", (e) => e.stopPropagation());
+
+          const refresh = () => {
+            const labEl = btn?.querySelector?.(".ddBtnLabel");
+            const nextLabel = (state.filters.genres.size === 0)
+              ? "Genre: Alle"
+              : `Genre: ${state.filters.genres.size} gewählt`;
+            if (labEl) labEl.textContent = nextLabel;
+
+            for (const it of panel?.querySelectorAll?.(".ddItem") || []){
+              const v = it.getAttribute("data-value") || "";
+              const active = v ? state.filters.genres.has(v) : (state.filters.genres.size === 0);
+              it.classList.toggle("is-active", active);
+            }
+          };
+
+          if (btn && panel){
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              __toggleDesktopPanel(panel);
+            });
+
+            for (const it of panel.querySelectorAll(".ddItem")){
+              it.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const v = it.getAttribute("data-value") || "";
+                if (!v){
+                  state.filters.genres.clear();
+                } else {
+                  if (state.filters.genres.has(v)) state.filters.genres.delete(v);
+                  else state.filters.genres.add(v);
+                }
+                // "Alle" ist exklusiv
+                if (state.filters.genres.size === 0){
+                  // nothing selected => Alle
+                }
+                syncGenreSelectFromState();
+                refresh();
+                updateDialogMeta();
+              });
+            }
           }
-          el.genreRowDesktop.innerHTML = chips.join("");
+          if (done){
+            done.addEventListener("click", (e) => {
+              e.stopPropagation();
+              __closeDesktopPanel();
+            });
+          }
         }
         // No event wiring on the hidden select in desktop mode.
       } else {

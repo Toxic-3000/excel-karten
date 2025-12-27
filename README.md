@@ -1,13 +1,19 @@
-# Build 7.0v-D1b
+# Build 7.0v-D1c
 
 Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel‑Spieleliste.
 
-## Was neu ist in 7.0v-D1b
+## Was neu ist in 7.0v-D1c
 
 - **Mobile (Android) Sortiermenü abgeschlossen:**
   - Sortieren nach **Plattform** (Primärplattform nach Priorität: PS5 > PS4 > PS3 > Vita).
   - Sortieren nach **Entwickler** (erster Entwickler-Eintrag, normalisiert; führendes „The “ wird nur fürs Sortieren ignoriert).
   - Stabile Tie‑Breaker: erst Titel, dann ID (damit Sortierung nicht „wackelt“).
+
+
+- **Desktop Menü übersichtlicher (Dialog):**
+  - **Sortieren** als kompaktes Dropdown statt Chip‑Wolke.
+  - **Genre** als Dropdown‑Liste (Multi‑Select), **ohne Suchfeld** – scrollen reicht.
+  - Hintergrund: keine nativen `<select>`‑Overlays im Desktop‑Dialog (verhindert Fokus/Scroll‑Probleme).
 
 ---
 
@@ -147,7 +153,7 @@ Dieses Repo ist eine **statische, mobile‑first Webansicht** für deine Excel�
 - Store‑Link übernimmt **Linktext + URL** aus der Excel
 
 
-## Ist‑Zustand (Build 7.0v-D1b)
+## Ist‑Zustand (Build 7.0v-D1c)
 
 - ✅ Kompaktansicht‑only (Variante A), stabiler Kartenheader + Akkordeon‑Reihenfolge: **Beschreibung → Store → Trophäen → Humorstatistik**
 - ✅ Excel‑Import rein clientseitig (keine Server‑Abhängigkeit)
