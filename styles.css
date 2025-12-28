@@ -483,14 +483,35 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
    - Weniger Padding/Margins, damit Karten nicht „zu luftig“ wirken. */
 @media (min-width: 701px) and (max-width: 920px) and (min-height: 900px) and (orientation: portrait){
   .wrap{
-    padding-left: calc(14px * var(--uiScale));
-    padding-right: calc(14px * var(--uiScale));
+    /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
+    padding-left: calc(26px * var(--uiScale));
+    padding-right: calc(26px * var(--uiScale));
   }
   .card{
     padding: calc(16px * var(--uiScale));
     margin: 52px 0;
   }
-  .info{ padding: calc(12px * var(--uiScale)); }
+
+  /* 1) Mehr Luft zwischen Badge-Header und Infoblock */
+  .headDivider{
+    margin: calc(10px * var(--uiScale)) 0 calc(16px * var(--uiScale));
+  }
+  .info{
+    padding: calc(12px * var(--uiScale));
+    margin-top: calc(10px * var(--uiScale));
+  }
+
+  /* 3) Store + Humorstatistik nebeneinander (wie Desktop/Landscape) */
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(10px * var(--uiScale));
+  }
+  .detailsWrap .d-desc,
+  .detailsWrap .d-trophy,
+  .detailsWrap .d-easter{
+    grid-column: 1 / -1;
+  }
 }
 
 .kvRow + .kvRow{
