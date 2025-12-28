@@ -386,7 +386,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .infoRow{
   display:grid;
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  /* Gleiche Spaltenlogik wie KV-Tabellen, damit Werte im Infoblock
+     horizontal exakt mit Store/Humor fluchten (auch bei A+++). */
+  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.40fr) minmax(0, 0.60fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
@@ -420,7 +422,10 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .kvRow{
   display:grid;
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  /* Phone Portrait: etwas mehr Platz für Werte (v.a. A+++), damit kurze Linktexte
+     wie "Store Link" nicht umbrechen – und gleichzeitig in allen Sektionen
+     (Infoblock/Store/Humor) exakt die gleiche Value-Ausrichtung entsteht. */
+  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.40fr) minmax(0, 0.60fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
@@ -502,9 +507,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .kvStore .kvRow + .kvRow{ border-top:none; }
 .kvStore .kvRow{
   padding: calc(6px * var(--uiScale)) 0;
-  /* Phone-Portrait bei sehr großer Schrift: Value-Spalte minimal breiter,
-     damit kurze Linktexte (z.B. "Store Link") nicht auf 2 Zeilen umbrechen. */
-  grid-template-columns: minmax(calc(96px * var(--uiScale)), 0.42fr) minmax(0, 0.58fr);
 }
 
 /* Linktext in KV-Tabellen nicht umbrechen (insb. A+++ im Phone-Portrait) */
