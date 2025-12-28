@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1h
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1i
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -376,14 +376,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .infoRow{
   display:grid;
-  /* Value-Spalte nicht „aufblasen“: weniger Leerraum zwischen Label und Wert */
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 1fr) max-content;
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.infoRow .v{ text-align:right; justify-self:end; }
+.infoRow .v{ text-align:right; }
 
 .infoRowPrimary{
   padding-bottom: calc(10px * var(--uiScale));
@@ -411,14 +410,68 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .kvRow{
   display:grid;
-  /* Value-Spalte schlank halten (reduziert „Stretch“-Abstand wie im Screenshot) */
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 1fr) max-content;
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.kvRow .v{ text-align:right; justify-self:end; }
+.kvRow .v{ text-align:right; }
+
+/* ------------------------------
+   Build 7.1i – Layout-Dichte & Ausrichtung Desktop/Tablet
+   - Android Phones bleiben unangetastet (Gate über min-width + min-height)
+   Ziele:
+   1) Label ↔ Wert näher zusammen (Info + Store + Humor)
+   2) Rechter Infoblock wirkt wie Sidebar, nicht wie halbe Karte
+   3) Windows-Tablet Portrait etwas kompakter
+------------------------------ */
+
+/* 1) Label/Wert-Abstände reduzieren (Info + KV-Tabellen)
+   Trick: Label-Spalte bekommt eine sinnvolle Fixbreite, Wert beginnt direkt daneben.
+   Dadurch „kleben“ Zahlen/Values optisch am Label statt am rechten Kartenrand. */
+@media (min-width: 701px) and (min-height: 521px){
+  .infoRow,
+  .kvRow{
+    grid-template-columns: minmax(calc(128px * var(--uiScale)), calc(160px * var(--uiScale))) 1fr;
+    gap: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  }
+  .infoRow .v,
+  .kvRow .v{
+    text-align:left;
+    justify-self:start;
+  }
+}
+
+/* 2) Infoblock schmaler auf Desktop/Tablet-Landscape
+   - Head darf wachsen (Titel/Badges), Info bleibt in einer kontrollierten Breite. */
+@media (min-width: 860px) and (min-height: 521px) and (orientation: landscape){
+  .topGrid{
+    display:grid;
+    grid-template-columns: 1fr clamp(calc(300px * var(--uiScale)), 34vw, calc(420px * var(--uiScale)));
+    gap: calc(16px * var(--uiScale));
+    align-items:start;
+  }
+  .info{
+    margin-top:0;
+    max-width: clamp(calc(300px * var(--uiScale)), 34vw, calc(420px * var(--uiScale)));
+    justify-self:end;
+  }
+}
+
+/* 3) Windows-Tablet Portrait (typisch: ~800px Breite, viel Höhe) kompakter
+   - Weniger Padding/Margins, damit Karten nicht „zu luftig“ wirken. */
+@media (min-width: 701px) and (max-width: 920px) and (min-height: 900px) and (orientation: portrait){
+  .wrap{
+    padding-left: calc(14px * var(--uiScale));
+    padding-right: calc(14px * var(--uiScale));
+  }
+  .card{
+    padding: calc(16px * var(--uiScale));
+    margin: 52px 0;
+  }
+  .info{ padding: calc(12px * var(--uiScale)); }
+}
 
 .kvRow + .kvRow{
   border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
@@ -1029,39 +1082,6 @@ html.modalOpen body{touch-action:none;}
   .title{font-size: calc(24px * var(--uiScale))}
 }
 
-/* --- Windows Tablet Portrait (z.B. 800×1280): Karte etwas kompakter --- */
-@media (min-width: 700px) and (max-width: 1099px) and (orientation: portrait){
-  .wrap{max-width:900px}
-  .card{padding: calc(14px * var(--uiScale)); margin: 42px 0}
-}
-
-/* --- Desktop/Windows-Tablet: Info-Panel rechts schmaler (Android Landscape bleibt unberührt) --- */
-@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape){
-  .topGrid{grid-template-columns: 1.12fr 0.88fr}
-  .info{max-width: 560px; justify-self:end}
-}
-
-/* --- Desktop/Windows-Tablet: Key/Value-Zeilen kompakter (Werte nicht am rechten Rand) --- */
-@media (min-width: 900px){
-  /* Label-Spalte wird gedeckelt, Werte stehen direkt daneben */
-  .kvRow,
-  .infoRow{
-    grid-template-columns: minmax(140px, 200px) max-content;
-    column-gap: 14px;
-  }
-  .kvRow .v,
-  .infoRow .v{
-    justify-self: start;
-    text-align: left;
-  }
-}
-
-/* Desktop/Tablet: Karte insgesamt etwas kompakter, damit der Kopf weniger "luftig" wirkt */
-@media (min-width: 900px) and (min-height: 600px){
-  .wrap{ max-width: 1120px; }
-  .card{ padding: 16px; }
-}
-
 /* Dezente Top-Kantenlinie: global, nicht nur Desktop */
 .card{position:relative; overflow:hidden}
 .card::before{
@@ -1496,26 +1516,10 @@ html.modalOpen body{touch-action:none;}
   .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
   .head{ gap: calc(6px * var(--uiScale)); }
 
-  /* Zwei-Spalten-Kopf: rechter Infoblock bewusst schmaler */
-  .topGrid{ grid-template-columns: 1fr 520px; gap: calc(16px * var(--uiScale)); }
+  /* Zwei-Spalten-Kopf: Infoblock wird zur echten Sidebar (kontrollierte Breite) */
+  .topGrid{ grid-template-columns: 1fr clamp(calc(300px * var(--uiScale)), 34vw, calc(420px * var(--uiScale))); gap: calc(16px * var(--uiScale)); }
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
-}
-
-/* Desktop/Tablet: Werte-Spalte nicht bis ganz rechts ziehen (Meta/User/Spielzeit, Store, Humorstatistik) */
-@media (min-width: 900px){
-  /* Key/Value-Reihen werden wie "Label | Wert" gesetzt, nicht "Label ...... Wert" */
-  .kvRow,
-  .infoRow{
-    grid-template-columns: minmax(140px, 220px) max-content;
-    column-gap: calc(14px * var(--uiScale));
-  }
-
-  .kvRow .v,
-  .infoRow .v{
-    justify-self: start;
-    text-align: left;
-  }
 }
 
