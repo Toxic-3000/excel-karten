@@ -481,7 +481,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 /* 3) Windows-Tablet Portrait (typisch: ~800px Breite, viel Höhe) kompakter
    - Weniger Padding/Margins, damit Karten nicht „zu luftig“ wirken. */
-@media (min-width: 701px) and (max-width: 920px) and (min-height: 900px) and (orientation: portrait){
+/* Windows-Tablet Portrait: Range bewusst breiter, da Browser-UI/Zoom
+   die effektive CSS-Breite variieren lässt. Ziel: Tablet-Portrait, nicht Desktop. */
+@media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
   .wrap{
     /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
     padding-left: calc(26px * var(--uiScale));
@@ -492,26 +494,27 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
     margin: 52px 0;
   }
 
-  /* 1) Mehr Luft zwischen Badge-Header und Infoblock */
-  .headDivider{
-    margin: calc(10px * var(--uiScale)) 0 calc(16px * var(--uiScale));
-  }
+  /* 1) Mehr Luft zwischen Badge-Header und Infoblock
+     (Abstand muss zwischen .head und .info entstehen – nicht innerhalb der Badges). */
+  .head{ margin-bottom: calc(16px * var(--uiScale)); }
   .info{
     padding: calc(12px * var(--uiScale));
-    margin-top: calc(10px * var(--uiScale));
+    margin-top: 0; /* Abstand kommt über .head -> margin-bottom */
   }
 
-  /* 3) Store + Humorstatistik nebeneinander (wie Desktop/Landscape) */
+  /* 3) Store + Humorstatistik nebeneinander (wie Desktop/Landscape)
+     DOM-Reihenfolge bleibt: Beschreibung → Store → Trophäen → Humor → Easter
+     → wir platzieren per Grid, damit Store/Humor trotzdem in einer Zeile stehen. */
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap: calc(10px * var(--uiScale));
   }
-  .detailsWrap .d-desc,
-  .detailsWrap .d-trophy,
-  .detailsWrap .d-easter{
-    grid-column: 1 / -1;
-  }
+  .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
 }
 
 .kvRow + .kvRow{
@@ -1607,5 +1610,39 @@ html.modalOpen body{touch-action:none;}
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
+}
+
+/* --- Windows-Tablet Portrait: Override gegen Desktop-Regeln ---
+   Einige Windows-Tablets melden im Portrait überraschend hohe CSS-Breiten (>=1100px),
+   wodurch Desktop-Regeln greifen. Diese Klammer erzwingt das Portrait-Tablet-Layout
+   (mehr Außenrand, gestapfter Header, Store/Humor nebeneinander).
+   Phone-Ansichten bleiben unberührt (min-width ist absichtlich hoch). */
+@media (min-height: 900px) and (orientation: portrait) and (min-width: 900px) and (max-width: 1400px){
+  .wrap{
+    padding-left: calc(26px * var(--uiScale));
+    padding-right: calc(26px * var(--uiScale));
+    max-width: 980px;
+  }
+  .card{
+    padding: calc(16px * var(--uiScale));
+    margin: 52px 0;
+  }
+
+  /* Header + Infoblock wieder untereinander, mit klarer Trennung */
+  .topGrid{ display:block; }
+  .head{ margin-bottom: calc(16px * var(--uiScale)); }
+  .info{ margin-top: 0; padding: calc(12px * var(--uiScale)); }
+
+  /* Store + Humor nebeneinander wie Desktop/Landscape */
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(10px * var(--uiScale));
+  }
+  .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
 }
 
