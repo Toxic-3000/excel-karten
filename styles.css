@@ -1084,30 +1084,30 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1i6 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1i7 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1i6 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1i7 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
 
   .topGrid{
     display:grid;
-    grid-template-columns: 1fr calc(340px * var(--uiScale));
+    grid-template-columns: 1fr calc(320px * var(--uiScale));
     gap: calc(12px * var(--uiScale));
     align-items:start;
   }
 
   .info{
-    width: calc(340px * var(--uiScale));
+    width: calc(320px * var(--uiScale));
     max-width:none;
     justify-self:end;
-    /* der entscheidende „nach links“-Tick: nicht mehr hart am Kartenrand kleben */
-    margin-right: calc(18px * var(--uiScale));
+    /* Feintuning: wieder etwas weiter nach rechts (näher an der „U“-Kante von Humorstatistik) */
+    margin-right: calc(10px * var(--uiScale));
   }
 
   /* Label/Wert näher zusammen wie Desktop/Tablet */
