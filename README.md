@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1i15)
+# Spieleliste – Webansicht (Build 7.1j1)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1i15)
+## Getestet (Stand 7.1j1)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -97,6 +97,17 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 - Windows Tablet Portrait: Karte etwas kompakter (mehr Außenrand) und **Store + Humorstatistik nebeneinander**.
 - Tablet Landscape + Desktop: Infoblock oben rechts auf **exakte Humorstatistik-Breite** gebracht (saubere Fluchten).
 - Phone (Portrait/Landscape): bewusst stabil gehalten; nur gezielte Fixes für A+++ (u. a. Link-Umbruch/Alignment) – ohne Layoutsprünge.
+
+
+## Patchplan – nächster Schritt: 7.1j (Typografie Desktop/Tablet)
+
+Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
+ohne Android-Phone (Portrait/Landscape) anzutasten.
+
+### Was ist in 7.1j1 bereits umgesetzt?
+- Titel/Body-Typografie für Desktop/Tablet harmonisiert (kontrolliertes `clamp()` + ruhigeres `line-height`).
+- Badge-Zeilen etwas kompakter (weniger „Luft“, gleiche visuelle Ordnung).
+- Akkordeon-Header klarer als Abschnittsüberschriften (Spacing + Gewicht), ohne neue UI-Elemente.
 
 ## Bekannte Einschränkungen
 

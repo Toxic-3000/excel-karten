@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1i8
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j1
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -1123,13 +1123,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1i8 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j1 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1i8 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j1 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1169,6 +1169,60 @@ html.modalOpen body{touch-action:none;}
   .wrap{max-width:1040px}
   .card{padding: calc(14px * var(--uiScale)); margin: 48px 0}
   .title{font-size: calc(24px * var(--uiScale))}
+}
+
+
+/* --- Build 7.1j1 – Typografie-Feinschliff (Desktop/Tablet)
+   Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
+   Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
+@media (min-width: 701px) and (min-height: 521px){
+  /* Ruhigeres Lesen auf größeren Screens */
+  body{ line-height: 1.48; }
+
+  /* Titel: skalierend, aber kontrolliert */
+  .title{
+    font-size: calc(clamp(22px, 2.0vw, 28px) * var(--uiScale));
+    line-height: 1.14;
+    margin: calc(10px * var(--uiScale)) 0 calc(6px * var(--uiScale));
+  }
+
+  /* Badge-Zeilen: minimal kompakter */
+  .badgeRow{ margin: calc(7px * var(--uiScale)) 0; }
+
+  /* Badges: leicht ruhiger (kleiner, gleiche Höhe) */
+  .badge{
+    font-size: calc(12.5px * var(--uiScale));
+    height: calc(27px * var(--uiScale));
+    padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  }
+  .badge.genre{
+    font-size: calc(12.5px * var(--uiScale));
+    height: calc(27px * var(--uiScale));
+    padding: calc(5px * var(--uiScale)) calc(10px * var(--uiScale));
+  }
+
+  /* Infoblock: etwas weniger „aufgeblasen“ auf Desktop/Tablet */
+  .info{ font-size: 1.02em; }
+  .infoItem .vText{ line-height: 1.38; }
+
+  /* Akkordeon-Header: klarer als „Kapitel“, weniger Button-Vibe */
+  .acc > summary{
+    padding: calc(11px * var(--uiScale)) calc(14px * var(--uiScale));
+    gap: calc(12px * var(--uiScale));
+  }
+  .accTitle{ font-weight: 700; }
+  .accSummary{
+    opacity: .68;
+    flex: 0 0 calc(130px * var(--uiScale));
+  }
+  .accBody{
+    padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale)) calc(14px * var(--uiScale));
+  }
+}
+
+/* Desktop extra: Titel darf etwas mehr atmen */
+@media (min-width: 1100px){
+  .title{ font-size: calc(clamp(24px, 1.8vw, 30px) * var(--uiScale)); }
 }
 
 /* Dezente Top-Kantenlinie: global, nicht nur Desktop */
