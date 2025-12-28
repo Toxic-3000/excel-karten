@@ -1041,6 +1041,27 @@ html.modalOpen body{touch-action:none;}
   .info{max-width: 560px; justify-self:end}
 }
 
+/* --- Desktop/Windows-Tablet: Key/Value-Zeilen kompakter (Werte nicht am rechten Rand) --- */
+@media (min-width: 900px){
+  /* Label-Spalte wird gedeckelt, Werte stehen direkt daneben */
+  .kvRow,
+  .infoRow{
+    grid-template-columns: minmax(140px, 200px) max-content;
+    column-gap: 14px;
+  }
+  .kvRow .v,
+  .infoRow .v{
+    justify-self: start;
+    text-align: left;
+  }
+}
+
+/* Desktop/Tablet: Karte insgesamt etwas kompakter, damit der Kopf weniger "luftig" wirkt */
+@media (min-width: 900px) and (min-height: 600px){
+  .wrap{ max-width: 1120px; }
+  .card{ padding: 16px; }
+}
+
 /* Dezente Top-Kantenlinie: global, nicht nur Desktop */
 .card{position:relative; overflow:hidden}
 .card::before{
@@ -1475,10 +1496,26 @@ html.modalOpen body{touch-action:none;}
   .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
   .head{ gap: calc(6px * var(--uiScale)); }
 
-  /* Zwei-Spalten-Kopf: linke Spalte fix schmaler → weniger Leerlauf im Header */
-  .topGrid{ grid-template-columns: 320px 1fr; gap: calc(16px * var(--uiScale)); }
+  /* Zwei-Spalten-Kopf: rechter Infoblock bewusst schmaler */
+  .topGrid{ grid-template-columns: 1fr 520px; gap: calc(16px * var(--uiScale)); }
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
+}
+
+/* Desktop/Tablet: Werte-Spalte nicht bis ganz rechts ziehen (Meta/User/Spielzeit, Store, Humorstatistik) */
+@media (min-width: 900px){
+  /* Key/Value-Reihen werden wie "Label | Wert" gesetzt, nicht "Label ...... Wert" */
+  .kvRow,
+  .infoRow{
+    grid-template-columns: minmax(140px, 220px) max-content;
+    column-gap: calc(14px * var(--uiScale));
+  }
+
+  .kvRow .v,
+  .infoRow .v{
+    justify-self: start;
+    text-align: left;
+  }
 }
 
