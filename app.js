@@ -9,7 +9,7 @@ console.log("Build 7.1h loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1i").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1i2").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2345,7 +2345,7 @@ function classifyAvailability(av){
             <div class="head">
               <div class="rowMeta">
                 <div class="idBadge">ID ${esc(id || "—")}</div>
-                ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div style="width:34px;height:34px"></div>`}
+                ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
               </div>
 
               <div class="title">${esc(title)}</div>
