@@ -1082,18 +1082,18 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1i2 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1i3 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
-   - Infoblock etwas schmaler (wirkt weniger "halbe Karte")
+   - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
   .topGrid{
-    grid-template-columns: 1fr clamp(calc(240px * var(--uiScale)), 38vw, calc(340px * var(--uiScale)));
+    grid-template-columns: 1fr clamp(calc(260px * var(--uiScale)), 40vw, calc(360px * var(--uiScale)));
     gap: calc(12px * var(--uiScale));
   }
   .info{
-    max-width: clamp(calc(240px * var(--uiScale)), 38vw, calc(340px * var(--uiScale)));
+    max-width: clamp(calc(260px * var(--uiScale)), 40vw, calc(360px * var(--uiScale)));
     justify-self:end;
   }
 
