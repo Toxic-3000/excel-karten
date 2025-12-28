@@ -500,7 +500,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .kvHumor .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
 .kvHumor .kvRowPrimary{ padding-bottom: calc(10px * var(--uiScale)); margin-bottom: calc(8px * var(--uiScale)); border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%); }
 .kvStore .kvRow + .kvRow{ border-top:none; }
-.kvStore .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
+.kvStore .kvRow{
+  padding: calc(6px * var(--uiScale)) 0;
+  /* Phone-Portrait bei sehr großer Schrift: Value-Spalte minimal breiter,
+     damit kurze Linktexte (z.B. "Store Link") nicht auf 2 Zeilen umbrechen. */
+  grid-template-columns: minmax(calc(96px * var(--uiScale)), 0.42fr) minmax(0, 0.58fr);
+}
+
+/* Linktext in KV-Tabellen nicht umbrechen (insb. A+++ im Phone-Portrait) */
+.kvStore a{ white-space:nowrap; word-break:normal; }
 
 
 .vNum{ font-variant-numeric: tabular-nums; font-weight: 620; }
