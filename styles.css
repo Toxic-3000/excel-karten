@@ -1605,8 +1605,10 @@ html.modalOpen body{touch-action:none;}
   .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
   .head{ gap: calc(6px * var(--uiScale)); }
 
-  /* Zwei-Spalten-Kopf: Infoblock wird zur echten Sidebar (kontrollierte Breite) */
-  .topGrid{ grid-template-columns: 1fr clamp(calc(300px * var(--uiScale)), 34vw, calc(420px * var(--uiScale))); gap: calc(16px * var(--uiScale)); }
+  /* Zwei-Spalten-Kopf: Infoblock so breit wie die rechte Detail-Kachel (Humorstatistik)
+     → gleiche 2-Spalten-Logik wie unten (Store/Humor) für ruhige Kanten/Fluchten.
+     Wichtig: kein clamp/vw hier, sonst driftet die Kante je nach Browser-UI. */
+  .topGrid{ grid-template-columns: 1fr 1fr; gap: calc(10px * var(--uiScale)); }
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
