@@ -386,15 +386,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .infoRow{
   display:grid;
-  /* Gleiche Spaltenlogik wie KV-Tabellen, damit Werte im Infoblock
-     horizontal exakt mit Store/Humor fluchten (auch bei A+++). */
-  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.40fr) minmax(0, 0.60fr);
+  /* Phone Portrait: wie bei A/A+/A++ sollen Werte bis an den rechten Rand laufen.
+     Dafür braucht die Value-Spalte die volle Restbreite (1fr) und die Value selbst
+     wird am Zellenende verankert. */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.infoRow .v{ text-align:right; }
+.infoRow .v{ text-align:right; justify-self:end; }
 
 .infoRowPrimary{
   padding-bottom: calc(10px * var(--uiScale));
@@ -422,16 +423,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .kvRow{
   display:grid;
-  /* Phone Portrait: etwas mehr Platz für Werte (v.a. A+++), damit kurze Linktexte
-     wie "Store Link" nicht umbrechen – und gleichzeitig in allen Sektionen
-     (Infoblock/Store/Humor) exakt die gleiche Value-Ausrichtung entsteht. */
-  grid-template-columns: minmax(calc(100px * var(--uiScale)), 0.40fr) minmax(0, 0.60fr);
+  /* Phone Portrait: gleiche Logik wie im Infoblock.
+     Wichtig für A+++: "Store Link" bleibt einzeilig, Werte bleiben rechtsbündig
+     UND bis an den rechten Rand ausgerichtet. */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.kvRow .v{ text-align:right; }
+.kvRow .v{ text-align:right; justify-self:end; }
 
 /* ------------------------------
    Build 7.1i – Layout-Dichte & Ausrichtung Desktop/Tablet
