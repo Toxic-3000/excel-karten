@@ -1084,22 +1084,33 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1i5 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1i6 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
+  /* --- Build 7.1i6 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+     Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
+     Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
+     Portrait bleibt unberührt. */
+
   .topGrid{
-    /* kleiner Tick nach links: rechter Block minimal schmaler, damit er nicht zu weit rechts wirkt */
-    grid-template-columns: 1fr clamp(calc(255px * var(--uiScale)), 38vw, calc(345px * var(--uiScale)));
+    display:grid;
+    grid-template-columns: 1fr calc(340px * var(--uiScale));
     gap: calc(12px * var(--uiScale));
-  }
-  .info{
-    max-width: clamp(calc(255px * var(--uiScale)), 38vw, calc(345px * var(--uiScale)));
-    justify-self:end;
+    align-items:start;
   }
 
+  .info{
+    width: calc(340px * var(--uiScale));
+    max-width:none;
+    justify-self:end;
+    /* der entscheidende „nach links“-Tick: nicht mehr hart am Kartenrand kleben */
+    margin-right: calc(18px * var(--uiScale));
+  }
+
+  /* Label/Wert näher zusammen wie Desktop/Tablet */
   .infoRow,
   .kvRow{
     grid-template-columns: minmax(calc(120px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
