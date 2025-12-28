@@ -376,13 +376,14 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .infoRow{
   display:grid;
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  /* Value-Spalte nicht „aufblasen“: weniger Leerraum zwischen Label und Wert */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 1fr) max-content;
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.infoRow .v{ text-align:right; }
+.infoRow .v{ text-align:right; justify-self:end; }
 
 .infoRowPrimary{
   padding-bottom: calc(10px * var(--uiScale));
@@ -410,13 +411,14 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .kvRow{
   display:grid;
-  grid-template-columns: minmax(calc(110px * var(--uiScale)), 0.45fr) minmax(0, 0.55fr);
+  /* Value-Spalte schlank halten (reduziert „Stretch“-Abstand wie im Screenshot) */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), 1fr) max-content;
   gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   align-items:baseline;
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.kvRow .v{ text-align:right; }
+.kvRow .v{ text-align:right; justify-self:end; }
 
 .kvRow + .kvRow{
   border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
@@ -1025,6 +1027,18 @@ html.modalOpen body{touch-action:none;}
   .wrap{max-width:1040px}
   .card{padding: calc(14px * var(--uiScale)); margin: 48px 0}
   .title{font-size: calc(24px * var(--uiScale))}
+}
+
+/* --- Windows Tablet Portrait (z.B. 800×1280): Karte etwas kompakter --- */
+@media (min-width: 700px) and (max-width: 1099px) and (orientation: portrait){
+  .wrap{max-width:900px}
+  .card{padding: calc(14px * var(--uiScale)); margin: 42px 0}
+}
+
+/* --- Desktop/Windows-Tablet: Info-Panel rechts schmaler (Android Landscape bleibt unberührt) --- */
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape){
+  .topGrid{grid-template-columns: 1.12fr 0.88fr}
+  .info{max-width: 560px; justify-self:end}
 }
 
 /* Dezente Top-Kantenlinie: global, nicht nur Desktop */
