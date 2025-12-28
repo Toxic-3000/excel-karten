@@ -1,67 +1,113 @@
-# Spieleliste – Webansicht (Build 7.1i8)
+# Spieleliste – Webansicht (Build 7.1i15)
 
-Kompakte, schnelle Webansicht für deine persönliche Spieleliste auf Basis einer **lokal ausgewählten Excel-Datei (.xlsx)**.
-Alles läuft **clientseitig im Browser** (kein Backend) und ist für GitHub Pages gedacht.
+Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
+Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
+**Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Ist-Zustand
+## Zielbild (Design & UX)
 
-Getestet und funktionsfähig in:
+- **Mobile-first**: Android Phone (Portrait + Landscape) ist der Referenzstandard und darf nicht verschlechtert werden.
+- **Kompaktansicht-only**: ruhige Karten, klare Hierarchie, wenig Schnickschnack.
+- **Header-Standard Variante A**
+  - Zeile 1: Plattform
+  - Zeile 2: Quelle/Verfügbarkeit
+  - Zeile 3: Genre (kleiner/dunkler)
+  - Zeile 4: Trophäenstatus (neutral, 1 Badge)
+- **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
+- **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-- ✅ Android Phone: Portrait
-- ✅ Android Phone: Landscape
+## Getestet (Stand 7.1i15)
+
+- ✅ Android Phone Portrait
+- ✅ Android Phone Landscape
 - ✅ Desktop (Windows)
-- ✅ Windows Tablet: Portrait
-- ✅ Windows Tablet: Landscape (z. B. 1280×800)
+- ✅ Windows Tablet Portrait
+- ✅ Windows Tablet Landscape (z. B. 1280×800)
 
-## Schnellstart (GitHub Pages)
+## Schnellstart
 
-1. Lege diese Dateien gemeinsam in **denselben Ordner** (z. B. Repository-Root):
+### GitHub Pages
+1. Lege diese Dateien gemeinsam in denselben Ordner (z. B. Repo-Root):
    - `index.html`
    - `styles.css`
    - `app.js`
    - `xlsx.full.min.js`
-2. Aktiviere GitHub Pages (Branch/Folder auswählen).
-3. Öffne die Pages-URL und klicke **„Excel auswählen“**.
+2. GitHub Pages aktivieren (Branch/Folder auswählen).
+3. Seite öffnen → **„Excel auswählen“**.
+
+### Lokal
+- Ordner in einem lokalen Webserver starten (z. B. VS Code „Live Server“).
+- Dann im Browser öffnen und Excel auswählen.
+
+> Hinweis: `?v=...` Query-Parameter in `index.html` dienen nur dem Cache-Busting.
 
 ## Bedienung
 
 ### Excel laden
 - Button **„Excel auswählen“** → `.xlsx` auswählen.
-- Es wird bevorzugt das Tabellenblatt **„Spieleliste Komplett“** genutzt; falls nicht vorhanden, wird das **erste** Blatt genommen.
+- Es wird bevorzugt das Tabellenblatt **„Spieleliste Komplett“** verwendet; falls nicht vorhanden, wird das erste Blatt genommen.
+
+### Textgröße (Aa)
+- Button **„Aa“** schaltet Presets (A / A+ / A++ / A+++).
+- Ziel: Presets verhalten sich konsistent über Portrait/Landscape und bleiben lesbar.
 
 ### Suche
-- Ein Suchfeld für schnelle Treffer (ID, Titel, Genre, Subgenre, Entwickler …).
-- Das ⓘ-Symbol neben der Suche zeigt/verbirgt die Such-Hilfe.
+- Freitextsuche über ID, Titel, Genre/Subgenre, Entwickler usw.
+- Suchhilfe (ⓘ) zeigt Beispiele.
+- Praktische Kurzsyntax (Beispiele):
+  - `id=643`
+  - `titel:metro`
+  - `genre:"Action Adventure"`
+  - `sg:horror`
+  - `dev:remedy`
+  - `p:ps5`
+  - `quelle:psn`
+  - `verfügbarkeit:delisted`
+  - Ausschluss: `-genre:sport`
 
 ### Filter & Sortieren
-- Öffnet ein Sheet/Modal (mobile/desktop-optimiert).
+- Sheet/Modal ist mobile/desktop-optimiert.
 - Sortierung: Feld + Richtung.
-- Schnellfilter: Icon-Buttons für häufige Zustände.
-- Genre: Multi-Select per Dropdown; Auswahl wird als Chips im Filterfeld angezeigt.
-- **„Anwenden“** setzt die Auswahl aktiv, **„Zurücksetzen“** leert alles.
+- Genre: Multi-Select (Chips).
+- Desktop/Tablet: Fokus bleibt im Dialog (Tab-Loop); Esc schließt zuerst Dropdown, dann den Dialog.
 
-Tastatur (Desktop/Tablet):
-- **Tab** bleibt im Dialog (Focus-Loop)
-- **Esc** schließt zuerst ein geöffnetes Dropdown, dann den Dialog
+## Excel-Erwartungen (Datenmodell – pragmatisch)
 
-## Technische Hinweise
+Die Webansicht ist tolerant, aber am stabilsten läuft sie mit einer konsistenten Struktur.
+Wichtige Felder, die in der UI angezeigt werden:
 
-- Verarbeitung der Excel-Datei erfolgt lokal im Browser.
+- ID / Titel
+- Plattform
+- Quelle / Verfügbarkeit
+- Genre / Subgenre
+- Entwickler
+- Spielzeit (Main / 100%)
+- Metascore / Userwertung
+- Store-Link (URL + Linktext aus Excel)
+- Trophäenstatus
+- Humorstatistik (Gesamtstunden, % Lebenszeit, Jahre)
+- Beschreibung / Eastereggs (falls vorhanden)
 
-- Keine Daten werden hochgeladen oder gespeichert (Stand 7.1i4).
+## Was ist neu / was wurde im 7.1i‑Zweig poliert?
 
-- In 7.1b/7.1c: Suche ist leicht **debounced** und Filter nutzen vorberechnete Normalisierungen für flüssigeres Tippen.
+Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ändern.**
 
-- Desktop/Windows-Tablet: Typografie skaliert konsistent mit den A/A+/A++/A+++ Presets und ist für längeres Lesen optimiert (Lesebreite, Hierarchie, Rhythmus).
-- Desktop/Windows-Tablet: Kartenkopf/Kartenabstände sind etwas kompakter, damit der Header nicht „leer“ wirkt.
+- Desktop/Tablet: rechter Infoblock (Header) wirkt wie eine echte Sidebar statt „halbe Karte“.
+- Label↔Wert-Abstände harmonisiert (Infoblock + Store + Humorstatistik).
+- Windows Tablet Portrait: Karte etwas kompakter (mehr Außenrand) und **Store + Humorstatistik nebeneinander**.
+- Tablet Landscape + Desktop: Infoblock oben rechts auf **exakte Humorstatistik-Breite** gebracht (saubere Fluchten).
+- Phone (Portrait/Landscape): bewusst stabil gehalten; nur gezielte Fixes für A+++ (u. a. Link-Umbruch/Alignment) – ohne Layoutsprünge.
 
 ## Bekannte Einschränkungen
 
-- Excel kann aktuell **nur gelesen**, nicht bearbeitet werden.
-- Sehr große Listen können auf schwächeren Geräten langsamer reagieren.
+- Excel wird nur gelesen, nicht bearbeitet.
+- Sehr große Listen können auf schwächeren Geräten spürbar langsamer werden.
+- Browser-UI (Mobile Adressleiste etc.) kann Layout-Metriken beeinflussen; kritische Bereiche werden daher bevorzugt über stabile Layoutregeln (Grid/Flex) statt `vw`-Tricks gelöst.
 
-## Roadmap (kurz)
+## Struktur / Dateien
 
-- Performance-Optimierung der Filter-/Suchpipeline (✓ in 7.1b)
-- Desktop-Lesbarkeit weiter polieren
-- Optional: Zustand (Filter/Suche/Sortierung) lokal merken
+- `index.html` – Layout-Shell & UI-Gerüst
+- `styles.css` – gesamtes Styling inkl. Breakpoints
+- `app.js` – Logik: Excel-Import, Normalisierung, Filter/Suche/Sortierung, Rendering
+- `xlsx.full.min.js` – XLSX-Parser (SheetJS)
+
