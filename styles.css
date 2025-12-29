@@ -634,9 +634,9 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(7.5px * var(--uiScale)) calc(10.5px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(16px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
 }
@@ -650,9 +650,9 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(7.5px * var(--uiScale)) calc(10.5px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(16px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
   font-weight: 700;
   opacity: .82;
 }
@@ -680,6 +680,21 @@ summary::-webkit-details-marker{display:none}
   .fab{ bottom: calc(16px * var(--uiScale) + 56px); }
   .toTop{ bottom: calc(86px * var(--uiScale) + 56px); }
   .fabPanel{ bottom: calc(70px * var(--uiScale) + 56px); }
+}
+
+/* Phone Landscape: make the quick panel wider + 2-column layout to avoid scrolling */
+@media (pointer: coarse) and (max-width: 900px) and (orientation: landscape){
+  .fabPanel{
+    width: min(520px, calc(100vw - 28px));
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: calc(12px * var(--uiScale));
+  }
+  .fabHead{ grid-column: 1 / -1; }
+  .fabActions{ grid-column: 1 / -1; }
+  .fabSect{ margin-top: calc(10px * var(--uiScale)) !important; }
+  .fabChips{ gap: calc(8px * var(--uiScale)) !important; }
+  .fabPanel .chip{ padding: calc(7px * var(--uiScale)) calc(9px * var(--uiScale)) !important; }
 }
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
