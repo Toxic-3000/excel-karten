@@ -219,14 +219,29 @@ console.log("Build 7.1j6 loaded");
     }
 
     // Wire FAB open/close
-    el.fabView.addEventListener("click", (e) => {
+    // In Mobile-Landscape (v.a. iOS/Safari) kann "click" nach Touch/Scroll
+    // gelegentlich nicht feuern. Wir binden daher zusätzlich pointerup/touchend.
+    const fabToggleHandler = (e) => {
+      e.preventDefault?.();
       e.stopPropagation();
       toggleFab();
-    });
+    };
+    el.fabView.addEventListener("click", fabToggleHandler);
+    el.fabView.addEventListener("pointerup", fabToggleHandler);
+    el.fabView.addEventListener("touchend", fabToggleHandler, { passive: false });
     // Clicks inside the panel should not close it.
-    el.fabPanel.addEventListener("click", (e) => e.stopPropagation());
+    const fabInsideHandler = (e) => e.stopPropagation();
+    el.fabPanel.addEventListener("click", fabInsideHandler);
+    el.fabPanel.addEventListener("pointerdown", fabInsideHandler);
     if (el.fabClose){
-      el.fabClose.addEventListener("click", (e) => { e.stopPropagation(); closeFab(); });
+      const fabCloseHandler = (e) => {
+        e.preventDefault?.();
+        e.stopPropagation();
+        closeFab();
+      };
+      el.fabClose.addEventListener("click", fabCloseHandler);
+      el.fabClose.addEventListener("pointerup", fabCloseHandler);
+      el.fabClose.addEventListener("touchend", fabCloseHandler, { passive: false });
     }
 
     // Wire chips inside panel
@@ -259,14 +274,24 @@ console.log("Build 7.1j6 loaded");
 
     // Open the full menu from the FAB (so you never have to scroll back up)
     if (el.fabOpenMenu){
-      el.fabOpenMenu.addEventListener("click", (e) => {
+      const openMenuHandler = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         closeFab();
         openMenuDialog();
-      });
+      };
+      el.fabOpenMenu.addEventListener("click", openMenuHandler);
+      el.fabOpenMenu.addEventListener("pointerup", openMenuHandler);
+      el.fabOpenMenu.addEventListener("touchend", openMenuHandler, { passive: false });
     }
 
-    // Close on outside click / Esc
+    // Prevent outside-close handlers from firing when interacting inside the panel
+    // (needed for pointerdown/touchstart based closing)
+    el.fabPanel.addEventListener("pointerdown", (e) => e.stopPropagation());
+    el.fabPanel.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+
+    // Close on outside interaction / Esc
+    document.addEventListener("pointerdown", () => closeFab(), { passive: true });
     document.addEventListener("click", () => closeFab());
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFab(); });
   }
