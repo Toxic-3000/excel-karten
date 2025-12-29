@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j9 loaded");
+console.log("Build 7.1j11 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j9
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
@@ -219,25 +219,29 @@ console.log("Build 7.1j9 loaded");
     }
 
     // Wire FAB open/close
-    // Important: Do NOT bind multiple "tap"-like events (touchend + pointerup + click).
-    // Many mobile browsers will fire more than one of these for a single gesture,
-    // which can toggle open -> closed immediately and feels like "it doesn't open".
-    const fabToggleHandler = (e) => {
+    // iOS/Safari (especially in landscape) can sometimes drop "click" events on fixed elements.
+    // We listen to a small set of tap-ish events and de-duplicate them.
+    let fabLastTap = 0;
+    const dedupTap = (fn) => (e) => {
+      const now = Date.now();
+      if (now - fabLastTap < 350) return;
+      fabLastTap = now;
       e.preventDefault?.();
       e.stopPropagation();
-      toggleFab();
+      fn();
     };
+    const fabToggleHandler = dedupTap(toggleFab);
+    el.fabView.addEventListener("pointerup", fabToggleHandler);
+    el.fabView.addEventListener("touchend", fabToggleHandler, {passive:false});
     el.fabView.addEventListener("click", fabToggleHandler);
     // Clicks inside the panel should not close it.
     const fabInsideHandler = (e) => e.stopPropagation();
     el.fabPanel.addEventListener("click", fabInsideHandler);
     el.fabPanel.addEventListener("pointerdown", fabInsideHandler);
     if (el.fabClose){
-      const fabCloseHandler = (e) => {
-        e.preventDefault?.();
-        e.stopPropagation();
-        closeFab();
-      };
+      const fabCloseHandler = dedupTap(closeFab);
+      el.fabClose.addEventListener("pointerup", fabCloseHandler);
+      el.fabClose.addEventListener("touchend", fabCloseHandler, {passive:false});
       el.fabClose.addEventListener("click", fabCloseHandler);
     }
 

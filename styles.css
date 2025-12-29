@@ -30,8 +30,9 @@
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
 
-  --z-fab: 10000;
-  --z-fab-panel: 10001;
+  /* Keep floating controls clickable even when the panel is open */
+  --z-fab-panel: 10000;
+  --z-fab: 10001;
 }
 
 
@@ -650,7 +651,7 @@ summary::-webkit-details-marker{display:none}
   position:fixed;
   right: calc(12px * var(--uiScale));
   bottom: calc(16px * var(--uiScale));
-  z-index:65;
+  z-index: var(--z-fab);
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
@@ -659,13 +660,15 @@ summary::-webkit-details-marker{display:none}
   font-size: calc(14px * var(--uiScale));
   font-weight: 700;
   opacity: .82;
+  touch-action: manipulation;
 }
 .fab:active{ transform: translateY(1px); }
 
 .fabPanel{
   pointer-events: auto;
 
-  transform: translateZ(0);
+  /* Avoid Safari/iOS quirks: fixed + transform can break tapping in landscape */
+  transform: none;
 
   position: fixed !important;
   right: calc(12px * var(--uiScale));
@@ -738,6 +741,7 @@ summary::-webkit-details-marker{display:none}
   font-weight: 650;
   cursor: pointer;
   pointer-events: auto;
+  touch-action: manipulation;
 }
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
