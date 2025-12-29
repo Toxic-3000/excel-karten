@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j11 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j9
+console.log("Build 7.1j1 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j1
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j9").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j1").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -219,30 +219,14 @@ console.log("Build 7.1j11 loaded");
     }
 
     // Wire FAB open/close
-    // iOS/Safari (especially in landscape) can sometimes drop "click" events on fixed elements.
-    // We listen to a small set of tap-ish events and de-duplicate them.
-    let fabLastTap = 0;
-    const dedupTap = (fn) => (e) => {
-      const now = Date.now();
-      if (now - fabLastTap < 350) return;
-      fabLastTap = now;
-      e.preventDefault?.();
+    el.fabView.addEventListener("click", (e) => {
       e.stopPropagation();
-      fn();
-    };
-    const fabToggleHandler = dedupTap(toggleFab);
-    el.fabView.addEventListener("pointerup", fabToggleHandler);
-    el.fabView.addEventListener("touchend", fabToggleHandler, {passive:false});
-    el.fabView.addEventListener("click", fabToggleHandler);
+      toggleFab();
+    });
     // Clicks inside the panel should not close it.
-    const fabInsideHandler = (e) => e.stopPropagation();
-    el.fabPanel.addEventListener("click", fabInsideHandler);
-    el.fabPanel.addEventListener("pointerdown", fabInsideHandler);
+    el.fabPanel.addEventListener("click", (e) => e.stopPropagation());
     if (el.fabClose){
-      const fabCloseHandler = dedupTap(closeFab);
-      el.fabClose.addEventListener("pointerup", fabCloseHandler);
-      el.fabClose.addEventListener("touchend", fabCloseHandler, {passive:false});
-      el.fabClose.addEventListener("click", fabCloseHandler);
+      el.fabClose.addEventListener("click", (e) => { e.stopPropagation(); closeFab(); });
     }
 
     // Wire chips inside panel
@@ -275,21 +259,15 @@ console.log("Build 7.1j11 loaded");
 
     // Open the full menu from the FAB (so you never have to scroll back up)
     if (el.fabOpenMenu){
-      const openMenuHandler = (e) => {
-        e.preventDefault?.();
+      el.fabOpenMenu.addEventListener("click", (e) => {
         e.stopPropagation();
         closeFab();
         openMenuDialog();
-      };
-      el.fabOpenMenu.addEventListener("click", openMenuHandler);
+      });
     }
 
-    // Prevent outside-close handlers from firing when interacting inside the panel
-    // (needed for pointerdown/touchstart based closing)
-    el.fabPanel.addEventListener("pointerdown", (e) => e.stopPropagation());
-    el.fabPanel.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
-
-    // Close only via Aa (toggle) or X (close). Esc is fine on desktop.
+    // Close on outside click / Esc
+    document.addEventListener("click", () => closeFab());
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFab(); });
   }
 

@@ -29,12 +29,7 @@
 
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
-
-  /* Keep floating controls clickable even when the panel is open */
-  --z-fab-panel: 10000;
-  --z-fab: 10001;
 }
-
 
 
 *{box-sizing:border-box}
@@ -491,8 +486,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 @media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
   .wrap{
     /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
-    padding-left: calc(34px * var(--uiScale));
-    padding-right: calc(34px * var(--uiScale));
+    padding-left: calc(26px * var(--uiScale));
+    padding-right: calc(26px * var(--uiScale));
   }
   .card{
     padding: calc(16px * var(--uiScale));
@@ -632,16 +627,15 @@ summary::-webkit-details-marker{display:none}
 
 .toTop{
   position:fixed;
-  right: calc(12px * var(--uiScale));
+  right: calc(14px * var(--uiScale));
   /* make room for the FAB */
-  bottom: calc(82px * var(--uiScale));
+  bottom: calc(86px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(6.5px * var(--uiScale)) calc(9.5px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(14px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
 }
@@ -649,35 +643,26 @@ summary::-webkit-details-marker{display:none}
 /* Floating Action Button (Ansicht) */
 .fab{
   position:fixed;
-  right: calc(12px * var(--uiScale));
+  right: calc(14px * var(--uiScale));
   bottom: calc(16px * var(--uiScale));
-  z-index: var(--z-fab);
+  z-index:65;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(6.5px * var(--uiScale)) calc(9.5px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(14px * var(--uiScale));
   font-weight: 700;
   opacity: .82;
-  touch-action: manipulation;
 }
 .fab:active{ transform: translateY(1px); }
 
 .fabPanel{
-  pointer-events: auto;
-
-  /* Avoid Safari/iOS quirks: fixed + transform can break tapping in landscape */
-  transform: none;
-
-  position: fixed !important;
-  right: calc(12px * var(--uiScale));
-  bottom: calc(66px * var(--uiScale));
-  z-index: var(--z-fab-panel);
+  position:fixed;
+  right: calc(14px * var(--uiScale));
+  bottom: calc(70px * var(--uiScale));
+  z-index:66;
   width: min(320px, calc(100vw - 28px));
-  /* Use *largest* viewport height so the panel doesn't resize when the browser
-     UI appears/disappears while scrolling (Android/Chrome changes dvh). */
-  max-height: calc(100lvh - 120px);
+  max-height: calc(100dvh - 120px);
   overflow:auto;
   -webkit-overflow-scrolling: touch;
   border:1px solid var(--border);
@@ -686,52 +671,7 @@ summary::-webkit-details-marker{display:none}
   box-shadow: var(--shadow);
   padding: calc(12px * var(--uiScale));
 }
-
-/* Windows/Tablet: fixed buttons higher, so they don't get eaten by the OS taskbar.
-   (Phone stays untouched: min-width keeps this out of mobile breakpoints.) */
-@media (pointer: coarse) and (min-width: 900px) and (orientation: portrait){
-  .fab{ bottom: calc(16px * var(--uiScale) + 56px); }
-  .toTop{ bottom: calc(86px * var(--uiScale) + 56px); }
-  .fabPanel{ bottom: calc(70px * var(--uiScale) + 56px); }
-}
-
-/* Phone Landscape: quick panel should avoid scrolling.
-   Prefer a 3-column layout (Textgröße / Sortieren nach / Sortierung) when there's room.
-   This is scoped to phones only (max-width) so tablet/desktop stay unchanged. */
-@media (pointer: coarse) and (max-width: 900px) and (orientation: landscape){
-  .fabPanel{
-    width: min(760px, calc(100vw - 28px));
-    /* Keep size/position stable in mobile landscape (address bar changes visual viewport height). */
-    top: calc(10px * var(--uiScale));
-    bottom: auto;
-    max-height: calc(100lvh - 20px);
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: calc(10px * var(--uiScale));
-  }
-  .fabHead{ grid-column: 1 / -1; }
-  .fabActions{ grid-column: 1 / -1; }
-  .fabSect{ margin-top: calc(10px * var(--uiScale)) !important; }
-  .fabChips{ gap: calc(8px * var(--uiScale)) !important; }
-  .fabPanel .chip{ padding: calc(6.5px * var(--uiScale)) calc(8.5px * var(--uiScale)) !important; }
-  /* keep chip rows from forcing the panel wider */
-  .fabChips{ flex-wrap: wrap; }
-}
-
-/* If the phone landscape viewport is unusually narrow, fall back to 2 columns to keep tap targets readable. */
-@media (pointer: coarse) and (max-width: 720px) and (orientation: landscape){
-  .fabPanel{ grid-template-columns: 1fr 1fr; width: min(560px, calc(100vw - 28px)); }
-}
-.fabHead{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: calc(10px * var(--uiScale));
-  position: sticky;
-  top: 0;
-  background: inherit;
-  z-index: 2;
-}
+.fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 .fabClose{
   border:1px solid var(--border);
@@ -739,9 +679,6 @@ summary::-webkit-details-marker{display:none}
   border-radius:999px;
   padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
   font-weight: 650;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
 }
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
@@ -1452,8 +1389,6 @@ html.modalOpen body{touch-action:none;}
 
 /* FAB polish */
 .fabBtn{
-  z-index: var(--z-fab);
-
   background: color-mix(in oklab, #ffffff 88%, var(--bg) 12%);
   border-color: color-mix(in oklab, var(--blue) 18%, var(--border) 82%);
 }
@@ -1767,7 +1702,3 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
 }
 
-
-
-/* Patch j10: ensure FAB panel clickable above all */
-.fabPanel, .fabPanel * { pointer-events: auto; }

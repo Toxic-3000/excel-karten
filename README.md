@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j10)
+# Spieleliste – Webansicht (Build 7.1j1)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j10)
+## Getestet (Stand 7.1j1)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -25,12 +25,6 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - ✅ Windows Tablet Landscape (z. B. 1280×800)
 
 ## Schnellstart
-
-## Änderungen in 7.1j10
-
-- **Fix: Schnellmenü (Ansicht) ist wieder sauber togglebar**: Öffnen/Schließen erfolgt **nur** über **Aa** (Toggle) oder **X**.
-- **Kein „Backdrop-Close“ mehr**: Klick in den Hintergrund schließt das Menü nicht (damit das Verhalten überall konsistent bleibt).
-- **Phone Landscape**: Schließen funktioniert wieder zuverlässig (Aa/X), ohne dass das Menü direkt erneut aufspringt.
 
 ### GitHub Pages
 1. Lege diese Dateien gemeinsam in denselben Ordner (z. B. Repo-Root):
@@ -108,16 +102,12 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 ## Patchplan – nächster Schritt: 7.1j (Typografie Desktop/Tablet)
 
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
-ohne Android-Phone (Portrait/Landscape) grundsätzlich umzubauen (Phone-Landscape bekam nur ein Quick-Menü-Layout-Update).
+ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j5 bereits umgesetzt?
+### Was ist in 7.1j1 bereits umgesetzt?
 - Titel/Body-Typografie für Desktop/Tablet harmonisiert (kontrolliertes `clamp()` + ruhigeres `line-height`).
 - Badge-Zeilen etwas kompakter (weniger „Luft“, gleiche visuelle Ordnung).
 - Akkordeon-Header klarer als Abschnittsüberschriften (Spacing + Gewicht), ohne neue UI-Elemente.
-- Floating Buttons (Top + Schnellmenü): minimal kleiner skaliert (weniger „Button-Dominanz“, gleiche Bedienbarkeit).
-- Phone Landscape: Schnellmenü-Panel breiter und **dreispaltig** (Textgröße / Sortieren / Richtung), damit es i. d. R. ohne Scrollen auskommt.
-  - Fallback: bei sehr schmalem Landscape automatisch 2 Spalten.
-- Floating-Buttons (Top/Aa) minimal kleiner, damit sie weniger „dominant“ wirken.
 
 ## Bekannte Einschränkungen
 
