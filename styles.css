@@ -486,8 +486,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 @media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
   .wrap{
     /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
-    padding-left: calc(26px * var(--uiScale));
-    padding-right: calc(26px * var(--uiScale));
+    padding-left: calc(34px * var(--uiScale));
+    padding-right: calc(34px * var(--uiScale));
   }
   .card{
     padding: calc(16px * var(--uiScale));
@@ -670,6 +670,14 @@ summary::-webkit-details-marker{display:none}
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   box-shadow: var(--shadow);
   padding: calc(12px * var(--uiScale));
+}
+
+/* Windows/Tablet: fixed buttons higher, so they don't get eaten by the OS taskbar.
+   (Phone stays untouched: min-width keeps this out of mobile breakpoints.) */
+@media (pointer: coarse) and (min-width: 720px){
+  .fab{ bottom: calc(16px * var(--uiScale) + 56px); }
+  .toTop{ bottom: calc(86px * var(--uiScale) + 56px); }
+  .fabPanel{ bottom: calc(70px * var(--uiScale) + 56px); }
 }
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
