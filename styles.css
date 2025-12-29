@@ -29,7 +29,11 @@
 
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
+
+  --z-fab: 10000;
+  --z-fab-panel: 10001;
 }
+
 
 
 *{box-sizing:border-box}
@@ -659,10 +663,14 @@ summary::-webkit-details-marker{display:none}
 .fab:active{ transform: translateY(1px); }
 
 .fabPanel{
-  position:fixed;
+  pointer-events: auto;
+
+  transform: translateZ(0);
+
+  position: fixed !important;
   right: calc(12px * var(--uiScale));
   bottom: calc(66px * var(--uiScale));
-  z-index:66;
+  z-index: var(--z-fab-panel);
   width: min(320px, calc(100vw - 28px));
   /* Use *largest* viewport height so the panel doesn't resize when the browser
      UI appears/disappears while scrolling (Android/Chrome changes dvh). */
@@ -1440,6 +1448,8 @@ html.modalOpen body{touch-action:none;}
 
 /* FAB polish */
 .fabBtn{
+  z-index: var(--z-fab);
+
   background: color-mix(in oklab, #ffffff 88%, var(--bg) 12%);
   border-color: color-mix(in oklab, var(--blue) 18%, var(--border) 82%);
 }
@@ -1753,3 +1763,7 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
 }
 
+
+
+/* Patch j10: ensure FAB panel clickable above all */
+.fabPanel, .fabPanel * { pointer-events: auto; }
