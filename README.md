@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j2)
+# Spieleliste – Webansicht (Build 7.1j3)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j2)
+## Getestet (Stand 7.1j3)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -104,7 +104,7 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
 ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j2 bereits umgesetzt?
+### Was ist in 7.1j3 bereits umgesetzt?
 - Titel/Body-Typografie für Desktop/Tablet harmonisiert (kontrolliertes `clamp()` + ruhigeres `line-height`).
 - Badge-Zeilen etwas kompakter (weniger „Luft“, gleiche visuelle Ordnung).
 - Akkordeon-Header klarer als Abschnittsüberschriften (Spacing + Gewicht), ohne neue UI-Elemente.

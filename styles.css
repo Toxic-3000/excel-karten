@@ -627,15 +627,16 @@ summary::-webkit-details-marker{display:none}
 
 .toTop{
   position:fixed;
-  right: calc(14px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
   /* make room for the FAB */
-  bottom: calc(86px * var(--uiScale));
+  bottom: calc(82px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   box-shadow: var(--shadow);
+  font-size: calc(16px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
 }
@@ -643,14 +644,15 @@ summary::-webkit-details-marker{display:none}
 /* Floating Action Button (Ansicht) */
 .fab{
   position:fixed;
-  right: calc(14px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
   bottom: calc(16px * var(--uiScale));
   z-index:65;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   box-shadow: var(--shadow);
+  font-size: calc(16px * var(--uiScale));
   font-weight: 700;
   opacity: .82;
 }
@@ -658,8 +660,8 @@ summary::-webkit-details-marker{display:none}
 
 .fabPanel{
   position:fixed;
-  right: calc(14px * var(--uiScale));
-  bottom: calc(70px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
+  bottom: calc(66px * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
   max-height: calc(100dvh - 120px);
@@ -674,7 +676,7 @@ summary::-webkit-details-marker{display:none}
 
 /* Windows/Tablet: fixed buttons higher, so they don't get eaten by the OS taskbar.
    (Phone stays untouched: min-width keeps this out of mobile breakpoints.) */
-@media (pointer: coarse) and (min-width: 720px){
+@media (pointer: coarse) and (min-width: 900px) and (orientation: portrait){
   .fab{ bottom: calc(16px * var(--uiScale) + 56px); }
   .toTop{ bottom: calc(86px * var(--uiScale) + 56px); }
   .fabPanel{ bottom: calc(70px * var(--uiScale) + 56px); }
