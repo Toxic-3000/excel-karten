@@ -682,19 +682,28 @@ summary::-webkit-details-marker{display:none}
   .fabPanel{ bottom: calc(70px * var(--uiScale) + 56px); }
 }
 
-/* Phone Landscape: make the quick panel wider + 2-column layout to avoid scrolling */
+/* Phone Landscape: quick panel should avoid scrolling.
+   Prefer a 3-column layout (Textgröße / Sortieren nach / Sortierung) when there's room.
+   This is scoped to phones only (max-width) so tablet/desktop stay unchanged. */
 @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape){
   .fabPanel{
-    width: min(520px, calc(100vw - 28px));
+    width: min(760px, calc(100vw - 28px));
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: calc(12px * var(--uiScale));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: calc(10px * var(--uiScale));
   }
   .fabHead{ grid-column: 1 / -1; }
   .fabActions{ grid-column: 1 / -1; }
   .fabSect{ margin-top: calc(10px * var(--uiScale)) !important; }
   .fabChips{ gap: calc(8px * var(--uiScale)) !important; }
-  .fabPanel .chip{ padding: calc(7px * var(--uiScale)) calc(9px * var(--uiScale)) !important; }
+  .fabPanel .chip{ padding: calc(6.5px * var(--uiScale)) calc(8.5px * var(--uiScale)) !important; }
+  /* keep chip rows from forcing the panel wider */
+  .fabChips{ flex-wrap: wrap; }
+}
+
+/* If the phone landscape viewport is unusually narrow, fall back to 2 columns to keep tap targets readable. */
+@media (pointer: coarse) and (max-width: 720px) and (orientation: landscape){
+  .fabPanel{ grid-template-columns: 1fr 1fr; width: min(560px, calc(100vw - 28px)); }
 }
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
