@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j8)
+# Spieleliste – Webansicht (Build 7.1j9)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j8)
+## Getestet (Stand 7.1j9)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -26,10 +26,11 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 
 ## Schnellstart
 
-## Änderungen in 7.1j8
+## Änderungen in 7.1j9
 
-- **Fix: Schnellmenü öffnet/schließt wieder zuverlässig**: verhindert Doppel-Trigger durch mehrere "Tap"-Events (touchend/pointerup/click), die das Menü sofort wieder zugeklappt haben.
-- **Stabilität**: FAB-Interaktionen sind jetzt deterministisch (ein Eventpfad), ohne Seiteneffekte in anderen Ansichten.
+- **Fix: Schnellmenü (Ansicht) ist wieder sauber togglebar**: Öffnen/Schließen erfolgt **nur** über **Aa** (Toggle) oder **X**.
+- **Kein „Backdrop-Close“ mehr**: Klick in den Hintergrund schließt das Menü nicht (damit das Verhalten überall konsistent bleibt).
+- **Phone Landscape**: Schließen funktioniert wieder zuverlässig (Aa/X), ohne dass das Menü direkt erneut aufspringt.
 
 ### GitHub Pages
 1. Lege diese Dateien gemeinsam in denselben Ordner (z. B. Repo-Root):
