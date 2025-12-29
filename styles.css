@@ -634,9 +634,9 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(7.5px * var(--uiScale)) calc(10.5px * var(--uiScale));
+  padding: calc(6.5px * var(--uiScale)) calc(9.5px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(15px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
 }
@@ -650,9 +650,9 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(7.5px * var(--uiScale)) calc(10.5px * var(--uiScale));
+  padding: calc(6.5px * var(--uiScale)) calc(9.5px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(15px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
   font-weight: 700;
   opacity: .82;
 }
@@ -664,7 +664,9 @@ summary::-webkit-details-marker{display:none}
   bottom: calc(66px * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
-  max-height: calc(100dvh - 120px);
+  /* Use *largest* viewport height so the panel doesn't resize when the browser
+     UI appears/disappears while scrolling (Android/Chrome changes dvh). */
+  max-height: calc(100lvh - 120px);
   overflow:auto;
   -webkit-overflow-scrolling: touch;
   border:1px solid var(--border);
@@ -688,6 +690,10 @@ summary::-webkit-details-marker{display:none}
 @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape){
   .fabPanel{
     width: min(760px, calc(100vw - 28px));
+    /* Keep size/position stable in mobile landscape (address bar changes visual viewport height). */
+    top: calc(10px * var(--uiScale));
+    bottom: auto;
+    max-height: calc(100lvh - 20px);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: calc(10px * var(--uiScale));
@@ -705,7 +711,16 @@ summary::-webkit-details-marker{display:none}
 @media (pointer: coarse) and (max-width: 720px) and (orientation: landscape){
   .fabPanel{ grid-template-columns: 1fr 1fr; width: min(560px, calc(100vw - 28px)); }
 }
-.fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
+.fabHead{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: calc(10px * var(--uiScale));
+  position: sticky;
+  top: 0;
+  background: inherit;
+  z-index: 2;
+}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 .fabClose{
   border:1px solid var(--border);
@@ -713,6 +728,8 @@ summary::-webkit-details-marker{display:none}
   border-radius:999px;
   padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
   font-weight: 650;
+  cursor: pointer;
+  pointer-events: auto;
 }
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}

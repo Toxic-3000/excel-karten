@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j5)
+# Spieleliste – Webansicht (Build 7.1j6)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j5)
+## Getestet (Stand 7.1j6)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -25,6 +25,12 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - ✅ Windows Tablet Landscape (z. B. 1280×800)
 
 ## Schnellstart
+
+## Änderungen in 7.1j6
+
+- **Schnellmenü (Phone Landscape)**: Panel-Größe bleibt beim Scrollen stabil (kein „kleiner oben, größer beim Runterscrollen“ mehr).
+- **Schnellmenü schließen**: Der ✕-Button ist wieder zuverlässig klickbar (u. a. durch Sticky-Header + saubere Pointer-Events).
+- **Floating Buttons**: „Top“ und „Aa“ minimal kleiner, damit sie weniger Fläche fressen.
 
 ### GitHub Pages
 1. Lege diese Dateien gemeinsam in denselben Ordner (z. B. Repo-Root):
