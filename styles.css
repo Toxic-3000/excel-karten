@@ -1,6 +1,6 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j2
-   - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
-   - Android Phone (Portrait/Landscape) bleibt unverändert
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j3
+   - FAB/Floating Buttons: kompakter + robustes [hidden]-Handling (kein Auto-Open in Landscape)
+   - Toggle bleibt klickbar, auch wenn das Panel offen ist
 */
 :root{
   --uiScale: 1;
@@ -641,14 +641,14 @@ summary::-webkit-details-marker{display:none}
   position:fixed;
   right: calc(12px * var(--uiScale));
   /* make room for the FAB */
-  bottom: calc(74px * var(--uiScale));
-  z-index:60;
+  bottom: calc(62px * var(--uiScale));
+  z-index:61;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(15px * var(--uiScale));
+  font-size: calc(13px * var(--uiScale));
   line-height: 1;
   font-weight:650;
   cursor:pointer;
@@ -658,16 +658,17 @@ summary::-webkit-details-marker{display:none}
 .fab{
   position:fixed;
   right: calc(12px * var(--uiScale));
-  bottom: calc(14px * var(--uiScale));
-  z-index:65;
+  bottom: calc(12px * var(--uiScale));
+  /* Keep the toggle clickable even while the panel is open */
+  z-index:67;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
   box-shadow: var(--shadow);
   font-weight: 700;
   opacity: .82;
-  font-size: calc(15px * var(--uiScale));
+  font-size: calc(13px * var(--uiScale));
   line-height: 1;
 }
 .fab:active{ transform: translateY(1px); }
@@ -677,7 +678,7 @@ summary::-webkit-details-marker{display:none}
   right: calc(12px * var(--uiScale));
   bottom: calc(64px * var(--uiScale));
   z-index:66;
-  width: min(320px, calc(100vw - 28px));
+  width: min(300px, calc(100vw - 28px));
   max-height: calc(100dvh - 120px);
   overflow:auto;
   -webkit-overflow-scrolling: touch;
@@ -685,8 +686,11 @@ summary::-webkit-details-marker{display:none}
   border-radius: 22px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   box-shadow: var(--shadow);
-  padding: calc(10px * var(--uiScale));
+  padding: calc(9px * var(--uiScale));
 }
+/* Ensure the HTML `hidden` attribute always wins –
+   some browsers allow author CSS to override the UA default. */
+.fabPanel[hidden]{ display:none !important; }
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 .fabClose{

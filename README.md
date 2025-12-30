@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j2)
+# Spieleliste – Webansicht (Build 7.1j3)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j2)
+## Getestet (Stand 7.1j3)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -113,6 +113,11 @@ ohne Android-Phone (Portrait/Landscape) anzutasten.
 - Floating Buttons (**Aa** + **↑**) auf allen Endgeräten deutlich kompakter.
 - Tablet Portrait: mehr Außenrand links/rechts → Karte wirkt schmaler, Hintergrund kommt stärker zur Geltung.
 - Phone Landscape: **FAB-Panel 3‑spaltig** und in die Breite gezogen, damit alle Controls ohne Scrollen sichtbar bleiben (auch bei A+++).
+
+### Fixes in 7.1j3
+- FAB-Panel respektiert das HTML-Attribut `hidden` zuverlässig (kein „öffnet automatisch“ in Landscape).
+- FAB lässt sich in allen Layouts wieder stabil schließen (Aa/X/Esc).
+- Floating Buttons nochmals kleiner + Toggle bleibt klickbar, auch wenn das Panel offen ist.
 
 ## Bekannte Einschränkungen
 
