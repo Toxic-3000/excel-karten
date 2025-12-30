@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j1
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j2
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -434,6 +434,18 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .kvRow .v{ text-align:right; justify-self:end; }
 
+/* Grid-items dürfen wirklich schrumpfen (sonst kann A+++ bei schmalerer Karte
+   zu Überläufen führen, v. a. bei Store-Linktexten). */
+.infoRow .v,
+.kvRow .v{ min-width:0; }
+.kvStore .v a{
+  display:inline-block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  vertical-align:bottom;
+}
+
 /* ------------------------------
    Build 7.1i – Layout-Dichte & Ausrichtung Desktop/Tablet
    - Android Phones bleiben unangetastet (Gate über min-width + min-height)
@@ -483,11 +495,11 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
    - Weniger Padding/Margins, damit Karten nicht „zu luftig“ wirken. */
 /* Windows-Tablet Portrait: Range bewusst breiter, da Browser-UI/Zoom
    die effektive CSS-Breite variieren lässt. Ziel: Tablet-Portrait, nicht Desktop. */
-@media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
+@media (min-width: 720px) and (max-width: 1100px) and (orientation: portrait){
   .wrap{
     /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
-    padding-left: calc(26px * var(--uiScale));
-    padding-right: calc(26px * var(--uiScale));
+    padding-left: calc(44px * var(--uiScale));
+    padding-right: calc(44px * var(--uiScale));
   }
   .card{
     padding: calc(16px * var(--uiScale));
@@ -627,15 +639,17 @@ summary::-webkit-details-marker{display:none}
 
 .toTop{
   position:fixed;
-  right: calc(14px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
   /* make room for the FAB */
-  bottom: calc(86px * var(--uiScale));
+  bottom: calc(74px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   box-shadow: var(--shadow);
+  font-size: calc(15px * var(--uiScale));
+  line-height: 1;
   font-weight:650;
   cursor:pointer;
 }
@@ -643,23 +657,25 @@ summary::-webkit-details-marker{display:none}
 /* Floating Action Button (Ansicht) */
 .fab{
   position:fixed;
-  right: calc(14px * var(--uiScale));
-  bottom: calc(16px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
+  bottom: calc(14px * var(--uiScale));
   z-index:65;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   box-shadow: var(--shadow);
   font-weight: 700;
   opacity: .82;
+  font-size: calc(15px * var(--uiScale));
+  line-height: 1;
 }
 .fab:active{ transform: translateY(1px); }
 
 .fabPanel{
   position:fixed;
-  right: calc(14px * var(--uiScale));
-  bottom: calc(70px * var(--uiScale));
+  right: calc(12px * var(--uiScale));
+  bottom: calc(64px * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
   max-height: calc(100dvh - 120px);
@@ -669,7 +685,7 @@ summary::-webkit-details-marker{display:none}
   border-radius: 22px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   box-shadow: var(--shadow);
-  padding: calc(12px * var(--uiScale));
+  padding: calc(10px * var(--uiScale));
 }
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
@@ -685,6 +701,33 @@ summary::-webkit-details-marker{display:none}
 .fabChips{gap: calc(10px * var(--uiScale));}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
+
+/* Phone Landscape: FAB-Panel in die Breite ziehen und 3-spaltig anordnen,
+   damit alle Controls ohne Scrollen sichtbar bleiben (auch bei A+++). */
+@media (orientation: landscape) and (max-width: 900px) and (max-height: 520px){
+  .fabPanel{
+    left: calc(14px * var(--uiScale));
+    right: calc(14px * var(--uiScale));
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: calc(10px * var(--uiScale));
+    row-gap: calc(10px * var(--uiScale));
+    padding: calc(10px * var(--uiScale));
+  }
+  .fabHead{ grid-column: 1 / -1; }
+  .fabSect{ margin-top: 0; }
+  .fabPanel .fabSect:nth-of-type(1){ grid-column: 1; }
+  .fabPanel .fabSect:nth-of-type(2){ grid-column: 2; }
+  .fabPanel .fabSect:nth-of-type(3){ grid-column: 3; }
+  .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
+  .fabChips{ gap: calc(8px * var(--uiScale)); }
+  .fabPanel .chip{ padding: calc(6px * var(--uiScale)) calc(8px * var(--uiScale)); }
+  .fabActions{ grid-column: 1 / -1; margin-top: 0; justify-content:flex-end; }
+  #fabOpenMenu{ white-space:nowrap; }
+}
 
 /* Bottom sheet */
 .dlg{border:0;padding:0;background:transparent}
@@ -1123,13 +1166,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j1 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j2 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j1 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j2 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1172,7 +1215,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j1 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j2 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
