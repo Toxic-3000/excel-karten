@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j4 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j4
+console.log("Build 7.1j2 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j2
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j4").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j2").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -28,10 +28,16 @@ console.log("Build 7.1j4 loaded");
     btnTop: $("btnTop"),
 
     // Floating quick access (FAB)
-    fabView: $("fabView"),
-    fabPanel: $("fabPanel"),
-    fabClose: $("fabClose"),
+    // 1) Textgröße
+    fabText: $("fabText"),
+    fabTextPanel: $("fabTextPanel"),
+    fabTextClose: $("fabTextClose"),
     fabScaleRow: $("fabScaleRow"),
+
+    // 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü)
+    fabQuick: $("fabQuick"),
+    fabQuickPanel: $("fabQuickPanel"),
+    fabQuickClose: $("fabQuickClose"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -179,18 +185,38 @@ console.log("Build 7.1j4 loaded");
     }
   }
 
-  function closeFab(){
-    if (!el.fabPanel) return;
-    el.fabPanel.hidden = true;
+  function closeFabText(){
+    if (!el.fabTextPanel) return;
+    el.fabTextPanel.hidden = true;
   }
 
-  function toggleFab(){
-    if (!el.fabPanel) return;
-    el.fabPanel.hidden = !el.fabPanel.hidden;
+  function closeFabQuick(){
+    if (!el.fabQuickPanel) return;
+    el.fabQuickPanel.hidden = true;
+  }
+
+  function closeFabs(){
+    closeFabText();
+    closeFabQuick();
+  }
+
+  function toggleFabText(){
+    if (!el.fabTextPanel) return;
+    const willOpen = !!el.fabTextPanel.hidden;
+    closeFabs();
+    el.fabTextPanel.hidden = !willOpen;
+  }
+
+  function toggleFabQuick(){
+    if (!el.fabQuickPanel) return;
+    const willOpen = !!el.fabQuickPanel.hidden;
+    closeFabs();
+    el.fabQuickPanel.hidden = !willOpen;
   }
 
   function buildFab(){
-    if (!el.fabView || !el.fabPanel) return;
+    // Zwei kleine Floating-Menüs: Textgröße und Schnellzugriff (Sortieren + Hauptmenü)
+    if (!el.fabText || !el.fabTextPanel || !el.fabQuick || !el.fabQuickPanel) return;
 
     // Build scale chips (explicit choose, no multi-tap cycling)
     if (el.fabScaleRow){
@@ -219,18 +245,32 @@ console.log("Build 7.1j4 loaded");
     }
 
     // Wire FAB open/close
-    el.fabView.addEventListener("click", (e) => {
+    el.fabText.addEventListener("click", (e) => {
       e.stopPropagation();
-      toggleFab();
+      toggleFabText();
     });
-    // Clicks inside the panel should not close it.
-    el.fabPanel.addEventListener("click", (e) => e.stopPropagation());
-    if (el.fabClose){
-      el.fabClose.addEventListener("click", (e) => { e.stopPropagation(); closeFab(); });
+    el.fabQuick.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFabQuick();
+    });
+
+    // Clicks inside the panels should not close them.
+    el.fabTextPanel.addEventListener("click", (e) => e.stopPropagation());
+    el.fabQuickPanel.addEventListener("click", (e) => e.stopPropagation());
+
+    if (el.fabTextClose){
+      el.fabTextClose.addEventListener("click", (e) => { e.stopPropagation(); closeFabText(); });
+    }
+    if (el.fabQuickClose){
+      el.fabQuickClose.addEventListener("click", (e) => { e.stopPropagation(); closeFabQuick(); });
     }
 
-    // Wire chips inside panel
-    for (const btn of el.fabPanel.querySelectorAll(".chip")){
+    // Wire chips inside panels
+    const chipButtons = [
+      ...(el.fabTextPanel.querySelectorAll(".chip") || []),
+      ...(el.fabQuickPanel.querySelectorAll(".chip") || []),
+    ];
+    for (const btn of chipButtons){
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const group = btn.getAttribute("data-group");
@@ -257,19 +297,20 @@ console.log("Build 7.1j4 loaded");
       });
     }
 
-    // Open the full menu from the FAB (so you never have to scroll back up)
+    // Open the full menu from the quick FAB (so you never have to scroll back up)
     if (el.fabOpenMenu){
       el.fabOpenMenu.addEventListener("click", (e) => {
         e.stopPropagation();
-        closeFab();
+        closeFabs();
         openMenuDialog();
       });
     }
 
-    // Close only via Aa (toggle), X, or Esc.
-    // (Background click closing feels accidental on touch devices.)
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFab(); });
+    // Close on outside click / Esc
+    document.addEventListener("click", () => closeFabs());
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFabs(); });
   }
+
 
 
   // Column contract (Excel headers)

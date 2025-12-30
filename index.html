@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j4" />
-  <link rel="stylesheet" href="styles.css?v=7.1j4" />
+    <meta name="app-build" content="7.1j2" />
+  <link rel="stylesheet" href="styles.css?v=7.1j2" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -68,17 +68,28 @@
 
   <button id="btnTop" class="toTop" title="Nach oben">↑</button>
 
-  <!-- Floating quick access: unaufdringlich, kein Sticky-Header-Menü -->
-  <button id="fabView" class="fab" title="Ansicht" aria-label="Ansicht öffnen">Aa</button>
-  <div id="fabPanel" class="fabPanel" hidden>
+  <!-- Floating quick access: zwei kleine Menüs (Textgröße / Schnellzugriff) -->
+
+  <!-- 1) Textgröße -->
+  <button id="fabText" class="fab fabText" title="Textgröße" aria-label="Textgröße öffnen">Aa</button>
+  <div id="fabTextPanel" class="fabPanel fabPanelText" hidden>
     <div class="fabHead">
-      <div class="fabTitle">Ansicht</div>
-      <button id="fabClose" class="fabClose" aria-label="Schließen">✕</button>
+      <div class="fabTitle">Textgröße</div>
+      <button id="fabTextClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
 
     <div class="fabSect">
-      <div class="fabLabel">Textgröße</div>
+      <div class="fabLabel">Wählen</div>
       <div id="fabScaleRow" class="chipRow fabChips" aria-label="Textgröße wählen"></div>
+    </div>
+  </div>
+
+  <!-- 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü) -->
+  <button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen">≡</button>
+  <div id="fabQuickPanel" class="fabPanel fabPanelQuick" hidden>
+    <div class="fabHead">
+      <div class="fabTitle">Schnellmenü</div>
+      <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
 
     <div class="fabSect">
@@ -256,7 +267,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j4" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j4" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j2" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j2" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>

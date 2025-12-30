@@ -1,14 +1,8 @@
-# Spieleliste – Webansicht (Build 7.1j4)
+# Spieleliste – Webansicht (Build 7.1j2)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
-
-
-## Was ist neu in 7.1j4
-
-- Phone Landscape: **FAB-Menü kompakter und sinnvoller angeordnet** (Textgröße links, Sortierfeld+Richtung rechts untereinander) – weiterhin **ohne Scroll**, auch bei A+++.
-- Floating Buttons (Aa/↑): nochmals leicht verkleinert.
 
 ## Zielbild (Design & UX)
 
@@ -22,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j4)
+## Getestet (Stand 7.1j2)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -54,8 +48,12 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - Es wird bevorzugt das Tabellenblatt **„Spieleliste Komplett“** verwendet; falls nicht vorhanden, wird das erste Blatt genommen.
 
 ### Textgröße (Aa)
-- Button **„Aa“** schaltet Presets (A / A+ / A++ / A+++).
+- **Aa-Floating Button** → Menü „Textgröße“ mit Presets (A / A+ / A++ / A+++).
 - Ziel: Presets verhalten sich konsistent über Portrait/Landscape und bleiben lesbar.
+
+### Schnellmenü (≡)
+- **≡-Floating Button** → Quick-Controls für Sortierfeld + Sortierrichtung.
+- Enthält außerdem den Sprung in das Hauptmenü **„Filter & Sortieren“**.
 
 ### Suche
 - Freitextsuche über ID, Titel, Genre/Subgenre, Entwickler usw.
@@ -110,20 +108,10 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
 ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j1 bereits umgesetzt?
-- Titel/Body-Typografie für Desktop/Tablet harmonisiert (kontrolliertes `clamp()` + ruhigeres `line-height`).
-- Badge-Zeilen etwas kompakter (weniger „Luft“, gleiche visuelle Ordnung).
-- Akkordeon-Header klarer als Abschnittsüberschriften (Spacing + Gewicht), ohne neue UI-Elemente.
-
-### Was ist neu in 7.1j2?
-- Floating Buttons (**Aa** + **↑**) auf allen Endgeräten deutlich kompakter.
-- Tablet Portrait: mehr Außenrand links/rechts → Karte wirkt schmaler, Hintergrund kommt stärker zur Geltung.
-- Phone Landscape: **FAB-Panel 3‑spaltig** und in die Breite gezogen, damit alle Controls ohne Scrollen sichtbar bleiben (auch bei A+++).
-
-### Fixes in 7.1j3
-- FAB-Panel respektiert das HTML-Attribut `hidden` zuverlässig (kein „öffnet automatisch“ in Landscape).
-- FAB lässt sich in allen Layouts wieder stabil schließen (Aa/X/Esc).
-- Floating Buttons nochmals kleiner + Toggle bleibt klickbar, auch wenn das Panel offen ist.
+### Was ist in 7.1j2 bereits umgesetzt?
+- Floating Buttons (↑, Aa, ≡) insgesamt deutlich kleiner, konsistent in Portrait + Landscape.
+- FAB-Menü aufgeteilt: **Aa = nur Textgröße**, **≡ = Schnellmenü (Sortierung + Sprung ins Hauptmenü)**.
+- Tablet Portrait: größerer Außenrand vor der Karte (mehr Hintergrund sichtbar), horizontal per `clamp()` geregelt, damit A+++ nicht unnötig „zuschnürt“.
 
 ## Bekannte Einschränkungen
 
