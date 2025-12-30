@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j3)
+# Spieleliste – Webansicht (Build 7.1j4)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j3)
+## Getestet (Stand 7.1j4)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -108,8 +108,9 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
 ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j3 bereits umgesetzt?
+### Was ist in 7.1j4 bereits umgesetzt?
 - Floating Buttons (↑, Aa, ≡) insgesamt deutlich kleiner, konsistent in Portrait + Landscape.
+- Floating Buttons neu angeordnet (Stack): **↑ (Top)** unten, darüber **Aa**, darüber **≡ (Schnellmenü)**.
 - FAB-Menü aufgeteilt: **Aa = nur Textgröße**, **≡ = Schnellmenü (Sortierung + Sprung ins Hauptmenü)**.
 - Tablet Portrait: größerer Außenrand vor der Karte (mehr Hintergrund sichtbar), horizontal per `clamp()` geregelt, damit A+++ nicht unnötig „zuschnürt“.
 - Phone Landscape: Schnellmenü-Panel nutzt die Breite stärker (Sektionen nebeneinander + Chip-Grids), damit weniger vertikal gescrollt werden muss.

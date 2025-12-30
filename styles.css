@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j3
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j4
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -6,11 +6,11 @@
   --uiScale: 1;
 
   /* Floating buttons */
-  --fabEdge: 14px;
-  --fabBottom: 16px;
-  --fabSize: 38px;
-  --fabGap: 10px;
-  --fabFont: 13px;
+  --fabEdge: 12px;
+  --fabBottom: 12px;
+  --fabSize: 32px;
+  --fabGap: 7px;
+  --fabFont: 11px;
 
   /* Softer, less “office-grey” base palette */
   --bg: #f6f8ff;
@@ -635,7 +635,7 @@ summary::-webkit-details-marker{display:none}
 .toTop{
   position:fixed;
   right: calc(var(--fabEdge) * var(--uiScale));
-  bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale));
+  bottom: calc(var(--fabBottom) * var(--uiScale));
   z-index:60;
   width: calc(var(--fabSize) * var(--uiScale));
   height: calc(var(--fabSize) * var(--uiScale));
@@ -647,7 +647,7 @@ summary::-webkit-details-marker{display:none}
   padding: 0;
   box-shadow: var(--shadow);
   font-weight:750;
-  font-size: calc(16px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
   cursor:pointer;
 }
 
@@ -672,8 +672,8 @@ summary::-webkit-details-marker{display:none}
 }
 .fab:active{ transform: translateY(1px); }
 
-.fabText{ bottom: calc(var(--fabBottom) * var(--uiScale)); }
-.fabQuick{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
+.fabText{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
+.fabQuick{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale)); }
 
 .fabPanel{
   position:fixed;
@@ -689,8 +689,8 @@ summary::-webkit-details-marker{display:none}
   box-shadow: var(--shadow);
   padding: calc(12px * var(--uiScale));
 }
-.fabPanelText{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
-.fabPanelQuick{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale)); }
+.fabPanelText{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale)); }
+.fabPanelQuick{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale)); }
 
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
@@ -1144,13 +1144,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j3 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j4 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j3 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j4 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1183,7 +1183,7 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-  /* --- Build 7.1j3 – Schnellmenü (Phone Landscape): eher breit als hoch ---
+  /* --- Build 7.1j4 – Schnellmenü (Phone Landscape): eher breit als hoch ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
@@ -1237,7 +1237,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j3 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j4 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
@@ -1416,7 +1416,7 @@ html.modalOpen body{touch-action:none;}
   border-radius: 999px;
   background: rgba(255,255,255,.55);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
-  font-size: calc(16px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
   outline: none;
 }
 
@@ -1542,7 +1542,7 @@ html.modalOpen body{touch-action:none;}
     letter-spacing: 0.03em;
   }
   .v{
-    font-size: calc(16px * var(--uiScale));
+    font-size: calc(15px * var(--uiScale));
     line-height: 1.3;
   }
 
