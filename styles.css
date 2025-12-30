@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j1
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j2
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -485,10 +485,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
    die effektive CSS-Breite variieren lässt. Ziel: Tablet-Portrait, nicht Desktop. */
 @media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
   .wrap{
-    /* mehr Rand links/rechts → Karte wirkt schmaler, Hintergrund sichtbarer
-       Wichtig: Padding NICHT mit uiScale multiplizieren, damit A+++ nicht unnötig Breite frisst. */
-    padding-left: clamp(26px, 6vw, 76px);
-    padding-right: clamp(26px, 6vw, 76px);
+    /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
+    padding-left: calc(38px * var(--uiScale));
+    padding-right: calc(38px * var(--uiScale));
   }
   .card{
     padding: calc(16px * var(--uiScale));
@@ -630,17 +629,22 @@ summary::-webkit-details-marker{display:none}
   position:fixed;
   right: calc(14px * var(--uiScale));
   /* make room for the FAB */
-  bottom: calc(70px * var(--uiScale));
+  bottom: calc(72px * var(--uiScale));
   z-index:60;
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
+  width: calc(42px * var(--uiScale));
+  height: calc(42px * var(--uiScale));
+  padding: 0;
+  display:grid;
+  place-items:center;
   box-shadow: var(--shadow);
   font-weight:650;
+  font-size: calc(18px * var(--uiScale));
   cursor:pointer;
 }
+
 
 /* Floating Action Button (Ansicht) */
 .fab{
@@ -651,10 +655,14 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
+  width: calc(42px * var(--uiScale));
+  height: calc(42px * var(--uiScale));
+  padding: 0;
+  display:grid;
+  place-items:center;
   box-shadow: var(--shadow);
-  font-weight: 700;
+  font-weight: 750;
+  font-size: calc(16px * var(--uiScale));
   opacity: .82;
 }
 .fab:active{ transform: translateY(1px); }
@@ -662,7 +670,7 @@ summary::-webkit-details-marker{display:none}
 .fabPanel{
   position:fixed;
   right: calc(14px * var(--uiScale));
-  bottom: calc(70px * var(--uiScale));
+  bottom: calc(64px * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
   max-height: calc(100dvh - 120px);
@@ -1126,13 +1134,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j1 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j2 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j1 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j2 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1175,7 +1183,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j1 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j2 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
@@ -1423,6 +1431,34 @@ html.modalOpen body{touch-action:none;}
 }
 
 
+
+
+/* --- Phone Landscape: FAB panel kompakt & 3-spaltig (kein Scrollen im Menü) --- */
+@media (max-width: 700px) and (orientation: landscape){
+  .fabPanel{
+    width: min(520px, calc(100vw - 28px));
+    max-height: calc(100dvh - 92px);
+    padding: calc(10px * var(--uiScale));
+  }
+  .fabHead{gap: calc(8px * var(--uiScale));}
+  .fabSect{margin-top: calc(10px * var(--uiScale));}
+  .fabLabel{margin-bottom: calc(6px * var(--uiScale));}
+
+  /* Chip-Zeilen als Grid statt gestapelt: spart Höhe und bleibt bei A+++ stabil */
+  .fabPanel .fabChips{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: calc(8px * var(--uiScale));
+  }
+  .fabPanel .fabChips > .chip{
+    width:100%;
+    display:inline-flex;
+    justify-content:center;
+  }
+
+  /* Sortier-Richtung hat nur 2 Chips → 2 Spalten wirken ruhiger */
+  #fabSortDirRow{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 /* --- Responsive: Header layout in Landscape (keep search usable) --- */
 @media (orientation: landscape) and (max-width: 1100px){
   /* Even on wide landscape phones/tablets, prefer stacked header rows */
@@ -1436,22 +1472,6 @@ html.modalOpen body{touch-action:none;}
     max-width: none;
   }
   .pills{justify-content:flex-start}
-
-  /* FAB-Panel im Landscape: weniger Scrollen, Chips in 3 Spalten */
-  .fabPanel{
-    width: min(560px, calc(100vw - 28px));
-    max-height: calc(100dvh - 104px);
-  }
-  .fabPanel .chipRow{
-    display:grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
-  }
-  .fabPanel .chip{
-    width: 100%;
-    justify-content: center;
-    text-align: center;
-  }
 }
 
 /* --- Desktop readability pass (Build 7.0v-D) ---
@@ -1694,8 +1714,8 @@ html.modalOpen body{touch-action:none;}
    Phone-Ansichten bleiben unberührt (min-width ist absichtlich hoch). */
 @media (min-height: 900px) and (orientation: portrait) and (min-width: 900px) and (max-width: 1400px){
   .wrap{
-    padding-left: calc(26px * var(--uiScale));
-    padding-right: calc(26px * var(--uiScale));
+    padding-left: calc(38px * var(--uiScale));
+    padding-right: calc(38px * var(--uiScale));
     max-width: 980px;
   }
   .card{
