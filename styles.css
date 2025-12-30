@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j2
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j3
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -1144,13 +1144,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j2 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j3 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j2 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j3 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1182,6 +1182,50 @@ html.modalOpen body{touch-action:none;}
     text-align:left;
     justify-self:start;
   }
+
+  /* --- Build 7.1j3 – Schnellmenü (Phone Landscape): eher breit als hoch ---
+     Idee: In Phone-Landscape ist Höhe knapp, Breite da.
+     Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
+     Portrait bleibt unberührt. */
+  .fabPanelQuick{
+    width: min(560px, calc(100vw - 28px));
+    max-height: calc(100dvh - 90px);
+    display:grid;
+    grid-template-columns: 1.35fr 0.65fr;
+    grid-template-areas:
+      "head head"
+      "field dir"
+      "act act";
+    gap: calc(10px * var(--uiScale));
+  }
+  .fabPanelQuick > .fabHead{ grid-area: head; }
+  .fabPanelQuick > .fabSect{ margin-top: 0; }
+  .fabPanelQuick > .fabSect:nth-child(2){ grid-area: field; }
+  .fabPanelQuick > .fabSect:nth-child(3){ grid-area: dir; }
+  .fabPanelQuick > .fabActions{
+    grid-area: act;
+    margin-top: 0;
+    justify-content: stretch;
+  }
+  .fabPanelQuick #fabOpenMenu{ width: 100%; }
+
+  /* Chip-Reihen im Schnellmenü: als Grid, damit weniger Wrap-Höhe entsteht */
+  #fabSortFieldRow{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+  }
+  #fabSortDirRow{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+  }
+  #fabSortFieldRow .chip,
+  #fabSortDirRow .chip{
+    width: 100%;
+    justify-content: center;
+  }
+  .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
 }
 
 /* --- Responsive: Desktop readability --- */
@@ -1193,7 +1237,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j2 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j3 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
