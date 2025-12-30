@@ -1,8 +1,14 @@
-# Spieleliste – Webansicht (Build 7.1j3)
+# Spieleliste – Webansicht (Build 7.1j4)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
+
+
+## Was ist neu in 7.1j4
+
+- Phone Landscape: **FAB-Menü kompakter und sinnvoller angeordnet** (Textgröße links, Sortierfeld+Richtung rechts untereinander) – weiterhin **ohne Scroll**, auch bei A+++.
+- Floating Buttons (Aa/↑): nochmals leicht verkleinert.
 
 ## Zielbild (Design & UX)
 
@@ -16,7 +22,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j3)
+## Getestet (Stand 7.1j4)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape

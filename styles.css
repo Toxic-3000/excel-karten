@@ -1,6 +1,7 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j3
-   - FAB/Floating Buttons: kompakter + robustes [hidden]-Handling (kein Auto-Open in Landscape)
-   - Toggle bleibt klickbar, auch wenn das Panel offen ist
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j4
+   - FAB-Menü: Phone-Landscape kompakter und sinnvoller angeordnet (ohne Scroll bis A+++)
+   - Floating Buttons (Aa/↑): nochmals leicht verkleinert
+   - Robust: [hidden] gewinnt immer (kein Auto-Open)
 */
 :root{
   --uiScale: 1;
@@ -646,9 +647,9 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background:var(--card);
   border-radius:999px;
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   box-shadow: var(--shadow);
-  font-size: calc(13px * var(--uiScale));
+  font-size: calc(12px * var(--uiScale));
   line-height: 1;
   font-weight:650;
   cursor:pointer;
@@ -664,11 +665,11 @@ summary::-webkit-details-marker{display:none}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius: 999px;
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   box-shadow: var(--shadow);
   font-weight: 700;
   opacity: .82;
-  font-size: calc(13px * var(--uiScale));
+  font-size: calc(12px * var(--uiScale));
   line-height: 1;
 }
 .fab:active{ transform: translateY(1px); }
@@ -709,28 +710,38 @@ summary::-webkit-details-marker{display:none}
 /* Phone Landscape: FAB-Panel in die Breite ziehen und 3-spaltig anordnen,
    damit alle Controls ohne Scrollen sichtbar bleiben (auch bei A+++). */
 @media (orientation: landscape) and (max-width: 900px) and (max-height: 520px){
+  /* In Phone-Landscape: kompakter & sinnvoller angeordnet (ohne Scroll),
+     damit A+++ weiterhin passt und die Flächen nicht unnötig leer wirken. */
   .fabPanel{
-    left: calc(14px * var(--uiScale));
-    right: calc(14px * var(--uiScale));
+    left: calc(18px * var(--uiScale));
+    right: calc(18px * var(--uiScale));
     width: auto;
     max-height: none;
     overflow: visible;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: calc(10px * var(--uiScale));
+    /* Links: Textgröße (breiter, darf 2 Zeilen bekommen)
+       Rechts: Sortieren nach + Sortierung untereinander */
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: calc(12px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
     padding: calc(10px * var(--uiScale));
   }
   .fabHead{ grid-column: 1 / -1; }
   .fabSect{ margin-top: 0; }
-  .fabPanel .fabSect:nth-of-type(1){ grid-column: 1; }
-  .fabPanel .fabSect:nth-of-type(2){ grid-column: 2; }
-  .fabPanel .fabSect:nth-of-type(3){ grid-column: 3; }
+
+  /* 1) Textgröße links – spannt über 2 Reihen */
+  .fabPanel .fabSect:nth-of-type(1){ grid-column: 1; grid-row: 2 / 4; }
+  /* 2) Sortierfeld rechts oben */
+  .fabPanel .fabSect:nth-of-type(2){ grid-column: 2; grid-row: 2; }
+  /* 3) Sortierrichtung rechts darunter */
+  .fabPanel .fabSect:nth-of-type(3){ grid-column: 2; grid-row: 3; }
+
   .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
   .fabChips{ gap: calc(8px * var(--uiScale)); }
   .fabPanel .chip{ padding: calc(6px * var(--uiScale)) calc(8px * var(--uiScale)); }
-  .fabActions{ grid-column: 1 / -1; margin-top: 0; justify-content:flex-end; }
-  #fabOpenMenu{ white-space:nowrap; }
+
+  .fabActions{ grid-column: 1 / -1; grid-row: 4; margin-top: 0; justify-content: flex-end; }
+  #fabOpenMenu{ white-space: nowrap; padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)); }
 }
 
 /* Bottom sheet */
