@@ -309,6 +309,17 @@ console.log("Build 7.1j6 loaded");
     // Close on outside click / Esc
     document.addEventListener("click", () => closeFabs());
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFabs(); });
+
+// Safety: Mobile-Browser ändern im Landscape gern den "sichtbaren" Viewport (Browserbar rein/raus).
+// Damit Panels nicht in einem offenen/abgeschnittenen Zustand "kleben" bleiben, schließen wir sie
+// bei Viewport-Änderungen automatisch.
+let __fabResizeT = 0;
+const __onFabViewportChange = () => {
+  try{ window.clearTimeout(__fabResizeT); }catch(_){/* ignore */}
+  __fabResizeT = window.setTimeout(() => closeFabs(), 120);
+};
+window.addEventListener("resize", __onFabViewportChange, { passive: true });
+window.addEventListener("orientationchange", () => closeFabs(), { passive: true });
   }
 
 

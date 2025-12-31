@@ -691,6 +691,10 @@ summary::-webkit-details-marker{display:none}
   box-shadow: var(--shadow);
   padding: calc(12px * var(--uiScale));
 }
+
+/* Robust: hidden Panels wirklich unsichtbar (verhindert CSS-Overrides in seltenen Browserfällen) */
+.fabPanel[hidden]{display:none !important;}
+
 /* Panels immer oberhalb des Button-Stacks starten (überdeckt die FABs nicht) */
 .fabPanelText{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale)); }
 .fabPanelQuick{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale)); }
@@ -1186,13 +1190,20 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-  /* --- Build 7.1j6 – Schnellmenü (Phone Landscape): eher breit als hoch ---
+/* --- Build 7.1j6 – Schnellmenü (Phone Landscape): als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
   .fabPanelQuick{
-    width: min(560px, calc(100vw - 28px));
-    max-height: calc(100dvh - 90px);
+    /* Der FAB (≡) ist nur Trigger – das Schnellmenü lebt als stabiles Dock.
+       Damit gibt es keine Kollision mehr mit Header/Browserbar, auch wenn
+       Mobile-UI den Viewport in Landscape minimal verschiebt. */
+    left: calc(14px * var(--uiScale));
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    bottom: calc(14px * var(--uiScale));
+    width: auto;
+    max-height: calc(100dvh - 28px);
+
     display:grid;
     grid-template-columns: 1.35fr 0.65fr;
     grid-template-areas:

@@ -108,12 +108,13 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
 ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j6 bereits umgesetzt?
+### Was ist in 7.1j6 bereits umgesetzt??
 - Floating Buttons (↑, Aa, ≡) insgesamt deutlich kleiner, konsistent in Portrait + Landscape.
-- Floating Buttons neu angeordnet (Stack): **≡ (Schnellmenü)** unten, **Aa** in der Mitte, **↑ (Top)** oben.
+- Floating Buttons neu angeordnet (Stack): **↑ (Top)** oben, **Aa** in der Mitte, **≡ (Schnellmenü)** unten.
 - FAB-Menü aufgeteilt: **Aa = nur Textgröße**, **≡ = Schnellmenü (Sortierung + Sprung ins Hauptmenü)**.
 - Tablet Portrait: größerer Außenrand vor der Karte (mehr Hintergrund sichtbar), horizontal per `clamp()` geregelt, damit A+++ nicht unnötig „zuschnürt“.
-- Phone Landscape: Schnellmenü-Panel nutzt die Breite stärker (Sektionen nebeneinander + Chip-Grids), damit weniger vertikal gescrollt werden muss.
+- Phone Landscape: Schnellmenü ist jetzt ein **stabiles Dock unten links** (Button ≡ ist nur Trigger). Keine Kollision mehr mit Header/Browserbar; Breite wird maximal genutzt, Höhe bleibt klein.
+- Safety: FAB-Panels schließen bei **Resize/Orientationchange** automatisch (verhindert „hängende“ offene Panels nach Browser-UI‑Sprüngen).
 
 ## Bekannte Einschränkungen
 
