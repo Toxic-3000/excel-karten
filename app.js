@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j11 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j11
+console.log("Build 7.1j12 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j12
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j11").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j12").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1015,15 +1015,14 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     });
   }
 
-  // Close dropdowns when clicking elsewhere (desktop only)
+  // Close dropdowns when clicking elsewhere.
+  // On mobile/tablet we also use custom dropdowns for "Sortieren" to avoid native picker limitations.
   document.addEventListener("click", (e) => {
-    if (!isSheetDesktop()) return;
     if (e.target?.closest?.(".dd")) return;
     if (e.target?.closest?.(".ddPanel")) return;
     __closeDesktopPanel();
   });
   document.addEventListener("keydown", (e) => {
-    if (!isSheetDesktop()) return;
     if (e.key === "Escape") __closeDesktopPanel();
   });
 
@@ -1051,6 +1050,23 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
         const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
 
+        // Render with subtle divider lines between logical groups (no headings).
+        const items = [];
+        let lastGroup = null;
+        for (const sf of enabled){
+          const g = sf.group || "";
+          if (lastGroup !== null && g !== lastGroup){
+            items.push(`<div class="ddDivider" role="separator" aria-hidden="true"></div>`);
+          }
+          lastGroup = g;
+          items.push(`
+            <button type="button" class="ddItem ${state.sortField===sf.k ? "is-active" : ""}" data-value="${esc(sf.k)}">
+              <span class="ddMark">✓</span>
+              <span class="ddText">${esc(sf.label)}</span>
+            </button>
+          `);
+        }
+
         el.sortFieldRow.innerHTML = `
           <div class="dd" id="sortFieldDD">
             <button type="button" class="ddBtn" id="sortFieldBtn" aria-haspopup="listbox" aria-expanded="false" title="Sortieren nach">
@@ -1058,12 +1074,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
               <span class="ddCaret">▾</span>
             </button>
             <div class="ddPanel" id="sortFieldPanel" role="listbox" hidden>
-              ${enabled.map(sf => `
-                <button type="button" class="ddItem ${state.sortField===sf.k ? "is-active" : ""}" data-value="${esc(sf.k)}">
-                  <span class="ddMark">✓</span>
-                  <span class="ddText">${esc(sf.label)}</span>
-                </button>
-              `).join("")}
+              ${items.join("")}
             </div>
           </div>
         `;
@@ -1103,39 +1114,68 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
           }
         }
       } else {
-        el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
-        const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
-        if (sel){
-          // Mobile: keine sichtbaren Überschriften im nativen Picker.
-          // Statt optgroup (zeigt Labels wie „Identität“ etc.) nutzen wir dezente Trenner.
-          // Reihenfolge bleibt exakt wie in SORT_FIELDS.
-          const parts = [];
-          let lastGroup = null;
-          for (const sf of SORT_FIELDS){
-            const g = sf.group || "";
-            if (lastGroup !== null && g !== lastGroup){
-              parts.push(`<option disabled>──────────</option>`);
-              parts.push(`<option disabled> </option>`); // kleiner Luftabstand
-            }
-            lastGroup = g;
-            const dis = sf.disabled ? " disabled" : "";
-            parts.push(`<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`);
-          }
-          sel.innerHTML = parts.join("");
+        // Mobile/Tablet: custom dropdown so we can show real divider lines (native pickers
+        // render optgroups as headings and separators as selectable rows with radio circles).
+        const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
+        const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
 
-          // Ensure current selection is valid; fallback to ID.
-          const isValid = SORT_FIELDS.some(x => x.k === state.sortField && !x.disabled);
-          sel.value = isValid ? state.sortField : "ID";
-          sel.onchange = () => {
-            // Ignore disabled placeholder choices just in case a browser lets them through.
-            const picked = sel.value;
-            const ok = SORT_FIELDS.some(x => x.k === picked && !x.disabled);
-            state.sortField = ok ? picked : "ID";
-            saveSortPrefs();
-            updateFabSortFieldUI();
-            updateDialogMeta();
-            scheduleLiveApply();
-          };
+        const items = [];
+        let lastGroup = null;
+        for (const sf of enabled){
+          const g = sf.group || "";
+          if (lastGroup !== null && g !== lastGroup){
+            items.push(`<div class="ddDivider" role="separator" aria-hidden="true"></div>`);
+          }
+          lastGroup = g;
+          items.push(`
+            <button type="button" class="ddItem ${state.sortField===sf.k ? "is-active" : ""}" data-value="${esc(sf.k)}">
+              <span class="ddMark">✓</span>
+              <span class="ddText">${esc(sf.label)}</span>
+            </button>
+          `);
+        }
+
+        el.sortFieldRow.innerHTML = `
+          <div class="dd" id="sortFieldDD">
+            <button type="button" class="ddBtn" id="sortFieldBtn" aria-haspopup="listbox" aria-expanded="false" title="Sortieren nach">
+              <span class="ddBtnLabel">${esc(cur?.label ?? "ID")}</span>
+              <span class="ddCaret">▾</span>
+            </button>
+            <div class="ddPanel" id="sortFieldPanel" role="listbox" hidden>
+              ${items.join("")}
+            </div>
+          </div>
+        `;
+
+        const dd = el.sortFieldRow.querySelector("#sortFieldDD");
+        const btn = el.sortFieldRow.querySelector("#sortFieldBtn");
+        const panel = el.sortFieldRow.querySelector("#sortFieldPanel");
+        if (dd) dd.addEventListener("click", (e) => e.stopPropagation());
+        if (btn && panel){
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            __toggleDesktopPanel(panel);
+          });
+          for (const it of panel.querySelectorAll(".ddItem")){
+            it.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const key = it.getAttribute("data-value") || "ID";
+              state.sortField = key;
+              saveSortPrefs();
+
+              const label = enabled.find(sf => sf.k === key)?.label || key;
+              const labEl = btn.querySelector(".ddBtnLabel");
+              if (labEl) labEl.textContent = label;
+              for (const b of panel.querySelectorAll(".ddItem")){
+                b.classList.toggle("is-active", (b.getAttribute("data-value") === key));
+              }
+
+              updateFabSortFieldUI();
+              updateDialogMeta();
+              scheduleLiveApply();
+              __closeDesktopPanel();
+            });
+          }
         }
       }
     }
