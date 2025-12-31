@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j10
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j11
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -832,20 +832,37 @@ html.modalOpen body{touch-action:none;}
   }
 }
 
-/* Landscape phones/tablets: even if the viewport is wide, a small height should still
-   render the sheet as true fullscreen to avoid a visible top gap. */
-@media (max-height: 520px){
+/* Phone Landscape: keine Sticky-Elemente (alles scrollt) + trotzdem „framed“ (kein Vollbild).
+   Höhe ist knapp → Sticky Header/Actions würden zu viel verdecken.
+   Stattdessen wird die gesamte .sheet zum Scroll-Container.
+*/
+@media (orientation: landscape) and (max-height: 520px){
   .sheet{
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    height: auto;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    border-radius: 22px;
+    display: block;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
   .sheetHead{
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px * var(--uiScale));
+    position: static !important;
+    padding-top: calc(12px * var(--uiScale));
+  }
+
+  .sheetBody{
+    overflow: visible !important;
+    padding-bottom: calc(16px * var(--uiScale));
+  }
+
+  .sheetActions{
+    position: static !important;
+    backdrop-filter: none;
   }
 }
 
@@ -1097,7 +1114,7 @@ html.modalOpen body{touch-action:none;}
   backdrop-filter: blur(10px);
   flex-wrap:wrap;
 }
-.sheetFoot{margin-top: calc(12px * var(--uiScale))}
+.sheetFoot{margin-top: calc(12px * var(--uiScale)); min-height: calc(10px * var(--uiScale))}
 .muted{opacity:.75}
 
 /* Store grid */
@@ -1209,13 +1226,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j10 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j11 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j10 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j11 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1248,7 +1265,7 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-/* --- Build 7.1j10 – Schnellmenü (Phone Landscape): als Dock unten links ---
+/* --- Build 7.1j11 – Schnellmenü (Phone Landscape): als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
@@ -1283,7 +1300,7 @@ html.modalOpen body{touch-action:none;}
 
 
 
-  /* --- Build 7.1j10 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
+  /* --- Build 7.1j11 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
      Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
      Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
   .fabPanelText{
@@ -1321,7 +1338,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j10 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j11 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){

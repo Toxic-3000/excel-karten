@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j10 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j10
+console.log("Build 7.1j11 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j11
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j10").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j11").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1106,25 +1106,22 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         el.sortFieldRow.innerHTML = `<select id="sortFieldSelect" class="filterDropdown" aria-label="Sortieren nach"></select>`;
         const sel = el.sortFieldRow.querySelector("#sortFieldSelect");
         if (sel){
-          // Native select UIs (Android/iOS) profitieren stark von optischen Gruppen.
-          // Wir bauen daher <optgroup>-Blöcke, bleiben aber bei der Karten-Reihenfolge.
-          const byGroup = new Map();
+          // Mobile: keine sichtbaren Überschriften im nativen Picker.
+          // Statt optgroup (zeigt Labels wie „Identität“ etc.) nutzen wir dezente Trenner.
+          // Reihenfolge bleibt exakt wie in SORT_FIELDS.
+          const parts = [];
+          let lastGroup = null;
           for (const sf of SORT_FIELDS){
             const g = sf.group || "";
-            if (!byGroup.has(g)) byGroup.set(g, []);
-            byGroup.get(g).push(sf);
+            if (lastGroup !== null && g !== lastGroup){
+              parts.push(`<option disabled>──────────</option>`);
+              parts.push(`<option disabled> </option>`); // kleiner Luftabstand
+            }
+            lastGroup = g;
+            const dis = sf.disabled ? " disabled" : "";
+            parts.push(`<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`);
           }
-          const groupsInOrder = Array.from(new Set(SORT_FIELDS.map(x => x.group || "")));
-          sel.innerHTML = groupsInOrder.map(g => {
-            const items = byGroup.get(g) || [];
-            const opts = items.map(sf => {
-              const dis = sf.disabled ? " disabled" : "";
-              return `<option value="${esc(sf.k)}"${dis}>${esc(sf.label)}</option>`;
-            }).join("");
-            // If no group label, fall back to flat list.
-            if (!g) return opts;
-            return `<optgroup label="${esc(g)}">${opts}</optgroup>`;
-          }).join("");
+          sel.innerHTML = parts.join("");
 
           // Ensure current selection is valid; fallback to ID.
           const isValid = SORT_FIELDS.some(x => x.k === state.sortField && !x.disabled);
