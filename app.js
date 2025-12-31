@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j9 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j9
+console.log("Build 7.1j10 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j10
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j9").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j10").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1097,6 +1097,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
               updateFabSortFieldUI();
               updateDialogMeta();
+              scheduleLiveApply();
               __closeDesktopPanel();
             });
           }
@@ -1135,6 +1136,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
             state.sortField = ok ? picked : "ID";
             saveSortPrefs();
             updateFabSortFieldUI();
+            updateDialogMeta();
+            scheduleLiveApply();
           };
         }
       }
@@ -1155,6 +1158,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
           saveSortPrefs();
           paint();
           updateFabSortUI();
+          updateDialogMeta();
+          scheduleLiveApply();
         };
       }
     }
@@ -1288,6 +1293,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
                 syncGenreSelectFromState();
                 refresh();
                 updateDialogMeta();
+                scheduleLiveApply();
               });
             }
           }
@@ -1339,6 +1345,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
             syncGenreSelectFromState();
             updateDialogMeta();
+            scheduleLiveApply();
           }, 0);
         };
 
@@ -1724,11 +1731,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   function updateApplyCount(){
     if (!el.btnApply) return;
     if (!state.rows || !state.rows.length){
-      el.btnApply.textContent = "Anwenden";
+      el.btnApply.textContent = "Fertig";
       return;
     }
     const n = computeFilteredCount();
-    el.btnApply.textContent = `Anwenden (${n})`;
+    el.btnApply.textContent = `Fertig (${n})`;
   }
 
   function updateDialogMeta(forceNow=false){
@@ -1736,6 +1743,20 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     renderActiveFilterBar();
     if (forceNow) updateApplyCount();
     else scheduleApplyCount();
+  }
+
+  // Live-Apply: Filters/Sortierung wirken sofort (mit kleinem Debounce),
+  // damit man beim Schließen des Menüs nichts "vergisst".
+  let _liveApplyTimer = 0;
+  let _menuDirty = false;
+  function scheduleLiveApply(){
+    _menuDirty = true;
+    if (_liveApplyTimer) window.clearTimeout(_liveApplyTimer);
+    _liveApplyTimer = window.setTimeout(() => {
+      _liveApplyTimer = 0;
+      // Only apply when data is loaded.
+      if (state.rows && state.rows.length) applyAndRender();
+    }, 70);
   }
 
   function onChip(btn){
@@ -1755,6 +1776,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       saveSortPrefs();
       updateFabSortFieldUI();
       updateDialogMeta();
+      scheduleLiveApply();
       return;
     }
 
@@ -1775,6 +1797,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       // Sync select (mobile) + desktop chips
       syncGenreSelectFromState();
       updateDialogMeta();
+      scheduleLiveApply();
       return;
     }
 
@@ -1783,6 +1806,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       state.filters.fav = !pressed;
       setAllChipPressed("fav", "fav", !pressed);
       updateDialogMeta();
+      scheduleLiveApply();
       return;
     }
 
@@ -1794,6 +1818,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         setAllChipPressed("trophyPreset", k, next === k);
       }
       updateDialogMeta();
+      scheduleLiveApply();
       return;
     }
 
@@ -1801,6 +1826,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       state.filters.shortMain5 = !pressed;
       setAllChipPressed("shortMain", "le5", state.filters.shortMain5);
       updateDialogMeta();
+      scheduleLiveApply();
       return;
     }
 
@@ -1819,6 +1845,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     // Sync duplicates (v.a. Trophäen: Schnellfilter + Akkordeon)
     setAllChipPressed(group, key, !pressed);
     updateDialogMeta();
+    scheduleLiveApply();
   }
 
   function parseScore(s){
@@ -1842,7 +1869,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     __applyTimer = window.setTimeout(() => {
       __applyTimer = 0;
       applyAndRender();
-      // Keep the dialog's "Anwenden (N)" count in sync when open.
+      // Keep the dialog's "Fertig (N)" count in sync when open.
       if (el.dlg?.open) updateApplyCount();
     }, d);
   }
@@ -2660,6 +2687,9 @@ function renderTrophyDetails(row){
     try{ _lastFocusedBeforeMenu = document.activeElement; }catch(_){ _lastFocusedBeforeMenu = null; }
     // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
     buildFilterUI();
+    // Live-Apply bookkeeping: fresh session.
+    _menuDirty = false;
+    if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
     // Update viewport vars BEFORE opening so the first paint anchors correctly.
     updateVisualViewportVars();
     setModalOpen(true);
@@ -2691,6 +2721,12 @@ function renderTrophyDetails(row){
 
   // Ensure the background lock always resets (button, ESC, backdrop click, etc.).
   el.dlg.addEventListener("close", () => {
+    // Ensure the latest changes are applied even when the user closes via ✕ / backdrop / ESC.
+    if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
+    if (_menuDirty && state.rows && state.rows.length){
+      try{ applyAndRender(); }catch(_){/* ignore */}
+    }
+    _menuDirty = false;
     setModalOpen(false);
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
@@ -2736,7 +2772,6 @@ function renderTrophyDetails(row){
 
   el.btnApply.addEventListener("click", () => {
     el.dlg.close();
-    applyAndRender();
   });
 
   el.btnClear.addEventListener("click", () => {
@@ -2756,10 +2791,10 @@ function renderTrophyDetails(row){
     buildFilterUI();
     updateFabSortFieldUI();
     updateFabSortUI();
+    scheduleLiveApply();
   });
 
-  // Sort chip handlers are live; apply takes effect when dialog applied
-  // So we update state on click via onChip wiring in buildFilterUI()
+  // Chips/Dropdowns wirken live; buildFilterUI() verdrahtet die onChip-Handler.
 
   // Keep dialog close on backdrop click (optional nice)
   el.dlg.addEventListener("click", (e) => {

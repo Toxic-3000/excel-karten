@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j9)
+# Spieleliste – Webansicht (Build 7.1j10)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,7 +16,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j9)
+## Getestet (Stand 7.1j10)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -108,13 +108,20 @@ Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ä
 Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
 ohne Android-Phone (Portrait/Landscape) anzutasten.
 
-### Was ist in 7.1j9 bereits umgesetzt??
+### Was ist in 7.1j10 bereits umgesetzt?
 - Floating Buttons (↑, Aa, ≡) insgesamt deutlich kleiner, konsistent in Portrait + Landscape.
 - Floating Buttons neu angeordnet (Stack): **↑ (Top)** oben, **Aa** in der Mitte, **≡ (Schnellmenü)** unten.
 - FAB-Menü aufgeteilt: **Aa = nur Textgröße**, **≡ = Schnellmenü (Sortierung + Sprung ins Hauptmenü)**.
 - Tablet Portrait: größerer Außenrand vor der Karte (mehr Hintergrund sichtbar), horizontal per `clamp()` geregelt, damit A+++ nicht unnötig „zuschnürt“.
 - Phone Landscape: Schnellmenü ist jetzt ein **stabiles Dock unten links** (Button ≡ ist nur Trigger). Keine Kollision mehr mit Header/Browserbar; Breite wird maximal genutzt, Höhe bleibt klein.
 - Safety: FAB-Panels schließen bei **Resize/Orientationchange** automatisch (verhindert „hängende“ offene Panels nach Browser-UI‑Sprüngen).
+
+Zusätzlich in **7.1j10** (Polish „Filter & Sortieren“):
+- Menü ist auf Phone/Tablet nicht mehr komplett randlos: mehr Hintergrund sichtbar, weiterhin stabil über `100dvh`.
+- Reihenfolge im Filterbereich: **Schnellfilter → Weitere Filter → Genre → Trophäen**.
+- Dropdowns (Select + Desktop-DD) etwas „ruhiger“ (zartes Grau statt Weiß).
+- **Sticky Action-Bar** unten (Zurücksetzen/Fertig), kein Runterscrollen mehr.
+- **Live-Apply**: Sortierung/Filter wirken sofort; **„Fertig“** schließt einfach.
 
 ## Bekannte Einschränkungen
 

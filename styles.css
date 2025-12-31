@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j9
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j10
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -778,7 +778,7 @@ html.modalOpen body{touch-action:none;}
 
 .sheet{
   position:fixed;
-  left:0; right:0; bottom:0;
+  left:12px; right:12px; bottom:0;
   margin:0 auto;
   max-width:920px;
   background:var(--card);
@@ -816,17 +816,19 @@ html.modalOpen body{touch-action:none;}
   }
 }
 
-/* Mobile: make the filter dialog a true full-height sheet (no top gap). */
+/* Mobile: framed sheet (mehr Hintergrund sichtbar), aber weiterhin stabil gegen 100dvh-Quirks. */
 @media (max-width: 700px){
   .sheet{
-    top: 0;
-    bottom: 0;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    left: 10px;
+    right: 10px;
+    height: auto;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+    border-radius: 22px;
   }
   .sheetHead{
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px * var(--uiScale));
+    padding-top: calc(12px * var(--uiScale));
   }
 }
 
@@ -836,6 +838,8 @@ html.modalOpen body{touch-action:none;}
   .sheet{
     top: 0;
     bottom: 0;
+    left: 0;
+    right: 0;
     height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
@@ -1079,8 +1083,21 @@ html.modalOpen body{touch-action:none;}
   justify-content:center;
   font-size: calc(18px * var(--uiScale));
 }
-.sheetActions{display:flex; gap: calc(10px * var(--uiScale)); justify-content:flex-end; margin-top:16px; flex-wrap:wrap}
-.sheetFoot{margin-top:10px}
+.sheetActions{
+  position: sticky;
+  bottom: 0;
+  display:flex;
+  gap: calc(10px * var(--uiScale));
+  justify-content: space-between;
+  align-items: center;
+  margin-top: calc(16px * var(--uiScale));
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 92%, var(--bg) 8%);
+  backdrop-filter: blur(10px);
+  flex-wrap:wrap;
+}
+.sheetFoot{margin-top: calc(12px * var(--uiScale))}
 .muted{opacity:.75}
 
 /* Store grid */
@@ -1192,13 +1209,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j9 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j10 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j9 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j10 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1231,7 +1248,7 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-/* --- Build 7.1j9 – Schnellmenü (Phone Landscape): als Dock unten links ---
+/* --- Build 7.1j10 – Schnellmenü (Phone Landscape): als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
@@ -1266,7 +1283,7 @@ html.modalOpen body{touch-action:none;}
 
 
 
-  /* --- Build 7.1j9 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
+  /* --- Build 7.1j10 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
      Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
      Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
   .fabPanelText{
@@ -1304,7 +1321,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j9 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j10 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
@@ -1479,17 +1496,17 @@ html.modalOpen body{touch-action:none;}
   width: 100%;
   max-width: 520px;
   padding: calc(12px * var(--uiScale)) calc(16px * var(--uiScale));
-  border: 1px solid rgba(0,0,0,.12);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255,255,255,.55);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, #ffffff 70%, transparent 30%);
   font-size: calc(15px * var(--uiScale));
   outline: none;
 }
 
 .filterDropdown:focus{
-  border-color: rgba(0,0,0,.24);
-  background: rgba(255,255,255,.7);
+  border-color: color-mix(in oklab, var(--blue2) 45%, var(--border) 55%);
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
 }
 
 /* Genre-Dropdown: Mehrfachauswahl, aber kompakt wie ein normales Dropdown */
@@ -1655,8 +1672,8 @@ html.modalOpen body{touch-action:none;}
   gap: 12px;
   padding: 10px 12px;
   border-radius: 18px;
-  border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.72);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   box-shadow: 0 8px 24px rgba(0,0,0,.08);
   font-weight: 650;
 }
@@ -1708,8 +1725,8 @@ html.modalOpen body{touch-action:none;}
 .ddDone{
   padding: 10px 14px;
   border-radius: 16px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.75);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   font-weight: 800;
   cursor: pointer;
 }

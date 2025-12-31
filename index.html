@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j9" />
-  <link rel="stylesheet" href="styles.css?v=7.1j9" />
+    <meta name="app-build" content="7.1j10" />
+  <link rel="stylesheet" href="styles.css?v=7.1j10" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -137,13 +137,6 @@
             <div class="chipRow" id="quickRow"></div>
           </div>
 
-          <div class="subsect" id="genreSect">
-            <div class="subTitle">Genre</div>
-            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
-            </select>
-            <div id="genreRowDesktop" class="chipRow genreDesktop" aria-label="Genre auswählen (Desktop)"></div>
-          </div>
-
           <div class="subsect">
             <div class="subTitle">Weitere Filter</div>
 
@@ -176,10 +169,21 @@
                 <div class="chipRow" id="availRow"></div>
               </div>
             </details>
+          </div>
+
+          <div class="subsect" id="genreSect">
+            <div class="subTitle">Genre</div>
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
+            </select>
+            <div id="genreRowDesktop" class="chipRow genreDesktop" aria-label="Genre auswählen (Desktop)"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Trophäen</div>
 
             <details class="acc" id="trophyAcc">
               <summary>
-                <span class="accTitle">Trophäen</span>
+                <span class="accTitle">Status &amp; Fortschritt</span>
                 <span id="trophySummary" class="accSummary">Alle</span>
               </summary>
               <div class="accBody">
@@ -192,13 +196,13 @@
           </div>
         </div>
 
-        <div class="sheetActions">
-          <button id="btnClear" class="btn">Zurücksetzen</button>
-          <button id="btnApply" class="btn btn-primary">Anwenden</button>
-        </div>
-
         <div class="sheetFoot">
           <span class="muted">Alle Zustände werden als Badges angezeigt (inkl. „Unbekannt“, „Eingeschränkt“).</span>
+        </div>
+
+        <div class="sheetActions">
+          <button id="btnClear" class="btn">Zurücksetzen</button>
+          <button id="btnApply" class="btn btn-primary">Fertig</button>
         </div>
       </div>
     </div>
@@ -267,7 +271,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j9" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j9" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j10" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j10" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
