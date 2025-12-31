@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j12
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j13
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -1674,12 +1674,10 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* Desktop-only genre chips (avoid native <select> inside overlay on desktop) */
-.genreDesktop{ display:none; }
-@media (min-width: 701px) and (min-height: 521px){
-  #genreSelect{ display:none !important; }
-  .genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
-}
+/* Genre-Auswahl: wir verwenden überall die Custom-Dropdown-Variante (keine native <select> Picker)
+   → verhindert Chrome "Zurück/Weiter"-Leiste und hält das Verhalten konsistent. */
+#genreSelect{ display:none !important; }
+.genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
 
 /* --- Desktop custom dropdowns (Build 7.0v-D1d) --- */
 .dd{ position: relative; display: inline-block; width: 100%; max-width: 560px; }

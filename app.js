@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j12 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j12
+console.log("Build 7.1j13 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j13
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j12").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j13").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1235,160 +1235,98 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       `;
     }
 
-    // --- Genre (Dropdown: echtes Multi-Select mit Markierung) ---
-    // UX: Mehrfachauswahl direkt im Select (Android/iOS Picker), inkl. sichtbarer Markierung.
-    // "Alle" = kein Genre-Filter (Set ist leer).
-    if (el.genreSelect){
+    // --- Genre (Multi-Select als Custom-Dropdown, überall gleich) ---
+    // Grund: Native <select>-Picker (Android/Chrome) blenden eine "Zurück/Weiter"-Leiste ein
+    // und verhalten sich anders als unsere Sortier-Auswahl. Wir entkoppeln das komplett.
+    if (el.genreRowDesktop){
       const genres = Array.from(state.distinct.genres)
         .filter(Boolean)
         .sort((a,b) => a.localeCompare(b, "de", { sensitivity: "base" }));
 
-      // Desktop: avoid native <select> inside overlay (causes focus/scroll issues).
-      // Mobile: keep native multi-select picker.
-      if (isSheetDesktop()){
-        if (el.genreRowDesktop){
-          // Compact label: first selected + optional "+N".
-          const label = (state.filters.genres.size === 0)
-            ? "Genre: Alle"
-            : (() => {
-                const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
-                const n = arr.length;
-                return `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
-              })();
+      // Label: "0 ausgewählt" (wie bisher) oder "<Erstes> +N".
+      const label = (() => {
+        const n = state.filters.genres?.size || 0;
+        if (n === 0) return "0 ausgewählt";
+        const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+        return `${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
+      })();
 
-          el.genreRowDesktop.innerHTML = `
-            <div class="dd" id="genreDD">
-              <button type="button" class="ddBtn" id="genreBtn" aria-haspopup="listbox" aria-expanded="false" title="Genre wählen">
-                <span class="ddBtnLabel">${esc(label)}</span>
-                <span class="ddCaret">▾</span>
-              </button>
-              <div class="ddPanel" id="genrePanel" role="listbox" hidden>
-                <button type="button" class="ddItem ${state.filters.genres.size===0 ? "is-active" : ""}" data-value="">
+      el.genreRowDesktop.innerHTML = `
+        <div class="dd" id="genreDD">
+          <button type="button" class="ddBtn" id="genreBtn" aria-haspopup="listbox" aria-expanded="false" title="Genre wählen">
+            <span class="ddBtnLabel">${esc(label)}</span>
+            <span class="ddCaret">▾</span>
+          </button>
+          <div class="ddPanel" id="genrePanel" role="listbox" hidden>
+            <button type="button" class="ddItem ${state.filters.genres.size===0 ? "is-active" : ""}" data-value="">
+              <span class="ddMark">✓</span>
+              <span class="ddText">Alle</span>
+            </button>
+            <div class="ddDivider"></div>
+            <div class="ddList">
+              ${genres.map(g => `
+                <button type="button" class="ddItem ${state.filters.genres.has(g) ? "is-active" : ""}" data-value="${esc(g)}">
                   <span class="ddMark">✓</span>
-                  <span class="ddText">Alle</span>
+                  <span class="ddText">${esc(g)}</span>
                 </button>
-                <div class="ddDivider"></div>
-                <div class="ddList">
-                  ${genres.map(g => `
-                    <button type="button" class="ddItem ${state.filters.genres.has(g) ? "is-active" : ""}" data-value="${esc(g)}">
-                      <span class="ddMark">✓</span>
-                      <span class="ddText">${esc(g)}</span>
-                    </button>
-                  `).join("")}
-                </div>
-                <div class="ddFooter">
-                  <button type="button" class="ddDone">Fertig</button>
-                </div>
-              </div>
+              `).join("")}
             </div>
-          `;
+            <div class="ddFooter">
+              <button type="button" class="ddDone">Fertig</button>
+            </div>
+          </div>
+        </div>
+      `;
 
-          const dd = el.genreRowDesktop.querySelector("#genreDD");
-          const btn = el.genreRowDesktop.querySelector("#genreBtn");
-          const panel = el.genreRowDesktop.querySelector("#genrePanel");
-          const done = el.genreRowDesktop.querySelector(".ddDone");
+      const dd = el.genreRowDesktop.querySelector("#genreDD");
+      const btn = el.genreRowDesktop.querySelector("#genreBtn");
+      const panel = el.genreRowDesktop.querySelector("#genrePanel");
+      const done = el.genreRowDesktop.querySelector(".ddDone");
+      if (dd) dd.addEventListener("click", (e) => e.stopPropagation());
 
-          if (dd) dd.addEventListener("click", (e) => e.stopPropagation());
-
-          const refresh = () => {
-            const labEl = btn?.querySelector?.(".ddBtnLabel");
-            let nextLabel = "Genre: Alle";
-            const n = state.filters.genres.size;
-            if (n > 0){
-              const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
-              nextLabel = `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
-            }
-            if (labEl) labEl.textContent = nextLabel;
-
-            for (const it of panel?.querySelectorAll?.(".ddItem") || []){
-              const v = it.getAttribute("data-value") || "";
-              const active = v ? state.filters.genres.has(v) : (state.filters.genres.size === 0);
-              it.classList.toggle("is-active", active);
-            }
-          };
-
-          if (btn && panel){
-            btn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              __toggleDesktopPanel(panel);
-            });
-
-            for (const it of panel.querySelectorAll(".ddItem")){
-              it.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const v = it.getAttribute("data-value") || "";
-                if (!v){
-                  state.filters.genres.clear();
-                } else {
-                  if (state.filters.genres.has(v)) state.filters.genres.delete(v);
-                  else state.filters.genres.add(v);
-                }
-                // "Alle" ist exklusiv
-                if (state.filters.genres.size === 0){
-                  // nothing selected => Alle
-                }
-                syncGenreSelectFromState();
-                refresh();
-                updateDialogMeta();
-                scheduleLiveApply();
-              });
-            }
-          }
-          if (done){
-            done.addEventListener("click", (e) => {
-              e.stopPropagation();
-              __closeDesktopPanel();
-            });
-          }
+      const refresh = () => {
+        const labEl = btn?.querySelector?.(".ddBtnLabel");
+        const n = state.filters.genres?.size || 0;
+        let nextLabel = "0 ausgewählt";
+        if (n > 0){
+          const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+          nextLabel = `${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
         }
-        // No event wiring on the hidden select in desktop mode.
-      } else {
-        el.genreSelect.multiple = true;
-        el.genreSelect.size = 1; // kompakt wie Dropdown (CSS macht den Rest)
-
-        el.genreSelect.innerHTML = "";
-        const optAll = document.createElement("option");
-        optAll.value = "";
-        optAll.textContent = "Alle";
-        el.genreSelect.appendChild(optAll);
-
-        for (const g of genres){
-          const opt = document.createElement("option");
-          opt.value = g;
-          opt.textContent = g;
-          el.genreSelect.appendChild(opt);
+        if (labEl) labEl.textContent = nextLabel;
+        for (const it of panel?.querySelectorAll?.(".ddItem") || []){
+          const v = it.getAttribute("data-value") || "";
+          const active = v ? state.filters.genres.has(v) : (state.filters.genres.size === 0);
+          it.classList.toggle("is-active", active);
         }
+      };
 
-        const commitGenreFromSelect = () => {
-          // Hard rule: sobald mind. ein echtes Genre gewählt ist, ist "Alle" deaktiviert.
-          // Android liefert teils dennoch "" in selectedOptions; wir normalisieren on commit.
-          setTimeout(() => {
-            const picked = Array.from(el.genreSelect.selectedOptions).map(o => String(o.value ?? ""));
-            const nonEmpty = picked.filter(v => v);
-            if (nonEmpty.length === 0){
+      if (btn && panel){
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          __toggleDesktopPanel(panel);
+        });
+        for (const it of panel.querySelectorAll(".ddItem")){
+          it.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const v = it.getAttribute("data-value") || "";
+            if (!v){
               state.filters.genres.clear();
             } else {
-              state.filters.genres.clear();
-              for (const v of nonEmpty) state.filters.genres.add(v);
+              if (state.filters.genres.has(v)) state.filters.genres.delete(v);
+              else state.filters.genres.add(v);
             }
-
-            // Try to keep the select consistent for the next open.
-            const allOpt = el.genreSelect.querySelector('option[value=""]');
-            if (allOpt){
-              const hasAny = state.filters.genres.size > 0;
-              if (hasAny) allOpt.selected = false;
-              else allOpt.selected = true;
-            }
-
             syncGenreSelectFromState();
+            refresh();
             updateDialogMeta();
             scheduleLiveApply();
-          }, 0);
-        };
-
-        el.genreSelect.addEventListener("change", commitGenreFromSelect);
-        el.genreSelect.addEventListener("input", commitGenreFromSelect);
-        el.genreSelect.addEventListener("blur", commitGenreFromSelect);
+          });
+        }
+      }
+      if (done){
+        done.addEventListener("click", (e) => {
+          e.stopPropagation();
+          __closeDesktopPanel();
+        });
       }
     }
 
@@ -1494,20 +1432,20 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       }
     }
 
-    // Desktop custom dropdown (Genre) – needs manual refresh when filters are changed
+    // Custom dropdown (Genre) – needs manual refresh when filters are changed
     // via the active filter bar or other UI elements.
-    if (isSheetDesktop() && el.genreRowDesktop){
+    if (el.genreRowDesktop){
       const btn = el.genreRowDesktop.querySelector("#genreBtn");
       // Panel can be portaled into the sheet float layer.
       const panel = el.dlg?.querySelector?.("#genrePanel");
       if (btn && panel){
         const labEl = btn.querySelector(".ddBtnLabel");
-        // Compact label: either "Alle" or "<Erstes> +N" to stay readable.
-        let nextLabel = "Genre: Alle";
+        // Compact label: "0 ausgewählt" oder "<Erstes> +N".
+        let nextLabel = "0 ausgewählt";
         const n = state.filters.genres?.size || 0;
         if (n > 0){
           const arr = Array.from(state.filters.genres).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
-          nextLabel = `Genre: ${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
+          nextLabel = `${arr[0]}${n>1 ? ` +${n-1}` : ""}`;
         }
         if (labEl) labEl.textContent = nextLabel;
 
