@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j8
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j9
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -47,6 +47,17 @@
     --fabSize: 46px;
     --fabGap: 9px;
     --fabFont: 12px;
+  }
+}
+
+/* Phone Landscape: erzwinge Phone-FAB-Größe (verhindert, dass breite Phones in die Tablet-Regel rutschen) */
+@media (orientation: landscape) and (max-height: 520px){
+  :root{
+    --fabEdge: 12px;
+    --fabBottom: 12px;
+    --fabSize: 36px;
+    --fabGap: 8px;
+    --fabFont: 11px;
   }
 }
 
@@ -1181,13 +1192,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j8 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j9 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j8 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j9 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1220,7 +1231,7 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-/* --- Build 7.1j8 – Schnellmenü (Phone Landscape): als Dock unten links ---
+/* --- Build 7.1j9 – Schnellmenü (Phone Landscape): als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
@@ -1255,7 +1266,7 @@ html.modalOpen body{touch-action:none;}
 
 
 
-  /* --- Build 7.1j8 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
+  /* --- Build 7.1j9 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
      Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
      Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
   .fabPanelText{
@@ -1293,7 +1304,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j8 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j9 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
