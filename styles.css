@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j6
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j7
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -8,8 +8,9 @@
   /* Floating buttons */
   --fabEdge: 12px;
   --fabBottom: 12px;
-  --fabSize: 32px;
-  --fabGap: 7px;
+  /* Phone: slightly larger for easier thumb reach */
+  --fabSize: 36px;
+  --fabGap: 8px;
   --fabFont: 11px;
 
   /* Softer, less “office-grey” base palette */
@@ -36,6 +37,28 @@
 
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
+}
+
+/* Tablet + Desktop: same (more touch-friendly) FAB sizing */
+@media (min-width: 701px){
+  :root{
+    --fabEdge: 16px;
+    --fabBottom: 16px;
+    --fabSize: 48px;
+    --fabGap: 10px;
+    --fabFont: 12px;
+  }
+}
+
+/* Tablet + Desktop: treat tablet and desktop equally (touch-friendly) */
+@media (min-width: 701px){
+  :root{
+    --fabEdge: 16px;
+    --fabBottom: 16px;
+    --fabSize: 48px;
+    --fabGap: 10px;
+    --fabFont: 12px;
+  }
 }
 
 
@@ -239,7 +262,20 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   display:grid;place-items:center;
 }
 
-.wrap{max-width:980px;margin:0 auto;padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(90px * var(--uiScale)); position:relative; z-index:1}
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  /* Keep last card clear of the 3-button FAB stack (varies by device size) */
+  padding:
+    calc(12px * var(--uiScale))
+    calc(12px * var(--uiScale))
+    max(
+      calc(90px * var(--uiScale)),
+      calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3 + 24px) * var(--uiScale))
+    );
+  position:relative;
+  z-index:1;
+}
 .cards{padding:6px 4px}
 
 .card{
@@ -1151,13 +1187,13 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 }
 
-/* --- Build 7.1j6 – Mobile-Landscape Feinschliff (Phone Landscape)
+/* --- Build 7.1j7 – Mobile-Landscape Feinschliff (Phone Landscape)
    Ziele:
    - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
    - Label/Wert näher zusammen wie Desktop/Tablet
    Portrait bleibt unberührt. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
-  /* --- Build 7.1j6 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+  /* --- Build 7.1j7 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
      Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
      Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
      Portrait bleibt unberührt. */
@@ -1190,7 +1226,7 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-/* --- Build 7.1j6 – Schnellmenü (Phone Landscape): als Dock unten links ---
+/* --- Build 7.1j7 – Schnellmenü (Phone Landscape): als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
@@ -1251,7 +1287,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* --- Build 7.1j6 – Typografie-Feinschliff (Desktop/Tablet)
+/* --- Build 7.1j7 – Typografie-Feinschliff (Desktop/Tablet)
    Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
    Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
 @media (min-width: 701px) and (min-height: 521px){
