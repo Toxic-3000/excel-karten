@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j24
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j25
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -802,7 +802,12 @@ summary::-webkit-details-marker{display:none}
 
 /* Panels immer oberhalb des Button-Stacks starten (überdeckt die FABs nicht) */
 .fabPanelText{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale)); }
-.fabPanelQuick{ bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale)); }
+/* Quick-Panel: Bottom-Offset als Custom Property, damit wir in kritischen Fällen
+   (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
+.fabPanelQuick{
+  --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
+  bottom: var(--panelBottomQuick);
+}
 
 /* Phone Landscape (kritischer Fall: Browserbar sichtbar + großer globaler Schriftgrad)
    Ziel: Schnellmenü soll ohne Scrollen vollständig in den verfügbaren Viewport passen.
@@ -811,14 +816,20 @@ summary::-webkit-details-marker{display:none}
 */
 @media (orientation: landscape) and (max-height: 520px){
   .fabPanelQuick{
-    /* svh berücksichtigt sichtbare Browser-UI zuverlässiger als dvh (Fallback bleibt oben). */
-    max-height: calc(100svh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    /* Kritischer Fall (Phone Landscape):
+       Die Browserbar reduziert die sichtbare Höhe. Mit max-height allein kann das Panel
+       unnötig scrollen oder außerhalb des Viewports enden.
+       Lösung: Panel oben UND unten begrenzen (echte verfügbare Höhe), und nur dann scrollen,
+       wenn der Inhalt wirklich zu groß ist. */
+    top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+    bottom: calc(var(--panelBottomQuick) + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: none !important;
+
     /* Breiter in Landscape, damit Chips weniger umbrechen → spart vertikale Höhe */
     width: min(520px, calc(100vw - 24px)) !important;
     padding: 9px !important;
-    /* Phone Landscape: Schnellmenü bleibt vom Aa-Slider entkoppelt,
-       aber nicht "zu klein". Durch die einzeilige Info-Box bleibt es
-       trotzdem vollständig sichtbar, ohne dass gescrollt werden muss. */
+
+    /* Schnellmenü bleibt vom Aa-Slider entkoppelt (nur hier). */
     font-size: 14px !important;
     line-height: 1.25 !important;
   }
