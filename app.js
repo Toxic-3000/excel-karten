@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j16 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j16
+console.log("Build 7.1j17 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j16").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j17").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1757,6 +1757,22 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   let _viewHintDismissed = false;
   let _viewHintHandlersOn = false;
   let _viewHintDismissHandler = null;
+  let _viewHintPosHandler = null;
+
+  function positionViewToast(){
+    if (!el.viewToast) return;
+    // Place the hint directly under the sticky header so it's always visible,
+    // even if the user is scrolled far down in the cards list.
+    let top = 12;
+    try{
+      const hdr = document.querySelector(".hdr");
+      if (hdr){
+        const r = hdr.getBoundingClientRect();
+        if (r && Number.isFinite(r.bottom)) top = Math.max(8, Math.round(r.bottom + 10));
+      }
+    }catch(_){/* ignore */}
+    el.viewToast.style.top = `${top}px`;
+  }
 
   function inCardsView(){
     // Cards view is visible whenever the filter dialog is not open.
@@ -1769,6 +1785,12 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     try{ window.removeEventListener("pointerdown", _viewHintDismissHandler, true); }catch(_){/* ignore */}
     // Fallback for older touch stacks
     try{ window.removeEventListener("touchstart", _viewHintDismissHandler, true); }catch(_){/* ignore */}
+
+    if (_viewHintPosHandler){
+      try{ window.removeEventListener("resize", _viewHintPosHandler, true); }catch(_){/* ignore */}
+      try{ window.removeEventListener("orientationchange", _viewHintPosHandler, true); }catch(_){/* ignore */}
+      _viewHintPosHandler = null;
+    }
     _viewHintHandlersOn = false;
     _viewHintDismissHandler = null;
   }
@@ -1782,6 +1804,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   function showViewToast(msg){
     if (!el.viewToast) return;
     if (!msg) return;
+    // Ensure viewport-anchored position is correct before showing.
+    positionViewToast();
     el.viewToast.textContent = String(msg);
     el.viewToast.hidden = false;
 
@@ -1791,10 +1815,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       hideViewToast();
     };
     _viewHintHandlersOn = true;
+    _viewHintPosHandler = () => {
+      try{ if (el.viewToast && !el.viewToast.hidden) positionViewToast(); }catch(_){/* ignore */}
+    };
     // Capture phase ensures we dismiss even if the click is handled elsewhere.
     window.addEventListener("scroll", _viewHintDismissHandler, {passive:true, capture:true});
     window.addEventListener("pointerdown", _viewHintDismissHandler, {passive:true, capture:true});
     window.addEventListener("touchstart", _viewHintDismissHandler, {passive:true, capture:true});
+
+    // Keep it under the header even if the viewport changes (mobile browser bars, rotation).
+    window.addEventListener("resize", _viewHintPosHandler, {passive:true, capture:true});
+    window.addEventListener("orientationchange", _viewHintPosHandler, {passive:true, capture:true});
   }
 
   function resetViewHint(){
