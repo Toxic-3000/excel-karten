@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j20" />
+    <meta name="app-build" content="7.1j17" />
   <link rel="stylesheet" href="styles.css?v=7.1j17" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -81,45 +81,36 @@
       <button id="fabTextClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
 
-    <div class="fabQuickInfo" aria-live="polite" hidden>
-      <div class="fabQuickInfoLine fabQuickInfoLine1">0 Titel angezeigt</div>
-      <div class="fabQuickInfoLine fabQuickInfoLine2">Filter aktiv: 0</div>
-    </div>
-
-    <div class="fabSect" id="fabSortFieldSect">
+    <div class="fabSect">
       <div class="fabLabel">Wählen</div>
       <div id="fabScaleRow" class="chipRow fabChips" aria-label="Textgröße wählen"></div>
     </div>
   </div>
 
   <!-- 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü) -->
-<button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen">≡</button>
+  <button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen">≡</button>
   <div id="fabQuickPanel" class="fabPanel fabPanelQuick" hidden>
     <div class="fabHead">
       <div class="fabTitle">Schnellmenü</div>
       <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
 
-    <div class="fabQuickInfo" aria-live="polite" hidden>
-      <div class="fabQuickInfoLine fabQuickInfoLine1">0 Titel angezeigt</div>
-      <div class="fabQuickInfoLine fabQuickInfoLine2">Filter aktiv: 0</div>
-    </div>
-
-    <div class="fabSect" id="fabSortFieldSect">
+    <div class="fabSect">
       <div class="fabLabel">Sortieren nach</div>
-      <div class="fabChips" id="fabSortFieldRow"></div>
+      <div id="fabSortFieldRow" class="chipRow fabChips" aria-label="Sortierfeld wählen"></div>
     </div>
 
-    <div class="fabSect" id="fabSortDirSect">
+    <div class="fabSect">
       <div class="fabLabel">Sortierung</div>
-      <div class="fabDirRow" id="fabSortDirRow"></div>
+      <div id="fabSortDirRow" class="chipRow fabChips" aria-label="Sortierrichtung"></div>
     </div>
 
-    <div class="fabActions" id="fabQuickActions">
-      <button id="fabOpenMenu" class="btn btnPrimary">Filter & Sortieren</button>
+    <div class="fabActions">
+      <button id="fabOpenMenu" class="btn btn-primary">Filter &amp; Sortieren</button>
     </div>
   </div>
-<input id="file" type="file" accept=".xlsx" hidden />
+
+  <input id="file" type="file" accept=".xlsx" hidden />
 
   <dialog id="dlg" class="dlg">
     <div class="sheet" role="dialog" aria-label="Filter und Sortierung">

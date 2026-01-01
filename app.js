@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j20 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j20
+console.log("Build 7.1j17 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j20").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j17").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -38,7 +38,6 @@ console.log("Build 7.1j20 loaded");
     fabQuick: $("fabQuick"),
     fabQuickPanel: $("fabQuickPanel"),
     fabQuickClose: $("fabQuickClose"),
-    // Quick info box is duplicated across panels; we query it dynamically.
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -1744,120 +1743,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     return false;
   }
 
-  function countActiveFilters(){
-    const f = state.filters;
-    let n = 0;
-    if (f.fav) n++;
-    if (f.shortMain5) n++;
-    if (f.trophyPreset) n++;
-    if (f.genres && f.genres.size) n++;
-    if (f.platforms && f.platforms.size) n++;
-    if (f.sources && f.sources.size) n++;
-    if (f.availability && f.availability.size) n++;
-    if (f.trophies && f.trophies.size) n++;
-    return n;
-  }
-
-  function isPhoneLandscape(){
-    // A bit generous: browser UI + safe-areas can inflate the reported height in landscape.
-    return window.matchMedia("(orientation: landscape) and (max-width: 920px) and (max-height: 620px)").matches;
-  }
-
-  function updateQuickMenuInfo(){
-    const boxes = document.querySelectorAll(".fabQuickInfo");
-    if (!boxes || !boxes.length) return;
-
-    const count = (state.ui && typeof state.ui.lastCount === "number") ? state.ui.lastCount : 0;
-    const fcount = countActiveFilters();
-
-    // Only show the box if there are active filters and we actually have loaded data.
-    const hasData = Array.isArray(state.rows) && state.rows.length > 0;
-    const show = hasData && fcount > 0;
-    const compact = isPhoneLandscape();
-
-    boxes.forEach((box) => {
-      try{ box.hidden = !show; }catch(_){/* ignore */}
-      if (!show) return;
-
-      try{ box.classList.toggle("compact", compact); }catch(_){/* ignore */}
-      const l1 = box.querySelector(".fabQuickInfoLine1");
-      const l2 = box.querySelector(".fabQuickInfoLine2");
-      if (!l1) return;
-
-      if (compact){
-        l1.textContent = `${count} Titel • Filter: ${fcount}`;
-        if (l2){ l2.textContent = ""; l2.style.display = "none"; }
-      } else {
-        l1.textContent = `${count} Titel angezeigt`;
-        if (l2){ l2.style.display = ""; l2.textContent = `Filter aktiv: ${fcount}`; }
-      }
-    });
-  }
-
-  function filterOnlySignature(){
-    const f = state.filters;
-    const setSig = (s)=> (s && s.size) ? Array.from(s).map(String).sort().join(",") : "";
-    return [
-      `fav:${f.fav?1:0}`,
-      `shortMain5:${f.shortMain5?1:0}`,
-      `trophyPreset:${f.trophyPreset||""}`,
-      `genres:${setSig(f.genres)}`,
-      `platforms:${setSig(f.platforms)}`,
-      `sources:${setSig(f.sources)}`,
-      `availability:${setSig(f.availability)}`,
-      `trophies:${setSig(f.trophies)}`
-    ].join("|");
-  }
-
   function updateQuickFilterIndicator(){
     if (!el.fabQuick) return;
     const on = hasActiveFilters();
     el.fabQuick.classList.toggle("fabHasFilters", on);
     el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
-    updateQuickMenuInfo();
-  }
-
-  // --- Aufmerksamkeit: kurzes "Aufblitzen" des Schnellmenü-FABs ---
-  // Ziel: Wenn man aus dem Filter-Menü zurück in die Kartenansicht geht
-  // und sich der Filterzustand verändert hat (und Filter aktiv sind),
-  // soll der Button kurz Aufmerksamkeit ziehen – ohne dauerhaftes Geblinke.
-  const FAB_PULSE_TOTAL_MS = 900; // keep the current "pulse phase" length
-  const FAB_PULSE_GAP_MS = 140;   // tiny gap so the re-trigger feels like distinct pulses
-  let _fabPulseTimer = 0;
-  let _fabPulseSeqTimer = 0;
-  function pulseFabQuick(){
-    if (!el.fabQuick) return;
-    try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-    // Reflow, damit die Animation zuverlässig neu startet.
-    try{ void el.fabQuick.offsetWidth; }catch(_){/* ignore */}
-    try{ el.fabQuick.classList.add("fabPulse"); }catch(_){/* ignore */}
-    window.setTimeout(() => {
-      try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-    }, FAB_PULSE_TOTAL_MS);
-  }
-  function scheduleFabPulse(delayMs, repeats){
-    if (_fabPulseTimer) { try{ window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */} _fabPulseTimer = 0; }
-    if (_fabPulseSeqTimer) { try{ window.clearTimeout(_fabPulseSeqTimer); }catch(_){/* ignore */} _fabPulseSeqTimer = 0; }
-
-    const n = Math.max(1, Number(repeats)||1);
-    _fabPulseTimer = window.setTimeout(() => {
-      _fabPulseTimer = 0;
-      try{
-        if (!(inCardsView() && hasActiveFilters())) return;
-      }catch(_){ return; }
-
-      let i = 0;
-      const run = () => {
-        try{
-          if (!(inCardsView() && hasActiveFilters())) return;
-          pulseFabQuick();
-        }catch(_){ return; }
-        i++;
-        if (i >= n) return;
-        _fabPulseSeqTimer = window.setTimeout(run, FAB_PULSE_TOTAL_MS + FAB_PULSE_GAP_MS);
-      };
-      run();
-    }, Math.max(0, Number(delayMs)||0));
   }
 
   // --- Cards-view hint (Filter aktiv) ---
@@ -2287,6 +2177,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
+
+    // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
+    // (The user dismisses it via interaction: scroll/tap.)
+    try{
+      const sigNow = filterSignature();
+      if (sigNow !== String(state.ui?.lastFilterSig ?? "")){
+        state.ui.lastFilterSig = sigNow;
+        resetViewHint();
+      }
+    }catch(_){/* ignore */}
+    syncViewHint();
     render(out);
   }
 
@@ -2968,17 +2869,9 @@ function renderTrophyDetails(row){
     _menuDirty = false;
     setModalOpen(false);
     updateQuickFilterIndicator();
-
-    // Zurück in der Kartenansicht: Wenn Filter aktiv sind UND sich der Filterzustand
-    // im Menü geändert hat, soll der Schnellmenü-Button kurz "aufblitzen".
-    try{
-      const afterSig = filterSignature();
-      const changed = String(afterSig) !== String(_menuSigOnOpen ?? "");
-      if (hasActiveFilters() && changed){
-        // kleine Verzögerung, damit keine Overlays (Dialog/Browserbar) die Animation verdecken
-        scheduleFabPulse(260);
-      }
-    }catch(_){/* ignore */}
+    // Returning to the cards view: if filters are active, show the hint until the user interacts.
+    resetViewHint();
+    syncViewHint();
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
