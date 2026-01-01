@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j17" />
-  <link rel="stylesheet" href="styles.css?v=7.1j17" />
+    <meta name="app-build" content="7.1j18" />
+  <link rel="stylesheet" href="styles.css?v=7.1j18" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -63,8 +63,7 @@
       </div>
     </div>
 
-    <!-- Hinweis in der Kartenansicht bei aktiven Filtern (verschwindet nach Interaktion: Scroll/Tip) -->
-    <div id="viewToast" class="viewToast" hidden></div>
+    <!-- Cards-view hint removed: active filter context lives in the Schnellmenü. -->
 
     <section id="cards" class="cards"></section>
   </main>
@@ -94,6 +93,9 @@
       <div class="fabTitle">Schnellmenü</div>
       <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
+
+    <!-- Kontext zur aktuellen Ansicht (nur im Schnellmenü, nicht in der Kartenansicht) -->
+    <div id="fabQuickMeta" class="fabMeta" aria-label="Aktuelle Treffer und aktive Filter"></div>
 
     <div class="fabSect">
       <div class="fabLabel">Sortieren nach</div>
@@ -272,7 +274,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j17" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j17" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j18" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j18" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>

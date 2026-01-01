@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j18
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -40,6 +40,11 @@
      Muted olive/sage reads as "state" without competing with primary UI accents. */
   --filterAccent: #6a7f3a;
   --filterAccent2:#556a2e;
+
+  /* Active-filter halo ring (subtle but clearly non-blue) */
+  --filterRing: color-mix(in oklab, #cc3b3b 78%, transparent);
+  --filterRingGlow: color-mix(in oklab, #cc3b3b 32%, transparent);
+  --filterRingGlowStrong: color-mix(in oklab, #cc3b3b 52%, transparent);
 
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
@@ -290,25 +295,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .cards{padding:6px 4px}
 
-/* Cards-view hint shown when filters are active.
-   Must be visible even if the user is scrolled down, therefore viewport-anchored.
-   It is dismissed on first interaction (scroll/tap), so it never "sticks" around. */
-.viewToast{
-  position: fixed;
-  top: 84px; /* JS repositions under the sticky header */
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(740px, calc(100vw - 24px));
-  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-  font-weight: 600;
-  opacity: .94;
-  z-index: 49; /* under header (50), above cards */
-  pointer-events: none; /* don't block taps; dismissal is handled globally */
-}
+/* Cards-view hint removed (context now lives in the Schnellmenü). */
 
 .card{
   background:var(--card);
@@ -746,8 +733,20 @@ summary::-webkit-details-marker{display:none}
 .fab.fabHasFilters{
   background: color-mix(in oklab, var(--filterAccent) 16%, var(--bg) 84%);
   border-color: color-mix(in oklab, var(--filterAccent) 38%, var(--border) 62%);
-  box-shadow: var(--shadow), 0 0 0 2px var(--filterGlow);
+  /* Fill stays calm (current behavior). The halo is the main indicator. */
+  box-shadow: var(--shadow), 0 0 0 2px var(--filterRing), 0 0 12px var(--filterRingGlow);
   opacity: .9;
+}
+
+/* One-time pulse (only the halo). Never repeats. */
+.fab.fabHasFilters.fabPulse{
+  animation: fabHaloPulse .45s ease-out 1;
+}
+
+@keyframes fabHaloPulse{
+  0%   { box-shadow: var(--shadow), 0 0 0 2px var(--filterRing), 0 0 10px var(--filterRingGlow); }
+  55%  { box-shadow: var(--shadow), 0 0 0 3px var(--filterRing), 0 0 18px var(--filterRingGlowStrong); }
+  100% { box-shadow: var(--shadow), 0 0 0 2px var(--filterRing), 0 0 12px var(--filterRingGlow); }
 }
 
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
@@ -788,6 +787,23 @@ summary::-webkit-details-marker{display:none}
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
 .fabChips{gap: calc(10px * var(--uiScale));}
+
+.fabMeta{
+  margin-top: calc(10px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+.fabMetaLine{
+  font-weight: 600;
+  opacity: .92;
+}
+.fabMetaLine + .fabMetaLine{
+  margin-top: calc(6px * var(--uiScale));
+}
+.fabMetaQuiet{opacity: .65; font-weight: 550;}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
 

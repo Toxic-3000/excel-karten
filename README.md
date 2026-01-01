@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j17)
+# Spieleliste – Webansicht (Build 7.1j18)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -16,13 +16,20 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 - **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j17)
+## Getestet (Stand 7.1j18)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
 - ✅ Desktop (Windows)
 - ✅ Windows Tablet Portrait
 - ✅ Windows Tablet Landscape (z. B. 1280×800)
+
+## Änderungen in 7.1j18
+
+- Schnellmenü zeigt oben Kontext: **„Titel angezeigt“** + **„Filter aktiv: n“**.
+- Aktive Filter werden am Schnellmenü-FAB deutlicher, aber ruhig signalisiert: **bestehende Einfärbung bleibt**, **Halo-Ring** ist jetzt kontrastreicher (rot, leicht leuchtend).
+- Einmaliger **Halo-Pulse**, wenn Filter von „aus“ → „an“ wechseln.
+- Hinweis in der Kartenansicht wurde entfernt (Kontext sitzt nun konsequent im Schnellmenü).
 
 ## Schnellstart
 

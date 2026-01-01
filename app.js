@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j17 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
+console.log("Build 7.1j18 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j18
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j17").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j18").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -38,6 +38,7 @@ console.log("Build 7.1j17 loaded");
     fabQuick: $("fabQuick"),
     fabQuickPanel: $("fabQuickPanel"),
     fabQuickClose: $("fabQuickClose"),
+    fabQuickMeta: $("fabQuickMeta"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -212,6 +213,10 @@ console.log("Build 7.1j17 loaded");
     if (!el.fabQuickPanel) return;
     const willOpen = !!el.fabQuickPanel.hidden;
     closeFabs();
+    if (willOpen) {
+      // Always refresh context right before opening.
+      try{ updateFabQuickMeta(); }catch(_){/* ignore */}
+    }
     el.fabQuickPanel.hidden = !willOpen;
   }
 
@@ -1728,6 +1733,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
     // Keep the Schnellmenü-FAB in sync: subtle indicator when any filter is active.
     updateQuickFilterIndicator();
+
+    // Update Schnellmenü context (count + active filters)
+    updateFabQuickMeta();
   }
 
   function hasActiveFilters(){
@@ -1743,11 +1751,57 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     return false;
   }
 
+  function activeFilterTokenCount(){
+    const f = state.filters;
+    let n = 0;
+    if (f.fav) n += 1;
+    if (f.shortMain5) n += 1;
+    if (f.trophyPreset) n += 1;
+    if (f.genres && f.genres.size) n += f.genres.size;
+    if (f.platforms && f.platforms.size) n += f.platforms.size;
+    if (f.sources && f.sources.size) n += f.sources.size;
+    if (f.availability && f.availability.size) n += f.availability.size;
+    if (f.trophies && f.trophies.size) n += f.trophies.size;
+    return n;
+  }
+
+  function updateFabQuickMeta(){
+    if (!el.fabQuickMeta) return;
+    if (!state.rows || !state.rows.length){
+      el.fabQuickMeta.textContent = "";
+      el.fabQuickMeta.hidden = true;
+      return;
+    }
+    const shown = Number(state.ui?.lastCount ?? 0);
+    const shownTxt = Number.isFinite(shown) ? shown : computeFilteredCount();
+    const fCount = activeFilterTokenCount();
+    el.fabQuickMeta.hidden = false;
+    // Keep it calm: no icons, no badges, just short context.
+    el.fabQuickMeta.innerHTML = `
+      <div class="fabMetaLine">${shownTxt} Titel angezeigt</div>
+      <div class="fabMetaLine ${fCount ? "" : "fabMetaQuiet"}">Filter aktiv: ${fCount}</div>
+    `;
+  }
+
   function updateQuickFilterIndicator(){
     if (!el.fabQuick) return;
     const on = hasActiveFilters();
+    const prev = !!state.ui?.hadFilters;
     el.fabQuick.classList.toggle("fabHasFilters", on);
     el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
+
+    // One-time pulse when filters become active (halo only; the fill stays calm).
+    if (on && !prev){
+      el.fabQuick.classList.add("fabPulse");
+      window.setTimeout(() => {
+        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
+      }, 500);
+    }
+    if (!on){
+      try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
+    }
+    state.ui = state.ui || {};
+    state.ui.hadFilters = on;
   }
 
   // --- Cards-view hint (Filter aktiv) ---
@@ -2177,6 +2231,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
+    updateFabQuickMeta();
 
     // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
     // (The user dismisses it via interaction: scroll/tap.)
