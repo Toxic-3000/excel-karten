@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j14
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -718,6 +718,13 @@ summary::-webkit-details-marker{display:none}
 .fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }
 .fabText{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
 
+/* Subtiler Status-Akzent: zeigt an, dass Filter aktiv sind (nicht Sortierung). */
+.fabQuick.hasFilters{
+  opacity: .92;
+  background: color-mix(in oklab, var(--blue) 14%, color-mix(in oklab, var(--bg) 92%, var(--fg) 8%));
+  border-color: color-mix(in oklab, var(--blue) 34%, var(--border) 66%);
+}
+
 .fabPanel{
   position:fixed;
   right: calc(var(--fabEdge) * var(--uiScale));
@@ -881,6 +888,43 @@ html.modalOpen body{touch-action:none;}
   align-items:center;
   gap: calc(12px * var(--uiScale));
 }
+
+/* Temporäres Feedback (Live-Filter/Reset). Kein Sticky, nimmt nur kurz Platz ein. */
+.dlgToast{
+  margin: 0 calc(12px * var(--uiScale));
+  margin-top: calc(8px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  font-size: calc(13px * var(--uiScale));
+  font-weight: 600;
+  letter-spacing: .01em;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.dlgToast.isOn{
+  opacity: .92;
+  transform: translateY(0);
+}
+
+/* Temporäres Live-Feedback (Filter/Reset) – kein Sticky, verschwindet automatisch */
+.dlgToast{
+  margin: 0 calc(12px * var(--uiScale));
+  margin-bottom: calc(10px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
+  font-size: calc(13px * var(--uiScale));
+  font-weight: 600;
+  letter-spacing: .01em;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.dlgToast.isOn{ opacity: .94; transform: translateY(0); }
 .sheetTitle{font-weight:650; flex: 1 1 auto; min-width: 0;}
 .sheetBody{
   /* Bottom padding removed so the sticky action bar can sit flush to the sheet's rounded frame.

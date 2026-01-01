@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j14 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j14
+console.log("Build 7.1j15 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j14").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j15").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -50,6 +50,7 @@ console.log("Build 7.1j14 loaded");
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
     dlg: $("dlg"),
+    dlgToast: $("dlgToast"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
     btnClear: $("btnClear"),
@@ -1584,7 +1585,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (group === "shortMain") setAllChipPressed("shortMain", "le5", false);
         if (group === "fav") setAllChipPressed("fav", "fav", false);
 
+        _pendingToastKind = "filter";
         updateDialogMeta();
+        scheduleLiveApply();
       });
     }
   }
@@ -1722,8 +1725,73 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   function updateDialogMeta(forceNow=false){
     updateAccordionSummaries();
     renderActiveFilterBar();
+    updateFabQuickFilterIndicator();
     if (forceNow) updateApplyCount();
     else scheduleApplyCount();
+  }
+
+  // --- Filter state → quick UI indicator (Schnellmenü-FAB) ---
+  function hasActiveFilters(){
+    if (state.filters.fav) return true;
+    if (state.filters.genres && state.filters.genres.size) return true;
+    if (state.filters.platforms && state.filters.platforms.size) return true;
+    if (state.filters.sources && state.filters.sources.size) return true;
+    if (state.filters.availability && state.filters.availability.size) return true;
+    if (state.filters.trophies && state.filters.trophies.size) return true;
+    if (state.filters.trophyPreset) return true;
+    if (state.filters.shortMain5) return true;
+    return false;
+  }
+
+  function updateFabQuickFilterIndicator(){
+    if (!el.fabQuick) return;
+    const active = hasActiveFilters();
+    el.fabQuick.classList.toggle("hasFilters", !!active);
+  }
+
+  // --- Temporäres Feedback bei Live-Änderungen (Filter/Reset) ---
+  let _pendingToastKind = null; // "filter" | "reset" | null
+  let _toastTimer = 0;
+  let _toastHideTimer = 0;
+
+  function showDlgToast(msg){
+    if (!el.dlgToast) return;
+    if (_toastTimer) window.clearTimeout(_toastTimer);
+    if (_toastHideTimer) window.clearTimeout(_toastHideTimer);
+
+    el.dlgToast.textContent = String(msg || "");
+    el.dlgToast.hidden = false;
+    // Ensure transition restarts
+    el.dlgToast.classList.remove("isOn");
+    // next frame
+    requestAnimationFrame(() => {
+      el.dlgToast.classList.add("isOn");
+    });
+
+    _toastTimer = window.setTimeout(() => {
+      _toastTimer = 0;
+      el.dlgToast.classList.remove("isOn");
+      _toastHideTimer = window.setTimeout(() => {
+        _toastHideTimer = 0;
+        el.dlgToast.hidden = true;
+      }, 220);
+    }, 1400);
+  }
+
+  function maybeShowPendingToast(resultCount){
+    if (!_pendingToastKind) return;
+    const kind = _pendingToastKind;
+    _pendingToastKind = null;
+    // Only show when the sheet is open (where the user is actively changing things)
+    if (!el.dlg || !el.dlg.open) return;
+    const n = (typeof resultCount === "number") ? resultCount : null;
+    if (kind === "reset"){
+      showDlgToast(n != null ? `Zurückgesetzt · Treffer: ${n}` : "Zurückgesetzt");
+      return;
+    }
+    const active = hasActiveFilters();
+    if (active) showDlgToast(n != null ? `Filter aktiv · Treffer: ${n}` : "Filter aktiv");
+    else showDlgToast(n != null ? `Keine Filter aktiv · Treffer: ${n}` : "Keine Filter aktiv");
   }
 
   // Live-Apply: Filters/Sortierung wirken sofort (mit kleinem Debounce),
@@ -1744,6 +1812,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const group = btn.getAttribute("data-group");
     const key = btn.getAttribute("data-key");
     const pressed = btn.getAttribute("aria-pressed") === "true";
+
+    // For the temporary feedback + FAB indicator: mark filter changes (not pure sort).
+    if (group && group !== "sortField" && group !== "sortDir"){
+      _pendingToastKind = "filter";
+    }
 
     if (group === "sortField"){
       // Exclusive selection
@@ -2038,7 +2111,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     // Keep FAB quick controls in sync (in case sortDir changed via dialog).
     updateFabSortUI();
     updateFabSortFieldUI();
+    updateFabQuickFilterIndicator();
     render(out);
+    maybeShowPendingToast(out.length);
   }
 
 
@@ -2756,6 +2831,7 @@ function renderTrophyDetails(row){
   });
 
   el.btnClear.addEventListener("click", () => {
+    _pendingToastKind = "reset";
     state.filters.fav = false;
     state.filters.genres.clear();
     state.filters.platforms.clear();
@@ -2772,6 +2848,7 @@ function renderTrophyDetails(row){
     buildFilterUI();
     updateFabSortFieldUI();
     updateFabSortUI();
+    updateFabQuickFilterIndicator();
     scheduleLiveApply();
   });
 
