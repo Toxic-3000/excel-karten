@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j26
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j27
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -830,13 +830,22 @@ summary::-webkit-details-marker{display:none}
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     max-height: none !important;
 
-    /* Breiter in Landscape, damit Chips weniger umbrechen → spart vertikale Höhe */
-    width: min(520px, calc(100vw - 24px)) !important;
+    /* In Phone-Landscape soll das Schnellmenü die gleiche Breite/Andock-Logik wie das
+       Textgrößen-Menü haben: es setzt links neben dem FAB-Stack an (keine Überdeckung
+       durch die Buttons), und bleibt dadurch optisch konsistent. */
+    left: calc(14px * var(--uiScale)) !important;
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
+    width: auto !important;
     padding: 9px !important;
 
     /* Schnellmenü bleibt vom Aa-Slider entkoppelt (nur hier). */
     font-size: 14px !important;
     line-height: 1.25 !important;
+
+    /* Verhindert, dass das Grid freie Höhe auf die Reihen verteilt und dadurch
+       der Footer-Button „unnötig groß“ gestreckt wird (v.a. wenn keine Info-Box da ist). */
+    align-content: start !important;
+    align-items: start !important;
   }
   .fabPanelQuick .fabHead{ gap: 10px !important; padding-bottom: 6px !important; }
   .fabPanelQuick .fabTitle{ font-size: 16px !important; }
@@ -853,6 +862,7 @@ summary::-webkit-details-marker{display:none}
   .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 13.5px !important; }
 
   .fabPanelQuick .fabActions{ margin-top: 8px !important; }
+  .fabPanelQuick #fabOpenMenu{ align-self: start !important; }
   .fabPanelQuick .btn{ font-size: 14px !important; padding: 10px 12px !important; }
 }
 

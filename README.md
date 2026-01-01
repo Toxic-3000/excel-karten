@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j26)
+# Spieleliste – Webansicht (Build 7.1j27)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,16 +15,17 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j26
+## Neu in 7.1j27
 
-### Phone Landscape: Schnellmenü (≡) scrollt nur noch, wenn es wirklich nötig ist
-In Phone-Landscape konnte das Schnellmenü trotz kompakter Info-Box unnötig in den Scroll-Zustand rutschen.
-Ursache war eine ungünstige Höhenbegrenzung in Kombination mit sichtbarer Browserbar.
+### Phone Landscape: Schnellmenü (≡) wie Textgröße-Menü andocken + Button-Stretch verhindern
+Ziel: In Phone Landscape soll sich das Schnellmenü in Position/Breite genauso „gesetzt“ anfühlen wie das Aa-Menü,
+ohne dass sich der **„Filter & Sortieren“**-Button bei wenig Inhalt (z. B. 0 aktive Filter) unruhig „aufbläst“.
 
-- **Fix**: In Phone-Landscape wird das Quick-Panel jetzt **oben UND unten** begrenzt (statt nur über `max-height`),
-  sodass es exakt in den sichtbaren Viewport passt.
-- Ergebnis: **Kein „Pflicht-Scroll“ mehr**, außer der Inhalt ist tatsächlich zu hoch.
-- **Portrait/Tablet/Desktop** bleiben unverändert.
+- **Schnellmenü-Breite/Position**: Das Quick-Panel dockt jetzt **links neben dem FAB-Stack** an (gleiche Andock-Logik wie das Textgrößen-Menü).
+- **Stabiler Footer-Button**: In Landscape wird das interne Layout so ausgerichtet, dass **keine freie Panel-Höhe** auf Grid-Reihen verteilt wird.
+  Dadurch bleibt der **„Filter & Sortieren“**-Button in seiner normalen Höhe (kein unnötiges Vertikal-Stretching).
+
+**Portrait/Tablet/Desktop** bleiben unverändert.
 
 ## Neu in 7.1j24
 
@@ -67,7 +68,7 @@ Ziel: **Konsistentes Design**, aber **stabile Höhe** in Phone-Landscape (Browse
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
 - Die **Titelzeile** ("Schnellmenü") und die **Info-Box** sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j26)
+## Getestet (Stand 7.1j27)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
