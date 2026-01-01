@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j25)
+# Spieleliste – Webansicht (Build 7.1j26)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j25
+## Neu in 7.1j26
 
 ### Phone Landscape: Schnellmenü (≡) scrollt nur noch, wenn es wirklich nötig ist
 In Phone-Landscape konnte das Schnellmenü trotz kompakter Info-Box unnötig in den Scroll-Zustand rutschen.
@@ -67,7 +67,7 @@ Ziel: **Konsistentes Design**, aber **stabile Höhe** in Phone-Landscape (Browse
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
 - Die **Titelzeile** ("Schnellmenü") und die **Info-Box** sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j25)
+## Getestet (Stand 7.1j26)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape

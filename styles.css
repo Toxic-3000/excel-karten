@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j25
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j26
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -822,7 +822,12 @@ summary::-webkit-details-marker{display:none}
        Lösung: Panel oben UND unten begrenzen (echte verfügbare Höhe), und nur dann scrollen,
        wenn der Inhalt wirklich zu groß ist. */
     top: calc(12px + env(safe-area-inset-top, 0px)) !important;
-    bottom: calc(var(--panelBottomQuick) + env(safe-area-inset-bottom, 0px)) !important;
+    /* IMPORTANT (Landscape): don't reserve the full FAB stack height.
+       Reserving (panelBottomQuick) makes the panel artificially short in mobile browsers
+       where the visible viewport is already reduced by the address bar.
+       In this mode it's better that the panel can overlap the FAB stack, so the content
+       fits without forced scrolling. */
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     max-height: none !important;
 
     /* Breiter in Landscape, damit Chips weniger umbrechen → spart vertikale Höhe */
