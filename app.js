@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j29 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j29
+console.log("Build 7.1j30 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j30
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j29 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j29").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j30").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1781,6 +1781,15 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     catch(_){ return false; }
   }
 
+  // Tablet/Desktop "Breitbild": Panels werden links an den FAB-Stack angedockt
+  // und das Schnellmenü nutzt das kompaktere Landscape-Layout.
+  // Wichtig: NICHT für Phone-Landscape (das hat eigene Schutzlogik).
+  function isWideDockLayout(){
+    try{
+      return !!window.matchMedia && window.matchMedia("(min-width: 700px) and (min-height: 521px)").matches;
+    }catch(_){ return false; }
+  }
+
   function updateQuickMenuInfo(){
     if (!el.fabQuickInfo || !el.fabQuickPanel) return;
     const active = countActiveFiltersDetailed();
@@ -1795,9 +1804,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
     const shown = Number(state.ui?.lastCount ?? 0);
     const plural = (active === 1) ? "Filter aktiv" : "Filter aktiv";
-    if (isPhoneLandscape()){
-      // Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
-      // nur einzeilig (spart Höhe, verhindert Abschneiden bei Browserbar + großer Schrift).
+    if (isPhoneLandscape() || isWideDockLayout()){
+      // Phone Landscape + Tablet/Desktop Breitbild: gleiche Info-Box,
+      // aber einzeilig (ruhiger + kompakter, passt neben die zweispaltige Sortierung).
       if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt · Filter aktiv: ${active}`;
       if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = "";
     }else{

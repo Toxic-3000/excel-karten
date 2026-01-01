@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j29
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j30
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -872,6 +872,63 @@ summary::-webkit-details-marker{display:none}
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     width: auto !important;
   }
+}
+
+/* Tablet/Desktop (Breitbild): Panels links neben dem FAB-Stack andocken lassen
+   + Schnellmenü im gleichen visuellen Aufbau wie Phone-Landscape,
+     aber OHNE die dort nötigen Typo-/Höhen-Limitierungen.
+   (Phone-Landscape bleibt über max-height:520px separiert.) */
+@media (min-width: 700px) and (min-height: 521px){
+  /* Panels: rechts so weit einrücken, dass sie sauber links neben dem FAB-Stack starten */
+  .fabPanelQuick,
+  .fabPanelText{
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  }
+
+  /* Schnellmenü: Wide-Layout (zweispaltig wie Phone-Landscape) */
+  .fabPanelQuick{
+    display:grid;
+    grid-template-columns: 1.35fr 0.65fr;
+    grid-template-areas:
+      "head head"
+      "field dir"
+      "act act";
+    gap: calc(10px * var(--uiScale));
+    align-content:start;
+    align-items:start;
+  }
+  .fabPanelQuick.hasQuickInfo{
+    grid-template-areas:
+      "head head"
+      "info info"
+      "field dir"
+      "act act";
+  }
+  .fabPanelQuick > .fabHead{ grid-area: head; }
+  .fabPanelQuick > .fabQuickField{ grid-area: field; margin-top: 0; }
+  .fabPanelQuick > .fabQuickDir{ grid-area: dir; margin-top: 0; }
+  .fabPanelQuick > .fabActions{ grid-area: act; margin-top: 0; justify-content:flex-end; }
+  .fabPanelQuick.hasQuickInfo > .quickInfo{ grid-area: info; margin-top: 0; }
+
+  /* Info-Box: in Breitbild einzeilig (Text wird in JS entsprechend kombiniert) */
+  .fabPanelQuick .quickInfoB{ display:none !important; }
+
+  /* Chips: gleichmäßige Breite/Abstände wie im Landscape-Design */
+  #fabSortFieldRow{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+  }
+  #fabSortDirRow{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+  }
+  #fabSortFieldRow .chip,
+  #fabSortDirRow .chip{ width:100%; justify-content:center; }
+
+  /* Action-Button: kompakt, nicht Vollbreite */
+  .fabPanelQuick #fabOpenMenu{ width:auto; }
 }
 
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
