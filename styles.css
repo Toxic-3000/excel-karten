@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j16
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -35,8 +35,13 @@
   --warn:#c59a00;
   --bad:#cc3b3b;
 
+  /* Filter indicator accent (avoid competing with the main blue UI) */
+  --filterAccent: #0f766e;   /* teal-ish */
+  --filterAccent2:#0b5f59;
+
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
+  --filterGlow: color-mix(in oklab, var(--filterAccent) 22%, transparent);
 }
 
 /* Tablet + Desktop: gleichermaßen (touchfreundlich, aber etwas kompakter als zuvor) */
@@ -730,9 +735,9 @@ summary::-webkit-details-marker{display:none}
 /* Indicator: show when any (Schnell-)Filter is active.
    Intentionally subtle, but more visible than a purely text-based hint. */
 .fab.fabHasFilters{
-  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
-  border-color: color-mix(in oklab, var(--blue) 32%, var(--border) 68%);
-  box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--blue) 22%, transparent);
+  background: color-mix(in oklab, var(--filterAccent) 16%, var(--bg) 84%);
+  border-color: color-mix(in oklab, var(--filterAccent) 38%, var(--border) 62%);
+  box-shadow: var(--shadow), 0 0 0 2px var(--filterGlow);
   opacity: .9;
 }
 
