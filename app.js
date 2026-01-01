@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j18 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j18
+console.log("Build 7.1j19 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j19
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j18").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j19").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -38,7 +38,9 @@ console.log("Build 7.1j18 loaded");
     fabQuick: $("fabQuick"),
     fabQuickPanel: $("fabQuickPanel"),
     fabQuickClose: $("fabQuickClose"),
-    fabQuickMeta: $("fabQuickMeta"),
+    fabQuickInfo: $("fabQuickInfo"),
+    fabQuickInfoLine1: $("fabQuickInfoLine1"),
+    fabQuickInfoLine2: $("fabQuickInfoLine2"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -213,10 +215,6 @@ console.log("Build 7.1j18 loaded");
     if (!el.fabQuickPanel) return;
     const willOpen = !!el.fabQuickPanel.hidden;
     closeFabs();
-    if (willOpen) {
-      // Always refresh context right before opening.
-      try{ updateFabQuickMeta(); }catch(_){/* ignore */}
-    }
     el.fabQuickPanel.hidden = !willOpen;
   }
 
@@ -1733,9 +1731,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
     // Keep the Schnellmenü-FAB in sync: subtle indicator when any filter is active.
     updateQuickFilterIndicator();
-
-    // Update Schnellmenü context (count + active filters)
-    updateFabQuickMeta();
   }
 
   function hasActiveFilters(){
@@ -1751,57 +1746,90 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     return false;
   }
 
-  function activeFilterTokenCount(){
+  function countActiveFilters(){
     const f = state.filters;
     let n = 0;
-    if (f.fav) n += 1;
-    if (f.shortMain5) n += 1;
-    if (f.trophyPreset) n += 1;
-    if (f.genres && f.genres.size) n += f.genres.size;
-    if (f.platforms && f.platforms.size) n += f.platforms.size;
-    if (f.sources && f.sources.size) n += f.sources.size;
-    if (f.availability && f.availability.size) n += f.availability.size;
-    if (f.trophies && f.trophies.size) n += f.trophies.size;
+    if (f.fav) n++;
+    if (f.shortMain5) n++;
+    if (f.trophyPreset) n++;
+    if (f.genres && f.genres.size) n++;
+    if (f.platforms && f.platforms.size) n++;
+    if (f.sources && f.sources.size) n++;
+    if (f.availability && f.availability.size) n++;
+    if (f.trophies && f.trophies.size) n++;
     return n;
   }
 
-  function updateFabQuickMeta(){
-    if (!el.fabQuickMeta) return;
-    if (!state.rows || !state.rows.length){
-      el.fabQuickMeta.textContent = "";
-      el.fabQuickMeta.hidden = true;
-      return;
+  function isPhoneLandscape(){
+    return window.matchMedia("(orientation: landscape) and (max-height: 520px) and (max-width: 920px)").matches;
+  }
+
+  function updateQuickMenuInfo(){
+    if (!el.fabQuickInfoLine1) return;
+    const count = (state.ui && typeof state.ui.lastCount === "number") ? state.ui.lastCount : 0;
+    const fcount = countActiveFilters();
+
+    if (isPhoneLandscape()){
+      try{ el.fabQuickInfo?.classList?.add?.("compact"); }catch(_){/* ignore */}
+      el.fabQuickInfoLine1.textContent = `${count} Titel • Filter: ${fcount}`;
+      if (el.fabQuickInfoLine2) el.fabQuickInfoLine2.style.display = "none";
+    } else {
+      try{ el.fabQuickInfo?.classList?.remove?.("compact"); }catch(_){/* ignore */}
+      el.fabQuickInfoLine1.textContent = `${count} Titel angezeigt`;
+      if (el.fabQuickInfoLine2){
+        el.fabQuickInfoLine2.style.display = "";
+        el.fabQuickInfoLine2.textContent = `Filter aktiv: ${fcount}`;
+      }
     }
-    const shown = Number(state.ui?.lastCount ?? 0);
-    const shownTxt = Number.isFinite(shown) ? shown : computeFilteredCount();
-    const fCount = activeFilterTokenCount();
-    el.fabQuickMeta.hidden = false;
-    // Keep it calm: no icons, no badges, just short context.
-    el.fabQuickMeta.innerHTML = `
-      <div class="fabMetaLine">${shownTxt} Titel angezeigt</div>
-      <div class="fabMetaLine ${fCount ? "" : "fabMetaQuiet"}">Filter aktiv: ${fCount}</div>
-    `;
+  }
+
+  function filterOnlySignature(){
+    const f = state.filters;
+    const setSig = (s)=> (s && s.size) ? Array.from(s).map(String).sort().join(",") : "";
+    return [
+      `fav:${f.fav?1:0}`,
+      `shortMain5:${f.shortMain5?1:0}`,
+      `trophyPreset:${f.trophyPreset||""}`,
+      `genres:${setSig(f.genres)}`,
+      `platforms:${setSig(f.platforms)}`,
+      `sources:${setSig(f.sources)}`,
+      `availability:${setSig(f.availability)}`,
+      `trophies:${setSig(f.trophies)}`
+    ].join("|");
   }
 
   function updateQuickFilterIndicator(){
     if (!el.fabQuick) return;
     const on = hasActiveFilters();
-    const prev = !!state.ui?.hadFilters;
     el.fabQuick.classList.toggle("fabHasFilters", on);
     el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
+    updateQuickMenuInfo();
+  }
 
-    // One-time pulse when filters become active (halo only; the fill stays calm).
-    if (on && !prev){
-      el.fabQuick.classList.add("fabPulse");
-      window.setTimeout(() => {
-        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-      }, 500);
-    }
-    if (!on){
+  // --- Aufmerksamkeit: kurzes "Aufblitzen" des Schnellmenü-FABs ---
+  // Ziel: Wenn man aus dem Filter-Menü zurück in die Kartenansicht geht
+  // und sich der Filterzustand verändert hat (und Filter aktiv sind),
+  // soll der Button kurz Aufmerksamkeit ziehen – ohne dauerhaftes Geblinke.
+  let _fabPulseTimer = 0;
+  function pulseFabQuick(){
+    if (!el.fabQuick) return;
+    try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
+    // Reflow, damit die Animation zuverlässig neu startet.
+    try{ void el.fabQuick.offsetWidth; }catch(_){/* ignore */}
+    try{ el.fabQuick.classList.add("fabPulse"); }catch(_){/* ignore */}
+    window.setTimeout(() => {
       try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-    }
-    state.ui = state.ui || {};
-    state.ui.hadFilters = on;
+    }, 900);
+  }
+  function scheduleFabPulse(delayMs){
+    if (_fabPulseTimer) { try{ window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */} }
+    _fabPulseTimer = window.setTimeout(() => {
+      _fabPulseTimer = 0;
+      // Nur in der Kartenansicht (kein Dialog offen) und nur wenn Filter aktiv.
+      try{
+        if (inCardsView() && hasActiveFilters()) pulseFabQuick();
+      }catch(_){/* ignore */}
+    }, Math.max(0, Number(delayMs)||0));
   }
 
   // --- Cards-view hint (Filter aktiv) ---
@@ -2231,18 +2259,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
-    updateFabQuickMeta();
-
-    // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
-    // (The user dismisses it via interaction: scroll/tap.)
-    try{
-      const sigNow = filterSignature();
-      if (sigNow !== String(state.ui?.lastFilterSig ?? "")){
-        state.ui.lastFilterSig = sigNow;
-        resetViewHint();
-      }
-    }catch(_){/* ignore */}
-    syncViewHint();
     render(out);
   }
 
@@ -2924,9 +2940,17 @@ function renderTrophyDetails(row){
     _menuDirty = false;
     setModalOpen(false);
     updateQuickFilterIndicator();
-    // Returning to the cards view: if filters are active, show the hint until the user interacts.
-    resetViewHint();
-    syncViewHint();
+
+    // Zurück in der Kartenansicht: Wenn Filter aktiv sind UND sich der Filterzustand
+    // im Menü geändert hat, soll der Schnellmenü-Button kurz "aufblitzen".
+    try{
+      const afterSig = filterSignature();
+      const changed = String(afterSig) !== String(_menuSigOnOpen ?? "");
+      if (hasActiveFilters() && changed){
+        // kleine Verzögerung, damit keine Overlays (Dialog/Browserbar) die Animation verdecken
+        scheduleFabPulse(260);
+      }
+    }catch(_){/* ignore */}
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
