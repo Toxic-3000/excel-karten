@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j19)
+# Spieleliste – Webansicht (Build 7.1j20)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,13 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j19
+## Neu in 7.1j20
+
+### Fix: Schnellmenü in Phone-Landscape nicht mehr abgeschnitten
+In Phone-Landscape kann die Browserbar (Adress-/Toolbar) zusammen mit großer globaler Schrift dazu führen, dass das Schnellmenü am Rand „abgeschnitten“ wirkt.
+Dieses Build deckelt deshalb **nur innerhalb des Schnellmenüs** (≡) die Schriftgröße und koppelt die maximale Panelhöhe bevorzugt an **100svh** (fallback: 100dvh) inkl. Safe-Area unten.
+
+Wichtig: Das betrifft **nur** das Schnellmenü in Phone-Landscape. Der globale Schriftgrad (Aa) bleibt unverändert.
 
 - Globales **OK-Grün** an den gemeinsamen Grünton für **XLSX: ok** und **Filter aktiv** angepasst.
 
@@ -47,7 +53,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
 - Die **Titelzeile** ("Schnellmenü") und die **Infozeile** ("X Titel · Y Filter aktiv") sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j19)
+## Getestet (Stand 7.1j20)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape

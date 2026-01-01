@@ -1359,9 +1359,16 @@ html.modalOpen body{touch-action:none;}
        Mobile-UI den Viewport in Landscape minimal verschiebt. */
     left: calc(14px * var(--uiScale));
     right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
-    bottom: calc(14px * var(--uiScale));
+
+    /* In Phone-Landscape + großer Schrift kann die Browser-UI (Adressleiste) die effektive Höhe drücken.
+       Darum: bottom nicht zusätzlich mit uiScale aufblasen (sonst wird es bei großen Schriftgraden enger),
+       und safe-area unten berücksichtigen. */
+    bottom: calc(14px + env(safe-area-inset-bottom));
     width: auto;
+    /* Fallback: dynamic viewport height */
     max-height: calc(100dvh - 28px);
+    /* Prefer: small viewport height (verhindert "Abschneiden" bei eingeblendeter Browserbar) */
+    max-height: calc(100svh - 28px);
 
     display:grid;
     grid-template-columns: 1.35fr 0.65fr;
@@ -1373,7 +1380,10 @@ html.modalOpen body{touch-action:none;}
 
     /* Phone Landscape: Schriftgrad im Schnellmenü begrenzen (entkoppelt vom Aa-Slider).
        Nur innerhalb des Schnellmenüs (nicht im Schriftgrößen-Menü, nicht global). */
-    font-size: calc(17px * clamp(0.78, var(--uiScale), 0.92));
+    /* Nur in Phone Landscape: Schriftgröße im Schnellmenü deckeln,
+       damit das Panel auch mit großer globaler Schrift vollständig in den Viewport passt.
+       (Aa-Menü und Rest der App bleiben unverändert.) */
+    font-size: clamp(14px, calc(16px * var(--uiScale)), 16px);
   }
   .fabPanelQuick > .fabHead{ grid-area: head; }
   .fabPanelQuick > .fabSect{ margin-top: 0; }
