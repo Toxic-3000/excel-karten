@@ -810,6 +810,10 @@ summary::-webkit-details-marker{display:none}
 .fabQuickInfo.compact .fabQuickInfoLine2{
   font-size: calc(13px * var(--uiScale));
 }
+
+.fabQuickInfo.compact .fabQuickInfoLine2{
+  display: none;
+}
 .fabQuickInfoLine{
   font-weight: 650;
   letter-spacing: 0.02em;
@@ -1361,31 +1365,16 @@ html.modalOpen body{touch-action:none;}
     width: auto;
     max-height: calc(100dvh - 28px);
 
-    display:grid;
-    grid-template-columns: 1.20fr 0.80fr;
-    grid-template-areas:
-      "head head"
-      "info field"
-      "info dir"
-      "act act";
+    display: flex;
+    flex-direction: column;
     gap: calc(10px * var(--uiScale));
   }
-  .fabPanelQuick > .fabHead{ grid-area: head; }
-  .fabPanelQuick > #fabQuickInfo{ grid-area: info; margin: 0; }
-  .fabPanelQuick > #fabSortFieldSect{ grid-area: field; margin-top: 0; }
-  .fabPanelQuick > #fabSortDirSect{ grid-area: dir; margin-top: 0; }
   .fabPanelQuick > .fabSect{ margin-top: 0; }
-  .fabPanelQuick > .fabActions{
-    grid-area: act;
-    margin-top: 0;
-    justify-content: stretch;
-  }
+  .fabPanelQuick > .fabActions{ margin-top: 0; justify-content: stretch; }
   .fabPanelQuick #fabOpenMenu{ width: 100%; }
 
-  /* Status in Phone-Landscape kompakter */
-  #fabQuickInfo{ padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)); }
-  #fabQuickInfoLine1{ font-size: calc(13px * var(--uiScale)); }
-  #fabQuickInfoLine2{ display: none; }
+  /* Status in Phone-Landscape kompakter (wird zusätzlich per JS über .compact gesetzt) */
+  .fabPanelQuick .fabQuickInfo{ margin: 0; }
 
 
 
@@ -1399,21 +1388,16 @@ html.modalOpen body{touch-action:none;}
     width: auto;
     max-height: calc(100dvh - 28px);
   }
-  /* Chip-Reihen im Schnellmenü: als Grid, damit weniger Wrap-Höhe entsteht */
-  #fabSortFieldRow{
-    display:grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
-  }
+  /* Chip-Reihen im Schnellmenü: flexibel bleiben (keine gequetschten Pills) */
+  #fabSortFieldRow,
   #fabSortDirRow{
-    display:grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
+    display:flex;
+    flex-wrap: wrap;
+    gap: calc(8px * var(--uiScale));
   }
   #fabSortFieldRow .chip,
   #fabSortDirRow .chip{
-    width: 100%;
-    justify-content: center;
+    flex: 0 0 auto;
   }
   .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
 }

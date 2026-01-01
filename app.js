@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j19 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j19
+console.log("Build 7.1j20 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j20
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j19").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j20").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -38,9 +38,7 @@ console.log("Build 7.1j19 loaded");
     fabQuick: $("fabQuick"),
     fabQuickPanel: $("fabQuickPanel"),
     fabQuickClose: $("fabQuickClose"),
-    fabQuickInfo: $("fabQuickInfo"),
-    fabQuickInfoLine1: $("fabQuickInfoLine1"),
-    fabQuickInfoLine2: $("fabQuickInfoLine2"),
+    // Quick info box is duplicated across panels; we query it dynamically.
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -1761,26 +1759,39 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function isPhoneLandscape(){
-    return window.matchMedia("(orientation: landscape) and (max-height: 520px) and (max-width: 920px)").matches;
+    // A bit generous: browser UI + safe-areas can inflate the reported height in landscape.
+    return window.matchMedia("(orientation: landscape) and (max-width: 920px) and (max-height: 620px)").matches;
   }
 
   function updateQuickMenuInfo(){
-    if (!el.fabQuickInfoLine1) return;
+    const boxes = document.querySelectorAll(".fabQuickInfo");
+    if (!boxes || !boxes.length) return;
+
     const count = (state.ui && typeof state.ui.lastCount === "number") ? state.ui.lastCount : 0;
     const fcount = countActiveFilters();
 
-    if (isPhoneLandscape()){
-      try{ el.fabQuickInfo?.classList?.add?.("compact"); }catch(_){/* ignore */}
-      el.fabQuickInfoLine1.textContent = `${count} Titel • Filter: ${fcount}`;
-      if (el.fabQuickInfoLine2) el.fabQuickInfoLine2.style.display = "none";
-    } else {
-      try{ el.fabQuickInfo?.classList?.remove?.("compact"); }catch(_){/* ignore */}
-      el.fabQuickInfoLine1.textContent = `${count} Titel angezeigt`;
-      if (el.fabQuickInfoLine2){
-        el.fabQuickInfoLine2.style.display = "";
-        el.fabQuickInfoLine2.textContent = `Filter aktiv: ${fcount}`;
+    // Only show the box if there are active filters and we actually have loaded data.
+    const hasData = Array.isArray(state.rows) && state.rows.length > 0;
+    const show = hasData && fcount > 0;
+    const compact = isPhoneLandscape();
+
+    boxes.forEach((box) => {
+      try{ box.hidden = !show; }catch(_){/* ignore */}
+      if (!show) return;
+
+      try{ box.classList.toggle("compact", compact); }catch(_){/* ignore */}
+      const l1 = box.querySelector(".fabQuickInfoLine1");
+      const l2 = box.querySelector(".fabQuickInfoLine2");
+      if (!l1) return;
+
+      if (compact){
+        l1.textContent = `${count} Titel • Filter: ${fcount}`;
+        if (l2){ l2.textContent = ""; l2.style.display = "none"; }
+      } else {
+        l1.textContent = `${count} Titel angezeigt`;
+        if (l2){ l2.style.display = ""; l2.textContent = `Filter aktiv: ${fcount}`; }
       }
-    }
+    });
   }
 
   function filterOnlySignature(){
@@ -1810,7 +1821,10 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   // Ziel: Wenn man aus dem Filter-Menü zurück in die Kartenansicht geht
   // und sich der Filterzustand verändert hat (und Filter aktiv sind),
   // soll der Button kurz Aufmerksamkeit ziehen – ohne dauerhaftes Geblinke.
+  const FAB_PULSE_TOTAL_MS = 900; // keep the current "pulse phase" length
+  const FAB_PULSE_GAP_MS = 140;   // tiny gap so the re-trigger feels like distinct pulses
   let _fabPulseTimer = 0;
+  let _fabPulseSeqTimer = 0;
   function pulseFabQuick(){
     if (!el.fabQuick) return;
     try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
@@ -1819,16 +1833,30 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     try{ el.fabQuick.classList.add("fabPulse"); }catch(_){/* ignore */}
     window.setTimeout(() => {
       try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-    }, 900);
+    }, FAB_PULSE_TOTAL_MS);
   }
-  function scheduleFabPulse(delayMs){
-    if (_fabPulseTimer) { try{ window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */} }
+  function scheduleFabPulse(delayMs, repeats){
+    if (_fabPulseTimer) { try{ window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */} _fabPulseTimer = 0; }
+    if (_fabPulseSeqTimer) { try{ window.clearTimeout(_fabPulseSeqTimer); }catch(_){/* ignore */} _fabPulseSeqTimer = 0; }
+
+    const n = Math.max(1, Number(repeats)||1);
     _fabPulseTimer = window.setTimeout(() => {
       _fabPulseTimer = 0;
-      // Nur in der Kartenansicht (kein Dialog offen) und nur wenn Filter aktiv.
       try{
-        if (inCardsView() && hasActiveFilters()) pulseFabQuick();
-      }catch(_){/* ignore */}
+        if (!(inCardsView() && hasActiveFilters())) return;
+      }catch(_){ return; }
+
+      let i = 0;
+      const run = () => {
+        try{
+          if (!(inCardsView() && hasActiveFilters())) return;
+          pulseFabQuick();
+        }catch(_){ return; }
+        i++;
+        if (i >= n) return;
+        _fabPulseSeqTimer = window.setTimeout(run, FAB_PULSE_TOTAL_MS + FAB_PULSE_GAP_MS);
+      };
+      run();
     }, Math.max(0, Number(delayMs)||0));
   }
 
