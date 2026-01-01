@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j16
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -36,10 +36,8 @@
   --bad:#cc3b3b;
 
   /* Filter indicator accent (avoid competing with the main blue UI) */
-  /* Active-filter indicator color (intentionally NOT blue).
-     Muted olive/sage reads as "state" without competing with primary UI accents. */
-  --filterAccent: #6a7f3a;
-  --filterAccent2:#556a2e;
+  --filterAccent: #0f766e;   /* teal-ish */
+  --filterAccent2:#0b5f59;
 
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
@@ -290,24 +288,17 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .cards{padding:6px 4px}
 
-/* Cards-view hint shown when filters are active.
-   Must be visible even if the user is scrolled down, therefore viewport-anchored.
-   It is dismissed on first interaction (scroll/tap), so it never "sticks" around. */
+/* Inline, temporary hint shown after closing the filter menu.
+   Not fixed/sticky (avoids Phone-Landscape quirks). */
 .viewToast{
-  position: fixed;
-  top: 84px; /* JS repositions under the sticky header */
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(740px, calc(100vw - 24px));
+  margin: 0 4px calc(10px * var(--uiScale));
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
   border: 1px solid var(--border);
   border-radius: 18px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   box-shadow: 0 6px 18px rgba(0,0,0,.08);
   font-weight: 600;
-  opacity: .94;
-  z-index: 49; /* under header (50), above cards */
-  pointer-events: none; /* don't block taps; dismissal is handled globally */
+  opacity: .92;
 }
 
 .card{
