@@ -283,6 +283,19 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .cards{padding:6px 4px}
 
+/* Inline, temporary hint shown after closing the filter menu.
+   Not fixed/sticky (avoids Phone-Landscape quirks). */
+.viewToast{
+  margin: 0 4px calc(10px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  font-weight: 600;
+  opacity: .92;
+}
+
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -714,16 +727,18 @@ summary::-webkit-details-marker{display:none}
 }
 .fab:active{ transform: translateY(1px); }
 
+/* Indicator: show when any (Schnell-)Filter is active.
+   Intentionally subtle, but more visible than a purely text-based hint. */
+.fab.fabHasFilters{
+  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
+  border-color: color-mix(in oklab, var(--blue) 32%, var(--border) 68%);
+  box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--blue) 22%, transparent);
+  opacity: .9;
+}
+
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
 .fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }
 .fabText{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
-
-/* Subtiler Status-Akzent: zeigt an, dass Filter aktiv sind (nicht Sortierung). */
-.fabQuick.hasFilters{
-  opacity: .92;
-  background: color-mix(in oklab, var(--blue) 14%, color-mix(in oklab, var(--bg) 92%, var(--fg) 8%));
-  border-color: color-mix(in oklab, var(--blue) 34%, var(--border) 66%);
-}
 
 .fabPanel{
   position:fixed;
@@ -888,43 +903,6 @@ html.modalOpen body{touch-action:none;}
   align-items:center;
   gap: calc(12px * var(--uiScale));
 }
-
-/* Temporäres Feedback (Live-Filter/Reset). Kein Sticky, nimmt nur kurz Platz ein. */
-.dlgToast{
-  margin: 0 calc(12px * var(--uiScale));
-  margin-top: calc(8px * var(--uiScale));
-  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
-  font-size: calc(13px * var(--uiScale));
-  font-weight: 600;
-  letter-spacing: .01em;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity .18s ease, transform .18s ease;
-}
-.dlgToast.isOn{
-  opacity: .92;
-  transform: translateY(0);
-}
-
-/* Temporäres Live-Feedback (Filter/Reset) – kein Sticky, verschwindet automatisch */
-.dlgToast{
-  margin: 0 calc(12px * var(--uiScale));
-  margin-bottom: calc(10px * var(--uiScale));
-  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
-  font-size: calc(13px * var(--uiScale));
-  font-weight: 600;
-  letter-spacing: .01em;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity .18s ease, transform .18s ease;
-}
-.dlgToast.isOn{ opacity: .94; transform: translateY(0); }
 .sheetTitle{font-weight:650; flex: 1 1 auto; min-width: 0;}
 .sheetBody{
   /* Bottom padding removed so the sticky action bar can sit flush to the sheet's rounded frame.

@@ -63,6 +63,9 @@
       </div>
     </div>
 
+    <!-- Temporärer Hinweis nach Filteränderungen (verschwindet nach 3s oder beim Scroll) -->
+    <div id="viewToast" class="viewToast" hidden></div>
+
     <section id="cards" class="cards"></section>
   </main>
 
@@ -115,9 +118,6 @@
         <div class="sheetTitle">Filter &amp; Sortieren</div>
         <button id="btnClose" class="btn btn-icon" aria-label="Schließen">✕</button>
       </div>
-
-      <!-- Temporäres Feedback bei Live-Filter/Reset (verschwindet automatisch) -->
-      <div id="dlgToast" class="dlgToast" aria-live="polite" hidden></div>
 
       <div class="sheetBody">
         <div class="sect">

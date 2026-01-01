@@ -45,12 +45,12 @@ console.log("Build 7.1j15 loaded");
     searchHelpBtn: $("searchHelpBtn"),
     searchHelpBody: $("searchHelpBody"),
     cards: $("cards"),
+    viewToast: $("viewToast"),
     empty: $("empty"),
     pillFile: $("pillFile"),
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
     dlg: $("dlg"),
-    dlgToast: $("dlgToast"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
     btnClear: $("btnClear"),
@@ -378,7 +378,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
-    ui: {},
+    ui: { lastCount: 0 },
   };
 
   function esc(s){
@@ -1585,9 +1585,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (group === "shortMain") setAllChipPressed("shortMain", "le5", false);
         if (group === "fav") setAllChipPressed("fav", "fav", false);
 
-        _pendingToastKind = "filter";
         updateDialogMeta();
-        scheduleLiveApply();
       });
     }
   }
@@ -1725,79 +1723,83 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   function updateDialogMeta(forceNow=false){
     updateAccordionSummaries();
     renderActiveFilterBar();
-    updateFabQuickFilterIndicator();
     if (forceNow) updateApplyCount();
     else scheduleApplyCount();
+
+    // Keep the Schnellmenü-FAB in sync: subtle indicator when any filter is active.
+    updateQuickFilterIndicator();
   }
 
-  // --- Filter state → quick UI indicator (Schnellmenü-FAB) ---
   function hasActiveFilters(){
-    if (state.filters.fav) return true;
-    if (state.filters.genres && state.filters.genres.size) return true;
-    if (state.filters.platforms && state.filters.platforms.size) return true;
-    if (state.filters.sources && state.filters.sources.size) return true;
-    if (state.filters.availability && state.filters.availability.size) return true;
-    if (state.filters.trophies && state.filters.trophies.size) return true;
-    if (state.filters.trophyPreset) return true;
-    if (state.filters.shortMain5) return true;
+    const f = state.filters;
+    if (f.fav) return true;
+    if (f.shortMain5) return true;
+    if (f.trophyPreset) return true;
+    if (f.genres && f.genres.size) return true;
+    if (f.platforms && f.platforms.size) return true;
+    if (f.sources && f.sources.size) return true;
+    if (f.availability && f.availability.size) return true;
+    if (f.trophies && f.trophies.size) return true;
     return false;
   }
 
-  function updateFabQuickFilterIndicator(){
+  function updateQuickFilterIndicator(){
     if (!el.fabQuick) return;
-    const active = hasActiveFilters();
-    el.fabQuick.classList.toggle("hasFilters", !!active);
+    const on = hasActiveFilters();
+    el.fabQuick.classList.toggle("fabHasFilters", on);
+    el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
   }
 
-  // --- Temporäres Feedback bei Live-Änderungen (Filter/Reset) ---
-  let _pendingToastKind = null; // "filter" | "reset" | null
-  let _toastTimer = 0;
-  let _toastHideTimer = 0;
-
-  function showDlgToast(msg){
-    if (!el.dlgToast) return;
-    if (_toastTimer) window.clearTimeout(_toastTimer);
-    if (_toastHideTimer) window.clearTimeout(_toastHideTimer);
-
-    el.dlgToast.textContent = String(msg || "");
-    el.dlgToast.hidden = false;
-    // Ensure transition restarts
-    el.dlgToast.classList.remove("isOn");
-    // next frame
-    requestAnimationFrame(() => {
-      el.dlgToast.classList.add("isOn");
-    });
-
-    _toastTimer = window.setTimeout(() => {
-      _toastTimer = 0;
-      el.dlgToast.classList.remove("isOn");
-      _toastHideTimer = window.setTimeout(() => {
-        _toastHideTimer = 0;
-        el.dlgToast.hidden = true;
-      }, 220);
-    }, 1400);
-  }
-
-  function maybeShowPendingToast(resultCount){
-    if (!_pendingToastKind) return;
-    const kind = _pendingToastKind;
-    _pendingToastKind = null;
-    // Only show when the sheet is open (where the user is actively changing things)
-    if (!el.dlg || !el.dlg.open) return;
-    const n = (typeof resultCount === "number") ? resultCount : null;
-    if (kind === "reset"){
-      showDlgToast(n != null ? `Zurückgesetzt · Treffer: ${n}` : "Zurückgesetzt");
-      return;
+  // --- Temporary view toast (cards view) ---
+  let _viewToastTimer = 0;
+  let _viewToastScrollHandler = null;
+  function hideViewToast(){
+    if (!el.viewToast) return;
+    el.viewToast.hidden = true;
+    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
+    if (_viewToastScrollHandler){
+      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
+      _viewToastScrollHandler = null;
     }
-    const active = hasActiveFilters();
-    if (active) showDlgToast(n != null ? `Filter aktiv · Treffer: ${n}` : "Filter aktiv");
-    else showDlgToast(n != null ? `Keine Filter aktiv · Treffer: ${n}` : "Keine Filter aktiv");
+  }
+
+  function showViewToast(msg){
+    if (!el.viewToast) return;
+    if (!msg) return;
+    el.viewToast.textContent = String(msg);
+    el.viewToast.hidden = false;
+    // reset previous
+    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
+    if (_viewToastScrollHandler){
+      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
+      _viewToastScrollHandler = null;
+    }
+    _viewToastScrollHandler = () => hideViewToast();
+    window.addEventListener("scroll", _viewToastScrollHandler, {passive:true});
+    _viewToastTimer = window.setTimeout(() => hideViewToast(), 3000);
+  }
+
+  function filterSignature(){
+    const f = state.filters;
+    const arr = (s) => Array.from(s || []).map(String).sort((a,b)=>a.localeCompare(b,"de",{sensitivity:"base"}));
+    return JSON.stringify({
+      fav: !!f.fav,
+      shortMain5: !!f.shortMain5,
+      trophyPreset: String(f.trophyPreset || ""),
+      genres: arr(f.genres),
+      platforms: arr(f.platforms),
+      sources: arr(f.sources),
+      availability: arr(f.availability),
+      trophies: arr(f.trophies),
+    });
   }
 
   // Live-Apply: Filters/Sortierung wirken sofort (mit kleinem Debounce),
   // damit man beim Schließen des Menüs nichts "vergisst".
   let _liveApplyTimer = 0;
   let _menuDirty = false;
+  let _menuSigOnOpen = "";
+  let _menuHadFiltersOnOpen = false;
   function scheduleLiveApply(){
     _menuDirty = true;
     if (_liveApplyTimer) window.clearTimeout(_liveApplyTimer);
@@ -1812,11 +1814,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const group = btn.getAttribute("data-group");
     const key = btn.getAttribute("data-key");
     const pressed = btn.getAttribute("aria-pressed") === "true";
-
-    // For the temporary feedback + FAB indicator: mark filter changes (not pure sort).
-    if (group && group !== "sortField" && group !== "sortDir"){
-      _pendingToastKind = "filter";
-    }
 
     if (group === "sortField"){
       // Exclusive selection
@@ -2107,13 +2104,13 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       return cmp;
     });
 
+    state.ui.lastCount = out.length;
     el.pillRows.textContent = `Treffer: ${out.length}`;
     // Keep FAB quick controls in sync (in case sortDir changed via dialog).
     updateFabSortUI();
     updateFabSortFieldUI();
-    updateFabQuickFilterIndicator();
+    updateQuickFilterIndicator();
     render(out);
-    maybeShowPendingToast(out.length);
   }
 
 
@@ -2739,13 +2736,22 @@ function renderTrophyDetails(row){
   }
 
   function openMenuDialog(){
+    // Hide any previous cards-view hint when entering the menu.
+    hideViewToast();
     // Remember focus to restore after closing the dialog (accessibility)
     try{ _lastFocusedBeforeMenu = document.activeElement; }catch(_){ _lastFocusedBeforeMenu = null; }
     // Rebuild dialog UI so it always reflects the latest quick controls (FAB) + current filter state.
     buildFilterUI();
+    // Snapshot current filter state so we can show a calm hint after closing.
+    _menuSigOnOpen = filterSignature();
+    _menuHadFiltersOnOpen = hasActiveFilters();
     // Live-Apply bookkeeping: fresh session.
     _menuDirty = false;
     if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
+
+    // Snapshot current filter state to decide whether we should show a temporary hint after closing.
+    _menuSigOnOpen = filterSignature();
+    _menuHadFiltersOnOpen = hasActiveFilters();
     // Update viewport vars BEFORE opening so the first paint anchors correctly.
     updateVisualViewportVars();
     setModalOpen(true);
@@ -2779,11 +2785,30 @@ function renderTrophyDetails(row){
   el.dlg.addEventListener("close", () => {
     // Ensure the latest changes are applied even when the user closes via ✕ / backdrop / ESC.
     if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
+    const sigBefore = _menuSigOnOpen || "";
+    const hadBefore = _menuHadFiltersOnOpen;
+    let didApply = false;
     if (_menuDirty && state.rows && state.rows.length){
-      try{ applyAndRender(); }catch(_){/* ignore */}
+      try{ applyAndRender(); didApply = true; }catch(_){/* ignore */}
     }
     _menuDirty = false;
+    // If filter state changed during this menu session, show a short hint in the cards view.
+    try{
+      if (state.rows && state.rows.length){
+        const sigNow = filterSignature();
+        if (sigNow !== sigBefore){
+          const nowActive = hasActiveFilters();
+          const n = Number(state.ui?.lastCount ?? 0);
+          const base = Number.isFinite(n) && n > 0 ? `${n} Treffer` : "Treffer aktualisiert";
+          const msg = nowActive
+            ? `${base} · Filter aktiv`
+            : (hadBefore ? `${base} · Filter zurückgesetzt` : `${base} · Keine Filter aktiv`);
+          showViewToast(msg);
+        }
+      }
+    }catch(_){/* ignore */}
     setModalOpen(false);
+    updateQuickFilterIndicator();
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
@@ -2831,7 +2856,6 @@ function renderTrophyDetails(row){
   });
 
   el.btnClear.addEventListener("click", () => {
-    _pendingToastKind = "reset";
     state.filters.fav = false;
     state.filters.genres.clear();
     state.filters.platforms.clear();
@@ -2848,7 +2872,6 @@ function renderTrophyDetails(row){
     buildFilterUI();
     updateFabSortFieldUI();
     updateFabSortUI();
-    updateFabQuickFilterIndicator();
     scheduleLiveApply();
   });
 
