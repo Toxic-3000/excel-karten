@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j30)
+# Spieleliste – Webansicht (Build 7.1j29)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,20 +15,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j30
-
-### Desktop & Tablet (Breitbild): Menüs an FAB-Stack andocken + Schnellmenü-Layout wie Phone Landscape
-Ziel: In **Breitbild-Layouts** (Desktop/Tablet) fühlen sich **Aa** und **≡** genauso „aus einem Guss“ an wie im Phone-Landscape –
-ohne die dort nötigen Sonder-Limitierungen.
-
-- **Aa-Menü** und **Schnellmenü (≡)** docken in Desktop/Tablet nun **links neben den FAB-Stack** an (wie in Phone Landscape).
-- **Schnellmenü** übernimmt in Desktop/Tablet den **visuellen Aufbau** der Phone-Landscape-Variante:
-  - zweispaltiges Layout (Sortierfeld links, Richtung rechts)
-  - Statusanzeige im selben Info-Box-Design, **einzeilig** (`X Titel angezeigt · Filter aktiv: Y`)
-  - Action-Button bleibt **kompakt** (kein Vollbreiten-Stretching)
-- **Wichtig:** Keine zusätzliche Höhenbegrenzung und **keine Entkopplung** von A/A+/A++/A+++ in Desktop/Tablet.
-
-## Vorherige Änderungen (7.1j29)
+## Neu in 7.1j29
 
 ### Phone Landscape: Schnellmenü-Feintuning (Typo, Line-Height, Balance)
 Ziel: **besser lesbar**, **ruhiger** und **stimmig** – egal ob die Browserbar gerade eingeblendet ist oder nicht.
@@ -81,7 +68,7 @@ Ziel: **Konsistentes Design**, aber **stabile Höhe** in Phone-Landscape (Browse
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
 - Die **Titelzeile** ("Schnellmenü") und die **Info-Box** sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j30)
+## Getestet (Stand 7.1j29)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
