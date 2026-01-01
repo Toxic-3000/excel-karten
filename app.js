@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j16 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j16
+console.log("Build 7.1j15 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j16").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j15").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -378,7 +378,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
-    ui: { lastCount: 0, lastFilterSig: "" },
+    ui: { lastCount: 0 },
   };
 
   function esc(s){
@@ -1750,33 +1750,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
   }
 
-  // --- Cards-view hint (Filter aktiv) ---
-  // Shows in the cards view whenever *filters* are active.
-  // It stays visible until the user interacts (scroll or tap/click).
-  // This avoids special cases for Phone Landscape and keeps the UI calm.
-  let _viewHintDismissed = false;
-  let _viewHintHandlersOn = false;
-  let _viewHintDismissHandler = null;
-
-  function inCardsView(){
-    // Cards view is visible whenever the filter dialog is not open.
-    try{ return !(el.dlg && el.dlg.open); }catch(_){ return true; }
-  }
-
-  function removeViewHintHandlers(){
-    if (!_viewHintHandlersOn || !_viewHintDismissHandler) return;
-    try{ window.removeEventListener("scroll", _viewHintDismissHandler, true); }catch(_){/* ignore */}
-    try{ window.removeEventListener("pointerdown", _viewHintDismissHandler, true); }catch(_){/* ignore */}
-    // Fallback for older touch stacks
-    try{ window.removeEventListener("touchstart", _viewHintDismissHandler, true); }catch(_){/* ignore */}
-    _viewHintHandlersOn = false;
-    _viewHintDismissHandler = null;
-  }
-
+  // --- Temporary view toast (cards view) ---
+  let _viewToastTimer = 0;
+  let _viewToastScrollHandler = null;
   function hideViewToast(){
     if (!el.viewToast) return;
     el.viewToast.hidden = true;
-    removeViewHintHandlers();
+    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
+    if (_viewToastScrollHandler){
+      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
+      _viewToastScrollHandler = null;
+    }
   }
 
   function showViewToast(msg){
@@ -1784,35 +1768,15 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (!msg) return;
     el.viewToast.textContent = String(msg);
     el.viewToast.hidden = false;
-
-    if (_viewHintHandlersOn) return;
-    _viewHintDismissHandler = () => {
-      _viewHintDismissed = true;
-      hideViewToast();
-    };
-    _viewHintHandlersOn = true;
-    // Capture phase ensures we dismiss even if the click is handled elsewhere.
-    window.addEventListener("scroll", _viewHintDismissHandler, {passive:true, capture:true});
-    window.addEventListener("pointerdown", _viewHintDismissHandler, {passive:true, capture:true});
-    window.addEventListener("touchstart", _viewHintDismissHandler, {passive:true, capture:true});
-  }
-
-  function resetViewHint(){
-    _viewHintDismissed = false;
-  }
-
-  function desiredViewHintMsg(){
-    const n = Number(state.ui?.lastCount ?? 0);
-    const base = Number.isFinite(n) && n > 0 ? `${n} Treffer` : "Filter aktiv";
-    return base === "Filter aktiv" ? base : `${base} · Filter aktiv`;
-  }
-
-  function syncViewHint(){
-    if (!el.viewToast) return;
-    if (!inCardsView()) { hideViewToast(); return; }
-    if (!hasActiveFilters()) { _viewHintDismissed = false; hideViewToast(); return; }
-    if (_viewHintDismissed) { hideViewToast(); return; }
-    showViewToast(desiredViewHintMsg());
+    // reset previous
+    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
+    if (_viewToastScrollHandler){
+      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
+      _viewToastScrollHandler = null;
+    }
+    _viewToastScrollHandler = () => hideViewToast();
+    window.addEventListener("scroll", _viewToastScrollHandler, {passive:true});
+    _viewToastTimer = window.setTimeout(() => hideViewToast(), 3000);
   }
 
   function filterSignature(){
@@ -2146,17 +2110,6 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
-
-    // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
-    // (The user dismisses it via interaction: scroll/tap.)
-    try{
-      const sigNow = filterSignature();
-      if (sigNow !== String(state.ui?.lastFilterSig ?? "")){
-        state.ui.lastFilterSig = sigNow;
-        resetViewHint();
-      }
-    }catch(_){/* ignore */}
-    syncViewHint();
     render(out);
   }
 
@@ -2832,15 +2785,30 @@ function renderTrophyDetails(row){
   el.dlg.addEventListener("close", () => {
     // Ensure the latest changes are applied even when the user closes via ✕ / backdrop / ESC.
     if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
+    const sigBefore = _menuSigOnOpen || "";
+    const hadBefore = _menuHadFiltersOnOpen;
+    let didApply = false;
     if (_menuDirty && state.rows && state.rows.length){
-      try{ applyAndRender(); }catch(_){/* ignore */}
+      try{ applyAndRender(); didApply = true; }catch(_){/* ignore */}
     }
     _menuDirty = false;
+    // If filter state changed during this menu session, show a short hint in the cards view.
+    try{
+      if (state.rows && state.rows.length){
+        const sigNow = filterSignature();
+        if (sigNow !== sigBefore){
+          const nowActive = hasActiveFilters();
+          const n = Number(state.ui?.lastCount ?? 0);
+          const base = Number.isFinite(n) && n > 0 ? `${n} Treffer` : "Treffer aktualisiert";
+          const msg = nowActive
+            ? `${base} · Filter aktiv`
+            : (hadBefore ? `${base} · Filter zurückgesetzt` : `${base} · Keine Filter aktiv`);
+          showViewToast(msg);
+        }
+      }
+    }catch(_){/* ignore */}
     setModalOpen(false);
     updateQuickFilterIndicator();
-    // Returning to the cards view: if filters are active, show the hint until the user interacts.
-    resetViewHint();
-    syncViewHint();
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
