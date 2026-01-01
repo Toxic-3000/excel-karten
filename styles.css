@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j28
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j29
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -836,11 +836,11 @@ summary::-webkit-details-marker{display:none}
     left: calc(14px * var(--uiScale)) !important;
     right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
     width: auto !important;
-    padding: 9px !important;
+    padding: 10px !important;
 
     /* Schnellmenü bleibt vom Aa-Slider entkoppelt (nur hier). */
-    font-size: 15px !important;
-    line-height: 1.25 !important;
+    font-size: 14.5px !important;
+    line-height: 1.3 !important;
 
     /* Verhindert, dass das Grid freie Höhe auf die Reihen verteilt und dadurch
        der Footer-Button „unnötig groß“ gestreckt wird (v.a. wenn keine Info-Box da ist). */
@@ -852,18 +852,26 @@ summary::-webkit-details-marker{display:none}
   .fabPanelQuick .fabClose{ padding: 6px 10px !important; }
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
-  .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 8px 10px !important; border-radius: 16px !important; }
+  .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
   .fabPanelQuick .quickInfoA{ font-size: 13.5px !important; }
   .fabPanelQuick .quickInfoB{ display:none !important; }
 
   .fabPanelQuick .fabSect{ margin-top: 8px !important; }
-  .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 13px !important; }
+  .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   .fabPanelQuick .fabChips{ gap: 8px !important; }
   .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; }
 
-  .fabPanelQuick .fabActions{ margin-top: 8px !important; }
-  .fabPanelQuick #fabOpenMenu{ align-self: center !important; width: auto !important; }
-  .fabPanelQuick .btn{ font-size: 15px !important; padding: 10px 12px !important; }
+  .fabPanelQuick .fabActions{ margin-top: 6px !important; justify-content: flex-end !important; }
+  .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
+  .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
+
+  /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
+  .fabPanelText{
+    left: calc(14px * var(--uiScale)) !important;
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+  }
 }
 
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
@@ -1450,9 +1458,9 @@ html.modalOpen body{touch-action:none;}
   .fabPanelQuick > .fabActions{
     grid-area: act;
     margin-top: 0;
-    justify-content: flex-end;
+    justify-content: stretch;
   }
-  .fabPanelQuick #fabOpenMenu{ width: auto; min-width: 240px; }
+  .fabPanelQuick #fabOpenMenu{ width: 100%; }
 
   /* Optional info row: only reserve a row when the info is actually visible */
   .fabPanelQuick.hasQuickInfo{

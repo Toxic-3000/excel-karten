@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j28)
+# Spieleliste – Webansicht (Build 7.1j29)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,13 +15,17 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j28
+## Neu in 7.1j29
 
-### Phone Landscape – Schnellmenü (Feinschliff)
-- Footer-Button „Filter & Sortieren“ streckt nicht mehr über die gesamte Breite (wie in Portrait); bleibt kompakt und rechtsbündig.
-- Typografie im Schnellmenü (außer Statusbox) minimal angehoben für bessere Lesbarkeit, ohne das Höhen‑Budget zu sprengen.
+### Phone Landscape: Schnellmenü-Feintuning (Typo, Line-Height, Balance)
+Ziel: **besser lesbar**, **ruhiger** und **stimmig** – egal ob die Browserbar gerade eingeblendet ist oder nicht.
 
-(Alle anderen Ansichten bleiben unverändert.)
+- **Typo minimal größer** im Schnellmenü (≡) – **Statusbox bleibt bewusst unverändert**, damit sie kompakt bleibt.
+- **Line-height leicht erhöht**, damit Labels/Chips entspannter wirken.
+- **Footer-Button bleibt kompakt** (kein unnötiges Vertikal-Stretching des „Filter & Sortieren“-Buttons).
+- **Außenränder angeglichen**: In Phone Landscape haben **Schnellmenü** und **Textgrößen-Menü** jetzt die gleichen Abstände **links/rechts/unten**.
+
+**Portrait/Tablet/Desktop** bleiben unverändert.
 
 ## Neu in 7.1j24
 
@@ -64,7 +68,7 @@ Ziel: **Konsistentes Design**, aber **stabile Höhe** in Phone-Landscape (Browse
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
 - Die **Titelzeile** ("Schnellmenü") und die **Info-Box** sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j28)
+## Getestet (Stand 7.1j29)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
