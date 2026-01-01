@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j15)
+# Spieleliste – Webansicht (Build 7.1j17)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -6,7 +6,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 
 ## Zielbild (Design & UX)
 
-- **Mobile-first**: Android Phone (Portrait + Landscape) ist der Referenzstandard und darf nicht verschlechtert werden.
+- **Mobile-first**: Android Phone (Portrait + Landscape) bleibt Referenzstandard.
 - **Kompaktansicht-only**: ruhige Karten, klare Hierarchie, wenig Schnickschnack.
 - **Header-Standard Variante A**
   - Zeile 1: Plattform
@@ -14,9 +14,29 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 3: Genre (kleiner/dunkler)
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
-- **Werte-Ausrichtung**: In Info-Tabellen (Infoblock / Store / Humorstatistik) laufen Label/Wert sauber und stabil.
 
-## Getestet (Stand 7.1j15)
+## Neu in 7.1j17
+
+### 1) Informationsanzeige im Schnellmenü (≡)
+- Erscheint **ausschließlich** im geöffneten Schnellmenü.
+- Erscheint **nur**, wenn mindestens ein Filter aktiv ist.
+- Inhalt (direkt aus globalem State):
+  - **„X Titel angezeigt“**
+  - **„Filter aktiv: Y“**
+- **Phone Landscape**: kompakte **einzeilige** Darstellung (z. B. `283 Titel · 1 Filter aktiv`), ohne Card-/Rahmenoptik.
+
+### 2) Schnellmenü-FAB als alleiniger Statusindikator
+- **Keine Filter aktiv**: neutral (grau), kein Ring.
+- **Filter aktiv**: ruhige Einfärbung + **dezenter Dauer-Ring**.
+
+### 3) Kurze Aufmerksamkeits-Animation (Ring-Pulse)
+- Trigger: **Beim Zurückkehren in die Kartenansicht** (Dialog schließt) **und** es sind Filter aktiv.
+- Timing: ca. **760 ms** Verzögerung (damit kein Overlay die Animation verdeckt).
+- Animation: **nur der Ring**, **3 Pulse** (keine Endlosschleife), danach sofort zurück in den ruhigen Dauerzustand.
+
+> Hinweis: In diesem Build gibt es **keine** Text-Hinweise zu Filtern/Trefferzahlen außerhalb des Schnellmenüs.
+
+## Getestet (Stand 7.1j17)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
@@ -39,7 +59,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - Ordner in einem lokalen Webserver starten (z. B. VS Code „Live Server“).
 - Dann im Browser öffnen und Excel auswählen.
 
-> Hinweis: `?v=...` Query-Parameter in `index.html` dienen nur dem Cache-Busting.
+> Cache-Busting: `?v=...` Query-Parameter in `index.html` dienen nur dazu, alte Dateien aus dem Browsercache zu umgehen.
 
 ## Bedienung
 
@@ -48,11 +68,10 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - Es wird bevorzugt das Tabellenblatt **„Spieleliste Komplett“** verwendet; falls nicht vorhanden, wird das erste Blatt genommen.
 
 ### Textgröße (Aa)
-- **Aa-Floating Button** → Menü „Textgröße“ mit Presets (A / A+ / A++ / A+++).
-- Ziel: Presets verhalten sich konsistent über Portrait/Landscape und bleiben lesbar.
+- **Aa-FAB** → Menü „Textgröße“ mit Presets (A / A+ / A++ / A+++).
 
 ### Schnellmenü (≡)
-- **≡-Floating Button** → Quick-Controls für Sortierfeld + Sortierrichtung.
+- **≡-FAB** → Quick-Controls für Sortierfeld + Sortierrichtung.
 - Enthält außerdem den Sprung in das Hauptmenü **„Filter & Sortieren“**.
 
 ### Suche
@@ -77,7 +96,6 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 
 ## Excel-Erwartungen (Datenmodell – pragmatisch)
 
-Die Webansicht ist tolerant, aber am stabilsten läuft sie mit einer konsistenten Struktur.
 Wichtige Felder, die in der UI angezeigt werden:
 
 - ID / Titel
@@ -92,49 +110,9 @@ Wichtige Felder, die in der UI angezeigt werden:
 - Humorstatistik (Gesamtstunden, % Lebenszeit, Jahre)
 - Beschreibung / Eastereggs (falls vorhanden)
 
-## Was ist neu / was wurde im 7.1i‑Zweig poliert?
-
-Patch-Fokus 7.1i: **Layout-Dichte & Ausrichtung Desktop/Tablet, ohne Phone zu ändern.**
-
-- Desktop/Tablet: rechter Infoblock (Header) wirkt wie eine echte Sidebar statt „halbe Karte“.
-- Label↔Wert-Abstände harmonisiert (Infoblock + Store + Humorstatistik).
-- Windows Tablet Portrait: Karte etwas kompakter (mehr Außenrand) und **Store + Humorstatistik nebeneinander**.
-- Tablet Landscape + Desktop: Infoblock oben rechts auf **exakte Humorstatistik-Breite** gebracht (saubere Fluchten).
-- Phone (Portrait/Landscape): bewusst stabil gehalten; nur gezielte Fixes für A+++ (u. a. Link-Umbruch/Alignment) – ohne Layoutsprünge.
-
-
-## Patchplan – nächster Schritt: 7.1j (Typografie Desktop/Tablet)
-
-Patch-Fokus 7.1j: **Typografie-Feinschliff** für Desktop & Windows-Tablet (Portrait/Landscape),
-ohne Android-Phone (Portrait/Landscape) anzutasten.
-
-### Was ist in 7.1j12 bereits umgesetzt?
-- Floating Buttons (↑, Aa, ≡) insgesamt deutlich kleiner, konsistent in Portrait + Landscape.
-- Floating Buttons neu angeordnet (Stack): **↑ (Top)** oben, **Aa** in der Mitte, **≡ (Schnellmenü)** unten.
-- FAB-Menü aufgeteilt: **Aa = nur Textgröße**, **≡ = Schnellmenü (Sortierung + Sprung ins Hauptmenü)**.
-- Tablet Portrait: größerer Außenrand vor der Karte (mehr Hintergrund sichtbar), horizontal per `clamp()` geregelt, damit A+++ nicht unnötig „zuschnürt“.
-- Phone Landscape: Schnellmenü ist jetzt ein **stabiles Dock unten links** (Button ≡ ist nur Trigger). Keine Kollision mehr mit Header/Browserbar; Breite wird maximal genutzt, Höhe bleibt klein.
-- Safety: FAB-Panels schließen bei **Resize/Orientationchange** automatisch (verhindert „hängende“ offene Panels nach Browser-UI‑Sprüngen).
-
-Zusätzlich in **7.1j12** (Polish „Filter & Sortieren“):
-- Sortieren-Select (Phone/Tablet): **ohne Überschriften**, stattdessen visuelle Trenner.
-- Filtermenü: Hinweiszeile entfernt → etwas mehr „Luft“ vor den Action-Buttons.
-- Phone Landscape: Filtermenü ist **nicht mehr Vollbild** (dünner Rand) und **ohne Sticky-Elemente** (alles scrollt, nichts wird verdeckt).
-- Reihenfolge im Filterbereich: **Schnellfilter → Weitere Filter → Genre → Trophäen**.
-- Dropdowns (Select + Desktop-DD) etwas „ruhiger“ (zartes Grau statt Weiß).
-- **Sticky Action-Bar** unten (Zurücksetzen/Fertig), kein Runterscrollen mehr.
-- **Live-Apply**: Sortierung/Filter wirken sofort; **„Fertig“** schließt einfach.
-
-## Bekannte Einschränkungen
-
-- Excel wird nur gelesen, nicht bearbeitet.
-- Sehr große Listen können auf schwächeren Geräten spürbar langsamer werden.
-- Browser-UI (Mobile Adressleiste etc.) kann Layout-Metriken beeinflussen; kritische Bereiche werden daher bevorzugt über stabile Layoutregeln (Grid/Flex) statt `vw`-Tricks gelöst.
-
 ## Struktur / Dateien
 
 - `index.html` – Layout-Shell & UI-Gerüst
 - `styles.css` – gesamtes Styling inkl. Breakpoints
 - `app.js` – Logik: Excel-Import, Normalisierung, Filter/Suche/Sortierung, Rendering
 - `xlsx.full.min.js` – XLSX-Parser (SheetJS)
-

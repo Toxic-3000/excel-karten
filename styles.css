@@ -1,6 +1,7 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
-   - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
-   - Android Phone (Portrait/Landscape) bleibt unverändert
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
+   - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
+   - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
+   - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
 */
 :root{
   --uiScale: 1;
@@ -35,8 +36,13 @@
   --warn:#c59a00;
   --bad:#cc3b3b;
 
+  /* Filter indicator accent (avoid competing with the main blue UI) */
+  --filterAccent: #0f766e;   /* teal-ish */
+  --filterAccent2:#0b5f59;
+
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
+  --filterGlow: color-mix(in oklab, var(--filterAccent) 22%, transparent);
 }
 
 /* Tablet + Desktop: gleichermaßen (touchfreundlich, aber etwas kompakter als zuvor) */
@@ -730,10 +736,45 @@ summary::-webkit-details-marker{display:none}
 /* Indicator: show when any (Schnell-)Filter is active.
    Intentionally subtle, but more visible than a purely text-based hint. */
 .fab.fabHasFilters{
-  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
-  border-color: color-mix(in oklab, var(--blue) 32%, var(--border) 68%);
-  box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--blue) 22%, transparent);
+  background: color-mix(in oklab, var(--filterAccent) 16%, var(--bg) 84%);
+  border-color: color-mix(in oklab, var(--filterAccent) 38%, var(--border) 62%);
+  box-shadow: var(--shadow);
   opacity: .9;
+}
+
+/* Schnellmenü-FAB: dezenter Dauer-Ring + kurze Puls-Sequenz (nur Ring) */
+.fabQuick::after,
+.fabQuick::before{
+  content:"";
+  position:absolute;
+  /* Scale-aware inset keeps the ring visually consistent across UI scales */
+  inset: calc(-4px * var(--uiScale));
+  border-radius: 999px;
+  pointer-events:none;
+}
+
+/* Dauer-Ring (nur wenn Filter aktiv sind) */
+.fabQuick::after{
+  border: 2px solid var(--filterGlow);
+  opacity: 0;
+}
+.fabQuick.fabHasFilters::after{ opacity: 1; }
+
+/* Puls-Ring (separate layer, damit der Dauer-Ring stabil bleibt) */
+.fabQuick::before{
+  border: 2px solid var(--filterGlow);
+  opacity: 0;
+  transform: scale(1);
+}
+.fabQuick.fabPulse::before{
+  opacity: 1;
+  animation: fabRingPulse 560ms ease-out 0s 3;
+}
+
+@keyframes fabRingPulse{
+  0%{ transform: scale(1); opacity: .85; }
+  70%{ transform: scale(1.55); opacity: 0; }
+  100%{ transform: scale(1.55); opacity: 0; }
 }
 
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
@@ -776,6 +817,18 @@ summary::-webkit-details-marker{display:none}
 .fabChips{gap: calc(10px * var(--uiScale));}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
+
+/* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar) */
+.quickInfo{
+  margin-top: calc(12px * var(--uiScale));
+  padding: calc(10px * var(--uiScale));
+  border:1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: none;
+}
+.quickInfoA{ font-weight: 650; }
+.quickInfoB{ margin-top: calc(4px * var(--uiScale)); opacity: .78; }
 
 /* Bottom sheet */
 .dlg{border:0;padding:0;background:transparent}
@@ -1313,14 +1366,34 @@ html.modalOpen body{touch-action:none;}
   }
   .fabPanelQuick > .fabHead{ grid-area: head; }
   .fabPanelQuick > .fabSect{ margin-top: 0; }
-  .fabPanelQuick > .fabSect:nth-child(2){ grid-area: field; }
-  .fabPanelQuick > .fabSect:nth-child(3){ grid-area: dir; }
+  .fabPanelQuick > .fabQuickField{ grid-area: field; }
+  .fabPanelQuick > .fabQuickDir{ grid-area: dir; }
   .fabPanelQuick > .fabActions{
     grid-area: act;
     margin-top: 0;
     justify-content: stretch;
   }
   .fabPanelQuick #fabOpenMenu{ width: 100%; }
+
+  /* Optional info row: only reserve a row when the info is actually visible */
+  .fabPanelQuick.hasQuickInfo{
+    grid-template-areas:
+      "head head"
+      "info info"
+      "field dir"
+      "act act";
+  }
+  .fabPanelQuick.hasQuickInfo > .quickInfo{ grid-area: info; }
+
+  /* Phone Landscape: Infozeile kompakt (keine Card-Optik) */
+  .quickInfo{
+    margin-top: 0;
+    padding: calc(6px * var(--uiScale)) calc(8px * var(--uiScale));
+    border: 0;
+    background: transparent;
+  }
+  .quickInfoB{ display: none; }
+  .quickInfoA{ opacity: .82; }
 
 
 

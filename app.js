@@ -1,15 +1,17 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j15 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j15
+console.log("Build 7.1j17 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j17
+   - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
+   - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j15").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j17").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -38,6 +40,9 @@ console.log("Build 7.1j15 loaded");
     fabQuick: $("fabQuick"),
     fabQuickPanel: $("fabQuickPanel"),
     fabQuickClose: $("fabQuickClose"),
+    fabQuickInfo: $("fabQuickInfo"),
+    fabQuickInfoA: $("fabQuickInfoA"),
+    fabQuickInfoB: $("fabQuickInfoB"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -194,6 +199,8 @@ console.log("Build 7.1j15 loaded");
   function closeFabQuick(){
     if (!el.fabQuickPanel) return;
     el.fabQuickPanel.hidden = true;
+    try{ if (el.fabQuickInfo) el.fabQuickInfo.hidden = true; }catch(_){/* ignore */}
+    try{ el.fabQuickPanel.classList.remove("hasQuickInfo"); }catch(_){/* ignore */}
   }
 
   function closeFabs(){
@@ -213,6 +220,8 @@ console.log("Build 7.1j15 loaded");
     const willOpen = !!el.fabQuickPanel.hidden;
     closeFabs();
     el.fabQuickPanel.hidden = !willOpen;
+    // Info appears only inside the open Schnellmenü.
+    try{ updateQuickMenuInfo(); }catch(_){/* ignore */}
   }
 
   function buildFab(){
@@ -378,7 +387,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
-    ui: { lastCount: 0 },
+    ui: { lastCount: 0, lastFilterSig: "" },
   };
 
   function esc(s){
@@ -1748,35 +1757,152 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const on = hasActiveFilters();
     el.fabQuick.classList.toggle("fabHasFilters", on);
     el.fabQuick.setAttribute("aria-label", on ? "Schnellmenü öffnen (Filter aktiv)" : "Schnellmenü öffnen");
+    // Keep Schnellmenü-Info in sync (Info erscheint nur im geöffneten Schnellmenü)
+    updateQuickMenuInfo();
   }
 
-  // --- Temporary view toast (cards view) ---
-  let _viewToastTimer = 0;
-  let _viewToastScrollHandler = null;
+  function countActiveFiltersDetailed(){
+    // Count like the "Aktive Filter"-Bar: each active chip counts as one filter.
+    const f = state.filters;
+    let n = 0;
+    if (f.fav) n++;
+    if (f.genres && f.genres.size) n += f.genres.size;
+    if (f.platforms && f.platforms.size) n += f.platforms.size;
+    if (f.sources && f.sources.size) n += f.sources.size;
+    if (f.availability && f.availability.size) n += f.availability.size;
+    if (f.trophies && f.trophies.size) n += f.trophies.size;
+    if (f.trophyPreset) n++;
+    if (f.shortMain5) n++;
+    return n;
+  }
+
+  function isPhoneLandscape(){
+    try{ return !!window.matchMedia && window.matchMedia("(orientation: landscape) and (max-height: 520px)").matches; }
+    catch(_){ return false; }
+  }
+
+  function updateQuickMenuInfo(){
+    if (!el.fabQuickInfo || !el.fabQuickPanel) return;
+    const active = countActiveFiltersDetailed();
+    const panelOpen = !el.fabQuickPanel.hidden;
+
+    // Info is only visible inside the open Schnellmenü, and only when filters are active.
+    if (!panelOpen || active <= 0){
+      el.fabQuickInfo.hidden = true;
+      el.fabQuickPanel.classList.remove("hasQuickInfo");
+      return;
+    }
+
+    const shown = Number(state.ui?.lastCount ?? 0);
+    const plural = (active === 1) ? "Filter aktiv" : "Filter aktiv";
+    if (isPhoneLandscape()){
+      // One-line compact display
+      if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel · ${active} ${plural}`;
+      if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = "";
+    }else{
+      if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt`;
+      if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = `Filter aktiv: ${active}`;
+    }
+    el.fabQuickInfo.hidden = false;
+    // In Phone Landscape we only reserve a grid row when the info is visible.
+    el.fabQuickPanel.classList.add("hasQuickInfo");
+  }
+
+  // --- Schnellmenü-FAB: kurze Aufmerksamkeits-Pulse-Sequenz (nur Ring) ---
+  let _fabPulseTimer = 0;
+  function triggerQuickFabAttentionPulse(){
+    if (!el.fabQuick) return;
+    if (!hasActiveFilters()) return;
+    // Only when (re-)entering the cards view.
+    if (!inCardsView()) return;
+    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
+    _fabPulseTimer = window.setTimeout(() => {
+      _fabPulseTimer = 0;
+      if (!el.fabQuick) return;
+      if (!inCardsView() || !hasActiveFilters()) return;
+
+      // Restart animation deterministically.
+      el.fabQuick.classList.remove("fabPulse");
+      void el.fabQuick.offsetWidth; // reflow
+      el.fabQuick.classList.add("fabPulse");
+
+      const onEnd = (e) => {
+        // Only react to our own animation.
+        try{ if (e && e.animationName && e.animationName !== "fabRingPulse") return; }catch(_){/* ignore */}
+        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
+        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
+      };
+      el.fabQuick.addEventListener("animationend", onEnd);
+    }, 760);
+  }
+
+  // --- Cards-view hint (Filter aktiv) ---
+  // In diesem Build bewusst deaktiviert: Kein Text-Feedback außerhalb des Schnellmenüs.
+  const ENABLE_VIEW_TOAST = false;
+
+  // (Code bleibt als Schalter für spätere Builds vorhanden.)
+  let _viewHintDismissed = false;
+  let _viewHintHandlersOn = false;
+  let _viewHintDismissHandler = null;
+
+  function inCardsView(){
+    // Cards view is visible whenever the filter dialog is not open.
+    try{ return !(el.dlg && el.dlg.open); }catch(_){ return true; }
+  }
+
+  function removeViewHintHandlers(){
+    if (!_viewHintHandlersOn || !_viewHintDismissHandler) return;
+    try{ window.removeEventListener("scroll", _viewHintDismissHandler, true); }catch(_){/* ignore */}
+    try{ window.removeEventListener("pointerdown", _viewHintDismissHandler, true); }catch(_){/* ignore */}
+    // Fallback for older touch stacks
+    try{ window.removeEventListener("touchstart", _viewHintDismissHandler, true); }catch(_){/* ignore */}
+    _viewHintHandlersOn = false;
+    _viewHintDismissHandler = null;
+  }
+
   function hideViewToast(){
     if (!el.viewToast) return;
     el.viewToast.hidden = true;
-    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
-    if (_viewToastScrollHandler){
-      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
-      _viewToastScrollHandler = null;
-    }
+    removeViewHintHandlers();
   }
 
   function showViewToast(msg){
+    if (!ENABLE_VIEW_TOAST) return;
     if (!el.viewToast) return;
     if (!msg) return;
     el.viewToast.textContent = String(msg);
     el.viewToast.hidden = false;
-    // reset previous
-    if (_viewToastTimer) { clearTimeout(_viewToastTimer); _viewToastTimer = 0; }
-    if (_viewToastScrollHandler){
-      try{ window.removeEventListener("scroll", _viewToastScrollHandler); }catch(_){/* ignore */}
-      _viewToastScrollHandler = null;
-    }
-    _viewToastScrollHandler = () => hideViewToast();
-    window.addEventListener("scroll", _viewToastScrollHandler, {passive:true});
-    _viewToastTimer = window.setTimeout(() => hideViewToast(), 3000);
+
+    if (_viewHintHandlersOn) return;
+    _viewHintDismissHandler = () => {
+      _viewHintDismissed = true;
+      hideViewToast();
+    };
+    _viewHintHandlersOn = true;
+    // Capture phase ensures we dismiss even if the click is handled elsewhere.
+    window.addEventListener("scroll", _viewHintDismissHandler, {passive:true, capture:true});
+    window.addEventListener("pointerdown", _viewHintDismissHandler, {passive:true, capture:true});
+    window.addEventListener("touchstart", _viewHintDismissHandler, {passive:true, capture:true});
+  }
+
+  function resetViewHint(){
+    if (!ENABLE_VIEW_TOAST) return;
+    _viewHintDismissed = false;
+  }
+
+  function desiredViewHintMsg(){
+    const n = Number(state.ui?.lastCount ?? 0);
+    const base = Number.isFinite(n) && n > 0 ? `${n} Treffer` : "Filter aktiv";
+    return base === "Filter aktiv" ? base : `${base} · Filter aktiv`;
+  }
+
+  function syncViewHint(){
+    if (!ENABLE_VIEW_TOAST) { hideViewToast(); return; }
+    if (!el.viewToast) return;
+    if (!inCardsView()) { hideViewToast(); return; }
+    if (!hasActiveFilters()) { _viewHintDismissed = false; hideViewToast(); return; }
+    if (_viewHintDismissed) { hideViewToast(); return; }
+    showViewToast(desiredViewHintMsg());
   }
 
   function filterSignature(){
@@ -2110,6 +2236,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
+
+    // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
+    // (The user dismisses it via interaction: scroll/tap.)
+    try{
+      const sigNow = filterSignature();
+      if (sigNow !== String(state.ui?.lastFilterSig ?? "")){
+        state.ui.lastFilterSig = sigNow;
+        resetViewHint();
+      }
+    }catch(_){/* ignore */}
+    syncViewHint();
     render(out);
   }
 
@@ -2785,30 +2922,14 @@ function renderTrophyDetails(row){
   el.dlg.addEventListener("close", () => {
     // Ensure the latest changes are applied even when the user closes via ✕ / backdrop / ESC.
     if (_liveApplyTimer) { window.clearTimeout(_liveApplyTimer); _liveApplyTimer = 0; }
-    const sigBefore = _menuSigOnOpen || "";
-    const hadBefore = _menuHadFiltersOnOpen;
-    let didApply = false;
     if (_menuDirty && state.rows && state.rows.length){
-      try{ applyAndRender(); didApply = true; }catch(_){/* ignore */}
+      try{ applyAndRender(); }catch(_){/* ignore */}
     }
     _menuDirty = false;
-    // If filter state changed during this menu session, show a short hint in the cards view.
-    try{
-      if (state.rows && state.rows.length){
-        const sigNow = filterSignature();
-        if (sigNow !== sigBefore){
-          const nowActive = hasActiveFilters();
-          const n = Number(state.ui?.lastCount ?? 0);
-          const base = Number.isFinite(n) && n > 0 ? `${n} Treffer` : "Treffer aktualisiert";
-          const msg = nowActive
-            ? `${base} · Filter aktiv`
-            : (hadBefore ? `${base} · Filter zurückgesetzt` : `${base} · Keine Filter aktiv`);
-          showViewToast(msg);
-        }
-      }
-    }catch(_){/* ignore */}
     setModalOpen(false);
     updateQuickFilterIndicator();
+    // Returning to the cards view: short attention pulse on the Schnellmenü-FAB (only when filters are active).
+    triggerQuickFabAttentionPulse();
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
