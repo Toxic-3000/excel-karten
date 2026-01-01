@@ -1,15 +1,15 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j13 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j13
+console.log("Build 7.1j14 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j14
    - Kompaktansicht only
    - Badges mit möglichst fixer Länge
    - Alle Zustände für Quelle/Verfügbarkeit werden angezeigt
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j13").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j14").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1204,11 +1204,12 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     // --- Schnellfilter (80%-Fälle) ---
     // Icon-only, damit es nicht nach "Menü in einer Menü" aussieht.
     if (el.quickRow){
-      const row1 = [];
+      const highlights = [];
+      const progress = [];
       const row2 = [];
 
       // ⭐ Favoriten
-      row1.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
+      highlights.push(chipHtml("fav", "fav", "⭐️", state.filters.fav, "primary", { title: "Nur Favoriten", iconOnly: true }));
 
       // Trophäen-Quickfilter in fester Reihenfolge: ⏳ 💤 ✅ 💎
       const quickTrophies = [
@@ -1218,8 +1219,10 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         { key: "Platin", icon: "💎", title: "Platin" },
       ];
       for (const qt of quickTrophies){
-        if (state.distinct.trophies.has(qt.key)){
-          row1.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
+        if (state.distinct.trophies.has(qt.key))
+        {
+          const target = (qt.key === "Platin" || qt.key === "100%") ? highlights : progress;
+          target.push(chipHtml("trophy", qt.key, qt.icon, state.filters.trophies.has(qt.key), "primary", { title: qt.title, iconOnly: true }));
         }
       }
 
@@ -1230,7 +1233,10 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       row2.push(chipHtml("shortMain", "le5", "⏱️", state.filters.shortMain5, "primary", { title: "Spielzeit ≤ 5 Std. (Main)", iconOnly: true }));
 
       el.quickRow.innerHTML = `
-        <div class="chipRow quickLine">${row1.join("")}</div>
+        <div class="quickGroups">
+          <div class="quickGroup highlights">${highlights.join("")}</div>
+          ${progress.length ? `<div class="quickGroup progress">${progress.join("")}</div>` : ``}
+        </div>
         <div class="chipRow quickLine">${row2.join("")}</div>
       `;
     }

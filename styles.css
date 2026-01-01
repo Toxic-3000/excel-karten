@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j13
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j14
    - Desktop/Windows-Tablet: Typografie-Tuning (Lesebreite, Hierarchie, Rhythmus)
    - Android Phone (Portrait/Landscape) bleibt unverändert
 */
@@ -636,7 +636,7 @@ details{
 summary{
   list-style:none;
   cursor:pointer;
-  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
   font-weight:650;
   display:flex;
   justify-content:flex-start;
@@ -875,7 +875,7 @@ html.modalOpen body{touch-action:none;}
   border-bottom:1px solid var(--border);
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
-  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -1110,7 +1110,7 @@ html.modalOpen body{touch-action:none;}
   justify-content: space-between;
   align-items: center;
   margin-top: calc(16px * var(--uiScale));
-  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
   border-top: 1px solid var(--border);
   background: color-mix(in oklab, var(--card) 92%, var(--bg) 8%);
   backdrop-filter: blur(10px);
@@ -1568,8 +1568,11 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* Schnellfilter: 2 Zeilen (Icon-only) */
+/* Schnellfilter: gebündelt (Highlights/Fortschritt) + zweite Zeile Presets */
 #quickRow{display:flex; flex-direction:column; gap: calc(12px * var(--uiScale));}
+#quickRow .quickGroups{display:flex; flex-wrap:wrap; gap: calc(12px * var(--uiScale)); align-items:center;}
+#quickRow .quickGroup{display:flex; flex-wrap:wrap; gap: calc(12px * var(--uiScale));}
+#quickRow .quickGroup.progress{padding-left: calc(10px * var(--uiScale)); margin-left: calc(2px * var(--uiScale)); border-left: 1px solid color-mix(in oklab, var(--fg) 10%, transparent 90%);}
 #quickRow .quickLine{flex-wrap:wrap;}
 
 .accSubTitle{
@@ -1737,7 +1740,7 @@ html.modalOpen body{touch-action:none;}
 .ddMark{ width: 18px; opacity: 0; flex: 0 0 18px; }
 .ddItem.is-active .ddMark{ opacity: 1; }
 .ddText{ flex: 1; }
-.ddDivider{ height: 1px; background: rgba(0,0,0,.10); margin: 8px 4px; }
+.ddDivider{ height: 1px; width: 100%; background: color-mix(in oklab, var(--fg) 16%, transparent 84%); opacity: .55; margin: 8px 4px; }
 .ddFooter{ display: flex; justify-content: flex-end; padding-top: 8px; }
 .ddDone{
   padding: 10px 14px;
