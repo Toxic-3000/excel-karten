@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j21 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j21
+console.log("Build 7.1j24 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j24
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j21 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j21").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j24").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1796,8 +1796,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const shown = Number(state.ui?.lastCount ?? 0);
     const plural = (active === 1) ? "Filter aktiv" : "Filter aktiv";
     if (isPhoneLandscape()){
-      // One-line compact display
-      if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel · ${active} ${plural}`;
+      // Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
+      // nur einzeilig (spart Höhe, verhindert Abschneiden bei Browserbar + großer Schrift).
+      if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt · Filter aktiv: ${active}`;
       if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = "";
     }else{
       if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt`;

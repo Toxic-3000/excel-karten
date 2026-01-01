@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j21)
+# Spieleliste – Webansicht (Build 7.1j24)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,19 +15,18 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j21
+## Neu in 7.1j24
 
-### Fix: Schnellmenü in Phone-Landscape passt ohne Scrollen
-In Phone-Landscape kann die Browserbar (Adress-/Toolbar) zusammen mit großer globaler Schrift dazu führen, dass das Schnellmenü zu hoch wird und gescrollt werden muss.
-Dieses Build macht das Schnellmenü in genau dieser Konstellation kompakter:
+### Schnellmenü: Info-Box in Phone Landscape wie in allen anderen Ansichten
+Ziel: **Konsistentes Design**, aber **stabile Höhe** in Phone-Landscape (Browserbar sichtbar + große System-Schrift).
 
-- **Stärkerer Typo-/Spacing-Cap nur im Schnellmenü (≡)** (entkoppelt vom globalen Aa-Schriftgrad)
-- Panel nutzt **100svh** (small viewport height) + Safe-Area, damit sichtbare Browser-UI korrekt berücksichtigt wird
-- In Landscape ist das Panel **breiter**, damit Chips weniger umbrechen (spart vertikale Höhe)
+- **Portrait/Tablet/Desktop bleiben unverändert** (zweizeilige Info-Box).
+- **Phone Landscape** verwendet **dieselbe Info-Box**, aber **einzeilig**:
+  - Beispiel: `642 Titel angezeigt · Filter aktiv: 1`
+  - Dadurch entfällt die zusätzliche Zeile und das Schnellmenü wird bei aktiven Filtern nicht mehr „zu hoch“.
+- Technisch: Die Info bleibt weiterhin **nur im geöffneten Schnellmenü** sichtbar und **nur bei aktiven Filtern** (State kommt direkt aus dem globalen Filter-/Listen-State).
 
-Wichtig: Das betrifft **nur** das Schnellmenü in Phone-Landscape. Der globale Schriftgrad (Aa) bleibt unverändert.
-
-- Globales **OK-Grün** an den gemeinsamen Grünton für **XLSX: ok** und **Filter aktiv** angepasst.
+> Hinweis: Der Aa-Schriftgrad bleibt global unverändert; die Landscape-Anpassung wirkt ausschließlich innerhalb des Schnellmenüs.
 
 ## Neu in 7.1j18
 
@@ -37,7 +36,7 @@ Wichtig: Das betrifft **nur** das Schnellmenü in Phone-Landscape. Der globale S
 - Inhalt (direkt aus globalem State):
   - **„X Titel angezeigt“**
   - **„Filter aktiv: Y“**
-- **Phone Landscape**: kompakte **einzeilige** Darstellung (z. B. `283 Titel · 1 Filter aktiv`), ohne Card-/Rahmenoptik.
+- **Phone Landscape**: kompakte **einzeilige** Darstellung (z. B. `642 Titel angezeigt · Filter aktiv: 1`) im **gleichen Info-Box-Design** wie in Portrait/Tablet/Desktop.
 
 ### 2) Schnellmenü-FAB als alleiniger Statusindikator
 - **Keine Filter aktiv**: neutral (grau), kein Ring.
@@ -55,9 +54,9 @@ Wichtig: Das betrifft **nur** das Schnellmenü in Phone-Landscape. Der globale S
 
 ### 5) Phone Landscape: Schnellmenü-Schriftgröße + Hervorhebung
 - In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
-- Die **Titelzeile** ("Schnellmenü") und die **Infozeile** ("X Titel · Y Filter aktiv") sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
+- Die **Titelzeile** ("Schnellmenü") und die **Info-Box** sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
 
-## Getestet (Stand 7.1j21)
+## Getestet (Stand 7.1j24)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape

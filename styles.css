@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j21
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j24
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -815,25 +815,29 @@ summary::-webkit-details-marker{display:none}
     max-height: calc(100svh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
     /* Breiter in Landscape, damit Chips weniger umbrechen → spart vertikale Höhe */
     width: min(520px, calc(100vw - 24px)) !important;
-    padding: 8px !important;
-    font-size: 13px !important;      /* stärker entkoppelt: minimiert Menü-Höhe */
-    line-height: 1.24 !important;
+    padding: 9px !important;
+    /* Phone Landscape: Schnellmenü bleibt vom Aa-Slider entkoppelt,
+       aber nicht "zu klein". Durch die einzeilige Info-Box bleibt es
+       trotzdem vollständig sichtbar, ohne dass gescrollt werden muss. */
+    font-size: 14px !important;
+    line-height: 1.25 !important;
   }
   .fabPanelQuick .fabHead{ gap: 10px !important; padding-bottom: 6px !important; }
-  .fabPanelQuick .fabTitle{ font-size: 15px !important; }
+  .fabPanelQuick .fabTitle{ font-size: 16px !important; }
   .fabPanelQuick .fabClose{ padding: 6px 10px !important; }
 
-  .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 7px 9px !important; border-radius: 14px !important; }
-  .fabPanelQuick .quickInfoA{ font-size: 13px !important; }
-  .fabPanelQuick .quickInfoB{ font-size: 12px !important; }
+  /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
+  .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 8px 10px !important; border-radius: 16px !important; }
+  .fabPanelQuick .quickInfoA{ font-size: 13.5px !important; }
+  .fabPanelQuick .quickInfoB{ display:none !important; }
 
   .fabPanelQuick .fabSect{ margin-top: 8px !important; }
-  .fabPanelQuick .fabLabel{ margin-bottom: 5px !important; font-size: 11.5px !important; }
-  .fabPanelQuick .fabChips{ gap: 7px !important; }
-  .fabPanelQuick .chip{ padding: 6px 9px !important; font-size: 12.5px !important; }
+  .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12px !important; }
+  .fabPanelQuick .fabChips{ gap: 8px !important; }
+  .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 13.5px !important; }
 
   .fabPanelQuick .fabActions{ margin-top: 8px !important; }
-  .fabPanelQuick .btn{ font-size: 13px !important; padding: 9px 10px !important; }
+  .fabPanelQuick .btn{ font-size: 14px !important; padding: 10px 12px !important; }
 }
 
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
@@ -1410,12 +1414,8 @@ html.modalOpen body{touch-action:none;}
       "act act";
     gap: calc(10px * var(--uiScale));
 
-    /* Phone Landscape: Schriftgrad im Schnellmenü begrenzen (entkoppelt vom Aa-Slider).
-       Nur innerhalb des Schnellmenüs (nicht im Schriftgrößen-Menü, nicht global). */
-    /* Nur in Phone Landscape: Schriftgröße im Schnellmenü deckeln,
-       damit das Panel auch mit großer globaler Schrift vollständig in den Viewport passt.
-       (Aa-Menü und Rest der App bleiben unverändert.) */
-    font-size: clamp(14px, calc(16px * var(--uiScale)), 16px);
+    /* Schriftgröße wird im allgemeinen Phone-Landscape-Block (.fabPanelQuick) fest gelegt.
+       Hier keine zusätzliche Skalierung, damit es konsistent bleibt. */
   }
   .fabPanelQuick > .fabHead{ grid-area: head; }
   .fabPanelQuick > .fabSect{ margin-top: 0; }
@@ -1438,22 +1438,10 @@ html.modalOpen body{touch-action:none;}
   }
   .fabPanelQuick.hasQuickInfo > .quickInfo{ grid-area: info; }
 
-  /* Phone Landscape: Infozeile kompakt (keine Card-Optik) */
-  .quickInfo{
-    margin-top: 0;
-    padding: calc(6px * var(--uiScale)) calc(8px * var(--uiScale));
-    border: 0;
-    background: transparent;
-  }
-  .quickInfoB{ display: none; }
-  .quickInfoA{
-    opacity: .95;
-    font-weight: 700;
-    display: inline-block;
-    padding: calc(4px * var(--uiScale)) calc(8px * var(--uiScale));
-    border-radius: 999px;
-    background: color-mix(in oklab, var(--filterAccent) 10%, transparent);
-  }
+  /* Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
+     aber einzeilig (spart Höhe, verhindert Abschneiden). */
+  .fabPanelQuick.hasQuickInfo > .quickInfo{ margin-top: 0; }
+  .fabPanelQuick .quickInfoB{ display: none !important; }
 
 
 
