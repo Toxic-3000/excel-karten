@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j17)
+# Spieleliste – Webansicht (Build 7.1j19)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,11 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j17
+## Neu in 7.1j19
+
+- Globales **OK-Grün** an den gemeinsamen Grünton für **XLSX: ok** und **Filter aktiv** angepasst.
+
+## Neu in 7.1j18
 
 ### 1) Informationsanzeige im Schnellmenü (≡)
 - Erscheint **ausschließlich** im geöffneten Schnellmenü.
@@ -36,7 +40,14 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 
 > Hinweis: In diesem Build gibt es **keine** Text-Hinweise zu Filtern/Trefferzahlen außerhalb des Schnellmenüs.
 
-## Getestet (Stand 7.1j17)
+### 4) UI-Farbabgleich: XLSX-Status
+- Der **„XLSX: ok/bereit“**-Status verwendet jetzt denselben **Grünton** wie der **Filter-aktiv**-Zustand des Schnellmenü-FAB.
+
+### 5) Phone Landscape: Schnellmenü-Schriftgröße + Hervorhebung
+- In **Phone Landscape** wird die Schriftgröße **innerhalb des Schnellmenüs (≡)** dezent **gekappt/entkoppelt**, damit sie auch bei kleinen Schriftgrad-Presets nicht "zu groß" wirkt.
+- Die **Titelzeile** ("Schnellmenü") und die **Infozeile** ("X Titel · Y Filter aktiv") sind leicht hervorgehoben (ruhig, ohne Card-/Alarm-Look).
+
+## Getestet (Stand 7.1j19)
 
 - ✅ Android Phone Portrait
 - ✅ Android Phone Landscape
