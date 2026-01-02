@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j37)
+# Spieleliste – Webansicht (Build 7.1j38)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -14,6 +14,18 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 3: Genre (kleiner/dunkler)
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
+
+## Neu in 7.1j38
+
+### Schnellmenü: Filter-Reset direkt in der Statusbox (🧹)
+
+Ziel: Filter schnell „aufräumen“, ohne das Menü zu schließen oder neue Layout-Risiken einzuführen.
+
+- **Besen-Icon** rechts in der Statusbox
+- **Nur sichtbar**, wenn **mindestens ein Filter aktiv** ist (und nur im geöffneten Schnellmenü)
+- Setzt **nur die Filter** zurück (**Sortierung bleibt unverändert**)
+- Menü bleibt offen; keine zusätzlichen Animationen
+- A11y: `title` + `aria-label` = „Filter zurücksetzen“
 
 ## Neu in 7.1j37
 

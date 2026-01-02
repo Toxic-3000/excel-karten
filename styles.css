@@ -858,7 +858,9 @@ summary::-webkit-details-marker{display:none}
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
   .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
-  .fabPanelQuick .quickInfoA{ font-size: 13.5px !important; }
+  .fabPanelQuick .quickInfoText{ min-width:0 !important; }
+  .fabPanelQuick .quickInfoA{ font-size: 13.5px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+  .fabPanelQuick .quickReset{ font-size: 16px !important; padding: 5px !important; }
   .fabPanelQuick .quickInfoB{ display:none !important; }
 
   .fabPanelQuick .fabSect{ margin-top: 8px !important; }
@@ -984,7 +986,34 @@ summary::-webkit-details-marker{display:none}
   border-radius: 16px;
   background: color-mix(in oklab, var(--filterAccent) 8%, var(--bg) 92%);
   box-shadow: none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: calc(10px * var(--uiScale));
 }
+
+
+/* Schnellmenü: Statusbox mit Reset-Aktion */
+.quickInfoText{
+  display:flex;
+  flex-direction:column;
+  min-width: 0;
+  flex: 1;
+}
+.quickReset{
+  border:0;
+  background:transparent;
+  padding: calc(6px * var(--uiScale));
+  border-radius: 999px;
+  line-height: 1;
+  font-size: calc(18px * var(--uiScale));
+  opacity: .78;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.quickReset:hover{ opacity: 1; background: color-mix(in oklab, var(--filterAccent) 10%, transparent); }
+.quickReset:active{ transform: translateY(1px); }
+.quickReset:focus-visible{ outline: 2px solid color-mix(in oklab, var(--filterAccent) 55%, var(--border) 45%); outline-offset: 2px; }
 .quickInfoA{ font-weight: 650; }
 .quickInfoB{ margin-top: calc(4px * var(--uiScale)); opacity: .78; }
 

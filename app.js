@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j37 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j37
+console.log("Build 7.1j38 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j38
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j37 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j37").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j38").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -43,6 +43,7 @@ console.log("Build 7.1j37 loaded");
     fabQuickInfo: $("fabQuickInfo"),
     fabQuickInfoA: $("fabQuickInfoA"),
     fabQuickInfoB: $("fabQuickInfoB"),
+    fabQuickReset: $("fabQuickReset"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
@@ -313,6 +314,22 @@ console.log("Build 7.1j37 loaded");
         e.stopPropagation();
         closeFabs();
         openMenuDialog();
+      });
+    }
+
+
+    // Schnellmenü: Filter-Reset (nur sichtbar, wenn Filter aktiv sind)
+    if (el.fabQuickReset){
+      el.fabQuickReset.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!hasActiveFilters()) return;
+        clearAllFiltersOnly();
+        // Keep all UIs in sync (dialog chips, active-filter bar, FAB indicator).
+        try{ buildFilterUI(); }catch(_){/* ignore */}
+        try{ updateDialogMeta(true); }catch(_){/* ignore */}
+        // Apply immediately when data is loaded (debounced).
+        try{ scheduleLiveApply(); }catch(_){/* ignore */}
+        try{ updateQuickFilterIndicator(); }catch(_){/* ignore */}
       });
     }
 
@@ -1750,6 +1767,19 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (f.availability && f.availability.size) return true;
     if (f.trophies && f.trophies.size) return true;
     return false;
+  }
+
+  function clearAllFiltersOnly(){
+    // Clear filters without touching the current sort (Schnellmenü-Reset).
+    const f = state.filters;
+    f.fav = false;
+    try{ f.genres && f.genres.clear && f.genres.clear(); }catch(_){/* ignore */}
+    try{ f.platforms && f.platforms.clear && f.platforms.clear(); }catch(_){/* ignore */}
+    try{ f.sources && f.sources.clear && f.sources.clear(); }catch(_){/* ignore */}
+    try{ f.availability && f.availability.clear && f.availability.clear(); }catch(_){/* ignore */}
+    try{ f.trophies && f.trophies.clear && f.trophies.clear(); }catch(_){/* ignore */}
+    f.trophyPreset = "";
+    f.shortMain5 = false;
   }
 
   function updateQuickFilterIndicator(){
