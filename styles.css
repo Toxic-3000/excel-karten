@@ -867,10 +867,12 @@ summary::-webkit-details-marker{display:none}
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   .fabPanelText{
-    left: calc(14px * var(--uiScale)) !important;
+    /* Nicht full-width: soll so kompakt bleiben wie Tablet/Desktop-Landscape */
+    left: auto !important;
     right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     width: auto !important;
+    max-width: calc(520px * var(--uiScale)) !important;
   }
 }
 
@@ -895,10 +897,13 @@ summary::-webkit-details-marker{display:none}
 
   /* Schnellmenü: zweispaltiger Aufbau wie Phone-Landscape – ohne harte Höhen-/Font-Deckelung */
   .fabPanelQuick{
-    max-width: calc(640px * var(--uiScale));
+    /* Breite an Phone-Landscape angleichen */
+    max-width: calc(720px * var(--uiScale));
+    min-width: calc(640px * var(--uiScale));
     width: auto;
     display: grid;
-    grid-template-columns: 1.45fr .55fr;
+    /* rechte Spalte etwas großzügiger (damit Auf/Ab nicht umbrechen) */
+    grid-template-columns: 1.35fr .65fr;
     grid-template-areas:
       "head head"
       "info info"
@@ -931,7 +936,8 @@ summary::-webkit-details-marker{display:none}
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
-    max-width: calc(220px * var(--uiScale));
+    /* etwas mehr Platz als vorher, damit die Chips wie im Phone-Landscape wirken */
+    max-width: calc(260px * var(--uiScale));
   }
   #fabSortDirRow .chip{
     padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
@@ -939,6 +945,7 @@ summary::-webkit-details-marker{display:none}
     font-weight: 650;
     justify-content: center;
     text-align: center;
+    white-space: nowrap;
   }
   #fabSortDirRow .chip svg{ width: calc(18px * var(--uiScale)); height: calc(18px * var(--uiScale)); }
 }
