@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j35)
+# Spieleliste – Webansicht (Build 7.1j36)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j35
+## Neu in 7.1j36
 
 ### Schnellmenü-FAB: Aufmerksamkeits-Puls – Ausdehnung feinjustiert
 Ziel: Die **längere** Puls-Sequenz bleibt erhalten, aber die **Ausdehnung** trifft jetzt den Mittelwert zwischen „zu klein“ (alt) und „zu groß“ (j34).
