@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j31
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j32
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -880,36 +880,67 @@ summary::-webkit-details-marker{display:none}
    - ABER: keine Höhen-/Font-Deckelung (A/A+/A++/A+++ bleibt voll wirksam)
 */
 @media (orientation: landscape) and (min-width: 701px) and (min-height: 521px){
-  /* Panels: rechts Platz für FAB-Stack reservieren */
-  .fabPanelText{
-    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
-  }
+  /* Panels: wie Phone-Landscape an den FAB-Stack andocken – aber unten am Viewport */
+  .fabPanelText,
   .fabPanelQuick{
     right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
-    max-width: min(560px, calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale))));
+    bottom: calc(12px * var(--uiScale) + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Schnellmenü: Grid-Layout wie Phone-Landscape (ohne Font-Limits) */
-  .fabPanelQuick .quickGrid{
-    grid-template-columns: 1.35fr 1fr;
+  /* Textgröße-Menü: kompakt lassen (nicht full-width), nur andocken */
+  .fabPanelText{
+    max-width: calc(520px * var(--uiScale));
+    width: auto;
+  }
+
+  /* Schnellmenü: zweispaltiger Aufbau wie Phone-Landscape – ohne harte Höhen-/Font-Deckelung */
+  .fabPanelQuick{
+    max-width: calc(640px * var(--uiScale));
+    width: auto;
+    display: grid;
+    grid-template-columns: 1.45fr .55fr;
+    grid-template-areas:
+      "head head"
+      "info info"
+      "field dir"
+      "action action";
     column-gap: calc(16px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
     align-items: start;
     align-content: start;
+    /* viel Luft, aber nie über den Viewport hinaus */
+    max-height: calc(100vh - (24px * var(--uiScale)) - env(safe-area-inset-bottom, 0px));
+    overflow: auto;
   }
-  .fabPanelQuick{
-    align-content: start;
-    align-items: start;
-  }
+  .fabPanelQuick .fabHead{ grid-area: head; }
+  .fabPanelQuick .quickInfo{ grid-area: info; margin-top: 0; }
+  .fabPanelQuick .fabQuickField{ grid-area: field; margin-top: 0; }
+  .fabPanelQuick .fabQuickDir{ grid-area: dir; margin-top: 0; }
+  .fabPanelQuick .fabActions{ grid-area: action; justify-self: end; margin-top: 0; }
 
-  /* Statusbox: einzeilig (wie Landscape Phone) */
-  .fabPanelQuick .quickInfo{ padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)); }
-  .fabPanelQuick .quickInfoA{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .fabPanelQuick .quickInfoB{ display:none; }
-
-  /* Footer-Button: nicht auf volle Breite ziehen */
-  .fabPanelQuick .fabActions{ justify-content: flex-end; }
+  /* Button: nicht full-width, rechts unten im Panel */
   .fabPanelQuick #fabOpenMenu{ width: auto; min-width: calc(240px * var(--uiScale)); }
+
+  /* Chip-Rows wie im Phone-Landscape-Layout */
+  #fabSortFieldRow{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+  }
+  #fabSortDirRow{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(10px * var(--uiScale));
+    max-width: calc(220px * var(--uiScale));
+  }
+  #fabSortDirRow .chip{
+    padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+    min-height: calc(44px * var(--uiScale));
+    font-weight: 650;
+    justify-content: center;
+    text-align: center;
+  }
+  #fabSortDirRow .chip svg{ width: calc(18px * var(--uiScale)); height: calc(18px * var(--uiScale)); }
 }
 
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
