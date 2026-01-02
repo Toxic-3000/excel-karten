@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j43 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j43
+console.log("Build 7.1j44 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j44
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j43 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j43").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j44").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -523,6 +523,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     fileName: null,
     ui: { lastCount: 0, lastFilterSig: "" },
   };
+
+  // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
+  // (Data changes reset this automatically because `state.rows` reference changes.)
+  let __lastApplyKey = "";
+  let __lastRowsRef = null;
 
   function esc(s){
     return String(s ?? "")
@@ -2085,6 +2090,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     });
   }
 
+  function applySignature(){
+    // Keep this cheap: only include values that affect the filtered/sorted result.
+    // NOTE: UI scale / viewport are CSS-only and don't require re-rendering.
+    return [
+      String(state.q ?? ""),
+      filterSignature(),
+      String(state.sortField || ""),
+      String(state.sortDir || ""),
+    ].join("\n");
+  }
+
   // Live-Apply: Filters/Sortierung wirken sofort (mit kleinem Debounce),
   // damit man beim Schließen des Menüs nichts "vergisst".
   let _liveApplyTimer = 0;
@@ -2217,6 +2233,16 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function applyAndRender(){
+
+    // Perf polish: bail out early if nothing relevant has changed.
+    // This prevents redundant full-list filtering/sorting/renders triggered by UI actions
+    // that don't affect the result.
+    const __sig = applySignature();
+    if (__lastRowsRef === state.rows && __lastApplyKey === __sig){
+      return;
+    }
+    __lastRowsRef = state.rows;
+    __lastApplyKey = __sig;
 
     const __t0 = PERF ? performance.now() : 0;
     const qRaw = String(state.q ?? "");
@@ -2828,16 +2854,8 @@ function classifyAvailability(av){
     const __rt1 = PERF_DETAIL ? performance.now() : 0;
 
     el.cards.innerHTML = html;
-    // Attach stateful summary labels (anzeigen / verbergen)
-    for (const det of el.cards.querySelectorAll("details")){
-      const sum = det.querySelector("summary");
-      const label = sum?.querySelector("[data-label]");
-      if (!label) continue;
-      const base = label.getAttribute("data-label");
-      const upd = () => label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
-      upd();
-      det.addEventListener("toggle", upd);
-    }
+    // Sync summary labels once after render; subsequent updates are handled via a single delegated listener.
+    syncDetailsSummaryLabels(el.cards);
 
 
     if (PERF_DETAIL) {
@@ -2848,6 +2866,35 @@ function classifyAvailability(av){
       console.debug(`[PERF] render html ${htmlMs.toFixed(1)}ms | dom ${domMs.toFixed(1)}ms | total ${totalMs.toFixed(1)}ms | rows ${rows.length}`);
     }
 
+  }
+
+  // Perf polish: avoid attaching toggle listeners to every <details> on every render.
+  // We wire a single delegated listener once and just sync initial labels after each render.
+  let __detailsToggleWired = false;
+  function wireDetailsToggle(){
+    if (__detailsToggleWired) return;
+    if (!el.cards) return;
+    __detailsToggleWired = true;
+    el.cards.addEventListener("toggle", (ev) => {
+      const det = ev.target;
+      if (!det || det.tagName !== "DETAILS") return;
+      const sum = det.querySelector("summary");
+      const label = sum?.querySelector("[data-label]");
+      if (!label) return;
+      const base = label.getAttribute("data-label") || "";
+      label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
+    }, true);
+  }
+  function syncDetailsSummaryLabels(root){
+    try{
+      for (const det of root.querySelectorAll("details")){
+        const sum = det.querySelector("summary");
+        const label = sum?.querySelector("[data-label]");
+        if (!label) continue;
+        const base = label.getAttribute("data-label") || "";
+        label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
+      }
+    }catch(_){/* ignore */}
   }
 
   function detailsBlock(key, label, bodyHtml){
@@ -3100,6 +3147,8 @@ function renderTrophyDetails(row){
 
   // Build the floating quick access UI (FAB) once.
   buildFab();
+  // Wire delegated <details> toggle handling once (perf polish).
+  wireDetailsToggle();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();

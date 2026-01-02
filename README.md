@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j43)
+# Spieleliste – Webansicht (Build 7.1j44)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -14,6 +14,13 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 3: Genre (kleiner/dunkler)
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
+
+## Neu in 7.1j44 (Performance-Polish)
+
+- **Apply/Render-Bailout**: Wenn sich Query/Filter/Sortierung nicht geändert haben, wird die teure Apply+Render-Pipeline übersprungen.
+  Das reduziert redundante Re-Renders (z. B. durch UI-Aktionen, die das Ergebnis nicht beeinflussen).
+- **<details>-Toggle Delegation**: Statt pro Render für jedes `<details>` einen Listener anzuhängen, wird ein einziger delegierter Toggle-Listener genutzt.
+  Nach jedem Render werden nur die Labels einmal synchronisiert.
 
 ## Neu in 7.1j43 (A11y-Feinschliff)
 
