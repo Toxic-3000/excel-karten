@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j44 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j44
+console.log("Build 7.1j45 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j45
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j44 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j44").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j45").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2853,7 +2853,11 @@ function classifyAvailability(av){
 
     const __rt1 = PERF_DETAIL ? performance.now() : 0;
 
-    el.cards.innerHTML = html;
+    // Perf polish: build DOM off-screen, then swap in one operation.
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html;
+    el.cards.replaceChildren();
+    el.cards.append(tpl.content);
     // Sync summary labels once after render; subsequent updates are handled via a single delegated listener.
     syncDetailsSummaryLabels(el.cards);
 

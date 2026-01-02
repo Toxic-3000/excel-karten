@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j44)
+# Spieleliste – Webansicht (Build 7.1j45)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,14 +15,22 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
+## Neu in 7.1j45 (Performance-Polish)
+
+- **DOM-Swap per `template` + `replaceChildren()`**: Karten werden off-screen geparst und anschließend in einem Schritt in den DOM eingesetzt.
+  Das reduziert Layout-Arbeit bei großen Listen und hält das Scroll-/Filter-Feeling ruhiger.
+
 ## Neu in 7.1j44 (Performance-Polish)
 
-- **Apply/Render-Bailout**: Wenn sich Query/Filter/Sortierung nicht geändert haben, wird die teure Apply+Render-Pipeline übersprungen.
-  Das reduziert redundante Re-Renders (z. B. durch UI-Aktionen, die das Ergebnis nicht beeinflussen).
-- **<details>-Toggle Delegation**: Statt pro Render für jedes `<details>` einen Listener anzuhängen, wird ein einziger delegierter Toggle-Listener genutzt.
-  Nach jedem Render werden nur die Labels einmal synchronisiert.
+- **Apply/Render-Bailout**: Wenn sich Query/Filter/Sortierung nicht geändert haben, wird die Apply+Render-Pipeline übersprungen.
+- **<details>-Toggle Delegation**: Ein delegierter Toggle-Listener statt vieler Einzel-Listener; Labels werden nach jedem Render einmal synchronisiert.
 
-## Neu in 7.1j43 (A11y-Feinschliff)
+## Neu in 7.1j43 (Performance-Polish)
+
+- **PERF-Messpunkte (optional)**: `PERF`/`PERF_DETAIL` in `app.js` liefern Timing für Apply+Render.
+- **Debounce für Suche**: Such-Eingabe wird leicht verzögert angewendet (Standard: 150 ms), um Render-Stürme beim Tippen zu vermeiden.
+
+## Neu in 7.1j42 (A11y-Feinschliff)
 
 - ARIA: FABs & Panels bekommen `aria-controls`/`aria-expanded` und `role="dialog"` + `aria-label`.
 - Focus Trap: Tab/Shift+Tab bleiben in geöffneten FAB-Panels (Schnellmenü/Textgröße).
