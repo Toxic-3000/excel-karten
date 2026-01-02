@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j40 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j40
+console.log("Build 7.1j42 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j42
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j40 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j40").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j42").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -217,6 +217,52 @@ console.log("Build 7.1j40 loaded");
     }catch(_){/* ignore */}
   }
 
+  // --- A11y: Focus Trap für FAB-Panels (Tab bleibt im offenen Panel) ---
+  function _getFocusableIn(root){
+    try{
+      const els = Array.from(root.querySelectorAll(
+        "button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])"
+      ));
+      return els.filter(e => {
+        if (!e) return false;
+        if (e.disabled) return false;
+        if (e.getAttribute && e.getAttribute("aria-hidden") === "true") return false;
+        // offsetParent==null filters display:none and some hidden states; keep focusable only when visible
+        if (e.offsetParent === null) return false;
+        return true;
+      });
+    }catch(_){
+      return [];
+    }
+  }
+
+  function _wireFabTrap(panel){
+    try{
+      if (!panel || panel.__fabTrapWired) return;
+      panel.__fabTrapWired = true;
+      panel.addEventListener("keydown", (e) => {
+        if (e.key !== "Tab") return;
+        if (panel.hidden) return;
+        const focusables = _getFocusableIn(panel);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (e.shiftKey){
+          if (active === first || !panel.contains(active)){
+            e.preventDefault();
+            last.focus({preventScroll:true});
+          }
+        }else{
+          if (active === last){
+            e.preventDefault();
+            first.focus({preventScroll:true});
+          }
+        }
+      });
+    }catch(_){/* ignore */}
+  }
+
 
 
   // --- Reset-Mikrofeedback: Statusbox kurz stehen lassen, ohne "0 Filter" zu zeigen ---
@@ -237,14 +283,19 @@ function closeFabText(){
     const wasOpen = !el.fabTextPanel.hidden;
     const hadFocus = _isFocusInside(el.fabTextPanel);
     el.fabTextPanel.hidden = true;
+    try{ el.fabText?.setAttribute("aria-expanded","false"); }catch(_){/* ignore */}
     if (wasOpen && hadFocus) _restoreFabFocus();
   }
 
   function closeFabQuick(){
     if (!el.fabQuickPanel) return;
+    const wasOpen = !el.fabQuickPanel.hidden;
+    const hadFocus = _isFocusInside(el.fabQuickPanel);
     el.fabQuickPanel.hidden = true;
+    try{ el.fabQuick?.setAttribute("aria-expanded","false"); }catch(_){/* ignore */}
     try{ if (el.fabQuickInfo) el.fabQuickInfo.hidden = true; }catch(_){/* ignore */}
     try{ el.fabQuickPanel.classList.remove("hasQuickInfo"); }catch(_){/* ignore */}
+    if (wasOpen && hadFocus) _restoreFabFocus();
   }
 
   function closeFabs(){
@@ -261,6 +312,7 @@ function closeFabText(){
     if (willOpen) _fabLastOpener = el.fabText;
     closeFabs();
     el.fabTextPanel.hidden = !willOpen;
+    try{ el.fabText?.setAttribute("aria-expanded", willOpen ? "true" : "false"); }catch(_){/* ignore */}
     if (willOpen){
       window.setTimeout(() => _focusFirstIn(el.fabTextPanel, ["#fabTextClose", ".chip"]), 0);
     }else{
@@ -271,8 +323,10 @@ function closeFabText(){
   function toggleFabQuick(){
     if (!el.fabQuickPanel) return;
     const willOpen = !!el.fabQuickPanel.hidden;
+    if (willOpen) _fabLastOpener = el.fabQuick;
     closeFabs();
     el.fabQuickPanel.hidden = !willOpen;
+    try{ el.fabQuick?.setAttribute("aria-expanded", willOpen ? "true" : "false"); }catch(_){/* ignore */}
     // Info appears only inside the open Schnellmenü.
     try{ updateQuickMenuInfo(); }catch(_){/* ignore */}
   }
@@ -280,6 +334,10 @@ function closeFabText(){
   function buildFab(){
     // Zwei kleine Floating-Menüs: Textgröße und Schnellzugriff (Sortieren + Hauptmenü)
     if (!el.fabText || !el.fabTextPanel || !el.fabQuick || !el.fabQuickPanel) return;
+
+    // A11y: keep Tab navigation inside open FAB panels
+    _wireFabTrap(el.fabTextPanel);
+    _wireFabTrap(el.fabQuickPanel);
 
     // Build scale chips (explicit choose, no multi-tap cycling)
     if (el.fabScaleRow){

@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j40" />
-  <link rel="stylesheet" href="styles.css?v=7.1j40" />
+    <meta name="app-build" content="7.1j42" />
+  <link rel="stylesheet" href="styles.css?v=7.1j42" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -74,8 +74,8 @@
   <!-- Floating quick access: zwei kleine Menüs (Textgröße / Schnellzugriff) -->
 
   <!-- 1) Textgröße -->
-  <button id="fabText" class="fab fabText" title="Textgröße" aria-label="Textgröße öffnen">Aa</button>
-  <div id="fabTextPanel" class="fabPanel fabPanelText" hidden>
+  <button id="fabText" class="fab fabText" title="Textgröße" aria-label="Textgröße öffnen" aria-haspopup="dialog" aria-controls="fabTextPanel" aria-expanded="false">Aa</button>
+  <div id="fabTextPanel" class="fabPanel fabPanelText" role="dialog" aria-label="Textgröße" hidden>
     <div class="fabHead">
       <div class="fabTitle">Textgröße</div>
       <button id="fabTextClose" class="fabClose" aria-label="Schließen">✕</button>
@@ -88,8 +88,8 @@
   </div>
 
   <!-- 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü) -->
-  <button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen">≡</button>
-  <div id="fabQuickPanel" class="fabPanel fabPanelQuick" hidden>
+  <button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen" aria-haspopup="dialog" aria-controls="fabQuickPanel" aria-expanded="false">≡</button>
+  <div id="fabQuickPanel" class="fabPanel fabPanelQuick" role="dialog" aria-label="Schnellmenü" hidden>
     <div class="fabHead">
       <div class="fabTitle">Schnellmenü</div>
       <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
@@ -281,7 +281,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j40" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j40" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j42" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j42" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
