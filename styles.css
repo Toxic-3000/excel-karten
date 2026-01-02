@@ -1017,6 +1017,12 @@ summary::-webkit-details-marker{display:none}
 .quickInfoA{ font-weight: 650; }
 .quickInfoB{ margin-top: calc(4px * var(--uiScale)); opacity: .78; }
 
+/* Ensure the HTML [hidden] attribute always wins.
+   Some components set an explicit display value (e.g. .quickInfo{display:flex}),
+   which can otherwise override the UA stylesheet and keep hidden elements visible.
+   Fixes Schnellmenü regressions where the status box stayed visible after reset. */
+[hidden]{ display:none !important; }
+
 /* Bottom sheet */
 .dlg{border:0;padding:0;background:transparent}
 .dlg::backdrop{background: rgba(0,0,0,.35)}

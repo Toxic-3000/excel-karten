@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j38)
+# Spieleliste – Webansicht (Build 7.1j39)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,11 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j38
+## Neu in 7.1j39
+
+### Bugfix
+- Fix: Schnellmenü-Statusbox respektiert wieder korrekt das **[hidden]**-Attribut (verschwindet bei **0 aktiven Filtern** und nach **Reset**).
+- Fix: Phone-Landscape: Statusbox sitzt wieder **oberhalb** (Grid-Row wird nur reserviert, wenn die Box sichtbar ist).
 
 ### Schnellmenü: Filter-Reset direkt in der Statusbox (🧹)
 
