@@ -1,8 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j40 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j40
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j41
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +10,7 @@ console.log("Build 7.1j40 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j40").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j41").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -159,11 +158,6 @@ console.log("Build 7.1j40 loaded");
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
     updateFabScaleUI();
-  }
-
-  function cycleScale(currentId){
-    const idx = UI_SCALES.findIndex(x => x.id === currentId);
-    return UI_SCALES[(idx + 1) % UI_SCALES.length].id;
   }
 
   let currentScalePreset = getScalePreset();
@@ -2571,21 +2565,6 @@ function classifyAvailability(av){
     if (t === "Unbekannt") return "";
     return ""; // Verfügbar or others
   }
-  function classifySource(src){
-    const t = String(src ?? "").trim();
-    if (t === "Unbekannt") return "";
-    if (t === "PS-Plus") return "";
-    return "";
-  }
-
-  function storeLink(row){
-    const text = String(row[COL.store] ?? "").trim();
-    const url = String(row.__storeUrl ?? "").trim();
-    if (!text && !url) return `<div class="small">Kein Store-Link vorhanden.</div>`;
-    const linkText = text || "Store Link";
-    if (url && /^https?:\/\//i.test(url)){
-      return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(linkText)}</a>`;
-    }
     // Sometimes text itself is URL
     if (text && /^https?:\/\//i.test(text)){
       return `<a href="${esc(text)}" target="_blank" rel="noopener noreferrer">Store Link</a>`;
@@ -2649,7 +2628,7 @@ function classifyAvailability(av){
 // badge rows
       const platBadges = sys.map(p => badge("platform", p));
       const srcLabel = (src === "Unbekannt" ? "🏷️ Unbekannt" : src);
-  const srcBadge = badge("source " + classifySource(src), srcLabel);
+  const srcBadge = badge("source", srcLabel);
 
       const avBadge = badge("avail "+classifyAvailability(av), av);
       const remBadge = reminder ? badge("note warn", "🔔 Erinnerung") : "";
