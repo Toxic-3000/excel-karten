@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j42 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j42
+console.log("Build 7.1j43 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j43
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,9 +11,14 @@ console.log("Build 7.1j42 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j42").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j43").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
+
+  // Performance instrumentation (disabled by default). Enable locally for profiling.
+  const PERF = false;
+  const PERF_DETAIL = false; // set true to log render breakdown (HTML build vs DOM apply)
+
 
   // Keep build string consistent in UI + browser title.
   document.title = `Spieleliste – Build ${BUILD}`;
@@ -2212,6 +2217,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function applyAndRender(){
+
+    const __t0 = PERF ? performance.now() : 0;
     const qRaw = String(state.q ?? "");
     const sq = parseStructuredQuery(qRaw);
     const freeRaw = String(sq.free ?? "");
@@ -2407,7 +2414,15 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       }
     }catch(_){/* ignore */}
     syncViewHint();
+    const __t1 = PERF ? performance.now() : 0;
     render(out);
+    if (PERF) {
+      const __t2 = performance.now();
+      const applyMs = (__t1 - __t0);
+      const renderMs = (__t2 - __t1);
+      const totalMs = (__t2 - __t0);
+      console.debug(`[PERF] apply+derive ${applyMs.toFixed(1)}ms | render ${renderMs.toFixed(1)}ms | total ${totalMs.toFixed(1)}ms | rows ${out.length}`);
+    }
   }
 
 
@@ -2681,6 +2696,7 @@ function classifyAvailability(av){
 
 
   function render(rows){
+    const __rt0 = PERF_DETAIL ? performance.now() : 0;
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -2809,6 +2825,8 @@ function classifyAvailability(av){
         </article>`;
     }).join("");
 
+    const __rt1 = PERF_DETAIL ? performance.now() : 0;
+
     el.cards.innerHTML = html;
     // Attach stateful summary labels (anzeigen / verbergen)
     for (const det of el.cards.querySelectorAll("details")){
@@ -2820,6 +2838,16 @@ function classifyAvailability(av){
       upd();
       det.addEventListener("toggle", upd);
     }
+
+
+    if (PERF_DETAIL) {
+      const __rt2 = performance.now();
+      const htmlMs = (__rt1 - __rt0);
+      const domMs = (__rt2 - __rt1);
+      const totalMs = (__rt2 - __rt0);
+      console.debug(`[PERF] render html ${htmlMs.toFixed(1)}ms | dom ${domMs.toFixed(1)}ms | total ${totalMs.toFixed(1)}ms | rows ${rows.length}`);
+    }
+
   }
 
   function detailsBlock(key, label, bodyHtml){
@@ -2963,7 +2991,7 @@ function renderTrophyDetails(row){
 
   el.search.addEventListener("input", () => {
     state.q = el.search.value || "";
-    scheduleApplyAndRender(160);
+    scheduleApplyAndRender(150);
   });
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
