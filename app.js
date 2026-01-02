@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j39 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j39
+console.log("Build 7.1j40 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j40
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j39 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j39").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j40").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -192,9 +192,52 @@ console.log("Build 7.1j39 loaded");
     }
   }
 
-  function closeFabText(){
+  
+  // --- A11y: Fokus-Management für FAB-Menüs ---
+  let _fabLastOpener = null;
+  function _isFocusInside(elm){
+    try{ const a = document.activeElement; return !!(a && elm && elm.contains(a)); }catch(_){ return false; }
+  }
+  function _restoreFabFocus(){
+    try{
+      if (_fabLastOpener && typeof _fabLastOpener.focus === "function") _fabLastOpener.focus({preventScroll:true});
+    }catch(_){/* ignore */}
+    _fabLastOpener = null;
+  }
+  function _focusFirstIn(panel, selectors){
+    try{
+      if (!panel) return;
+      for (const sel of selectors){
+        const el0 = panel.querySelector(sel);
+        if (el0 && !el0.disabled && el0.offsetParent !== null){
+          el0.focus({preventScroll:true});
+          return;
+        }
+      }
+    }catch(_){/* ignore */}
+  }
+
+
+
+  // --- Reset-Mikrofeedback: Statusbox kurz stehen lassen, ohne "0 Filter" zu zeigen ---
+  let _quickResetHoldUntil = 0;
+  let _quickResetHoldTimer = 0;
+  function _holdQuickInfoAfterReset(ms){
+    _quickResetHoldUntil = Date.now() + ms;
+    try{ if (_quickResetHoldTimer) window.clearTimeout(_quickResetHoldTimer); }catch(_){/* ignore */}
+    _quickResetHoldTimer = window.setTimeout(() => {
+      _quickResetHoldTimer = 0;
+      _quickResetHoldUntil = 0;
+      try{ updateQuickMenuInfo(); }catch(_){/* ignore */}
+    }, Math.max(0, ms + 20));
+  }
+
+function closeFabText(){
     if (!el.fabTextPanel) return;
+    const wasOpen = !el.fabTextPanel.hidden;
+    const hadFocus = _isFocusInside(el.fabTextPanel);
     el.fabTextPanel.hidden = true;
+    if (wasOpen && hadFocus) _restoreFabFocus();
   }
 
   function closeFabQuick(){
@@ -205,15 +248,24 @@ console.log("Build 7.1j39 loaded");
   }
 
   function closeFabs(){
+    const focusInText = _isFocusInside(el.fabTextPanel);
+    const focusInQuick = _isFocusInside(el.fabQuickPanel);
     closeFabText();
     closeFabQuick();
+    if (focusInText || focusInQuick) _restoreFabFocus();
   }
 
   function toggleFabText(){
     if (!el.fabTextPanel) return;
     const willOpen = !!el.fabTextPanel.hidden;
+    if (willOpen) _fabLastOpener = el.fabText;
     closeFabs();
     el.fabTextPanel.hidden = !willOpen;
+    if (willOpen){
+      window.setTimeout(() => _focusFirstIn(el.fabTextPanel, ["#fabTextClose", ".chip"]), 0);
+    }else{
+      _restoreFabFocus();
+    }
   }
 
   function toggleFabQuick(){
@@ -324,6 +376,8 @@ console.log("Build 7.1j39 loaded");
         e.stopPropagation();
         if (!hasActiveFilters()) return;
         clearAllFiltersOnly();
+        // Mini-Feedback: Statusbox bleibt kurz sichtbar, aber ohne Filter-Zeile/Reset-Button.
+        _holdQuickInfoAfterReset(220);
         // Keep all UIs in sync (dialog chips, active-filter bar, FAB indicator).
         try{ buildFilterUI(); }catch(_){/* ignore */}
         try{ updateDialogMeta(true); }catch(_){/* ignore */}
@@ -335,7 +389,7 @@ console.log("Build 7.1j39 loaded");
 
     // Close on outside click / Esc
     document.addEventListener("click", () => closeFabs());
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFabs(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape"){ if ((el.fabTextPanel && !el.fabTextPanel.hidden) || (el.fabQuickPanel && !el.fabQuickPanel.hidden)) { e.preventDefault(); closeFabs(); } } });
 
 // Safety: Mobile-Browser ändern im Landscape gern den "sichtbaren" Viewport (Browserbar rein/raus).
 // Damit Panels nicht in einem offenen/abgeschnittenen Zustand "kleben" bleiben, schließen wir sie
@@ -1816,10 +1870,27 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const active = countActiveFiltersDetailed();
     const panelOpen = !el.fabQuickPanel.hidden;
 
-    // Info is only visible inside the open Schnellmenü, and only when filters are active.
-    if (!panelOpen || active <= 0){
+    // Info is only visible inside the open Schnellmenü.
+    // Normal case: only when filters are active. After Reset we keep the box briefly (without showing "0 Filter").
+    if (!panelOpen){
       el.fabQuickInfo.hidden = true;
       el.fabQuickPanel.classList.remove("hasQuickInfo");
+      return;
+    }
+    if (active <= 0){
+      const hold = (_quickResetHoldUntil && Date.now() < _quickResetHoldUntil);
+      if (!hold){
+        el.fabQuickInfo.hidden = true;
+        el.fabQuickPanel.classList.remove("hasQuickInfo");
+        return;
+      }
+      try{ if (el.fabQuickReset) el.fabQuickReset.hidden = true; }catch(_){/* ignore */}
+      try{ if (el.fabQuickReset) el.fabQuickReset.hidden = false; }catch(_){/* ignore */}
+    const shown = Number(state.ui?.lastCount ?? 0);
+      if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt`;
+      if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = "";
+      el.fabQuickInfo.hidden = false;
+      el.fabQuickPanel.classList.add("hasQuickInfo");
       return;
     }
 
