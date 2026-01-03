@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j53").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j54").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -440,7 +440,7 @@ function closeFabText(){
     if (el.fabQuickReset){
       el.fabQuickReset.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (!hasActiveFilters()) return;
+        if (!hasActiveFiltersOrSearch()) return;
         clearAllFiltersOnly();
         // Mini-Feedback: Statusbox bleibt kurz sichtbar, aber ohne Filter-Zeile/Reset-Button.
         _holdQuickInfoAfterReset(220);
@@ -2008,7 +2008,7 @@ const f = state.filters;
   // --- Build C: Centralized FAB pulse controller (event-driven, calm) ---
   // Pulse is an event, not a state. All triggers funnel through requestQuickFabPulse().
   const PULSE_COOLDOWN_MS = 15000;
-  const SEARCH_PULSE_DELAY_MS = 2000;
+  const SEARCH_PULSE_DELAY_MS = 5000; // a bit calmer (keyboard hide included)
   const ENTER_CARDS_PULSE_DELAY_MS = 2000;
   const REMINDER_INTERVAL_MS = 3 * 60 * 1000;
   const REMINDER_INACTIVITY_MS = 3 * 60 * 1000;
@@ -2037,10 +2037,15 @@ const f = state.filters;
     if (_enterCardsPulseTimer){ try{ window.clearTimeout(_enterCardsPulseTimer); }catch(_){/*ignore*/} _enterCardsPulseTimer = 0; }
   }
 
+  function hasActiveFiltersOrSearch(){
+    try{ if (hasActiveFilters()) return true; }catch(_){/* ignore */}
+    try{ return !!(String(state.q || "").trim()); }catch(_){ return false; }
+  }
+
   function canQuickFabPulseNow(){
     if (prefersReducedMotion()) return false;
     if (!el.fabQuick) return false;
-    if (!hasActiveFilters()) return false;
+    if (!hasActiveFiltersOrSearch()) return false;
     if (!inCardsView()) return false;
     // No pulse while the dialog/menu is open.
     if (el?.dlg?.open) return false;
