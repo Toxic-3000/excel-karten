@@ -1,10 +1,16 @@
-# Spieleliste – Webansicht (Build 7.1j58)
+# Spieleliste – Webansicht (Build 7.1j59)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j58)
+## Änderungen in diesem Build (7.1j59)
+
+- Fokus-UX beim Öffnen von "Suchen, Filtern & Sortieren":
+  - **Mobile/Touch**: Fokus startet auf **Sortieren** (keine sofortige Bildschirmtastatur)
+  - **Desktop**: Fokus startet weiterhin auf **Suche** (schnelles Tippen)
+
+## Änderungen in vorherigem Build (7.1j58)
 
 - Fix: Reminder-Loop startet wieder zuverlässig ohne „erst einmal Menü öffnen“
   - Reminder läuft sofort nach App-Init und gated sich weiterhin selbst (nur Kartenansicht + Menü zu + Filter/Suche aktiv)

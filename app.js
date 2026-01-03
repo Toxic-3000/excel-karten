@@ -3318,8 +3318,15 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
 
     // Keep search-help panel calm when entering the menu.
     try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
-    // Move focus into the dialog (start at the mirrored search field)
-    try{ (el.menuSearch || el.btnClose)?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+    // Move focus into the dialog.
+    // Mobile/touch: avoid popping the on-screen keyboard by focusing Sortieren.
+    // Desktop: focus the mirrored search field for quick typing.
+    try{
+      const isCoarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+      const sortBtn = el.sortFieldRow?.querySelector?.('#sortFieldBtn') || el.sortDirRow?.querySelector?.('#sortDirToggle');
+      const target = (isCoarse ? (sortBtn || el.btnClose) : (el.menuSearch || el.btnClose));
+      target?.focus?.({preventScroll:true});
+    }catch(_){/* ignore */}
 
     // Force a stable layout pass so the sheet doesn't start "short" on mobile
     // when the browser UI changes the visual viewport.
