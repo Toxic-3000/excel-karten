@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j54").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j55").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2018,6 +2018,8 @@ const f = state.filters;
   let _searchPulseTimer = 0;
   let _enterCardsPulseTimer = 0;
   let _reminderTimerId = 0;
+  let _queuedPulseTimer = 0;
+  let _queuedPulseToken = 0;
 
   function prefersReducedMotion(){
     try{
@@ -2065,11 +2067,37 @@ const f = state.filters;
     return true;
   }
 
+  // If a pulse is blocked only because of cooldown, queue it once for when cooldown expires.
+  function requestQuickFabPulseSoon(reason){
+    // Bump token so older queued pulses can't fire after new user actions.
+    const token = ++_queuedPulseToken;
+
+    // Try immediately first.
+    if (requestQuickFabPulse(reason)) return true;
+
+    // If we can't pulse right now, it is often because of cooldown.
+    // Queue a single attempt right after cooldown ends.
+    try{
+      const now = Date.now();
+      const wait = Math.max(0, (PULSE_COOLDOWN_MS - (now - _lastQuickFabPulseAt))) + 120;
+      if (_queuedPulseTimer){ window.clearTimeout(_queuedPulseTimer); _queuedPulseTimer = 0; }
+      _queuedPulseTimer = window.setTimeout(() => {
+        _queuedPulseTimer = 0;
+        // Abort if a newer intent happened in the meantime.
+        if (token !== _queuedPulseToken) return;
+        requestQuickFabPulse(reason);
+      }, wait);
+      return false;
+    }catch(_){
+      return false;
+    }
+  }
+
   function scheduleSearchPulse(){
     if (_searchPulseTimer){ try{ window.clearTimeout(_searchPulseTimer); }catch(_){/*ignore*/} }
     _searchPulseTimer = window.setTimeout(() => {
       _searchPulseTimer = 0;
-      requestQuickFabPulse("search");
+      requestQuickFabPulseSoon("search");
     }, SEARCH_PULSE_DELAY_MS);
   }
 
@@ -3207,6 +3235,13 @@ function renderTrophyDetails(row){
     scheduleApplyAndRender(150);
     // Attention pulse: 2s after the last input (debounced), only when filters are active.
     scheduleSearchPulse();
+  });
+
+  el.search.addEventListener("blur", () => {
+    // When the keyboard hides (blur), allow a calm pulse shortly after.
+    // This complements the 5s debounce without pulsing mid-typing.
+    try{ if (!String(state.q || "").trim()) return; }catch(_){ return; }
+    window.setTimeout(() => { requestQuickFabPulseSoon("searchBlur"); }, 800);
   });
 
   if (el.menuSearch){
