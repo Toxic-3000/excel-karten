@@ -95,11 +95,6 @@
       <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
     </div>
 
-    <!-- Gespiegelte Suche (selber State wie oben) -->
-    <div class="fabSect fabQuickSearch">
-      <input id="fabQuickSearch" class="fabSearch" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" />
-    </div>
-
     <!-- Kontext-Info: nur sichtbar, wenn Filter aktiv sind (und nur im geöffneten Schnellmenü) -->
     <div id="fabQuickInfo" class="quickInfo" hidden>
       <div class="quickInfoText">
@@ -134,6 +129,11 @@
       </div>
 
       <div class="sheetBody">
+        <div class="sheetSearchRow">
+          <input id="menuSearch" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" aria-label="Suche" />
+        </div>
+
+        
         <div class="sect">
           <div class="sectTitle">Sortieren</div>
           <div class="sortBar">
@@ -286,7 +286,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j51" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j51" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>

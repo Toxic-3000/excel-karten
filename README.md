@@ -19,11 +19,6 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 
 - **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
 
-- **Schnellmenü: gespiegelte Suchzeile** ganz oben im Panel.
-  - Nutzt **denselben Such-State** wie die globale Suchleiste.
-  - Beide Suchfelder bleiben automatisch synchron.
-  - Beim Öffnen des Schnellmenüs liegt der Fokus **immer** auf der Suchzeile.
-
 ## Bereits zuvor
 
 - **Suche zählt als aktiver Filter**: Ein nicht-leeres Suchfeld wird in Filter-Zähler/Status (Schnellmenü-FAB + Statusbox) einbezogen.

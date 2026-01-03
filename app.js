@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-  console.log("Build 7.1j51 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j51
+console.log("Build 7.1j47 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BO
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j51").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j50").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -52,8 +52,8 @@ if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BO
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
-    fabQuickSearch: $("fabQuickSearch"),
     search: $("search"),
+    menuSearch: $("menuSearch"),
     searchHelpBtn: $("searchHelpBtn"),
     searchHelpBody: $("searchHelpBody"),
     cards: $("cards"),
@@ -335,13 +335,6 @@ function closeFabText(){
     try{ el.fabQuick?.setAttribute("aria-expanded", willOpen ? "true" : "false"); }catch(_){/* ignore */}
     // Info appears only inside the open Schnellmenü.
     try{ updateQuickMenuInfo(); }catch(_){/* ignore */}
-    if (willOpen){
-      // Keep mirrored search in sync and focus it first.
-      try{ if (el.fabQuickSearch) el.fabQuickSearch.value = String(state.q ?? ""); }catch(_){/* ignore */}
-      window.setTimeout(() => _focusFirstIn(el.fabQuickPanel, ["#fabQuickSearch", "#fabQuickClose", ".chip"]), 0);
-    }else{
-      _restoreFabFocus();
-    }
   }
 
   function buildFab(){
@@ -1726,7 +1719,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       b.addEventListener("click", () => {
         const group = b.getAttribute("data-group");
         const key = b.getAttribute("data-key");
-        if (group === "search") { state.q = ""; try{ if (el.search) el.search.value = ""; }catch(_){/* ignore */} }
+        if (group === "search") {
+          setSearchQuery("", "chips");
+        }
 
         else if (group === "fav") state.filters.fav = false;
         else if (group === "genre") { state.filters.genres.delete(key); syncGenreSelectFromState(); }
@@ -1911,10 +1906,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
   function clearAllFiltersOnly(){
     // Clear filters and search without touching the current sort (Schnellmenü-Reset).
-    state.q = "";
-    try{ if (el.search) el.search.value = ""; }catch(_){/* ignore */}
-    try{ if (el.fabQuickSearch) el.fabQuickSearch.value = ""; }catch(_){/* ignore */}
-    const f = state.filters;
+    setSearchQuery("", "fabReset");
+const f = state.filters;
     f.fav = false;
     try{ f.genres && f.genres.clear && f.genres.clear(); }catch(_){/* ignore */}
     try{ f.platforms && f.platforms.clear && f.platforms.clear(); }catch(_){/* ignore */}
@@ -2270,7 +2263,19 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   // Apply pipeline: most UI actions should apply immediately, but typing in the search box
   // should not re-render on every keystroke (especially with big lists).
   let __applyTimer = 0;
-  function scheduleApplyAndRender(delayMs){
+  
+  function setSearchQuery(q, src){
+    state.q = q || "";
+    // Mirror the query into both inputs (global + menu) without causing churn.
+    try{
+      if (el.search && src !== "global" && el.search.value !== state.q) el.search.value = state.q;
+    }catch(_){/* ignore */}
+    try{
+      if (el.menuSearch && src !== "menu" && el.menuSearch.value !== state.q) el.menuSearch.value = state.q;
+    }catch(_){/* ignore */}
+  }
+
+function scheduleApplyAndRender(delayMs){
     const d = (delayMs == null) ? 0 : Math.max(0, Number(delayMs) || 0);
     if (__applyTimer) window.clearTimeout(__applyTimer);
     if (!d) { applyAndRender(); return; }
@@ -3099,22 +3104,18 @@ function renderTrophyDetails(row){
   });
 
   el.search.addEventListener("input", () => {
-    state.q = el.search.value || "";
-    // Keep mirrored quick-menu search in sync (without triggering another input event).
-    try{ if (el.fabQuickSearch && el.fabQuickSearch.value !== el.search.value) el.fabQuickSearch.value = el.search.value; }catch(_){/* ignore */}
+    setSearchQuery(el.search.value || "", "global");
     scheduleApplyAndRender(150);
   });
 
-  // Schnellmenü: gespiegelte Suche (selber State wie die globale Suche)
-  if (el.fabQuickSearch){
-    el.fabQuickSearch.addEventListener("input", () => {
-      state.q = el.fabQuickSearch.value || "";
-      try{ if (el.search && el.search.value !== el.fabQuickSearch.value) el.search.value = el.fabQuickSearch.value; }catch(_){/* ignore */}
+  if (el.menuSearch){
+    el.menuSearch.addEventListener("input", () => {
+      setSearchQuery(el.menuSearch.value || "", "menu");
       scheduleApplyAndRender(150);
     });
   }
 
-  el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 
   // Prevent background scroll while the bottom-sheet dialog is open.
   // On mobile (especially Android/Chrome), only using overflow:hidden can cause
@@ -3203,7 +3204,10 @@ function renderTrophyDetails(row){
     if (!el.dlg.open) el.dlg.showModal();
 
     // Move focus into the dialog (close button is a safe, predictable target)
-    try{ el.btnClose?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+    try{ if (el.menuSearch) el.menuSearch.value = state.q || ""; }catch(_){/* ignore */}
+
+    // Move focus into the dialog (start at the mirrored search field)
+    try{ (el.menuSearch || el.btnClose)?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
 
     // Force a stable layout pass so the sheet doesn't start "short" on mobile
     // when the browser UI changes the visual viewport.
@@ -3296,6 +3300,7 @@ function renderTrophyDetails(row){
     state.filters.trophyPreset = "";
     state.filters.shortMain5 = false;
 
+    setSearchQuery("", "clear");
     state.sortField = "ID";
     state.sortDir = "asc";
     saveSortPrefs();
