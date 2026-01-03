@@ -2308,3 +2308,10 @@ html.modalOpen body{touch-action:none;}
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
+
+
+/* Zone C details toggle */
+.zoneCDetails{padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));}
+.zoneCDetails > summary{list-style:none;}
+.zoneCDetails > summary::-webkit-details-marker{display:none;}
+.zoneCDetails[open] > summary{border-color: color-mix(in oklab, var(--border) 80%, var(--fg) 20%);}

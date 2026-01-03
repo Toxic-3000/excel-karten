@@ -1,16 +1,16 @@
-# Spieleliste – Webansicht (Build 7.1j59)
+# Spieleliste – Webansicht (Build 7.1j61)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j59)
+## Änderungen in diesem Build (7.1j61)
 
 - Fokus-UX beim Öffnen von "Suchen, Filtern & Sortieren":
   - **Mobile/Touch**: Fokus startet auf **Sortieren** (keine sofortige Bildschirmtastatur)
   - **Desktop**: Fokus startet weiterhin auf **Suche** (schnelles Tippen)
 
-## Änderungen in vorherigem Build (7.1j58)
+## Änderungen in vorherigem Build (7.1j61)
 
 - Fix: Reminder-Loop startet wieder zuverlässig ohne „erst einmal Menü öffnen“
   - Reminder läuft sofort nach App-Init und gated sich weiterhin selbst (nur Kartenansicht + Menü zu + Filter/Suche aktiv)
@@ -29,7 +29,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j57
+## Neu in 7.1j61
 
 - **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
 
@@ -41,34 +41,34 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - **DOM-Swap per `template` + `replaceChildren()`**: Karten werden off-screen geparst und anschließend in einem Schritt in den DOM eingesetzt.
   Das reduziert Layout-Arbeit bei großen Listen und hält das Scroll-/Filter-Feeling ruhiger.
 
-## Neu in 7.1j44 (Performance-Polish)
+## Neu in 7.1j61 (Performance-Polish)
 
 - **Apply/Render-Bailout**: Wenn sich Query/Filter/Sortierung nicht geändert haben, wird die Apply+Render-Pipeline übersprungen.
 - **<details>-Toggle Delegation**: Ein delegierter Toggle-Listener statt vieler Einzel-Listener; Labels werden nach jedem Render einmal synchronisiert.
 
-## Neu in 7.1j43 (Performance-Polish)
+## Neu in 7.1j61 (Performance-Polish)
 
 - **PERF-Messpunkte (optional)**: `PERF`/`PERF_DETAIL` in `app.js` liefern Timing für Apply+Render.
 - **Debounce für Suche**: Such-Eingabe wird leicht verzögert angewendet (Standard: 150 ms), um Render-Stürme beim Tippen zu vermeiden.
 
-## Neu in 7.1j42 (A11y-Feinschliff)
+## Neu in 7.1j61 (A11y-Feinschliff)
 
 - ARIA: FABs & Panels bekommen `aria-controls`/`aria-expanded` und `role="dialog"` + `aria-label`.
 - Focus Trap: Tab/Shift+Tab bleiben in geöffneten FAB-Panels (Schnellmenü/Textgröße).
 - Reduced Motion: Bei `prefers-reduced-motion: reduce` wird der Puls am Schnellmenü-FAB deaktiviert (Status-Ring bleibt).
 
-## Neu in 7.1j40
+## Neu in 7.1j61
 - Reset-Mikrofeedback: Nach Klick auf 🧹 bleibt die Statusbox ca. 220 ms sichtbar (ohne Filter-Zeile), danach verschwindet sie.
 - Tastatur/A11y: `Esc` schließt FAB-Menüs; Fokus wird beim Öffnen sinnvoll gesetzt und beim Schließen zum auslösenden Button zurückgegeben.
 - Reset-Button 🧹 ist per Tastatur erreichbar und nutzbar (Enter/Space) und hat `aria-label`/`title`.
 
 
-### Hotfix (7.1j57)
+### Hotfix (7.1j61)
 - Header-Suche: Puls jetzt 5s nach letzter Eingabe (ruhiger, inkl. Tastatur-Ausblenden)
 - Puls-Gating: gilt bei aktiven Filtern **oder** aktiver Suche (Search zählt als Filterzustand für die Pulslogik)
 
 
-## Reparatur-Build (7.1j57)
-- Stabilitäts-Fix: basiert auf 7.1j54 (funktionierender JS-Stand)
+## Reparatur-Build (7.1j61)
+- Stabilitäts-Fix: basiert auf 7.1j61 (funktionierender JS-Stand)
 - Puls-Engine minimal: requestQuickFabPulse triggert wieder direkt die bestehende 3x-Puls-Animation
 - Reminder im Testmodus: 1 Minute (Intervall + Inaktivität)

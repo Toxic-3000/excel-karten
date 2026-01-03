@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j60" />
-  <link rel="stylesheet" href="styles.css?v=7.1j60" />
+    <meta name="app-build" content="7.1j61" />
+  <link rel="stylesheet" href="styles.css?v=7.1j61" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -25,12 +25,6 @@
     <div class="zoneB">
       <div class="searchRow">
         <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" aria-label="Suche" />
-        <div id="searchHelp" class="searchHelp" aria-label="Suchhilfe">
-          <button id="searchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
-          <div id="searchHelpBody" class="searchHelpBody popover" hidden>
-            id=643 · titel:metro · genre:"Action Adventure" · sg:horror · entwickler:4a · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
-          </div>
-        </div>
       </div>
 
       <div class="controlRow">
@@ -43,9 +37,9 @@
     </div>
 
     <!-- ZONE C (eingeklappt) -->
-    <div class="zoneC">
-      <button id="btnData" class="chipBtn chip-ghost" aria-expanded="false" aria-controls="zoneCBody">Daten</button>
-      <div id="zoneCBody" class="zoneCBody" hidden>
+    <details class="zoneCDetails" id="zoneCDetails">
+      <summary class="chipBtn chip-ghost" id="btnDataSummary">Daten</summary>
+      <div class="zoneCBody">
         <div class="dataRow dataRow1">
           <button id="btnLoad" class="chipBtn">Excel laden</button>
           <span id="pillXlsx2" class="pill pill-ok">XLSX: —</span>
@@ -55,7 +49,7 @@
           <span id="importTime" class="importTime">Importiert: —</span>
         </div>
       </div>
-    </div>
+    </details>
 
     <div id="sysNoticeTop" class="sysNotice" hidden></div>
   </header>
@@ -148,12 +142,7 @@
       <div class="sheetBody">
         <div class="sheetSearchRow">
           <input id="menuSearch" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" aria-label="Suche" />
-          <div id="menuSearchHelp" class="searchHelp" aria-label="Suchhilfe">
-            <button id="menuSearchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
-            <div id="menuSearchHelpBody" class="searchHelpBody popover" hidden>
-          id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
-        </div>
-          </div>
+</div>
         </div>
 <div class="sect">
           <div class="sectTitle">Sortieren</div>
