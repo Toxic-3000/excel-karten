@@ -2196,3 +2196,6 @@ html.modalOpen body{touch-action:none;}
 
 /* Search help body inside the bottom-sheet: add a touch of spacing before the next section. */
 .sheetBody #menuSearchHelpBody{ margin-bottom: calc(10px * var(--uiScale)); }
+
+/* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
+#menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
