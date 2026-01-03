@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j61
+console.log("Build 7.1j60 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j61 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -26,17 +26,6 @@ console.log("Build 7.1j61 loaded");
   if (buildLabel) buildLabel.textContent = `Build ${BUILD}`;
 
   const $ = (id) => document.getElementById(id);
-
-  function fmtNow(){
-    try{
-      const d = new Date();
-      // de-DE: 02.01.2026, 14:37
-      return d.toLocaleString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-    }catch(_){
-      return new Date().toISOString();
-    }
-  }
-
 
   const el = {
     file: $("file"),
@@ -64,16 +53,18 @@ console.log("Build 7.1j61 loaded");
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
-    menuSearch: $("menuSearch"),cards: $("cards"),
+    menuSearch: $("menuSearch"),
+    searchHelpBtn: $("searchHelpBtn"),
+    searchHelpBody: $("searchHelpBody"),
+    menuSearchHelpBtn: $("menuSearchHelpBtn"),
+    menuSearchHelpBody: $("menuSearchHelpBody"),
+    cards: $("cards"),
     viewToast: $("viewToast"),
     empty: $("empty"),
     pillFile: $("pillFile"),
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
-    pillXlsx2: $("pillXlsx2"),
-    importTime: $("importTime"),
-    btnData: $("btnData"),
-    zoneCBody: $("zoneCBody"),
+    pillImport: $("pillImport"),
     dlg: $("dlg"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
@@ -534,6 +525,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
+    importedAt: 0,
     ui: { lastCount: 0, lastFilterSig: "" },
   };
 
@@ -546,6 +538,18 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function fmtImport(ts){
+    if (!ts) return "Importiert: —";
+    try{
+      const d = new Date(ts);
+      const date = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+      const time = d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      return `Importiert: ${date}, ${time}`;
+    }catch(_){
+      return "Importiert: —";
+    }
   }
 
   function isNumericToken(t){
@@ -856,11 +860,6 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     el.pillXlsx.textContent = "XLSX: " + text;
     el.pillXlsx.classList.remove("pill-ok","pill-warn","pill-bad");
     el.pillXlsx.classList.add(kind);
-    if (el.pillXlsx2){
-      el.pillXlsx2.textContent = "XLSX: " + text;
-      el.pillXlsx2.classList.remove("pill-ok","pill-warn","pill-bad");
-      el.pillXlsx2.classList.add(kind);
-    }
   }
 
   function findReminderColumn(headers){
@@ -1006,9 +1005,10 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     }
 
     state.rows = rows;
-    state.fileName = fileName || "Excel";
-    el.pillFile.textContent = state.fileName;
-    if (el.importTime){ el.importTime.textContent = "Importiert: " + fmtNow(); }
+    state.fileName = fileName || "—";
+    state.importedAt = Date.now();
+    if (el.pillFile) el.pillFile.textContent = state.fileName;
+    if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -3171,8 +3171,89 @@ function renderTrophyDetails(row){
   // Search help: collapsed by default, reveal on tap (mirrored for menu + header)
   // One "open" flag per context: if the menu dialog is open, show help inside the menu;
   // otherwise show it below the global search in the header.
-  
+  function setSearchHelpOpen(isOpen){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    const headerWrap = document.getElementById("searchHelp");
+    const menuWrap = document.getElementById("menuSearchHelp");
 
+    // Bodies: only show the one that belongs to the current context.
+    if (el.searchHelpBody) el.searchHelpBody.hidden = modalOpen ? true : !isOpen;
+    if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = modalOpen ? !isOpen : true;
+
+    // Buttons: keep aria-expanded in sync (useful for a11y, regardless of visibility)
+    if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+
+    // Visual "open" state on wrappers (again, regardless of visibility)
+    if (headerWrap) headerWrap.classList.toggle("open", (!modalOpen && isOpen));
+    if (menuWrap) menuWrap.classList.toggle("open", (modalOpen && isOpen));
+  }
+
+  function toggleSearchHelp(){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    const body = modalOpen ? el.menuSearchHelpBody : el.searchHelpBody;
+    const isOpen = body ? !body.hidden : false;
+    setSearchHelpOpen(!isOpen);
+  }
+
+  // Bind both buttons (header + menu) to the same toggle.
+  if ((el.searchHelpBtn && el.searchHelpBody) || (el.menuSearchHelpBtn && el.menuSearchHelpBody)){
+    if (el.searchHelpBtn) el.searchHelpBtn.addEventListener("click", toggleSearchHelp);
+    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.addEventListener("click", toggleSearchHelp);
+    // Ensure a predictable initial state.
+    setSearchHelpOpen(false);
+  }
+
+  el.file.addEventListener("change", async () => {
+    const f = el.file.files?.[0];
+    if (!f) return;
+    try{
+      if (el.pillFile) el.pillFile.textContent = f.name;
+      if (el.pillImport) el.pillImport.textContent = "Importiert: —";
+      const buf = await f.arrayBuffer();
+      readXlsx(buf, f.name);
+    }catch(e){
+      console.error(e);
+      pill("Fehler", "pill-bad");
+      alert("Fehler beim Einlesen der Excel: " + (e?.message || e));
+    }
+  });
+
+  el.search.addEventListener("input", () => {
+    // Header search counts as "user intent".
+    markUserIntent();
+    setSearchQuery(el.search.value || "", "global");
+    scheduleApplyAndRender(150);
+    // Attention pulse: 2s after the last input (debounced), only when filters are active.
+    scheduleSearchPulse();
+  });
+
+  if (el.menuSearch){
+    el.menuSearch.addEventListener("input", () => {
+      // Any interaction inside the menu counts as "user intent".
+      markUserIntent();
+      setSearchQuery(el.menuSearch.value || "", "menu");
+      scheduleApplyAndRender(150);
+      // Same pulse rule as header search (mirrored field).
+      scheduleSearchPulse();
+    });
+  }
+
+el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+
+  // Prevent background scroll while the bottom-sheet dialog is open.
+  // On mobile (especially Android/Chrome), only using overflow:hidden can cause
+  // "short" initial sheet layouts after the user scrolled the page (visual viewport
+  // vs layout viewport mismatch). A body-position freeze is more reliable.
+  let _savedScrollY = 0;
+  let _lastFocusedBeforeMenu = null;
+
+  // --- Visual viewport anchoring (Android address bar / dynamic viewport quirks) ---
+  // Some mobile browsers (notably Android/Chrome) can report a layout viewport that
+  // doesn't match the visual viewport after the page has been scrolled. When a modal
+  // opens, this can cause the sheet to render "too small" with a top gap until the
+  // user drags/scrolls (which triggers a reflow). We anchor the dialog to the visual
+  // viewport using CSS variables fed by `window.visualViewport`.
   function updateVisualViewportVars(){
     const vv = window.visualViewport;
     const root = document.documentElement;
@@ -3253,6 +3334,7 @@ function renderTrophyDetails(row){
 
 
     // Keep search-help panel calm when entering the menu.
+    try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
     // Move focus into the dialog.
     // Mobile/touch: avoid popping the on-screen keyboard by focusing Sortieren.
     // Desktop: focus the mirrored search field for quick typing.
@@ -3284,7 +3366,6 @@ function renderTrophyDetails(row){
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
   });
-
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   // Ensure the background lock always resets (button, ESC, backdrop click, etc.).
@@ -3299,6 +3380,7 @@ function renderTrophyDetails(row){
     // Closing the menu is explicit user intent.
     markUserIntent();
     // Ensure search-help panel closes when leaving the menu.
+    try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
     updateQuickFilterIndicator();
     // Returning to the cards view: short attention pulse on the Schnellmenü-FAB (only when filters are active).
     // Returning to the cards view: schedule a calm attention pulse (2s after entry).
@@ -3401,7 +3483,7 @@ function renderTrophyDetails(row){
   });
 
   // Init pill
-  pill("bereit","pill-ok");
+  el.pillXlsx.textContent = "XLSX: bereit";
   el.pillXlsx.classList.add("pill-ok");
 
   // Guard: show warning if xlsx lib missing after load

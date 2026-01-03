@@ -128,89 +128,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   backdrop-filter: blur(10px);
   border-bottom:1px solid var(--border);
 }
-
-/* Build D (7.1j60): Top-Zonen kompakt */
-.zoneA{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(8px * var(--uiScale));}
-.brandRow{display:flex; align-items:baseline; justify-content:space-between; gap:calc(10px * var(--uiScale));}
-.brandTitle{
-  font-weight:800;
-  font-size: calc(22px * var(--uiScale));
-  letter-spacing:.2px;
-}
-.buildChip{
-  font-size: calc(12.5px * var(--uiScale));
-  font-weight:650;
-  opacity:.72;
-  border:1px solid var(--border);
-  padding: calc(3px * var(--uiScale)) calc(9px * var(--uiScale));
-  border-radius:999px;
-  white-space:nowrap;
-}
-.hairline{
-  height:1px;
-  background: color-mix(in oklab, var(--border) 70%, transparent);
-  margin-top: calc(10px * var(--uiScale));
-}
-
-.zoneB{padding: 0 calc(12px * var(--uiScale)) calc(8px * var(--uiScale)); display:flex; flex-direction:column; gap:calc(8px * var(--uiScale));}
-.controlRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:calc(10px * var(--uiScale));
-  flex-wrap:wrap;
-}
-.statusChips{display:flex; gap:calc(8px * var(--uiScale)); align-items:center; flex-wrap:wrap;}
-
-.chipBtn{
-  appearance:none;
-  border:1px solid var(--border);
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  color: var(--fg);
-  border-radius:999px;
-  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale));
-  font-weight:650;
-  font-size: calc(13px * var(--uiScale));
-  line-height:1;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap: calc(8px * var(--uiScale));
-  cursor:pointer;
-  user-select:none;
-}
-.chipBtn:active{transform: translateY(1px);}
-.chip-primary{
-  background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
-  border-color: color-mix(in oklab, var(--blue) 26%, var(--border) 74%);
-}
-.chip-ghost{
-  background: transparent;
-  color: color-mix(in oklab, var(--fg) 72%, var(--bg) 28%);
-}
-.chipBtn:focus-visible{outline: 2px solid color-mix(in oklab, var(--blue) 64%, transparent); outline-offset:2px;}
-
-.zoneC{padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale)); display:flex; flex-direction:column; gap:calc(8px * var(--uiScale));}
-.zoneCBody{display:flex; flex-direction:column; gap:calc(6px * var(--uiScale));}
-.dataRow{display:flex; align-items:center; justify-content:space-between; gap:calc(10px * var(--uiScale)); flex-wrap:wrap;}
-.dataRow2{align-items:baseline;}
-.fileName{
-  font-size: calc(12.5px * var(--uiScale));
-  color: color-mix(in oklab, var(--fg) 76%, var(--bg) 24%);
-  max-width: 100%;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.importTime{
-  font-size: calc(12px * var(--uiScale));
-  color: color-mix(in oklab, var(--fg) 55%, var(--bg) 45%);
-  white-space:nowrap;
-}
-
-/* Make the old topbar/subbar/pills harmless if still present in CSS */
-.topbar,.subbar,.pills{display:none !important;}
-
 .topbar{
   display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:flex-start;
   padding: calc(14px * var(--uiScale)) calc(12px * var(--uiScale)) calc(10px * var(--uiScale));
@@ -220,30 +137,31 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-size: calc(30px * var(--uiScale));
   letter-spacing:.2px;
   display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap: calc(8px * var(--uiScale));
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap: calc(10px * var(--uiScale));
 }
+.brandName{display:block; min-width:0;}
 .build{
   font-size: calc(13px * var(--uiScale));
   font-weight:600;
   opacity:.65;
-  margin-left: 0;
+  margin-left: auto;
   border:1px solid var(--border);
   padding: calc(4px * var(--uiScale)) calc(10px * var(--uiScale));
   border-radius:999px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
-.topActions{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
 
-/* Header-Layout: auf schmalen Screens Aktionen unter den Titel ziehen,
-   damit Buttons/Badges nicht "wild" umbrechen. */
-@media (max-width: 700px){
-  .topbar{flex-direction:column; align-items:stretch; gap: calc(10px * var(--uiScale));}
-  .topActions{justify-content:flex-start; width:100%;}
-  .topActions .btn{flex:1 1 auto;}
-  .topActions .btnScale{flex:0 0 auto; margin-left:auto;}
+/* Dünne Trennlinie zwischen Zone A (Titel) und Zone B (Kontrollen) */
+.hdrRule{
+  height:1px;
+  background: color-mix(in oklab, var(--border) 82%, transparent);
+  margin: 0 calc(12px * var(--uiScale));
 }
+
 .subbar{
   padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
@@ -251,9 +169,40 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   gap:calc(10px * var(--uiScale));
 }
 
+/* Kompakte Button-Variante (Chip-Look) */
+.btn.btn-compact{
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  box-shadow: none;
+}
+
+.menuRow{width:min(820px, 100%);}
+.pills.pillsMain{width:min(820px, 100%);}
+
+/* Excel + Datei als kompakte, immer sichtbare Statuszeile */
+.fileStatus{
+  width:min(820px, 100%);
+  display:flex;
+  flex-wrap:wrap;
+  gap: calc(8px * var(--uiScale));
+  align-items:center;
+}
+.fileName{
+  flex: 1 1 220px;
+  min-width: 140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:650;
+  opacity:.86;
+}
+.fileMeta{
+  white-space:nowrap;
+  font-size: calc(13px * var(--uiScale));
+  opacity:.7;
+}
+
 /* Search row + help icon (collapsed by default; reveals on tap) */
 .searchRow{
-  position:relative;
   width:min(820px, 100%);
   display:flex;
   align-items:center;
@@ -275,7 +224,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   width:100%;
   min-width:0;
 }
-.searchHelp{position:relative;}
 .searchHelpIcon{
   font: inherit;
   border:0;
@@ -292,17 +240,12 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   user-select:none;
 }
 .searchHelpIcon:active{transform: translateY(1px);}
-.searchHelp.open .searchHelp{position:relative;}
-.searchHelpIcon{
+.searchHelp.open .searchHelpIcon{
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
   color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
 }
 .searchHelpBody{
-  position:absolute;
-  right:0;
-  top: calc(100% + calc(6px * var(--uiScale)));
-  z-index: 70;
-  width: min(640px, 86vw);
+  width: min(820px, 100%);
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
   color: color-mix(in oklab, var(--fg) 72%, var(--bg) 28%);
@@ -310,7 +253,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
   font-size: calc(12.5px * var(--uiScale));
   line-height: 1.35;
-  box-shadow: 0 10px 30px color-mix(in oklab, var(--fg) 10%, transparent);
 }
 
 
@@ -348,7 +290,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:600;
   font-variant-numeric: tabular-nums;
 }
@@ -1435,7 +1377,7 @@ html.modalOpen body{touch-action:none;}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:650;
   cursor:pointer;
   user-select:none;
@@ -1581,8 +1523,7 @@ html.modalOpen body{touch-action:none;}
 
   /* Subbar: immer gestapelt, damit die Suche nicht gequetscht wird */
   .subbar{flex-direction:column; align-items:stretch; justify-content:flex-start;}
-  .searchRow{
-  position:relative;width:100%; max-width:none;}
+  .searchRow{width:100%; max-width:none;}
   .searchRow .search{width:100%;}
 
   /* Info-Chips: ruhige, kontrollierte Verteilung */
@@ -2308,10 +2249,3 @@ html.modalOpen body{touch-action:none;}
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
-
-
-/* Zone C details toggle */
-.zoneCDetails{padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));}
-.zoneCDetails > summary{list-style:none;}
-.zoneCDetails > summary::-webkit-details-marker{display:none;}
-.zoneCDetails[open] > summary{border-color: color-mix(in oklab, var(--border) 80%, var(--fg) 20%);}

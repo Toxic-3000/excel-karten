@@ -4,53 +4,53 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j61" />
-  <link rel="stylesheet" href="styles.css?v=7.1j61" />
+    <meta name="app-build" content="7.1j60" />
+  <link rel="stylesheet" href="styles.css?v=7.1j60" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
   <!-- Static background layer (no parallax / no scroll drift) -->
   <div class="appBg" aria-hidden="true"></div>
   <header class="hdr">
-    <!-- ZONE A -->
-    <div class="zoneA">
-      <div class="brandRow">
-        <div class="brandTitle">Spieleliste</div>
-        <span id="buildLabel" class="buildChip">Build —</span>
+    <div class="topbar">
+      <div class="brand">
+        <span class="brandName">Spieleliste</span>
+        <span id="buildLabel" class="build">Build —</span>
       </div>
-      <div class="hairline" aria-hidden="true"></div>
     </div>
 
-    <!-- ZONE B -->
-    <div class="zoneB">
+    <div class="hdrRule" aria-hidden="true"></div>
+
+    <div class="subbar">
+      <!-- Suche (unverändert, Stand j59) -->
       <div class="searchRow">
-        <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" aria-label="Suche" />
+        <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" />
+        <div id="searchHelp" class="searchHelp" aria-label="Suchhilfe">
+          <button id="searchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
+        </div>
+      </div>
+      <div id="searchHelpBody" class="searchHelpBody" hidden>
+        id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
       </div>
 
-      <div class="controlRow">
-        <button id="btnMenu" class="chipBtn chip-primary">Suchen, Filtern &amp; Sortieren</button>
-        <div class="statusChips">
-          <span id="pillRows" class="pill">Treffer: —</span>
-          <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
-        </div>
+      <div class="menuRow">
+        <button id="btnMenu" class="btn btn-compact btn-primary">Suchen, Filtern &amp; Sortieren</button>
+      </div>
+
+      <div class="pills pillsMain">
+        <span id="pillRows" class="pill">Treffer: —</span>
+      </div>
+
+      <!-- Excel + Datei als immer sichtbare, kompakte Statuszeile (kein Toggle) -->
+      <div class="fileStatus" aria-label="Excel und Dateistatus">
+        <button id="btnLoad" class="btn btn-compact" type="button">Excel laden</button>
+        <span id="pillFile" class="fileName">—</span>
+        <span id="pillImport" class="fileMeta">Importiert: —</span>
+        <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
       </div>
     </div>
 
-    <!-- ZONE C (eingeklappt) -->
-    <details class="zoneCDetails" id="zoneCDetails">
-      <summary class="chipBtn chip-ghost" id="btnDataSummary">Daten</summary>
-      <div class="zoneCBody">
-        <div class="dataRow dataRow1">
-          <button id="btnLoad" class="chipBtn">Excel laden</button>
-          <span id="pillXlsx2" class="pill pill-ok">XLSX: —</span>
-        </div>
-        <div class="dataRow dataRow2">
-          <span id="pillFile" class="fileName">—</span>
-          <span id="importTime" class="importTime">Importiert: —</span>
-        </div>
-      </div>
-    </details>
-
+    <!-- Systemhinweis: bleibt im Normalfall unsichtbar, erscheint nur bei echten Fehlern -->
     <div id="sysNoticeTop" class="sysNotice" hidden></div>
   </header>
 
@@ -142,7 +142,12 @@
       <div class="sheetBody">
         <div class="sheetSearchRow">
           <input id="menuSearch" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" aria-label="Suche" />
-</div>
+          <div id="menuSearchHelp" class="searchHelp" aria-label="Suchhilfe">
+            <button id="menuSearchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
+          </div>
+        </div>
+        <div id="menuSearchHelpBody" class="searchHelpBody" hidden>
+          id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
         </div>
 <div class="sect">
           <div class="sectTitle">Sortieren</div>
@@ -296,7 +301,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
