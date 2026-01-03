@@ -56,6 +56,8 @@ console.log("Build 7.1j47 loaded");
     menuSearch: $("menuSearch"),
     searchHelpBtn: $("searchHelpBtn"),
     searchHelpBody: $("searchHelpBody"),
+    menuSearchHelpBtn: $("menuSearchHelpBtn"),
+    menuSearchHelpBody: $("menuSearchHelpBody"),
     cards: $("cards"),
     viewToast: $("viewToast"),
     empty: $("empty"),
@@ -3078,15 +3080,40 @@ function renderTrophyDetails(row){
   el.btnLoad.addEventListener("click", openFilePicker);
   el.btnLoad2.addEventListener("click", openFilePicker);
 
-  // Search help: collapsed by default, reveal on tap
-  if (el.searchHelpBtn && el.searchHelpBody){
-    const wrap = document.getElementById("searchHelp");
-    el.searchHelpBtn.addEventListener("click", () => {
-      const open = !el.searchHelpBody.hidden;
-      el.searchHelpBody.hidden = open;
-      el.searchHelpBtn.setAttribute("aria-expanded", String(!open));
-      if (wrap) wrap.classList.toggle("open", !open);
-    });
+  // Search help: collapsed by default, reveal on tap (mirrored for menu + header)
+  // One "open" flag per context: if the menu dialog is open, show help inside the menu;
+  // otherwise show it below the global search in the header.
+  function setSearchHelpOpen(isOpen){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    const headerWrap = document.getElementById("searchHelp");
+    const menuWrap = document.getElementById("menuSearchHelp");
+
+    // Bodies: only show the one that belongs to the current context.
+    if (el.searchHelpBody) el.searchHelpBody.hidden = modalOpen ? true : !isOpen;
+    if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = modalOpen ? !isOpen : true;
+
+    // Buttons: keep aria-expanded in sync (useful for a11y, regardless of visibility)
+    if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+
+    // Visual "open" state on wrappers (again, regardless of visibility)
+    if (headerWrap) headerWrap.classList.toggle("open", (!modalOpen && isOpen));
+    if (menuWrap) menuWrap.classList.toggle("open", (modalOpen && isOpen));
+  }
+
+  function toggleSearchHelp(){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    const body = modalOpen ? el.menuSearchHelpBody : el.searchHelpBody;
+    const isOpen = body ? !body.hidden : false;
+    setSearchHelpOpen(!isOpen);
+  }
+
+  // Bind both buttons (header + menu) to the same toggle.
+  if ((el.searchHelpBtn && el.searchHelpBody) || (el.menuSearchHelpBtn && el.menuSearchHelpBody)){
+    if (el.searchHelpBtn) el.searchHelpBtn.addEventListener("click", toggleSearchHelp);
+    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.addEventListener("click", toggleSearchHelp);
+    // Ensure a predictable initial state.
+    setSearchHelpOpen(false);
   }
 
   el.file.addEventListener("change", async () => {
@@ -3206,6 +3233,9 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     // Move focus into the dialog (close button is a safe, predictable target)
     try{ if (el.menuSearch) el.menuSearch.value = state.q || ""; }catch(_){/* ignore */}
 
+
+    // Keep search-help panel calm when entering the menu.
+    try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
     // Move focus into the dialog (start at the mirrored search field)
     try{ (el.menuSearch || el.btnClose)?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
 
@@ -3241,6 +3271,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     }
     _menuDirty = false;
     setModalOpen(false);
+    // Ensure search-help panel closes when leaving the menu.
+    try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
     updateQuickFilterIndicator();
     // Returning to the cards view: short attention pulse on the Schnellmenü-FAB (only when filters are active).
     triggerQuickFabAttentionPulse();
