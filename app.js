@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j62").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j63").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2060,11 +2060,7 @@ const f = state.filters;
     // Central gate for actually pulsing the FAB.
     if (!canQuickFabPulseNow()) return false;
     _lastQuickFabPulseAt = Date.now();
-    if (reason === "reminder"){
-      triggerQuickFabReminderPulse();
-    }else{
-      triggerQuickFabAttentionPulse();
-    }
+    triggerQuickFabAttentionPulse();
     return true;
   }
 
@@ -2104,46 +2100,7 @@ const f = state.filters;
     _fabLastPulseSig = sigNow;
   }
 
-  
-  function triggerQuickFabPulseClass(cls, allowedAnimNames){
-    if (!el.fabQuick) return;
-    if (!hasActiveFiltersOrSearch()) return;
-    if (!inCardsView()) return;
-    // No pulse while the dialog/menu is open.
-    if (el?.dlg?.open) return;
-
-    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
-    _fabPulseTimer = window.setTimeout(() => {
-      _fabPulseTimer = 0;
-      if (!el.fabQuick) return;
-      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
-
-      // Restart animation deterministically.
-      el.fabQuick.classList.remove("fabPulse");
-      el.fabQuick.classList.remove("fabPulseSoft");
-      el.fabQuick.classList.remove("fabPulseSoft");
-      void el.fabQuick.offsetWidth; // reflow
-      el.fabQuick.classList.add(cls);
-
-      const onEnd = (e) => {
-        try{
-          if (e && e.animationName && allowedAnimNames && allowedAnimNames.length){
-            if (!allowedAnimNames.includes(e.animationName)) return;
-          }
-        }catch(_){/* ignore */}
-        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-        try{ el.fabQuick.classList.remove("fabPulseSoft"); }catch(_){/* ignore */}
-        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
-      };
-      el.fabQuick.addEventListener("animationend", onEnd);
-    }, 0);
-  }
-
-  function triggerQuickFabSoftPulse(){
-    triggerQuickFabPulseClass("fabPulseSoft", ["fabRingPulseSoft"]);
-  }
-
-function triggerQuickFabAttentionPulse(){
+  function triggerQuickFabAttentionPulse(){
     if (!el.fabQuick) return;
     if (!hasActiveFilters()) return;
     // Only when (re-)entering the cards view.
@@ -2168,39 +2125,6 @@ function triggerQuickFabAttentionPulse(){
       el.fabQuick.addEventListener("animationend", onEnd);
     }, 0);
   }
-
-  function triggerQuickFabReminderPulse(){
-    if (!el.fabQuick) return;
-    if (!hasActiveFiltersOrSearch()) return;
-    if (!inCardsView()) return;
-    if (el?.dlg?.open) return;
-
-    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
-    _fabPulseTimer = window.setTimeout(() => {
-      _fabPulseTimer = 0;
-      if (!el.fabQuick) return;
-      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
-
-      // Restart animation deterministically.
-      el.fabQuick.classList.remove("fabPulse");
-      el.fabQuick.classList.remove("fabPulseSoft");
-      el.fabQuick.classList.remove("fabPulseReminder");
-      void el.fabQuick.offsetWidth;
-      el.fabQuick.classList.add("fabPulseReminder");
-
-      const onEnd = (e) => {
-        // Only react to our own reminder animations.
-        try{
-          const n = e && e.animationName ? e.animationName : "";
-          if (n !== "fabRingPulseReminder") return;
-        }catch(_){/* ignore */}
-        try{ el.fabQuick.classList.remove("fabPulseReminder"); }catch(_){/* ignore */}
-        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
-      };
-      el.fabQuick.addEventListener("animationend", onEnd);
-}, 0);
-  }
-
 
   // --- Cards-view hint (Filter aktiv) ---
   // In diesem Build bewusst deaktiviert: Kein Text-Feedback außerhalb des Schnellmenüs.

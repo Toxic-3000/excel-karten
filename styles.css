@@ -798,73 +798,12 @@ summary::-webkit-details-marker{display:none}
 
 @keyframes fabRingPulse{
   /* Ruhiger: deutlich kleinere Ausdehnung + weniger Halo (Trigger/Dauer unverändert) */
-  0%{ transform: scale(1); opacity: .18; box-shadow: 0 0 0 0 transparent, 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 26%, transparent); }
-  18%{ transform: scale(1.10); opacity: 1; box-shadow: 0 0 0 0 transparent, 0 0 12px 3px color-mix(in oklab, var(--filterAccent) 32%, transparent); }
-  52%{ transform: scale(1.48); opacity: .68; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 20%, transparent), 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 26%, transparent); }
-  80%{ transform: scale(1.72); opacity: .30; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 26%, transparent), 0 0 8px 2px color-mix(in oklab, var(--filterAccent) 24%, transparent); }
+  0%{ transform: scale(1); opacity: .18; box-shadow: 0 0 0 0 transparent, 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 28%, transparent); }
+  18%{ transform: scale(1.10); opacity: 1; box-shadow: 0 0 0 0 transparent, 0 0 12px 3px color-mix(in oklab, var(--filterAccent) 34%, transparent); }
+  52%{ transform: scale(1.48); opacity: .72; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 20%, transparent), 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 28%, transparent); }
+  80%{ transform: scale(1.72); opacity: .32; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 28%, transparent), 0 0 14px 2px color-mix(in oklab, var(--filterAccent) 26%, transparent); }
   100%{ transform: scale(1.72); opacity: .18; box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
 }
-
-/* Reminder pulse (soft): single, wider ring – calmer & "flächiger" than the 3x default pulse */
-.fabQuick.fabPulseSoft::before{
-  opacity: 1;
-  animation: fabRingPulseSoft 1320ms cubic-bezier(.18,.85,.22,1) 0.25s 1;
-}
-@media (prefers-reduced-motion: reduce){
-  .fabQuick.fabPulseSoft::before{
-    animation: none !important;
-    opacity: 0 !important;
-  }
-}
-@keyframes fabRingPulseSoft{
-  0%{
-    transform: scale(1);
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--filterAccent) 30%, transparent);
-    opacity: .9;
-  }
-  55%{
-    transform: scale(1.02);
-    box-shadow: 0 0 0 20px color-mix(in oklab, var(--filterAccent) 22%, transparent);
-    opacity: .25;
-  }
-  100%{
-    transform: scale(1.02);
-    box-shadow: 0 0 0 30px transparent;
-    opacity: 0;
-  }
-}
-
-/* Reminder pulse (strong): single, bigger & clearer than the default 3x pulse */
-.fabQuick.fabPulseReminder::before{
-  opacity: 1;
-  /* single pulse */
-  animation: fabRingPulseReminder 1500ms cubic-bezier(.16,.9,.2,1) 0.20s 1;
-}
-@media (prefers-reduced-motion: reduce){
-  .fabQuick.fabPulseReminder::before{
-    animation: none !important;
-    opacity: 0 !important;
-  }
-}
-@keyframes fabRingPulseReminder{
-  0%{
-    transform: scale(1);
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--filterAccent) 58%, transparent);
-    opacity: 1;
-  }
-  55%{
-    transform: scale(1.05);
-    box-shadow: 0 0 0 36px color-mix(in oklab, var(--filterAccent) 42%, transparent);
-    opacity: .36;
-  }
-  100%{
-    transform: scale(1.05);
-    box-shadow: 0 0 0 56px transparent;
-    opacity: 0;
-  }
-}
-
-
 
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
 .fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }
@@ -2260,20 +2199,3 @@ html.modalOpen body{touch-action:none;}
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
-
-
-/* Extra peripheral visibility for reminder: brief FAB self-flash (subtle brightness + tiny scale) */
-.fabQuick.fabPulseReminder{
-  animation: fabButtonFlashReminder 980ms cubic-bezier(.16,.9,.2,1) 0s 1;
-}
-@media (prefers-reduced-motion: reduce){
-  .fabQuick.fabPulseReminder{
-    animation: none !important;
-  }
-}
-@keyframes fabButtonFlashReminder{
-  0%{ filter: brightness(1); transform: translateZ(0) scale(1); }
-  18%{ filter: brightness(1.22); transform: translateZ(0) scale(1.03); }
-  55%{ filter: brightness(1.08); transform: translateZ(0) scale(1.01); }
-  100%{ filter: brightness(1); transform: translateZ(0) scale(1); }
-}
