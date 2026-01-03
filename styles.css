@@ -2260,3 +2260,20 @@ html.modalOpen body{touch-action:none;}
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
+
+
+/* Extra peripheral visibility for reminder: brief FAB self-flash (subtle brightness + tiny scale) */
+.fabQuick.fabPulseReminder{
+  animation: fabButtonFlashReminder 980ms cubic-bezier(.16,.9,.2,1) 0s 1;
+}
+@media (prefers-reduced-motion: reduce){
+  .fabQuick.fabPulseReminder{
+    animation: none !important;
+  }
+}
+@keyframes fabButtonFlashReminder{
+  0%{ filter: brightness(1); transform: translateZ(0) scale(1); }
+  18%{ filter: brightness(1.22); transform: translateZ(0) scale(1.03); }
+  55%{ filter: brightness(1.08); transform: translateZ(0) scale(1.01); }
+  100%{ filter: brightness(1); transform: translateZ(0) scale(1); }
+}
