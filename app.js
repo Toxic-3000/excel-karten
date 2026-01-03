@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j56").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j57").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2018,8 +2018,6 @@ const f = state.filters;
   let _searchPulseTimer = 0;
   let _enterCardsPulseTimer = 0;
   let _reminderTimerId = 0;
-  let _queuedPulseTimer = 0;
-  let _queuedPulseToken = 0;
 
   function prefersReducedMotion(){
     try{
@@ -2062,46 +2060,16 @@ const f = state.filters;
     // Central gate for actually pulsing the FAB.
     if (!canQuickFabPulseNow()) return false;
     _lastQuickFabPulseAt = Date.now();
-    if (reason === "reminder"){
-      triggerQuickFabPulseVariant("soft");
-    }else{
-      triggerQuickFabAttentionPulse();
-    }
+    triggerQuickFabAttentionPulse();
     return true;
   }
 
-
-  // If a pulse is blocked only because of cooldown, queue it once for when cooldown expires.
-  function requestQuickFabPulseSoon(reason){
-    // Bump token so older queued pulses can't fire after new user actions.
-    const token = ++_queuedPulseToken;
-
-    // Try immediately first.
-    if (requestQuickFabPulse(reason)) return true;
-
-    // If we can't pulse right now, it is often because of cooldown.
-    // Queue a single attempt right after cooldown ends.
-    try{
-      const now = Date.now();
-      const wait = Math.max(0, (PULSE_COOLDOWN_MS - (now - _lastQuickFabPulseAt))) + 120;
-      if (_queuedPulseTimer){ window.clearTimeout(_queuedPulseTimer); _queuedPulseTimer = 0; }
-      _queuedPulseTimer = window.setTimeout(() => {
-        _queuedPulseTimer = 0;
-        // Abort if a newer intent happened in the meantime.
-        if (token !== _queuedPulseToken) return;
-        requestQuickFabPulse(reason);
-      }, wait);
-      return false;
-    }catch(_){
-      return false;
-    }
-  }
 
   function scheduleSearchPulse(){
     if (_searchPulseTimer){ try{ window.clearTimeout(_searchPulseTimer); }catch(_){/*ignore*/} }
     _searchPulseTimer = window.setTimeout(() => {
       _searchPulseTimer = 0;
-      requestQuickFabPulseSoon("search");
+      requestQuickFabPulse("search");
     }, SEARCH_PULSE_DELAY_MS);
   }
 
@@ -2131,37 +2099,8 @@ const f = state.filters;
     // Deprecated in Build C: pulses are scheduled explicitly (search/enter/reminder).
     _fabLastPulseSig = sigNow;
   }
-  function triggerQuickFabPulseVariant(variant){
-    if (!el.fabQuick) return;
-    if (!hasActiveFiltersOrSearch()) return;
-    if (!inCardsView()) return;
-    if (el?.dlg?.open) return;
-    const cls = (variant === "soft") ? "fabPulseSoft" : "fabPulse";
-    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
-    _fabPulseTimer = window.setTimeout(() => {
-      _fabPulseTimer = 0;
-      if (!el.fabQuick) return;
-      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
-      // Restart animation deterministically.
-      el.fabQuick.classList.remove("fabPulse");
-      el.fabQuick.classList.remove("fabPulseSoft");
-      void el.fabQuick.offsetWidth;
-      el.fabQuick.classList.add(cls);
-      const onEnd = (e) => {
-        try{ if (e && e.animationName && e.animationName !== "fabRingPulse" && e.animationName !== "fabRingPulseSoft") return; }catch(_){/* ignore */}
-        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
-        try{ el.fabQuick.classList.remove("fabPulseSoft"); }catch(_){/* ignore */}
-        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
-      };
-      el.fabQuick.addEventListener("animationend", onEnd);
-    }, 0);
-  }
 
   function triggerQuickFabAttentionPulse(){
-    // Default = 3x pulse style.
-    triggerQuickFabPulseVariant("default");
-  }
-
     if (!el.fabQuick) return;
     if (!hasActiveFilters()) return;
     // Only when (re-)entering the cards view.
@@ -3268,13 +3207,6 @@ function renderTrophyDetails(row){
     scheduleApplyAndRender(150);
     // Attention pulse: 2s after the last input (debounced), only when filters are active.
     scheduleSearchPulse();
-  });
-
-  el.search.addEventListener("blur", () => {
-    // When the keyboard hides (blur), allow a calm pulse shortly after.
-    // This complements the 5s debounce without pulsing mid-typing.
-    try{ if (!String(state.q || "").trim()) return; }catch(_){ return; }
-    window.setTimeout(() => { requestQuickFabPulseSoon("searchBlur"); }, 800);
   });
 
   if (el.menuSearch){
