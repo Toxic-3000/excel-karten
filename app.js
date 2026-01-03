@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j47 loaded");
+console.log("Build 7.1j58 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j57").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j58").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2102,14 +2102,14 @@ const f = state.filters;
 
   function triggerQuickFabAttentionPulse(){
     if (!el.fabQuick) return;
-    if (!hasActiveFilters()) return;
+    if (!hasActiveFiltersOrSearch()) return;
     // Only when (re-)entering the cards view.
     if (!inCardsView()) return;
     try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
     _fabPulseTimer = window.setTimeout(() => {
       _fabPulseTimer = 0;
       if (!el.fabQuick) return;
-      if (!inCardsView() || !hasActiveFilters()) return;
+      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
 
       // Restart animation deterministically.
       el.fabQuick.classList.remove("fabPulse");
@@ -2118,7 +2118,9 @@ const f = state.filters;
 
       const onEnd = (e) => {
         // Only react to our own animation.
-        try{ if (e && e.animationName && e.animationName !== "fabRingPulse") return; }catch(_){/* ignore */}
+        try{
+          if (e && e.animationName && e.animationName !== "fabRingPulse" && e.animationName !== "fabBtnPulse") return;
+        }catch(_){/* ignore */}
         try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
         try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
       };
@@ -3362,12 +3364,13 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
-    
+    try{ prev?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+  });
 
-  // Build C: Menu interactions count as "user intent" (for the 3-min reminder logic).
+  // Build C: Menu interactions count as "awareness" (for the reminder logic).
   // We intentionally DO NOT treat scrolling/reading the cards as interaction.
   el.dlg.addEventListener("click", (e) => {
-    // Ignore backdrop clicks? If the dialog is open, clicks inside it are intent by definition.
+    // Clicks inside an open dialog are intent by definition.
     if (!el.dlg.open) return;
     markUserIntent();
   }, {capture:true});
@@ -3377,10 +3380,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     markUserIntent();
   }, {capture:true});
 
-  // Start the 3-minute reminder loop once. It will self-gate based on state.
+  // Start the reminder loop once. It self-gates (active filters/search + cards view + menu closed).
   startReminderLoop();
-try{ prev?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
-  });
   // On ESC: close an open desktop dropdown first; only then allow the dialog to close.
   el.dlg.addEventListener("cancel", (e) => {
     try{

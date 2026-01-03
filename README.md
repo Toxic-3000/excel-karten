@@ -1,16 +1,15 @@
-# Spieleliste – Webansicht (Build 7.1j57)
+# Spieleliste – Webansicht (Build 7.1j58)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j57)
+## Änderungen in diesem Build (7.1j58)
 
-- Build C: FAB-Puls-Trigger neu geregelt (zentraler Controller)
-  - Suche: Puls 2s nach letzter Eingabe (debounced)
-  - Eintritt Kartenansicht: Puls 2s nach Schließen des Menüs
-  - Reminder: alle 3 Minuten, nur bei aktiven Filtern und ohne Menü-/Header-Such-Interaktion
-- Keine Daueranimation, kein Puls bei offenem Menü, globaler Cooldown (~15s)
+- Fix: Reminder-Loop startet wieder zuverlässig ohne „erst einmal Menü öffnen“
+  - Reminder läuft sofort nach App-Init und gated sich weiterhin selbst (nur Kartenansicht + Menü zu + Filter/Suche aktiv)
+  - „Awareness“-Interaktionen im Menü (click/input + close) resetten den Reminder-Timer wie geplant
+- Puls-Visual: Ring bleibt wie bisher, zusätzlich pulsiert der Button selbst (kurz größer + etwas heller)
 
 
 ## Zielbild (Design & UX)
