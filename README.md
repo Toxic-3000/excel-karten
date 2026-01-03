@@ -1,8 +1,17 @@
-# Spieleliste – Webansicht (Build 7.1j52)
+# Spieleliste – Webansicht (Build 7.1j53)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
+
+## Änderungen in diesem Build (7.1j53)
+
+- Build C: FAB-Puls-Trigger neu geregelt (zentraler Controller)
+  - Suche: Puls 2s nach letzter Eingabe (debounced)
+  - Eintritt Kartenansicht: Puls 2s nach Schließen des Menüs
+  - Reminder: alle 3 Minuten, nur bei aktiven Filtern und ohne Menü-/Header-Such-Interaktion
+- Keine Daueranimation, kein Puls bei offenem Menü, globaler Cooldown (~15s)
+
 
 ## Zielbild (Design & UX)
 
@@ -15,7 +24,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j52
+## Neu in 7.1j53
 
 - **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
 

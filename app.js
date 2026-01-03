@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j50").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j53").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2004,27 +2004,97 @@ const f = state.filters;
   // throttle to avoid pulsing on every keystroke.
   let _fabLastPulseSig = "";
   let _fabLastPulseAt = 0;
-  function maybeTriggerQuickFabPulseOnFilterChange(sigNow){
+
+  // --- Build C: Centralized FAB pulse controller (event-driven, calm) ---
+  // Pulse is an event, not a state. All triggers funnel through requestQuickFabPulse().
+  const PULSE_COOLDOWN_MS = 15000;
+  const SEARCH_PULSE_DELAY_MS = 2000;
+  const ENTER_CARDS_PULSE_DELAY_MS = 2000;
+  const REMINDER_INTERVAL_MS = 3 * 60 * 1000;
+  const REMINDER_INACTIVITY_MS = 3 * 60 * 1000;
+
+  let _lastUserIntentAt = Date.now();
+  let _lastQuickFabPulseAt = 0;
+  let _searchPulseTimer = 0;
+  let _enterCardsPulseTimer = 0;
+  let _reminderTimerId = 0;
+
+  function prefersReducedMotion(){
     try{
-      const { total } = countActiveFiltersDetailed();
-      const has = total > 0;
-      if(!has){ _fabLastPulseSig = sigNow; return; }
-      if(!inCardsView()) { _fabLastPulseSig = sigNow; return; }
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }catch(_){
+      return false;
+    }
+  }
 
-      // Do not pulse while the dialog is open (it would look like a bug).
-      if(el?.dlg?.open) { _fabLastPulseSig = sigNow; return; }
+  // "User intent" is narrowly defined:
+  // - interactions with the menu (open/close + any controls inside)
+  // - typing in the header search field
+  // (Scrolling/reading/clicking cards should NOT reset the reminder timer.)
+  function markUserIntent(){
+    _lastUserIntentAt = Date.now();
+    // If the user is actively doing something, cancel any "enter cards" pulse that hasn't fired yet.
+    if (_enterCardsPulseTimer){ try{ window.clearTimeout(_enterCardsPulseTimer); }catch(_){/*ignore*/} _enterCardsPulseTimer = 0; }
+  }
 
-      if(sigNow === _fabLastPulseSig) return;
-      _fabLastPulseSig = sigNow;
+  function canQuickFabPulseNow(){
+    if (prefersReducedMotion()) return false;
+    if (!el.fabQuick) return false;
+    if (!hasActiveFilters()) return false;
+    if (!inCardsView()) return false;
+    // No pulse while the dialog/menu is open.
+    if (el?.dlg?.open) return false;
+
+    const now = Date.now();
+    if (now - _lastQuickFabPulseAt < PULSE_COOLDOWN_MS) return false;
+    return true;
+  }
+
+  // THE one gate for actually pulsing the FAB.
+  function requestQuickFabPulse(reason){
+    // "reason" is intentionally unused (debug hook); keep it for future tracing if needed.
+    if (!canQuickFabPulseNow()) return false;
+    _lastQuickFabPulseAt = Date.now();
+    // Returning to the cards view: schedule a calm attention pulse (2s after entry).
+    scheduleEnterCardsPulse();
+    return true;
+  }
+
+  function scheduleSearchPulse(){
+    if (_searchPulseTimer){ try{ window.clearTimeout(_searchPulseTimer); }catch(_){/*ignore*/} }
+    _searchPulseTimer = window.setTimeout(() => {
+      _searchPulseTimer = 0;
+      requestQuickFabPulse("search");
+    }, SEARCH_PULSE_DELAY_MS);
+  }
+
+  function scheduleEnterCardsPulse(){
+    if (_enterCardsPulseTimer){ try{ window.clearTimeout(_enterCardsPulseTimer); }catch(_){/*ignore*/} }
+    _enterCardsPulseTimer = window.setTimeout(() => {
+      _enterCardsPulseTimer = 0;
+      requestQuickFabPulse("enterCards");
+    }, ENTER_CARDS_PULSE_DELAY_MS);
+  }
+
+  function startReminderLoop(){
+    if (_reminderTimerId){ try{ window.clearInterval(_reminderTimerId); }catch(_){/*ignore*/} _reminderTimerId = 0; }
+    _reminderTimerId = window.setInterval(() => {
+      // Reminder: only when filters are active, the menu is closed, and there was no "user intent" recently.
+      if (!hasActiveFilters()) return;
+      if (!inCardsView()) return;
+      if (el?.dlg?.open) return;
+      if (prefersReducedMotion()) return;
 
       const now = Date.now();
-      // 1.2s throttle is enough to still feel responsive while typing.
-      if(now - _fabLastPulseAt < 1200) return;
-      _fabLastPulseAt = now;
-
-      triggerQuickFabAttentionPulse();
-    }catch(_){/* no-op */}
+      if (now - _lastUserIntentAt < REMINDER_INACTIVITY_MS) return;
+      requestQuickFabPulse("reminder");
+    }, REMINDER_INTERVAL_MS);
   }
+  function maybeTriggerQuickFabPulseOnFilterChange(sigNow){
+    // Deprecated in Build C: pulses are scheduled explicitly (search/enter/reminder).
+    _fabLastPulseSig = sigNow;
+  }
+
   function triggerQuickFabAttentionPulse(){
     if (!el.fabQuick) return;
     if (!hasActiveFilters()) return;
@@ -2048,7 +2118,7 @@ const f = state.filters;
         try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
       };
       el.fabQuick.addEventListener("animationend", onEnd);
-    }, 760);
+    }, 0);
   }
 
   // --- Cards-view hint (Filter aktiv) ---
@@ -2491,11 +2561,6 @@ function scheduleApplyAndRender(delayMs){
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
-
-    // Pulse when filters/search change while already in cards view.
-    // (Important for search: the old trigger was tied to switching into cards view.)
-    if (sigNow) maybeTriggerQuickFabPulseOnFilterChange(sigNow);
-
     // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
     // (The user dismisses it via interaction: scroll/tap.)
     try{
@@ -3131,14 +3196,22 @@ function renderTrophyDetails(row){
   });
 
   el.search.addEventListener("input", () => {
+    // Header search counts as "user intent".
+    markUserIntent();
     setSearchQuery(el.search.value || "", "global");
     scheduleApplyAndRender(150);
+    // Attention pulse: 2s after the last input (debounced), only when filters are active.
+    scheduleSearchPulse();
   });
 
   if (el.menuSearch){
     el.menuSearch.addEventListener("input", () => {
+      // Any interaction inside the menu counts as "user intent".
+      markUserIntent();
       setSearchQuery(el.menuSearch.value || "", "menu");
       scheduleApplyAndRender(150);
+      // Same pulse rule as header search (mirrored field).
+      scheduleSearchPulse();
     });
   }
 
@@ -3209,6 +3282,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   }
 
   function openMenuDialog(){
+    // Opening the menu is explicit user intent.
+    markUserIntent();
     // Hide any previous cards-view hint when entering the menu.
     hideViewToast();
     // Remember focus to restore after closing the dialog (accessibility)
@@ -3271,15 +3346,35 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     }
     _menuDirty = false;
     setModalOpen(false);
+    // Closing the menu is explicit user intent.
+    markUserIntent();
     // Ensure search-help panel closes when leaving the menu.
     try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
     updateQuickFilterIndicator();
     // Returning to the cards view: short attention pulse on the Schnellmenü-FAB (only when filters are active).
-    triggerQuickFabAttentionPulse();
+    // Returning to the cards view: schedule a calm attention pulse (2s after entry).
+    scheduleEnterCardsPulse();
     // Restore focus to the element that opened the dialog (usually the menu button)
     const prev = _lastFocusedBeforeMenu;
     _lastFocusedBeforeMenu = null;
-    try{ prev?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
+    
+
+  // Build C: Menu interactions count as "user intent" (for the 3-min reminder logic).
+  // We intentionally DO NOT treat scrolling/reading the cards as interaction.
+  el.dlg.addEventListener("click", (e) => {
+    // Ignore backdrop clicks? If the dialog is open, clicks inside it are intent by definition.
+    if (!el.dlg.open) return;
+    markUserIntent();
+  }, {capture:true});
+
+  el.dlg.addEventListener("input", (e) => {
+    if (!el.dlg.open) return;
+    markUserIntent();
+  }, {capture:true});
+
+  // Start the 3-minute reminder loop once. It will self-gate based on state.
+  startReminderLoop();
+try{ prev?.focus?.({preventScroll:true}); }catch(_){/* ignore */}
   });
   // On ESC: close an open desktop dropdown first; only then allow the dialog to close.
   el.dlg.addEventListener("cancel", (e) => {
