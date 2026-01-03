@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j47").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j48").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1994,6 +1994,33 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
   // --- Schnellmenü-FAB: kurze Aufmerksamkeits-Pulse-Sequenz (nur Ring) ---
   let _fabPulseTimer = 0;
+
+  // Also pulse when the filter state changes while the user is already in the
+  // cards view (e.g. typing into the search box). We track a signature and
+  // throttle to avoid pulsing on every keystroke.
+  let _fabLastPulseSig = "";
+  let _fabLastPulseAt = 0;
+  function maybeTriggerQuickFabPulseOnFilterChange(sigNow){
+    try{
+      const { total } = countActiveFiltersDetailed();
+      const has = total > 0;
+      if(!has){ _fabLastPulseSig = sigNow; return; }
+      if(!inCardsView()) { _fabLastPulseSig = sigNow; return; }
+
+      // Do not pulse while the dialog is open (it would look like a bug).
+      if(el?.dlg?.open) { _fabLastPulseSig = sigNow; return; }
+
+      if(sigNow === _fabLastPulseSig) return;
+      _fabLastPulseSig = sigNow;
+
+      const now = Date.now();
+      // 1.2s throttle is enough to still feel responsive while typing.
+      if(now - _fabLastPulseAt < 1200) return;
+      _fabLastPulseAt = now;
+
+      triggerQuickFabAttentionPulse();
+    }catch(_){/* no-op */}
+  }
   function triggerQuickFabAttentionPulse(){
     if (!el.fabQuick) return;
     if (!hasActiveFilters()) return;
@@ -2439,15 +2466,23 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
     state.ui.lastCount = out.length;
     el.pillRows.textContent = `Treffer: ${out.length}`;
+
+    // Compute once: used for hint-reset + Schnellmenü attention pulse.
+    let sigNow = "";
+    try{ sigNow = filterSignature(); }catch(_){ sigNow = ""; }
+
     // Keep FAB quick controls in sync (in case sortDir changed via dialog).
     updateFabSortUI();
     updateFabSortFieldUI();
     updateQuickFilterIndicator();
 
+    // Pulse when filters/search change while already in cards view.
+    // (Important for search: the old trigger was tied to switching into cards view.)
+    if (sigNow) maybeTriggerQuickFabPulseOnFilterChange(sigNow);
+
     // Cards-view hint: whenever the active filter state changes, allow the hint to show again.
     // (The user dismisses it via interaction: scroll/tap.)
     try{
-      const sigNow = filterSignature();
       if (sigNow !== String(state.ui?.lastFilterSig ?? "")){
         state.ui.lastFilterSig = sigNow;
         resetViewHint();
