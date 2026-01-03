@@ -1,10 +1,10 @@
-# Spieleliste – Webansicht (Build 7.1j59)
+# Spieleliste – Webansicht (Build 7.1j60)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j59)
+## Änderungen in diesem Build (7.1j60)
 
 - Build C: FAB-Puls-Trigger neu geregelt (zentraler Controller)
   - Suche: Puls 2s nach letzter Eingabe (debounced)
@@ -24,7 +24,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j59
+## Neu in 7.1j60
 
 - **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
 
@@ -58,20 +58,25 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - Reset-Button 🧹 ist per Tastatur erreichbar und nutzbar (Enter/Space) und hat `aria-label`/`title`.
 
 
-### Hotfix (7.1j59)
+### Hotfix (7.1j60)
 - Header-Suche: Puls jetzt 5s nach letzter Eingabe (ruhiger, inkl. Tastatur-Ausblenden)
 - Puls-Gating: gilt bei aktiven Filtern **oder** aktiver Suche (Search zählt als Filterzustand für die Pulslogik)
 
 
-## Reparatur-Build (7.1j59)
+## Reparatur-Build (7.1j60)
 - Stabilitäts-Fix: basiert auf 7.1j54 (funktionierender JS-Stand)
 - Puls-Engine minimal: requestQuickFabPulse triggert wieder direkt die bestehende 3x-Puls-Animation
 - Reminder im Testmodus: 1 Minute (Intervall + Inaktivität)
 
 
-## Reminder-Puls (7.1j59)
+## Reminder-Puls (7.1j60)
 - Reminder nutzt jetzt einen einmaligen, flächigeren Soft-Puls (1x), unabhängig vom 3x Standardpuls.
 
 
-## Reminder-Puls Update (7.1j59)
+## Reminder-Puls Update (7.1j60)
 - Reminder pulsiert 1x, aber deutlich flächiger/kräftiger als der Standard-3x-Puls (eigene Klasse fabPulseReminder).
+
+
+## Patch (7.1j60)
+- Standard-3x-Puls: kräftiger/heller + etwas mehr Fläche für periphere Wahrnehmung.
+- Reminder-1x-Puls: deutlich kräftiger/heller + größerer Spread (flächiger als Standard).
