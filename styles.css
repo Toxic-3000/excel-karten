@@ -834,6 +834,37 @@ summary::-webkit-details-marker{display:none}
   }
 }
 
+/* Reminder pulse (strong): single, bigger & clearer than the default 3x pulse */
+.fabQuick.fabPulseReminder::before{
+  opacity: 1;
+  /* single pulse */
+  animation: fabRingPulseReminder 1500ms cubic-bezier(.16,.9,.2,1) 0.20s 1;
+}
+@media (prefers-reduced-motion: reduce){
+  .fabQuick.fabPulseReminder::before{
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+@keyframes fabRingPulseReminder{
+  0%{
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--filterAccent) 40%, transparent);
+    opacity: 1;
+  }
+  55%{
+    transform: scale(1.03);
+    box-shadow: 0 0 0 26px color-mix(in oklab, var(--filterAccent) 28%, transparent);
+    opacity: .30;
+  }
+  100%{
+    transform: scale(1.03);
+    box-shadow: 0 0 0 40px transparent;
+    opacity: 0;
+  }
+}
+
+
 
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
 .fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }

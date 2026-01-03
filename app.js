@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j58").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j59").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2061,7 +2061,7 @@ const f = state.filters;
     if (!canQuickFabPulseNow()) return false;
     _lastQuickFabPulseAt = Date.now();
     if (reason === "reminder"){
-      triggerQuickFabSoftPulse();
+      triggerQuickFabReminderPulse();
     }else{
       triggerQuickFabAttentionPulse();
     }
@@ -2168,6 +2168,34 @@ function triggerQuickFabAttentionPulse(){
       el.fabQuick.addEventListener("animationend", onEnd);
     }, 0);
   }
+
+  function triggerQuickFabReminderPulse(){
+    if (!el.fabQuick) return;
+    if (!hasActiveFiltersOrSearch()) return;
+    if (!inCardsView()) return;
+    if (el?.dlg?.open) return;
+
+    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
+    _fabPulseTimer = window.setTimeout(() => {
+      _fabPulseTimer = 0;
+      if (!el.fabQuick) return;
+      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
+
+      // Restart animation deterministically.
+      el.fabQuick.classList.remove("fabPulse");
+      el.fabQuick.classList.remove("fabPulseSoft");
+      el.fabQuick.classList.remove("fabPulseReminder");
+      void el.fabQuick.offsetWidth;
+      el.fabQuick.classList.add("fabPulseReminder");
+
+      const onEnd = () => {
+        try{ el.fabQuick.classList.remove("fabPulseReminder"); }catch(_){/* ignore */}
+        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
+      };
+      el.fabQuick.addEventListener("animationend", onEnd);
+    }, 0);
+  }
+
 
   // --- Cards-view hint (Filter aktiv) ---
   // In diesem Build bewusst deaktiviert: Kein Text-Feedback außerhalb des Schnellmenüs.
