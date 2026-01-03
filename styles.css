@@ -798,28 +798,12 @@ summary::-webkit-details-marker{display:none}
 
 @keyframes fabRingPulse{
   /* Ruhiger: deutlich kleinere Ausdehnung + weniger Halo (Trigger/Dauer unverändert) */
-  0%{ transform: scale(1); opacity: .18; box-shadow: 0 0 0 0 transparent, 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 28%, transparent); }
-  18%{ transform: scale(1.10); opacity: 1; box-shadow: 0 0 0 0 transparent, 0 0 12px 3px color-mix(in oklab, var(--filterAccent) 34%, transparent); }
-  52%{ transform: scale(1.48); opacity: .72; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 20%, transparent), 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 28%, transparent); }
-  80%{ transform: scale(1.72); opacity: .32; box-shadow: 0 0 0 14px color-mix(in oklab, var(--filterAccent) 28%, transparent), 0 0 14px 2px color-mix(in oklab, var(--filterAccent) 26%, transparent); }
-  100%{ transform: scale(1.72); opacity: .18; box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
+  0%{ transform: scale(1); opacity: 0; box-shadow: 0 0 0 0 transparent, 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 18%, transparent); }
+  18%{ transform: scale(1.08); opacity: 1; box-shadow: 0 0 0 0 transparent, 0 0 12px 3px color-mix(in oklab, var(--filterAccent) 22%, transparent); }
+  52%{ transform: scale(1.42); opacity: .55; box-shadow: 0 0 0 4px color-mix(in oklab, var(--filterAccent) 20%, transparent), 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 18%, transparent); }
+  80%{ transform: scale(1.65); opacity: .22; box-shadow: 0 0 0 8px color-mix(in oklab, var(--filterAccent) 18%, transparent), 0 0 8px 2px color-mix(in oklab, var(--filterAccent) 16%, transparent); }
+  100%{ transform: scale(1.65); opacity: 0; box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
 }
-
-/* Build 7.1j64: Also pulse the FAB itself (slight scale + brightness) for better peripheral detection */
-.fabQuick.fabPulse{
-  will-change: transform, filter;
-  animation: fabButtonPulse 1180ms cubic-bezier(.18,.85,.22,1) 0.35s 3;
-}
-@media (prefers-reduced-motion: reduce){
-  .fabQuick.fabPulse{ animation: none !important; }
-}
-@keyframes fabButtonPulse{
-  0%   { transform: translateZ(0) scale(1);     filter: brightness(1); }
-  18%  { transform: translateZ(0) scale(1.035); filter: brightness(1.18); }
-  55%  { transform: translateZ(0) scale(1.015); filter: brightness(1.07); }
-  100% { transform: translateZ(0) scale(1);     filter: brightness(1); }
-}
-
 
 /* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
 .fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }

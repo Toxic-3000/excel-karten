@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j64").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j57").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2118,7 +2118,7 @@ const f = state.filters;
 
       const onEnd = (e) => {
         // Only react to our own animation.
-        try{ if (e && e.animationName && e.animationName !== "fabRingPulse" && e.animationName !== "fabButtonPulse") return; }catch(_){/* ignore */}
+        try{ if (e && e.animationName && e.animationName !== "fabRingPulse") return; }catch(_){/* ignore */}
         try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
         try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
       };
