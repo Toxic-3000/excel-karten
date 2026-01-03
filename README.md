@@ -1,10 +1,10 @@
-# Spieleliste – Webansicht (Build 7.1j55)
+# Spieleliste – Webansicht (Build 7.1j56)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j55)
+## Änderungen in diesem Build (7.1j56)
 
 - Build C: FAB-Puls-Trigger neu geregelt (zentraler Controller)
   - Suche: Puls 2s nach letzter Eingabe (debounced)
@@ -24,7 +24,7 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j55
+## Neu in 7.1j56
 
 - **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
 
@@ -58,10 +58,16 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
 - Reset-Button 🧹 ist per Tastatur erreichbar und nutzbar (Enter/Space) und hat `aria-label`/`title`.
 
 
-### Hotfix (7.1j55)
+### Hotfix (7.1j56)
 - Header-Suche: Puls jetzt 5s nach letzter Eingabe (ruhiger, inkl. Tastatur-Ausblenden)
 - Puls-Gating: gilt bei aktiven Filtern **oder** aktiver Suche (Search zählt als Filterzustand für die Pulslogik)
 
 
-### Hotfix (7.1j55)
+### Hotfix (7.1j56)
 - Header-Suche: Puls-Auslösung robuster (queued nach Cooldown, zusätzlich nach Blur/Keyboard-Hide)
+
+
+### Hotfix (7.1j56)
+- Puls-Engine repariert (requestQuickFabPulse triggert wieder echte Animation)
+- Reminder-Intervall/Inaktivität: 1 Minute (Testmodus)
+- Reminder-Puls: 1x „flächiger“ (soft ring)

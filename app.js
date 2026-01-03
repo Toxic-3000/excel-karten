@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j55").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j56").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2010,8 +2010,8 @@ const f = state.filters;
   const PULSE_COOLDOWN_MS = 15000;
   const SEARCH_PULSE_DELAY_MS = 5000; // a bit calmer (keyboard hide included)
   const ENTER_CARDS_PULSE_DELAY_MS = 2000;
-  const REMINDER_INTERVAL_MS = 3 * 60 * 1000;
-  const REMINDER_INACTIVITY_MS = 3 * 60 * 1000;
+  const REMINDER_INTERVAL_MS = 1 * 60 * 1000; // test: 1 minute
+  const REMINDER_INACTIVITY_MS = 1 * 60 * 1000; // test: 1 minute
 
   let _lastUserIntentAt = Date.now();
   let _lastQuickFabPulseAt = 0;
@@ -2059,13 +2059,17 @@ const f = state.filters;
 
   // THE one gate for actually pulsing the FAB.
   function requestQuickFabPulse(reason){
-    // "reason" is intentionally unused (debug hook); keep it for future tracing if needed.
+    // Central gate for actually pulsing the FAB.
     if (!canQuickFabPulseNow()) return false;
     _lastQuickFabPulseAt = Date.now();
-    // Returning to the cards view: schedule a calm attention pulse (2s after entry).
-    scheduleEnterCardsPulse();
+    if (reason === "reminder"){
+      triggerQuickFabPulseVariant("soft");
+    }else{
+      triggerQuickFabAttentionPulse();
+    }
     return true;
   }
+
 
   // If a pulse is blocked only because of cooldown, queue it once for when cooldown expires.
   function requestQuickFabPulseSoon(reason){
@@ -2113,7 +2117,7 @@ const f = state.filters;
     if (_reminderTimerId){ try{ window.clearInterval(_reminderTimerId); }catch(_){/*ignore*/} _reminderTimerId = 0; }
     _reminderTimerId = window.setInterval(() => {
       // Reminder: only when filters are active, the menu is closed, and there was no "user intent" recently.
-      if (!hasActiveFilters()) return;
+      if (!hasActiveFiltersOrSearch()) return;
       if (!inCardsView()) return;
       if (el?.dlg?.open) return;
       if (prefersReducedMotion()) return;
@@ -2127,8 +2131,37 @@ const f = state.filters;
     // Deprecated in Build C: pulses are scheduled explicitly (search/enter/reminder).
     _fabLastPulseSig = sigNow;
   }
+  function triggerQuickFabPulseVariant(variant){
+    if (!el.fabQuick) return;
+    if (!hasActiveFiltersOrSearch()) return;
+    if (!inCardsView()) return;
+    if (el?.dlg?.open) return;
+    const cls = (variant === "soft") ? "fabPulseSoft" : "fabPulse";
+    try{ if (_fabPulseTimer) window.clearTimeout(_fabPulseTimer); }catch(_){/* ignore */}
+    _fabPulseTimer = window.setTimeout(() => {
+      _fabPulseTimer = 0;
+      if (!el.fabQuick) return;
+      if (!inCardsView() || !hasActiveFiltersOrSearch()) return;
+      // Restart animation deterministically.
+      el.fabQuick.classList.remove("fabPulse");
+      el.fabQuick.classList.remove("fabPulseSoft");
+      void el.fabQuick.offsetWidth;
+      el.fabQuick.classList.add(cls);
+      const onEnd = (e) => {
+        try{ if (e && e.animationName && e.animationName !== "fabRingPulse" && e.animationName !== "fabRingPulseSoft") return; }catch(_){/* ignore */}
+        try{ el.fabQuick.classList.remove("fabPulse"); }catch(_){/* ignore */}
+        try{ el.fabQuick.classList.remove("fabPulseSoft"); }catch(_){/* ignore */}
+        try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
+      };
+      el.fabQuick.addEventListener("animationend", onEnd);
+    }, 0);
+  }
 
   function triggerQuickFabAttentionPulse(){
+    // Default = 3x pulse style.
+    triggerQuickFabPulseVariant("default");
+  }
+
     if (!el.fabQuick) return;
     if (!hasActiveFilters()) return;
     // Only when (re-)entering the cards view.
