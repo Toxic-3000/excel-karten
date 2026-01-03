@@ -58,13 +58,25 @@ console.log("Build 7.1j60 loaded");
     searchHelpBody: $("searchHelpBody"),
     menuSearchHelpBtn: $("menuSearchHelpBtn"),
     menuSearchHelpBody: $("menuSearchHelpBody"),
+
+    // Excel/Import info (inline, like search help)
+    excelHelpBtn: $("excelHelpBtn"),
+    excelHelpBody: $("excelHelpBody"),
+    btnLoadInline: $("btnLoadInline"),
+    excelFileName: $("excelFileName"),
+    excelImportTime: $("excelImportTime"),
+
+    // Excel / Import info (inline, like search help)
+    excelHelpBtn: $("excelHelpBtn"),
+    excelHelpBody: $("excelHelpBody"),
+    btnLoadInline: $("btnLoadInline"),
+    excelFileName: $("excelFileName"),
+    excelImportTime: $("excelImportTime"),
     cards: $("cards"),
     viewToast: $("viewToast"),
     empty: $("empty"),
-    pillFile: $("pillFile"),
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
-    pillImport: $("pillImport"),
     dlg: $("dlg"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
@@ -525,7 +537,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
-    importedAt: 0,
+    importedAt: null,
     ui: { lastCount: 0, lastFilterSig: "" },
   };
 
@@ -538,18 +550,6 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
-  }
-
-  function fmtImport(ts){
-    if (!ts) return "Importiert: —";
-    try{
-      const d = new Date(ts);
-      const date = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
-      const time = d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      return `Importiert: ${date}, ${time}`;
-    }catch(_){
-      return "Importiert: —";
-    }
   }
 
   function isNumericToken(t){
@@ -1005,10 +1005,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     }
 
     state.rows = rows;
-    state.fileName = fileName || "—";
-    state.importedAt = Date.now();
-    if (el.pillFile) el.pillFile.textContent = state.fileName;
-    if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
+    state.fileName = fileName || "Excel";
+    updateExcelMetaUI();
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -3204,12 +3202,54 @@ function renderTrophyDetails(row){
     setSearchHelpOpen(false);
   }
 
+  // Excel/Import info: inline disclosure below the status row (like search help).
+  function formatImportedAt(d){
+    if (!(d instanceof Date) || !isFinite(d.getTime())) return "—";
+    // de-DE: DD.MM.YYYY, HH:MM
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = String(d.getFullYear());
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `${dd}.${mm}.${yyyy}, ${hh}:${mi}`;
+  }
+
+  function updateExcelMetaUI(){
+    if (el.excelFileName) el.excelFileName.textContent = state.fileName || "—";
+    if (el.excelImportTime) el.excelImportTime.textContent = `Importiert: ${formatImportedAt(state.importedAt)}`;
+  }
+
+  function setExcelHelpOpen(isOpen){
+    const wrap = document.getElementById("excelHelp");
+    if (el.excelHelpBody) el.excelHelpBody.hidden = !isOpen;
+    if (el.excelHelpBtn) el.excelHelpBtn.setAttribute("aria-expanded", String(isOpen));
+    if (wrap) wrap.classList.toggle("open", isOpen);
+  }
+
+  function toggleExcelHelp(){
+    const isOpen = el.excelHelpBody ? !el.excelHelpBody.hidden : false;
+    setExcelHelpOpen(!isOpen);
+  }
+
+  if (el.excelHelpBtn && el.excelHelpBody){
+    el.excelHelpBtn.addEventListener("click", toggleExcelHelp);
+    setExcelHelpOpen(false);
+  }
+
+  // Allow re-importing from inside the Excel/Import info.
+  if (el.btnLoadInline) el.btnLoadInline.addEventListener("click", openFilePicker);
+
+  // Initial values
+  updateExcelMetaUI();
+
   el.file.addEventListener("change", async () => {
     const f = el.file.files?.[0];
     if (!f) return;
     try{
-      if (el.pillFile) el.pillFile.textContent = f.name;
-      if (el.pillImport) el.pillImport.textContent = "Importiert: —";
+      // Track import time for the Excel/Import info panel.
+      state.importedAt = new Date();
+      state.fileName = f.name;
+      updateExcelMetaUI();
       const buf = await f.arrayBuffer();
       readXlsx(buf, f.name);
     }catch(e){

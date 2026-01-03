@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
     <meta name="app-build" content="7.1j60" />
-  <link rel="stylesheet" href="styles.css?v=7.1j60" />
+  <link rel="stylesheet" href="styles.css?v=7.1j50" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -13,16 +13,15 @@
   <div class="appBg" aria-hidden="true"></div>
   <header class="hdr">
     <div class="topbar">
-      <div class="brand">
-        <span class="brandName">Spieleliste</span>
+      <div class="brandRow">
+        <div class="brandTitle">Spieleliste</div>
         <span id="buildLabel" class="build">Build —</span>
       </div>
+      <!-- Excel-Button bleibt technisch vorhanden (wird für Picker genutzt), ist aber im UI bewusst versteckt. -->
+      <button id="btnLoad" class="btn isHidden" aria-hidden="true" tabindex="-1">Excel auswählen</button>
     </div>
 
-    <div class="hdrRule" aria-hidden="true"></div>
-
     <div class="subbar">
-      <!-- Suche (unverändert, Stand j59) -->
       <div class="searchRow">
         <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler …" />
         <div id="searchHelp" class="searchHelp" aria-label="Suchhilfe">
@@ -32,21 +31,26 @@
       <div id="searchHelpBody" class="searchHelpBody" hidden>
         id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
       </div>
+      <button id="btnMenu" class="btn btn-chip">Suchen, Filtern &amp; Sortieren</button>
 
-      <div class="menuRow">
-        <button id="btnMenu" class="btn btn-compact btn-primary">Suchen, Filtern &amp; Sortieren</button>
-      </div>
-
-      <div class="pills pillsMain">
+      <div class="pills">
+        <!-- Datei/Import-Details bewusst on-demand (Info-Icon). -->
         <span id="pillRows" class="pill">Treffer: —</span>
+        <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
+        <div id="excelHelp" class="searchHelp" aria-label="Excel-Info">
+          <button id="excelHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Excel-Info">ⓘ</button>
+        </div>
       </div>
 
-      <!-- Excel + Datei als immer sichtbare, kompakte Statuszeile (kein Toggle) -->
-      <div class="fileStatus" aria-label="Excel und Dateistatus">
-        <button id="btnLoad" class="btn btn-compact" type="button">Excel laden</button>
-        <span id="pillFile" class="fileName">—</span>
-        <span id="pillImport" class="fileMeta">Importiert: —</span>
-        <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
+      <div id="excelHelpBody" class="searchHelpBody" hidden>
+        <div class="excelHelpTitle">Excel &amp; Import</div>
+        <div class="excelHelpRow">
+          <button id="btnLoadInline" class="btn btn-chip">Excel laden</button>
+        </div>
+        <div class="excelHelpMeta">
+          <div id="excelFileName" class="excelHelpFile">—</div>
+          <div id="excelImportTime" class="excelHelpTime">Importiert: —</div>
+        </div>
       </div>
     </div>
 
@@ -301,7 +305,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j50" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
