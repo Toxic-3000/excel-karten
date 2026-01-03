@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j46 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j46
+console.log("Build 7.1j47 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j46 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j46").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j47").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1718,9 +1718,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       b.addEventListener("click", () => {
         const group = b.getAttribute("data-group");
         const key = b.getAttribute("data-key");
-        if (group === \"search\") { state.q = \"\"; try{ if (el.search) el.search.value = \"\"; }catch(_){/* ignore */} }
+        if (group === "search") { state.q = ""; try{ if (el.search) el.search.value = ""; }catch(_){/* ignore */} }
 
-        else if (group === \"fav\") state.filters.fav = false;
+        else if (group === "fav") state.filters.fav = false;
         else if (group === "genre") { state.filters.genres.delete(key); syncGenreSelectFromState(); }
         else if (group === "plat") state.filters.platforms.delete(key);
         else if (group === "src") state.filters.sources.delete(key);
