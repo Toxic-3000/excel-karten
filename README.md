@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j46)
+# Spieleliste – Webansicht (Build 7.1j50)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,7 +15,11 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j46
+## Neu in 7.1j50
+
+- **Beschriftungen konsistent gemacht**: "Filter & Sortieren" heißt jetzt überall **"Suchen, Filtern & Sortieren"** (Topbar-Button, Schnellmenü-Button, Sheet-Titel).
+
+## Bereits zuvor
 
 - **Suche zählt als aktiver Filter**: Ein nicht-leeres Suchfeld wird in Filter-Zähler/Status (Schnellmenü-FAB + Statusbox) einbezogen.
 - **Reset im Schnellmenü setzt auch die Suche zurück** (inkl. Leeren des Suchfelds).
