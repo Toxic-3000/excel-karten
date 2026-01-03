@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j47 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
+  console.log("Build 7.1j51 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j51
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j50").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j51").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -52,6 +52,7 @@ console.log("Build 7.1j47 loaded");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabOpenMenu: $("fabOpenMenu"),
+    fabQuickSearch: $("fabQuickSearch"),
     search: $("search"),
     searchHelpBtn: $("searchHelpBtn"),
     searchHelpBody: $("searchHelpBody"),
@@ -334,6 +335,13 @@ function closeFabText(){
     try{ el.fabQuick?.setAttribute("aria-expanded", willOpen ? "true" : "false"); }catch(_){/* ignore */}
     // Info appears only inside the open Schnellmenü.
     try{ updateQuickMenuInfo(); }catch(_){/* ignore */}
+    if (willOpen){
+      // Keep mirrored search in sync and focus it first.
+      try{ if (el.fabQuickSearch) el.fabQuickSearch.value = String(state.q ?? ""); }catch(_){/* ignore */}
+      window.setTimeout(() => _focusFirstIn(el.fabQuickPanel, ["#fabQuickSearch", "#fabQuickClose", ".chip"]), 0);
+    }else{
+      _restoreFabFocus();
+    }
   }
 
   function buildFab(){
@@ -1905,6 +1913,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     // Clear filters and search without touching the current sort (Schnellmenü-Reset).
     state.q = "";
     try{ if (el.search) el.search.value = ""; }catch(_){/* ignore */}
+    try{ if (el.fabQuickSearch) el.fabQuickSearch.value = ""; }catch(_){/* ignore */}
     const f = state.filters;
     f.fav = false;
     try{ f.genres && f.genres.clear && f.genres.clear(); }catch(_){/* ignore */}
@@ -3091,8 +3100,19 @@ function renderTrophyDetails(row){
 
   el.search.addEventListener("input", () => {
     state.q = el.search.value || "";
+    // Keep mirrored quick-menu search in sync (without triggering another input event).
+    try{ if (el.fabQuickSearch && el.fabQuickSearch.value !== el.search.value) el.fabQuickSearch.value = el.search.value; }catch(_){/* ignore */}
     scheduleApplyAndRender(150);
   });
+
+  // Schnellmenü: gespiegelte Suche (selber State wie die globale Suche)
+  if (el.fabQuickSearch){
+    el.fabQuickSearch.addEventListener("input", () => {
+      state.q = el.fabQuickSearch.value || "";
+      try{ if (el.search && el.search.value !== el.fabQuickSearch.value) el.search.value = el.fabQuickSearch.value; }catch(_){/* ignore */}
+      scheduleApplyAndRender(150);
+    });
+  }
 
   el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
 

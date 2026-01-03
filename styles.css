@@ -986,6 +986,23 @@ summary::-webkit-details-marker{display:none}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
 
+/* Schnellmenü: gespiegelte Suchzeile (kompakt, gleiche Sprache wie globale Suche) */
+.fabQuickSearch{ margin-top: calc(10px * var(--uiScale)); }
+.fabSearch{
+  width: 100%;
+  box-sizing: border-box;
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent 86%);
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1.2;
+  outline: none;
+}
+.fabSearch::placeholder{ opacity: .72; }
+.fabSearch:focus{ border-color: color-mix(in oklab, var(--filterAccent) 55%, var(--border) 45%); }
+
 /* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar) */
 .quickInfo{
   margin-top: calc(12px * var(--uiScale));
