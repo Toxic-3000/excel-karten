@@ -1,4 +1,4 @@
-# Spieleliste – Webansicht (Build 7.1j45)
+# Spieleliste – Webansicht (Build 7.1j46)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
@@ -15,8 +15,11 @@ Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert 
   - Zeile 4: Trophäenstatus (neutral, 1 Badge)
 - **Akkordeon-Reihenfolge**: Beschreibung → Store → Trophäen → Humorstatistik (Eastereggs als weiteres Akkordeon)
 
-## Neu in 7.1j45 (Performance-Polish)
+## Neu in 7.1j46
 
+- **Suche zählt als aktiver Filter**: Ein nicht-leeres Suchfeld wird in Filter-Zähler/Status (Schnellmenü-FAB + Statusbox) einbezogen.
+- **Reset im Schnellmenü setzt auch die Suche zurück** (inkl. Leeren des Suchfelds).
+- **Aktive-Filter-Leiste** zeigt eine **„🔎 Suche: …“**-Chip an und kann die Suche dort ebenfalls entfernen.
 - **DOM-Swap per `template` + `replaceChildren()`**: Karten werden off-screen geparst und anschließend in einem Schritt in den DOM eingesetzt.
   Das reduziert Layout-Arbeit bei großen Listen und hält das Scroll-/Filter-Feeling ruhiger.
 

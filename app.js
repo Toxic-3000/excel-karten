@@ -1,8 +1,8 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j45 loaded");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j45
+console.log("Build 7.1j46 loaded");
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j46
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build 7.1j45 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j45").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j46").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1672,6 +1672,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (!el.activeFilters) return;
     const items = [];
 
+    const q = String(state.q ?? "").trim();
+    if (q){
+      const short = q.length > 28 ? (q.slice(0,27) + "…") : q;
+      items.push({group:"search", key:"q", label:`🔎 Suche: ${short}`});
+    }
     if (state.filters.fav){
       items.push({group:"fav", key:"fav", label:"⭐ Favoriten"});
     }
@@ -1713,7 +1718,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
       b.addEventListener("click", () => {
         const group = b.getAttribute("data-group");
         const key = b.getAttribute("data-key");
-        if (group === "fav") state.filters.fav = false;
+        if (group === \"search\") { state.q = \"\"; try{ if (el.search) el.search.value = \"\"; }catch(_){/* ignore */} }
+
+        else if (group === \"fav\") state.filters.fav = false;
         else if (group === "genre") { state.filters.genres.delete(key); syncGenreSelectFromState(); }
         else if (group === "plat") state.filters.platforms.delete(key);
         else if (group === "src") state.filters.sources.delete(key);
@@ -1734,6 +1741,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (group === "fav") setAllChipPressed("fav", "fav", false);
 
         updateDialogMeta();
+        try{ scheduleLiveApply(); }catch(_){/* ignore */}
       });
     }
   }
@@ -1879,6 +1887,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function hasActiveFilters(){
+    const q = String(state.q ?? "").trim();
+    if (q) return true;
     const f = state.filters;
     if (f.fav) return true;
     if (f.shortMain5) return true;
@@ -1892,7 +1902,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function clearAllFiltersOnly(){
-    // Clear filters without touching the current sort (Schnellmenü-Reset).
+    // Clear filters and search without touching the current sort (Schnellmenü-Reset).
+    state.q = "";
+    try{ if (el.search) el.search.value = ""; }catch(_){/* ignore */}
     const f = state.filters;
     f.fav = false;
     try{ f.genres && f.genres.clear && f.genres.clear(); }catch(_){/* ignore */}
@@ -1915,8 +1927,10 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
   function countActiveFiltersDetailed(){
     // Count like the "Aktive Filter"-Bar: each active chip counts as one filter.
+    const q = String(state.q ?? "").trim();
     const f = state.filters;
     let n = 0;
+    if (q) n++;
     if (f.fav) n++;
     if (f.genres && f.genres.size) n += f.genres.size;
     if (f.platforms && f.platforms.size) n += f.platforms.size;
