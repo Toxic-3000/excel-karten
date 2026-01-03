@@ -11,7 +11,7 @@ console.log("Build 7.1j47 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j62").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -2188,12 +2188,17 @@ function triggerQuickFabAttentionPulse(){
       void el.fabQuick.offsetWidth;
       el.fabQuick.classList.add("fabPulseReminder");
 
-      const onEnd = () => {
+      const onEnd = (e) => {
+        // Only react to our own reminder animations.
+        try{
+          const n = e && e.animationName ? e.animationName : "";
+          if (n !== "fabRingPulseReminder") return;
+        }catch(_){/* ignore */}
         try{ el.fabQuick.classList.remove("fabPulseReminder"); }catch(_){/* ignore */}
         try{ el.fabQuick.removeEventListener("animationend", onEnd); }catch(_){/* ignore */}
       };
       el.fabQuick.addEventListener("animationend", onEnd);
-    }, 0);
+}, 0);
   }
 
 
