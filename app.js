@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j59 loaded");
+console.log("Build 7.1j60 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j59 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j59").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -26,6 +26,17 @@ console.log("Build 7.1j59 loaded");
   if (buildLabel) buildLabel.textContent = `Build ${BUILD}`;
 
   const $ = (id) => document.getElementById(id);
+
+  function fmtNow(){
+    try{
+      const d = new Date();
+      // de-DE: 02.01.2026, 14:37
+      return d.toLocaleString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    }catch(_){
+      return new Date().toISOString();
+    }
+  }
+
 
   const el = {
     file: $("file"),
@@ -64,6 +75,10 @@ console.log("Build 7.1j59 loaded");
     pillFile: $("pillFile"),
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
+    pillXlsx2: $("pillXlsx2"),
+    importTime: $("importTime"),
+    btnData: $("btnData"),
+    zoneCBody: $("zoneCBody"),
     dlg: $("dlg"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
@@ -846,6 +861,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     el.pillXlsx.textContent = "XLSX: " + text;
     el.pillXlsx.classList.remove("pill-ok","pill-warn","pill-bad");
     el.pillXlsx.classList.add(kind);
+    if (el.pillXlsx2){
+      el.pillXlsx2.textContent = "XLSX: " + text;
+      el.pillXlsx2.classList.remove("pill-ok","pill-warn","pill-bad");
+      el.pillXlsx2.classList.add(kind);
+    }
   }
 
   function findReminderColumn(headers){
@@ -992,7 +1012,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
     state.rows = rows;
     state.fileName = fileName || "Excel";
-    el.pillFile.textContent = "Datei: " + state.fileName;
+    el.pillFile.textContent = state.fileName;
+    if (el.importTime){ el.importTime.textContent = "Importiert: " + fmtNow(); }
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -3192,7 +3213,8 @@ function renderTrophyDetails(row){
     const f = el.file.files?.[0];
     if (!f) return;
     try{
-      el.pillFile.textContent = "Datei: " + f.name;
+      el.pillFile.textContent = f.name;
+      if (el.importTime){ el.importTime.textContent = "Importiert: " + fmtNow(); }
       const buf = await f.arrayBuffer();
       readXlsx(buf, f.name);
     }catch(e){
@@ -3349,6 +3371,21 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
   });
+
+  // Zone C: dezent ein-/ausklappen (Excel + Datei-Kontext)
+  if (el.btnData && el.zoneCBody){
+    el.btnData.addEventListener("click", () => {
+      const isOpen = !el.zoneCBody.hasAttribute("hidden");
+      if (isOpen){
+        el.zoneCBody.setAttribute("hidden", "");
+        el.btnData.setAttribute("aria-expanded", "false");
+      }else{
+        el.zoneCBody.removeAttribute("hidden");
+        el.btnData.setAttribute("aria-expanded", "true");
+      }
+    });
+  }
+
   el.btnClose.addEventListener("click", () => el.dlg.close());
 
   // Ensure the background lock always resets (button, ESC, backdrop click, etc.).
@@ -3466,7 +3503,7 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   });
 
   // Init pill
-  el.pillXlsx.textContent = "XLSX: bereit";
+  pill("bereit","pill-ok");
   el.pillXlsx.classList.add("pill-ok");
 
   // Guard: show warning if xlsx lib missing after load
