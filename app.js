@@ -211,7 +211,9 @@ console.log("Build 7.1j60 loaded");
   }
 
   // --- UI: Adaptive toolbar compaction (keeps one line even on A+++) ---
-  let _toolbarT = 0;
+  // NOTE: queueToolbarCompactness() is invoked earlier during startup. Using `var` avoids
+  // Temporal Dead Zone issues if it runs before this section is evaluated.
+  var _toolbarT = 0;
   function updateToolbarCompactness(){
     const bar = el.toolbarRow;
     if (!bar) return;
