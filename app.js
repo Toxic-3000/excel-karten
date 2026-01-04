@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61d3 loaded");
+console.log("Build 7.1j61d4 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j61d3 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61d3").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61d4").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -47,7 +47,9 @@ console.log("Build 7.1j61d3 loaded");
     const h = Math.max(0, window.innerHeight || 0);
     const isLandscape = (w > 0 && h > 0) ? (w > h) : false;
     const phoneByWidth = (w > 0 && w <= 520);
-    const phoneByHeight = (isLandscape && h > 0 && h <= 520);
+    // Landscape-Phones haben typischerweise eine sehr geringe Höhe.
+    // Tablets in Landscape (z.B. 800×480) sollen NICHT als Phone laufen.
+    const phoneByHeight = (isLandscape && h > 0 && h <= 450 && w > 0 && w <= 900);
     const isPhone = phoneByWidth || phoneByHeight;
     document.documentElement.classList.toggle("isPhone", isPhone);
     document.documentElement.classList.toggle("isNonPhone", !isPhone);

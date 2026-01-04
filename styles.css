@@ -1031,6 +1031,25 @@ html.isPhone .fabPanelText{
   width: auto;
 }
 
+/* Non-Phone: Panels sollen in Portrait genauso "angedockt" sein wie in Landscape
+   (unten neben der FAB-Leiste, nicht darüber). */
+html.isNonPhone .fabPanelQuick,
+html.isNonPhone .fabPanelText{
+  left: auto;
+  top: auto;
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(var(--vvh) * 100 - 24px);
+}
+
+html.isNonPhone .fabPanelQuick{
+  width: min(
+    calc(720px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
+  overflow: auto;
+}
+
 /* In Tight-Mode soll der große Aktionsbutton immer erreichbar bleiben (auch wenn gescrollt wird). */
 html.vhTight .fabPanelQuick .fabActions{
   position: sticky;
@@ -1040,6 +1059,14 @@ html.vhTight .fabPanelQuick .fabActions{
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
   border-top: 1px solid var(--border);
   margin-top: calc(10px * var(--uiScale));
+}
+
+/* Phone-Landscape: Sticky-Actionbar wirkt schnell "klebrig" und verdeckt Layout.
+   Wir lassen sie hier bewusst NICHT sticky – der Phone-Landscape-Layoutblock unten
+   komprimiert stattdessen die Inhalte, damit alles ohne Überlagerung passt. */
+html.isPhone.vhTight .fabPanelQuick .fabActions{
+  position: relative;
+  bottom: auto;
 }
 
 /* Textgrößen-Menü ebenfalls stabil halten, wenn die sichtbare Höhe knapp ist. */
@@ -1054,7 +1081,7 @@ html.vhTight .fabPanelText{
    und die max-height an svh (small viewport height) gekoppelt.
 */
 @media (orientation: landscape) and (max-height: 520px){
-  html.isNonPhone .fabPanelQuick{
+  html.isPhone .fabPanelQuick{
     /* Kritischer Fall (Phone Landscape):
        Die Browserbar reduziert die sichtbare Höhe. Mit max-height allein kann das Panel
        unnötig scrollen oder außerhalb des Viewports enden.
@@ -1841,11 +1868,11 @@ html.modalOpen body{touch-action:none;}
     justify-self:start;
   }
 
-/* --- Build 7.1j12 – Schnellmenü (Phone Landscape): als Dock unten links ---
+/* --- Phone Landscape: als Dock unten links ---
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
-     Portrait bleibt unberührt. */
-  html.isNonPhone .fabPanelQuick{
+     Wichtig: Das darf NICHT auf kleine Tablets greifen (z.B. 800×480). */
+  html.isPhone .fabPanelQuick{
     /* Der FAB (≡) ist nur Trigger – das Schnellmenü lebt als stabiles Dock.
        Damit gibt es keine Kollision mehr mit Header/Browserbar, auch wenn
        Mobile-UI den Viewport in Landscape minimal verschiebt. */
