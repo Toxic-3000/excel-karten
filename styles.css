@@ -126,43 +126,131 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   position:sticky; top:0; z-index:50;
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom:0;
+  border-bottom:1px solid var(--border);
 }
 .topbar{
   display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:flex-start;
   padding: calc(14px * var(--uiScale)) calc(12px * var(--uiScale)) calc(10px * var(--uiScale));
-  border-bottom:1px solid var(--border);
 }
-.brandRow{display:flex; align-items:center; justify-content:space-between; width:100%; gap: calc(12px * var(--uiScale));}
-.brandTitle{font-weight:800; font-size: calc(30px * var(--uiScale)); letter-spacing:.2px;}
+.brand{
+  font-weight:800;
+  font-size: calc(30px * var(--uiScale));
+  letter-spacing:.2px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap: calc(10px * var(--uiScale));
+}
+.brandName{display:block; min-width:0;}
 .build{
   font-size: calc(13px * var(--uiScale));
   font-weight:600;
   opacity:.65;
-  margin-left: 0;
+  margin-left: auto;
   border:1px solid var(--border);
   padding: calc(4px * var(--uiScale)) calc(10px * var(--uiScale));
   border-radius:999px;
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
-.topActions{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
 
-.isHidden{display:none !important;}
-
-/* Header-Layout: auf schmalen Screens Aktionen unter den Titel ziehen,
-   damit Buttons/Badges nicht "wild" umbrechen. */
-@media (max-width: 700px){
-  .topbar{flex-direction:column; align-items:stretch; gap: calc(10px * var(--uiScale));}
-  .topActions{justify-content:flex-start; width:100%;}
-  .topActions .btn{flex:1 1 auto;}
-  .topActions .btnScale{flex:0 0 auto; margin-left:auto;}
+/* Dünne Trennlinie zwischen Zone A (Titel) und Zone B (Kontrollen) */
+.hdrRule{
+  height:1px;
+  background: color-mix(in oklab, var(--border) 82%, transparent);
+  margin: 0 calc(12px * var(--uiScale));
 }
+
 .subbar{
   padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
   flex-direction:column;
   gap:calc(10px * var(--uiScale));
-  padding-top: calc(8px * var(--uiScale));
+}
+
+/* Give the global search a touch more breathing room below the header rule */
+.hdrRule + .subbar .searchRow{ margin-top: calc(6px * var(--uiScale)); }
+
+/* Kompakte Button-Variante (Chip-Look) */
+.btn.btn-compact{
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  box-shadow: none;
+}
+
+.menuRow{width:min(820px, 100%);}
+.pills.pillsMain{width:min(820px, 100%);}
+
+/* Make status pills feel like status (not big buttons) in the top toolbar */
+.pillsMain .pill{
+  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+}
+
+/* Meta button (⋯) sits with the pills, subtle and consistent */
+.metaBtn{
+  width: calc(34px * var(--uiScale));
+  height: calc(34px * var(--uiScale));
+}
+.metaBtn.open{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
+}
+
+/* Excel / Import inline panel (same interaction class as search help) */
+.excelInfoBody{
+  width: min(820px, 100%);
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+  color: color-mix(in oklab, var(--fg) 78%, var(--bg) 22%);
+  border-radius: calc(14px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(13px * var(--uiScale));
+  line-height: 1.35;
+}
+.excelInfoTop{
+  display:flex;
+  align-items:center;
+  gap: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+}
+.excelInfoTop .pill{ margin:0; }
+.excelInfoMeta{
+  display:flex;
+  flex-direction:column;
+  gap: calc(4px * var(--uiScale));
+}
+.excelFile{
+  font-weight:650;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.excelImport{
+  opacity:.72;
+}
+
+/* Excel + Datei als kompakte, immer sichtbare Statuszeile */
+.fileStatus{
+  width:min(820px, 100%);
+  display:flex;
+  flex-wrap:wrap;
+  gap: calc(8px * var(--uiScale));
+  align-items:center;
+}
+.fileName{
+  flex: 1 1 220px;
+  min-width: 140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:650;
+  opacity:.86;
+}
+.fileMeta{
+  white-space:nowrap;
+  font-size: calc(13px * var(--uiScale));
+  opacity:.7;
 }
 
 /* Search row + help icon (collapsed by default; reveals on tap) */
@@ -249,14 +337,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-weight:500;
   outline:none;
 }
-.pills{display:flex; flex-wrap:wrap; gap: calc(8px * var(--uiScale)); align-items:center}
+.pills{display:flex; flex-wrap:wrap; gap: calc(10px * var(--uiScale)); align-items:center}
 .pill{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:600;
-  font-size: calc(13px * var(--uiScale));
   font-variant-numeric: tabular-nums;
 }
 .pill-ok{border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%)}
@@ -274,21 +361,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   box-shadow: var(--shadow);
   user-select:none;
 }
-
-/* Compact chips used in the header (menu + inline actions). */
-.btn-chip{
-  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
-  font-weight:650;
-  box-shadow:none;
-}
-
-/* Excel/Import inline panel (opens like search help) */
-.excelHelpTitle{font-weight:700; margin-bottom: calc(8px * var(--uiScale));}
-.excelHelpRow{display:flex; align-items:center; gap: calc(10px * var(--uiScale)); margin-bottom: calc(8px * var(--uiScale));}
-.excelHelpMeta{display:flex; flex-direction:column; gap: calc(4px * var(--uiScale));}
-.excelHelpFile{font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.excelHelpTime{opacity:.7; font-size: calc(13px * var(--uiScale));}
 .btn:active{transform:translateY(1px)}
 .btn-primary{
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);

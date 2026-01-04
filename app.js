@@ -58,25 +58,15 @@ console.log("Build 7.1j60 loaded");
     searchHelpBody: $("searchHelpBody"),
     menuSearchHelpBtn: $("menuSearchHelpBtn"),
     menuSearchHelpBody: $("menuSearchHelpBody"),
-
-    // Excel/Import info (inline, like search help)
-    excelHelpBtn: $("excelHelpBtn"),
-    excelHelpBody: $("excelHelpBody"),
-    btnLoadInline: $("btnLoadInline"),
-    excelFileName: $("excelFileName"),
-    excelImportTime: $("excelImportTime"),
-
-    // Excel / Import info (inline, like search help)
-    excelHelpBtn: $("excelHelpBtn"),
-    excelHelpBody: $("excelHelpBody"),
-    btnLoadInline: $("btnLoadInline"),
-    excelFileName: $("excelFileName"),
-    excelImportTime: $("excelImportTime"),
+    excelInfoBtn: $("excelInfoBtn"),
+    excelInfoBody: $("excelInfoBody"),
     cards: $("cards"),
     viewToast: $("viewToast"),
     empty: $("empty"),
+    pillFile: $("pillFile"),
     pillRows: $("pillRows"),
     pillXlsx: $("pillXlsx"),
+    pillImport: $("pillImport"),
     dlg: $("dlg"),
     btnClose: $("btnClose"),
     btnApply: $("btnApply"),
@@ -537,7 +527,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     },
     reminderCol: null,
     fileName: null,
-    importedAt: null,
+    importedAt: 0,
     ui: { lastCount: 0, lastFilterSig: "" },
   };
 
@@ -550,6 +540,18 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function fmtImport(ts){
+    if (!ts) return "Importiert: —";
+    try{
+      const d = new Date(ts);
+      const date = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+      const time = d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      return `Importiert: ${date}, ${time}`;
+    }catch(_){
+      return "Importiert: —";
+    }
   }
 
   function isNumericToken(t){
@@ -1005,8 +1007,10 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     }
 
     state.rows = rows;
-    state.fileName = fileName || "Excel";
-    updateExcelMetaUI();
+    state.fileName = fileName || "—";
+    state.importedAt = Date.now();
+    if (el.pillFile) el.pillFile.textContent = state.fileName;
+    if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -3166,6 +3170,41 @@ function renderTrophyDetails(row){
   el.btnLoad.addEventListener("click", openFilePicker);
   el.btnLoad2.addEventListener("click", openFilePicker);
 
+  // Excel / import details: collapsed by default, reveal on tap (like search help)
+  function setExcelInfoOpen(isOpen){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (el.excelInfoBody) el.excelInfoBody.hidden = modalOpen ? true : !isOpen;
+    if (el.excelInfoBtn) el.excelInfoBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.excelInfoBtn) el.excelInfoBtn.classList.toggle("open", (!modalOpen && isOpen));
+  }
+
+  function isExcelInfoOpen(){
+    return el.excelInfoBody ? !el.excelInfoBody.hidden : false;
+  }
+
+  function toggleExcelInfo(){
+    setExcelInfoOpen(!isExcelInfoOpen());
+  }
+
+  if (el.excelInfoBtn && el.excelInfoBody){
+    el.excelInfoBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      toggleExcelInfo();
+    });
+
+    // Close when tapping outside
+    document.addEventListener("click", (ev) => {
+      if (!isExcelInfoOpen()) return;
+      const t = ev.target;
+      if (!(t instanceof Element)) return;
+      if (t.closest("#excelInfoBody") || t.closest("#excelInfoBtn")) return;
+      setExcelInfoOpen(false);
+    }, { passive:true });
+
+    // Predictable initial state
+    setExcelInfoOpen(false);
+  }
+
   // Search help: collapsed by default, reveal on tap (mirrored for menu + header)
   // One "open" flag per context: if the menu dialog is open, show help inside the menu;
   // otherwise show it below the global search in the header.
@@ -3202,54 +3241,49 @@ function renderTrophyDetails(row){
     setSearchHelpOpen(false);
   }
 
-  // Excel/Import info: inline disclosure below the status row (like search help).
-  function formatImportedAt(d){
-    if (!(d instanceof Date) || !isFinite(d.getTime())) return "—";
-    // de-DE: DD.MM.YYYY, HH:MM
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = String(d.getFullYear());
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    return `${dd}.${mm}.${yyyy}, ${hh}:${mi}`;
+  // Excel / Import details: inline disclosure under the status pills.
+  // Uses a neutral "more" button (⋯) so it doesn't clash with the search help icon.
+  function setExcelInfoOpen(isOpen){
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (el.excelInfoBody) el.excelInfoBody.hidden = modalOpen ? true : !isOpen;
+    if (el.excelInfoBtn) el.excelInfoBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.excelInfoBtn) el.excelInfoBtn.classList.toggle("open", (!modalOpen && isOpen));
   }
 
-  function updateExcelMetaUI(){
-    if (el.excelFileName) el.excelFileName.textContent = state.fileName || "—";
-    if (el.excelImportTime) el.excelImportTime.textContent = `Importiert: ${formatImportedAt(state.importedAt)}`;
+  function toggleExcelInfo(){
+    const isOpen = el.excelInfoBody ? !el.excelInfoBody.hidden : false;
+    // Close search help if it's open to avoid stacking two inline panels.
+    if (!isOpen){
+      if (el.searchHelpBody && !el.searchHelpBody.hidden) setSearchHelpOpen(false);
+      if (el.menuSearchHelpBody && !el.menuSearchHelpBody.hidden) setSearchHelpOpen(false);
+    }
+    setExcelInfoOpen(!isOpen);
   }
 
-  function setExcelHelpOpen(isOpen){
-    const wrap = document.getElementById("excelHelp");
-    if (el.excelHelpBody) el.excelHelpBody.hidden = !isOpen;
-    if (el.excelHelpBtn) el.excelHelpBtn.setAttribute("aria-expanded", String(isOpen));
-    if (wrap) wrap.classList.toggle("open", isOpen);
+  if (el.excelInfoBtn && el.excelInfoBody){
+    el.excelInfoBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggleExcelInfo();
+    });
+    // Close when tapping outside.
+    document.addEventListener("click", (ev) => {
+      if (!el.excelInfoBody || el.excelInfoBody.hidden) return;
+      const t = ev.target;
+      if (t instanceof Node){
+        if (el.excelInfoBody.contains(t) || el.excelInfoBtn.contains(t)) return;
+      }
+      setExcelInfoOpen(false);
+    }, {passive:true});
+    setExcelInfoOpen(false);
   }
-
-  function toggleExcelHelp(){
-    const isOpen = el.excelHelpBody ? !el.excelHelpBody.hidden : false;
-    setExcelHelpOpen(!isOpen);
-  }
-
-  if (el.excelHelpBtn && el.excelHelpBody){
-    el.excelHelpBtn.addEventListener("click", toggleExcelHelp);
-    setExcelHelpOpen(false);
-  }
-
-  // Allow re-importing from inside the Excel/Import info.
-  if (el.btnLoadInline) el.btnLoadInline.addEventListener("click", openFilePicker);
-
-  // Initial values
-  updateExcelMetaUI();
 
   el.file.addEventListener("change", async () => {
     const f = el.file.files?.[0];
     if (!f) return;
     try{
-      // Track import time for the Excel/Import info panel.
-      state.importedAt = new Date();
-      state.fileName = f.name;
-      updateExcelMetaUI();
+      if (el.pillFile) el.pillFile.textContent = f.name;
+      if (el.pillImport) el.pillImport.textContent = "Importiert: —";
       const buf = await f.arrayBuffer();
       readXlsx(buf, f.name);
     }catch(e){
