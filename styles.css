@@ -1012,8 +1012,9 @@ html.isPhone .fabPanelQuick .fabHead{
 }
 
 html.isPhone .fabPanelQuick .fabActions{
-  position: sticky;
-  bottom: 0;
+  /* Phone: Action-Bar ist standardmäßig NICHT sticky.
+     Sticky wird nur aktiviert, wenn die sichtbare Höhe wirklich knapp ist (vhTight). */
+  position: relative;
   padding-top: calc(10px * var(--uiScale));
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
@@ -1131,6 +1132,35 @@ html.vhTight .fabPanelText{
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     width: auto !important;
     max-width: calc(520px * var(--uiScale)) !important;
+  }
+
+  /* Phone Landscape: Aktionsbereich NICHT sticky (wir wollen kein "klebriges" Footer-Verhalten). */
+  html.isPhone .fabPanelQuick .fabActions{
+    position: relative !important;
+    bottom: auto !important;
+  }
+}
+
+
+/* Tablet/Desktop Portrait:
+   Panels wie in Landscape an den FAB-Stack andocken (rechts Platz für Buttons lassen),
+   damit Schnellmenü + Textgröße in Portrait nicht über den Button-Stack gelegt werden. */
+@media (orientation: portrait) and (min-width: 701px){
+  .fabPanelText,
+  .fabPanelQuick{
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    bottom: calc(12px * var(--uiScale) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fabPanelText{
+    max-width: calc(520px * var(--uiScale));
+    width: auto;
+  }
+
+  /* Schnellmenü in Portrait bewusst kompakt halten (keine Mindestbreite erzwingen). */
+  .fabPanelQuick{
+    max-width: calc(520px * var(--uiScale));
+    width: auto;
   }
 }
 
