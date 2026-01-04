@@ -1116,10 +1116,9 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "field field"
-      "dir dir"
-      "marks marks"
       "depth depth"
+      "field field"
+      "dir marks"
       "action action";
     column-gap: 12px;
     row-gap: 10px;
@@ -1234,10 +1233,9 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "field field"
-      "dir dir"
-      "marks marks"
       "depth depth"
+      "field field"
+      "dir marks"
       "action action";
     column-gap: calc(16px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
@@ -1399,24 +1397,6 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .fabChips .chip{
   min-width: clamp(86px, 16vw, 130px);
   justify-content: center;
-}
-
-/* Schnellmenü: 2er-Gruppen immer gleich breit (Auf/Ab, An/Aus, Kompakt/Detail) */
-#fabQuickSortDirChips,
-#fabQuickMarksChips,
-#fabQuickDepthChips{
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(10px * var(--uiScale));
-}
-#fabQuickSortDirChips .chip,
-#fabQuickMarksChips .chip,
-#fabQuickDepthChips .chip{
-  width: 100%;
-  min-width: 0;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
 }
 
 
@@ -2616,3 +2596,59 @@ html.modalOpen body{touch-action:none;}
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
+
+
+/* === Schnellmenü: feste Reihenfolge & gleichmäßige Button-Breiten (e3) ===
+   Ziel: Lesefluss immer gleich (Sortieren nach → Sortierung → Markierungen → Karten),
+   unabhängig von Breakpoints/Orientation. */
+
+/* Override der bisherigen Grid-Layout-Variante (die je nach Breakpoint umsortiert). */
+.fabPanelQuick{
+  display:flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(14px * var(--uiScale));
+}
+
+/* In Flex-Layout sollen die Sektionen schlicht der DOM-Reihenfolge folgen. */
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick .fabQuickSortDir,
+.fabPanelQuick .fabQuickMarks,
+.fabPanelQuick .fabQuickDepth,
+.fabPanelQuick .fabActions{
+  width: 100%;
+}
+
+/* Actions immer "unten" – ohne dass Breakpoint-Grids sie irgendwohin drücken. */
+.fabPanelQuick .fabActions{
+  margin-top: auto;
+}
+
+/* Auf/Ab & An/Aus als 2er-Segmente mit identischer Breite – auf ALLEN Viewports. */
+#fabSortDirRow,
+#fabMarkRow{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(10px * var(--uiScale));
+}
+#fabSortDirRow .chip,
+#fabMarkRow .chip{
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Karten (Kompakt/Detail) als echtes 2er-Segment – exakt gleiche Breite wie Auf/Ab & An/Aus. */
+#fabDepthRow{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(10px * var(--uiScale));
+}
+#fabDepthRow .chip{
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
