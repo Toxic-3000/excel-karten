@@ -1,13 +1,15 @@
-# Spieleliste – Webansicht (Build 7.1j61a)
+# Spieleliste – Webansicht (Build 7.1j61d1)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j61a)
+## Änderungen in diesem Build (7.1j61d1)
 
-- Suche: Feldgebundene Suche erweitert um **Beschreibung** und **Eastereggs** (Tokens: `Beschreibung:` / `Eastereggs:`).
-  - Suchhilfe-Listen wurden entsprechend ergänzt.
+- Mini-Patch 1 (Geräteklassen): **Phone (Portrait + Landscape) ist jetzt eine UI-Klasse**.
+  - `html.isPhone` wird per JS gesetzt (kleine Breite **oder** kleine Höhe in Landscape).
+  - Schnellmenü-Info ist auf Phones einzeilig (spart Höhe, stabiler).
+  - Desktop/Tablet bleiben unverändert.
 
 ## Änderungen in früheren Builds
 

@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61c loaded");
+console.log("Build 7.1j61d1 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j61c loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61d1").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -36,13 +36,34 @@ console.log("Build 7.1j61c loaded");
     document.documentElement.classList.toggle("vhTight", isTight);
   }
 
+  // --- Device class: Phone vs Tablet/Desktop (orientation-agnostic) ---
+  // We treat *phones* as one coherent UI class (portrait and landscape behave the same),
+  // because mobile browser chrome + limited height are the dominant constraints.
+  // Detection is intentionally conservative:
+  // - portrait phones: small width
+  // - landscape phones: small height
+  function updateDeviceClass(){
+    const w = Math.max(0, window.innerWidth || 0);
+    const h = Math.max(0, window.innerHeight || 0);
+    const isLandscape = (w > 0 && h > 0) ? (w > h) : false;
+    const phoneByWidth = (w > 0 && w <= 520);
+    const phoneByHeight = (isLandscape && h > 0 && h <= 520);
+    const isPhone = phoneByWidth || phoneByHeight;
+    document.documentElement.classList.toggle("isPhone", isPhone);
+    document.documentElement.classList.toggle("isNonPhone", !isPhone);
+  }
+
   // Initialize immediately + keep synced on bar show/hide.
   updateVisualViewportVars();
+  updateDeviceClass();
   window.addEventListener("resize", updateVisualViewportVars, {passive:true});
+  window.addEventListener("resize", updateDeviceClass, {passive:true});
   if (window.visualViewport){
     window.visualViewport.addEventListener("resize", updateVisualViewportVars, {passive:true});
+    window.visualViewport.addEventListener("resize", updateDeviceClass, {passive:true});
     // Some browsers only update height on scroll of the viewport chrome.
     window.visualViewport.addEventListener("scroll", updateVisualViewportVars, {passive:true});
+    window.visualViewport.addEventListener("scroll", updateDeviceClass, {passive:true});
   }
 
   // Performance instrumentation (disabled by default). Enable locally for profiling.
@@ -2073,8 +2094,8 @@ const f = state.filters;
     return n;
   }
 
-  function isPhoneLandscape(){
-    try{ return !!window.matchMedia && window.matchMedia("(orientation: landscape) and (max-height: 520px)").matches; }
+  function isPhone(){
+    try{ return document.documentElement.classList.contains("isPhone"); }
     catch(_){ return false; }
   }
 
@@ -2109,9 +2130,8 @@ const f = state.filters;
 
     const shown = Number(state.ui?.lastCount ?? 0);
     const plural = (active === 1) ? "Filter aktiv" : "Filter aktiv";
-    if (isPhoneLandscape()){
-      // Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
-      // nur einzeilig (spart Höhe, verhindert Abschneiden bei Browserbar + großer Schrift).
+    if (isPhone()){
+      // Phone (Portrait + Landscape): einzeilige Info spart Höhe und hält das Menü stabil.
       if (el.fabQuickInfoA) el.fabQuickInfoA.textContent = `${shown} Titel angezeigt · Filter aktiv: ${active}`;
       if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = "";
     }else{
@@ -2119,7 +2139,7 @@ const f = state.filters;
       if (el.fabQuickInfoB) el.fabQuickInfoB.textContent = `Filter aktiv: ${active}`;
     }
     el.fabQuickInfo.hidden = false;
-    // In Phone Landscape we only reserve a grid row when the info is visible.
+    // Reserve the grid row only when the info is visible.
     el.fabQuickPanel.classList.add("hasQuickInfo");
   }
 
