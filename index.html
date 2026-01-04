@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j61b" />
+    <meta name="app-build" content="7.1j61c" />
   <link rel="stylesheet" href="styles.css?v=7.1j61a" />
   <meta name="color-scheme" content="light dark" />
 </head>
@@ -140,6 +140,18 @@
     <div class="fabSect fabQuickMarks">
       <div class="fabLabel">Markierungen</div>
       <div id="fabMarkRow" class="chipRow fabChips" aria-label="Markierungen"></div>
+    </div>
+
+    <!-- Platzhalter (später): Darstellung / Detailtiefe (Kurz/Voll)
+         Standard: verborgen, damit Phone-Layouts nicht unnötig belastet werden.
+         Aktivieren: hidden entfernen und Logik in app.js ergänzen (gemäß Build-Plan: erst nach Toolbar).
+    -->
+    <div class="fabSect fabQuickDepth" hidden>
+      <div class="fabLabel">Darstellung</div>
+      <div id="fabDepthRow" class="chipRow fabChips" aria-label="Darstellung">
+        <button class="chip" type="button" disabled aria-disabled="true">Kurz</button>
+        <button class="chip" type="button" disabled aria-disabled="true">Voll</button>
+      </div>
     </div>
 
     <div class="fabActions">

@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61b loaded");
+console.log("Build 7.1j61c loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j61b loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61c").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -22,11 +22,18 @@ console.log("Build 7.1j61b loaded");
   function updateVisualViewportVars(){
     const vv = window.visualViewport;
     const h = (vv && typeof vv.height === "number") ? vv.height : window.innerHeight;
+    const ih = window.innerHeight;
+    // Some browsers keep innerHeight stale-ish while the address bar animates.
+    // The delta is still useful as a signal for "viewport chrome is visible".
+    const chromeDelta = (typeof ih === "number" && ih > 0) ? (ih - h) : 0;
     // 1% of the visible viewport height
     document.documentElement.style.setProperty("--vvh", `${h * 0.01}px`);
-    // Tight mode: when visible height is small, dock panels like in phone-landscape (overlap FAB stack).
-    // Threshold chosen to catch "browser bar visible" cases without affecting normal tall portrait.
-    document.documentElement.classList.toggle("vhTight", h < 720);
+    // Tight mode:
+    // - when visible height is small OR
+    // - when browser chrome is clearly eating into the viewport (address bar visible).
+    // This catches cases where h is still "large" (e.g. tall phones) but the menu still gets clipped.
+    const isTight = (h < 780) || (chromeDelta > 44);
+    document.documentElement.classList.toggle("vhTight", isTight);
   }
 
   // Initialize immediately + keep synced on bar show/hide.

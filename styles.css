@@ -988,6 +988,31 @@ html.vhTight .fabPanelQuick{
   width: auto;
 }
 
+/* Phone Portrait (kleine Breite): Schnellmenü immer als "gedocktes" Panel neben dem FAB-Stack.
+   Hintergrund: Mobile Browser-Chrome (Adressleiste) kann die sichtbare Höhe dynamisch ändern,
+   ohne dass `vh/dvh` sofort stabil nachzieht. Auf schmalen Phones ist Docking die robusteste
+   Variante und vermeidet abgeschnittene Inhalte.
+*/
+@media (orientation: portrait) and (max-width: 520px){
+  .fabPanelQuick{
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    max-height: none;
+    left: calc(14px * var(--uiScale));
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    width: auto;
+  }
+  .fabPanelQuick .fabActions{
+    position: sticky;
+    bottom: 0;
+    padding-top: calc(10px * var(--uiScale));
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+    border-top: 1px solid var(--border);
+    margin-top: calc(10px * var(--uiScale));
+  }
+}
+
 /* In Tight-Mode soll der große Aktionsbutton immer erreichbar bleiben (auch wenn gescrollt wird). */
 html.vhTight .fabPanelQuick .fabActions{
   position: sticky;
