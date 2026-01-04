@@ -163,14 +163,12 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 .subbar{
-  padding: 0 calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  /* A bit more air below the thin divider so the search field doesn't feel glued to it */
+  padding: calc(6px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
   display:flex;
   flex-direction:column;
   gap:calc(10px * var(--uiScale));
 }
-
-/* Give the global search a touch more breathing room below the header rule */
-.hdrRule + .subbar .searchRow{ margin-top: calc(6px * var(--uiScale)); }
 
 /* Kompakte Button-Variante (Chip-Look) */
 .btn.btn-compact{
@@ -178,69 +176,61 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   box-shadow: none;
 }
 
-.menuRow{width:min(820px, 100%);}
-.pills.pillsMain{width:min(820px, 100%);}
+/* Toolbar row (adaptive): button + results + xlsx + details */
+.toolbarRow{
+  width:min(820px, 100%);
+  display:flex;
+  align-items:center;
+  gap: calc(10px * var(--uiScale));
+}
+.toolbarRow #btnMenu{
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
-/* Make status pills feel like status (not big buttons) in the top toolbar */
-.pillsMain .pill{
+/* Smaller pill variant for compact toolbars */
+.pill.pill-sm{
   padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
+  font-size: calc(13px * var(--uiScale));
 }
+.pill .pillLabel{opacity:.75; margin-right: calc(6px * var(--uiScale));}
+.pill .pillCount{font-variant-numeric: tabular-nums;}
 
-/* Meta button (⋯) sits with the pills, subtle and consistent */
-.metaBtn{
-  width: calc(34px * var(--uiScale));
-  height: calc(34px * var(--uiScale));
-}
-.metaBtn.open{
+/* Meta details trigger (⋯) uses the same neutral icon style as the search help */
+.metaMore{display:flex; align-items:center;}
+.metaMore.open .searchHelpIcon{
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
   color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
 }
 
-/* Excel / Import inline panel (same interaction class as search help) */
-.excelInfoBody{
+/* Inline panel for Excel/Import details (opens below the toolbar row) */
+.fileMoreBody{
   width: min(820px, 100%);
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
-  color: color-mix(in oklab, var(--fg) 78%, var(--bg) 22%);
   border-radius: calc(14px * var(--uiScale));
   padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-  font-size: calc(13px * var(--uiScale));
-  line-height: 1.35;
 }
-.excelInfoTop{
+.fileMoreTop{
   display:flex;
   align-items:center;
   gap: calc(10px * var(--uiScale));
+  flex-wrap:wrap;
   margin-bottom: calc(8px * var(--uiScale));
 }
-.excelInfoTop .pill{ margin:0; }
-.excelInfoMeta{
-  display:flex;
-  flex-direction:column;
-  gap: calc(4px * var(--uiScale));
-}
-.excelFile{
-  font-weight:650;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.excelImport{
-  opacity:.72;
+
+/* Make the Excel button feel like a chip so it pairs nicely with the XLSX status pill */
+.fileMoreTop .btn.btn-compact{
+  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
 }
 
-/* Excel + Datei als kompakte, immer sichtbare Statuszeile */
-.fileStatus{
-  width:min(820px, 100%);
-  display:flex;
-  flex-wrap:wrap;
-  gap: calc(8px * var(--uiScale));
-  align-items:center;
-}
+/* Adaptive compaction: when space is tight (e.g. A+++), we hide secondary bits instead of wrapping */
+.toolbarRow.compact2 .pillLabel{display:none; margin-right:0;}
+.toolbarRow.compact2 #btnMenu{padding-left: calc(10px * var(--uiScale)); padding-right: calc(10px * var(--uiScale));}
+
+.fileMoreBody .fileName{display:block; margin-top: calc(2px * var(--uiScale));}
+.fileMoreBody .fileMeta{display:block; margin-top: calc(4px * var(--uiScale));}
 .fileName{
-  flex: 1 1 220px;
-  min-width: 140px;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -252,6 +242,11 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-size: calc(13px * var(--uiScale));
   opacity:.7;
 }
+
+/* Adaptive tightening: hide XLSX in the toolbar first, then shorten the Treffer label */
+.toolbarRow.compact1 #pillXlsxTop{display:none;}
+.toolbarRow.compact2 .pillLabel{display:none; margin-right:0;}
+.toolbarRow.compact2 #btnMenu{padding-left: calc(10px * var(--uiScale)); padding-right: calc(10px * var(--uiScale));}
 
 /* Search row + help icon (collapsed by default; reveals on tap) */
 .searchRow{

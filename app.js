@@ -58,14 +58,19 @@ console.log("Build 7.1j60 loaded");
     searchHelpBody: $("searchHelpBody"),
     menuSearchHelpBtn: $("menuSearchHelpBtn"),
     menuSearchHelpBody: $("menuSearchHelpBody"),
-    excelInfoBtn: $("excelInfoBtn"),
-    excelInfoBody: $("excelInfoBody"),
+
+    // Excel/Import details (inline like the search help)
+    fileMoreBtn: $("fileMoreBtn"),
+    fileMoreBody: $("fileMoreBody"),
+    fileMoreWrap: $("fileMore"),
     cards: $("cards"),
     viewToast: $("viewToast"),
     empty: $("empty"),
     pillFile: $("pillFile"),
     pillRows: $("pillRows"),
-    pillXlsx: $("pillXlsx"),
+    hitCount: $("hitCount"),
+    toolbarRow: $("toolbarRow"),
+    pillXlsxPanel: $("pillXlsxPanel"),
     pillImport: $("pillImport"),
     dlg: $("dlg"),
     btnClose: $("btnClose"),
@@ -170,6 +175,8 @@ console.log("Build 7.1j60 loaded");
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
     updateFabScaleUI();
+    // Layout-dependent (toolbar compaction)
+    queueToolbarCompactness();
   }
 
   function cycleScale(currentId){
@@ -202,6 +209,26 @@ console.log("Build 7.1j60 loaded");
       b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortField ? "true" : "false");
     }
   }
+
+  // --- UI: Adaptive toolbar compaction (keeps one line even on A+++) ---
+  let _toolbarT = 0;
+  function updateToolbarCompactness(){
+    const bar = el.toolbarRow;
+    if (!bar) return;
+    bar.classList.remove("compact2");
+    // If things don't fit (e.g. A+++), show only the number and slightly reduce button padding.
+    if (bar.scrollWidth > bar.clientWidth + 1) bar.classList.add("compact2");
+  }
+
+  function queueToolbarCompactness(){
+    window.clearTimeout(_toolbarT);
+    _toolbarT = window.setTimeout(() => {
+      // Use rAF to measure after layout settles.
+      requestAnimationFrame(updateToolbarCompactness);
+    }, 0);
+  }
+
+  window.addEventListener("resize", queueToolbarCompactness);
 
   
   // --- A11y: Fokus-Management für FAB-Menüs ---
@@ -859,9 +886,14 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
   }
 
   function pill(text, kind){
-    el.pillXlsx.textContent = "XLSX: " + text;
-    el.pillXlsx.classList.remove("pill-ok","pill-warn","pill-bad");
-    el.pillXlsx.classList.add(kind);
+    // XLSX status is shown in the toolbar when there is enough space,
+    // and always inside the Excel/Import details panel.
+    const targets = [el.pillXlsxPanel].filter(Boolean);
+    for (const t of targets){
+      t.textContent = "XLSX: " + text;
+      t.classList.remove("pill-ok","pill-warn","pill-bad");
+      t.classList.add(kind);
+    }
   }
 
   function findReminderColumn(headers){
@@ -2576,7 +2608,9 @@ function scheduleApplyAndRender(delayMs){
     });
 
     state.ui.lastCount = out.length;
-    el.pillRows.textContent = `Treffer: ${out.length}`;
+    if (el.hitCount) el.hitCount.textContent = String(out.length);
+    else if (el.pillRows) el.pillRows.textContent = `Treffer: ${out.length}`;
+    updateToolbarCompactness();
 
     // Compute once: used for hint-reset + Schnellmenü attention pulse.
     let sigNow = "";
@@ -3170,41 +3204,6 @@ function renderTrophyDetails(row){
   el.btnLoad.addEventListener("click", openFilePicker);
   el.btnLoad2.addEventListener("click", openFilePicker);
 
-  // Excel / import details: collapsed by default, reveal on tap (like search help)
-  function setExcelInfoOpen(isOpen){
-    const modalOpen = document.documentElement.classList.contains("modalOpen");
-    if (el.excelInfoBody) el.excelInfoBody.hidden = modalOpen ? true : !isOpen;
-    if (el.excelInfoBtn) el.excelInfoBtn.setAttribute("aria-expanded", String(isOpen));
-    if (el.excelInfoBtn) el.excelInfoBtn.classList.toggle("open", (!modalOpen && isOpen));
-  }
-
-  function isExcelInfoOpen(){
-    return el.excelInfoBody ? !el.excelInfoBody.hidden : false;
-  }
-
-  function toggleExcelInfo(){
-    setExcelInfoOpen(!isExcelInfoOpen());
-  }
-
-  if (el.excelInfoBtn && el.excelInfoBody){
-    el.excelInfoBtn.addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      toggleExcelInfo();
-    });
-
-    // Close when tapping outside
-    document.addEventListener("click", (ev) => {
-      if (!isExcelInfoOpen()) return;
-      const t = ev.target;
-      if (!(t instanceof Element)) return;
-      if (t.closest("#excelInfoBody") || t.closest("#excelInfoBtn")) return;
-      setExcelInfoOpen(false);
-    }, { passive:true });
-
-    // Predictable initial state
-    setExcelInfoOpen(false);
-  }
-
   // Search help: collapsed by default, reveal on tap (mirrored for menu + header)
   // One "open" flag per context: if the menu dialog is open, show help inside the menu;
   // otherwise show it below the global search in the header.
@@ -3241,41 +3240,20 @@ function renderTrophyDetails(row){
     setSearchHelpOpen(false);
   }
 
-  // Excel / Import details: inline disclosure under the status pills.
-  // Uses a neutral "more" button (⋯) so it doesn't clash with the search help icon.
-  function setExcelInfoOpen(isOpen){
+  // Excel/Import details: collapsed by default, reveal inline below the toolbar.
+  function setFileMoreOpen(isOpen){
     const modalOpen = document.documentElement.classList.contains("modalOpen");
-    if (el.excelInfoBody) el.excelInfoBody.hidden = modalOpen ? true : !isOpen;
-    if (el.excelInfoBtn) el.excelInfoBtn.setAttribute("aria-expanded", String(isOpen));
-    if (el.excelInfoBtn) el.excelInfoBtn.classList.toggle("open", (!modalOpen && isOpen));
+    if (el.fileMoreBody) el.fileMoreBody.hidden = modalOpen ? true : !isOpen;
+    if (el.fileMoreBtn) el.fileMoreBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.fileMoreWrap) el.fileMoreWrap.classList.toggle("open", (!modalOpen && isOpen));
   }
-
-  function toggleExcelInfo(){
-    const isOpen = el.excelInfoBody ? !el.excelInfoBody.hidden : false;
-    // Close search help if it's open to avoid stacking two inline panels.
-    if (!isOpen){
-      if (el.searchHelpBody && !el.searchHelpBody.hidden) setSearchHelpOpen(false);
-      if (el.menuSearchHelpBody && !el.menuSearchHelpBody.hidden) setSearchHelpOpen(false);
-    }
-    setExcelInfoOpen(!isOpen);
+  function toggleFileMore(){
+    const isOpen = el.fileMoreBody ? !el.fileMoreBody.hidden : false;
+    setFileMoreOpen(!isOpen);
   }
-
-  if (el.excelInfoBtn && el.excelInfoBody){
-    el.excelInfoBtn.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      toggleExcelInfo();
-    });
-    // Close when tapping outside.
-    document.addEventListener("click", (ev) => {
-      if (!el.excelInfoBody || el.excelInfoBody.hidden) return;
-      const t = ev.target;
-      if (t instanceof Node){
-        if (el.excelInfoBody.contains(t) || el.excelInfoBtn.contains(t)) return;
-      }
-      setExcelInfoOpen(false);
-    }, {passive:true});
-    setExcelInfoOpen(false);
+  if (el.fileMoreBtn && el.fileMoreBody){
+    el.fileMoreBtn.addEventListener("click", toggleFileMore);
+    setFileMoreOpen(false);
   }
 
   el.file.addEventListener("change", async () => {
@@ -3357,6 +3335,9 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   function setModalOpen(isOpen){
     const html = document.documentElement;
     if (isOpen){
+      // Close inline helper panels in the header when the modal opens.
+      try{ if (typeof setSearchHelpOpen === "function") setSearchHelpOpen(false); }catch(_){/* ignore */}
+      try{ if (typeof setFileMoreOpen === "function") setFileMoreOpen(false); }catch(_){/* ignore */}
       _savedScrollY = window.scrollY || html.scrollTop || 0;
       html.classList.add("modalOpen");
       // Freeze the page
@@ -3376,6 +3357,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
       const y = _savedScrollY || 0;
       _savedScrollY = 0;
       window.scrollTo(0, y);
+      // Re-check toolbar compaction after layout changes.
+      queueToolbarCompactness();
     }
   }
 
@@ -3556,9 +3539,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
     }
   });
 
-  // Init pill
-  el.pillXlsx.textContent = "XLSX: bereit";
-  el.pillXlsx.classList.add("pill-ok");
+  // Init XLSX status
+  pill("bereit", "pill-ok");
 
   // Guard: show warning if xlsx lib missing after load
   window.addEventListener("load", () => {

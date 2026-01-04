@@ -33,25 +33,26 @@
         id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
       </div>
 
-      <div class="menuRow">
+      <!-- Werkzeugzeile (adaptiv): Filtern/Sortieren + Treffer + XLSX + Details (⋯) -->
+      <div id="toolbarRow" class="toolbarRow" aria-label="Filter, Sortierung und Status">
         <button id="btnMenu" class="btn btn-compact btn-primary">Filtern &amp; Sortieren</button>
+        <span id="pillRows" class="pill pill-sm" aria-label="Treffer">
+          <span class="pillLabel">Treffer:</span>
+          <span id="hitCount" class="pillCount">—</span>
+        </span>
+        <div id="fileMore" class="metaMore" aria-label="Excel Details">
+          <button id="fileMoreBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Excel-Details">⋯</button>
+        </div>
       </div>
 
-      <div class="pills pillsMain" aria-label="Treffer und Status">
-        <span id="pillRows" class="pill">Treffer: —</span>
-        <button id="excelInfoBtn" class="searchHelpIcon metaBtn" type="button" aria-expanded="false" aria-label="Excel und Importdetails">⋯</button>
-      </div>
-
-      <!-- Excel / Import Details (wie Suchhilfe: klappt inline darunter auf) -->
-      <div id="excelInfoBody" class="excelInfoBody" hidden>
-        <div class="excelInfoTop">
+      <!-- Excel/Import Details (wie Suchhilfe: klappt inline darunter auf) -->
+      <div id="fileMoreBody" class="fileMoreBody" hidden>
+        <div class="fileMoreTop">
           <button id="btnLoad" class="btn btn-compact" type="button">Excel laden</button>
-          <span id="pillXlsx" class="pill pill-ok">XLSX: —</span>
+          <span id="pillXlsxPanel" class="pill pill-sm pill-ok">XLSX: —</span>
         </div>
-        <div class="excelInfoMeta">
-          <div id="pillFile" class="excelFile">—</div>
-          <div id="pillImport" class="excelImport">Importiert: —</div>
-        </div>
+        <div id="pillFile" class="fileName">—</div>
+        <div id="pillImport" class="fileMeta">Importiert: —</div>
       </div>
     </div>
 
