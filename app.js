@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j60 loaded");
+console.log("Build 7.1j60b loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j60 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60b").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3204,25 +3204,78 @@ function renderTrophyDetails(row){
   el.btnLoad.addEventListener("click", openFilePicker);
   el.btnLoad2.addEventListener("click", openFilePicker);
 
-  // Search help: collapsed by default, reveal on tap (mirrored for menu + header)
-  // One "open" flag per context: if the menu dialog is open, show help inside the menu;
-  // otherwise show it below the global search in the header.
+  // ---------------------------------------------------------------------------
+  // Popovers (schwebend, ohne Layout-Shift)
+  // - Header-Suchhilfe (ⓘ): als Popover
+  // - Excel/Import (⋯): als Popover
+  // - Menü-Suchhilfe (ⓘ im Dialog): bleibt inline wie bisher
+  // ---------------------------------------------------------------------------
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const isShown = (node) => !!(node && !node.hidden);
+
+  function positionPopover(pop, anchor){
+    if (!pop || !anchor) return;
+    const pad = 12;
+    const gap = 8;
+    // Reset to allow correct measuring
+    pop.style.left = "0px";
+    pop.style.top = "0px";
+    const a = anchor.getBoundingClientRect();
+    const r = pop.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+
+    let left = clamp(a.left, pad, Math.max(pad, vw - r.width - pad));
+    let top = a.bottom + gap;
+    // Flip above if we would overflow below.
+    if (top + r.height + pad > vh){
+      const above = a.top - gap - r.height;
+      top = clamp(above, pad, Math.max(pad, vh - r.height - pad));
+    }
+
+    pop.style.left = `${Math.round(left)}px`;
+    pop.style.top = `${Math.round(top)}px`;
+  }
+
+  function closeHeaderPopovers(){
+    try{ setSearchHelpOpen(false); }catch(_){/* ignore */}
+    try{ setFileMoreOpen(false); }catch(_){/* ignore */}
+  }
+
+  // Search help: header = popover, menu = inline
   function setSearchHelpOpen(isOpen){
     const modalOpen = document.documentElement.classList.contains("modalOpen");
     const headerWrap = document.getElementById("searchHelp");
     const menuWrap = document.getElementById("menuSearchHelp");
 
-    // Bodies: only show the one that belongs to the current context.
-    if (el.searchHelpBody) el.searchHelpBody.hidden = modalOpen ? true : !isOpen;
-    if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = modalOpen ? !isOpen : true;
+    if (modalOpen){
+      // Dialog context: show inline help in the sheet.
+      if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = !isOpen;
+      if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+      if (menuWrap) menuWrap.classList.toggle("open", isOpen);
 
-    // Buttons: keep aria-expanded in sync (useful for a11y, regardless of visibility)
+      // Always hide header popover while the modal is open.
+      if (el.searchHelpBody) el.searchHelpBody.hidden = true;
+      if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", "false");
+      if (headerWrap) headerWrap.classList.remove("open");
+      return;
+    }
+
+    // Header context: show popover.
+    if (el.searchHelpBody) el.searchHelpBody.hidden = !isOpen;
     if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", String(isOpen));
-    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", String(isOpen));
+    if (headerWrap) headerWrap.classList.toggle("open", isOpen);
 
-    // Visual "open" state on wrappers (again, regardless of visibility)
-    if (headerWrap) headerWrap.classList.toggle("open", (!modalOpen && isOpen));
-    if (menuWrap) menuWrap.classList.toggle("open", (modalOpen && isOpen));
+    // Ensure the dialog help is closed when not in modal context.
+    if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = true;
+    if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", "false");
+    if (menuWrap) menuWrap.classList.remove("open");
+
+    if (isOpen){
+      // Only one popover at a time.
+      setFileMoreOpen(false);
+      window.requestAnimationFrame(() => positionPopover(el.searchHelpBody, el.searchHelpBtn));
+    }
   }
 
   function toggleSearchHelp(){
@@ -3232,20 +3285,24 @@ function renderTrophyDetails(row){
     setSearchHelpOpen(!isOpen);
   }
 
-  // Bind both buttons (header + menu) to the same toggle.
   if ((el.searchHelpBtn && el.searchHelpBody) || (el.menuSearchHelpBtn && el.menuSearchHelpBody)){
     if (el.searchHelpBtn) el.searchHelpBtn.addEventListener("click", toggleSearchHelp);
     if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.addEventListener("click", toggleSearchHelp);
-    // Ensure a predictable initial state.
     setSearchHelpOpen(false);
   }
 
-  // Excel/Import details: collapsed by default, reveal inline below the toolbar.
+  // Excel/Import details: popover anchored to ⋯
   function setFileMoreOpen(isOpen){
     const modalOpen = document.documentElement.classList.contains("modalOpen");
     if (el.fileMoreBody) el.fileMoreBody.hidden = modalOpen ? true : !isOpen;
-    if (el.fileMoreBtn) el.fileMoreBtn.setAttribute("aria-expanded", String(isOpen));
+    if (el.fileMoreBtn) el.fileMoreBtn.setAttribute("aria-expanded", String(!modalOpen && isOpen));
     if (el.fileMoreWrap) el.fileMoreWrap.classList.toggle("open", (!modalOpen && isOpen));
+
+    if (!modalOpen && isOpen){
+      // Only one popover at a time.
+      setSearchHelpOpen(false);
+      window.requestAnimationFrame(() => positionPopover(el.fileMoreBody, el.fileMoreBtn));
+    }
   }
   function toggleFileMore(){
     const isOpen = el.fileMoreBody ? !el.fileMoreBody.hidden : false;
@@ -3255,6 +3312,41 @@ function renderTrophyDetails(row){
     el.fileMoreBtn.addEventListener("click", toggleFileMore);
     setFileMoreOpen(false);
   }
+
+  // Close popovers on outside click / ESC / scroll.
+  document.addEventListener("pointerdown", (ev) => {
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (modalOpen) return; // menu keeps its inline behavior
+    const t = ev.target;
+    const shOpen = isShown(el.searchHelpBody);
+    const fmOpen = isShown(el.fileMoreBody);
+    if (!shOpen && !fmOpen) return;
+
+    if (shOpen && (el.searchHelpBody.contains(t) || (el.searchHelpBtn && el.searchHelpBtn.contains(t)))) return;
+    if (fmOpen && (el.fileMoreBody.contains(t) || (el.fileMoreBtn && el.fileMoreBtn.contains(t)))) return;
+    closeHeaderPopovers();
+  }, {capture:true});
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (modalOpen) return; // dialog handles its own Escape
+    if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();
+  });
+
+  window.addEventListener("scroll", () => {
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (modalOpen) return;
+    if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();
+  }, {passive:true});
+
+  const repositionIfOpen = () => {
+    const modalOpen = document.documentElement.classList.contains("modalOpen");
+    if (modalOpen) return;
+    if (isShown(el.searchHelpBody)) positionPopover(el.searchHelpBody, el.searchHelpBtn);
+    if (isShown(el.fileMoreBody)) positionPopover(el.fileMoreBody, el.fileMoreBtn);
+  };
+  window.addEventListener("resize", repositionIfOpen, {passive:true});
 
   el.file.addEventListener("change", async () => {
     const f = el.file.files?.[0];

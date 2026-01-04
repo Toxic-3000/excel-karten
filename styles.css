@@ -203,7 +203,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
 }
 
-/* Inline panel for Excel/Import details (opens below the toolbar row) */
+/* Panel for Excel/Import details (shown as popover via JS) */
 .fileMoreBody{
   width: min(820px, 100%);
   border:1px solid var(--border);
@@ -222,6 +222,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 /* Make the Excel button feel like a chip so it pairs nicely with the XLSX status pill */
 .fileMoreTop .btn.btn-compact{
   padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-size: calc(13px * var(--uiScale));
 }
 
 /* Adaptive compaction: when space is tight (e.g. A+++), we hide secondary bits instead of wrapping */
@@ -301,6 +302,28 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-size: calc(12.5px * var(--uiScale));
   line-height: 1.35;
 }
+
+/* Popovers (schwebend, ohne Layout-Shift)
+   - Wird für die Suchhilfe im Header und den Excel/Import-Bereich (⋯) genutzt.
+   - Menü-Suchhilfe bleibt inline (ohne .popover-Klasse). */
+.popover{
+  position: fixed;
+  z-index: 60;
+  /* left/top werden per JS am Anker ausgerichtet */
+  left: 12px;
+  top: 72px;
+  box-shadow: 0 16px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.searchHelpBody.popover,
+.fileMoreBody.popover{
+  width: auto; /* override "min(820px, 100%)" panels */
+  max-width: min(560px, calc(100vw - 24px));
+  min-width: min(300px, calc(100vw - 24px));
+}
+.searchHelpBody.popover{ pointer-events:auto; }
+.fileMoreBody.popover{ pointer-events:auto; }
 
 
 /* Systemhinweise: bleiben im Normalbetrieb unsichtbar, erscheinen nur bei echten Fehlern */

@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-    <meta name="app-build" content="7.1j60" />
-  <link rel="stylesheet" href="styles.css?v=7.1j60" />
+    <meta name="app-build" content="7.1j60b" />
+  <link rel="stylesheet" href="styles.css?v=7.1j60b" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -29,8 +29,14 @@
           <button id="searchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
         </div>
       </div>
-      <div id="searchHelpBody" class="searchHelpBody" hidden>
-        id=643 · titel:metro · genre:"Action Adventure" · sg:horror · dev:remedy · p:ps5 · quelle:psn · verfügbarkeit:delisted · -genre:sport
+      <div id="searchHelpBody" class="searchHelpBody popover" hidden>
+        <strong>Kombinierte Suche</strong><br>
+        Mehrere Suchbegriffe können frei kombiniert werden.<br><br>
+        <strong>Suchfelder:</strong><br>
+        ID · Titel · Entwickler · Genre · Subgenre · Plattform · Quelle · Verfügbarkeit<br><br>
+        <strong>Beispiel:</strong><br>
+        Entwickler: Naughty Dog · Genre: Action<br>
+        <span class="muted">Ausschließen:</span> -Genre: Sport
       </div>
 
       <!-- Werkzeugzeile (adaptiv): Filtern/Sortieren + Treffer + XLSX + Details (⋯) -->
@@ -46,7 +52,7 @@
       </div>
 
       <!-- Excel/Import Details (wie Suchhilfe: klappt inline darunter auf) -->
-      <div id="fileMoreBody" class="fileMoreBody" hidden>
+      <div id="fileMoreBody" class="fileMoreBody popover" role="dialog" aria-label="Excel &amp; Import" hidden>
         <div class="fileMoreTop">
           <button id="btnLoad" class="btn btn-compact" type="button">Excel laden</button>
           <span id="pillXlsxPanel" class="pill pill-sm pill-ok">XLSX: —</span>
@@ -313,7 +319,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=7.1j60" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=7.1j60b" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=7.1j60b" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
