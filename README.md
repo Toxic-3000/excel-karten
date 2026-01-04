@@ -1,10 +1,15 @@
-# Spieleliste – Webansicht (Build 7.1j60b)
+# Spieleliste – Webansicht (Build 7.1j60d)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j60b)
+## Änderungen in diesem Build (7.1j60d)
+
+- Suche: Feldgebundene Suche erweitert um **Beschreibung** und **Eastereggs** (Tokens: `Beschreibung:` / `Eastereggs:`).
+  - Suchhilfe-Listen wurden entsprechend ergänzt.
+
+## Änderungen in früheren Builds
 
 - Header / Kartenansicht oben kompakter (basierend auf 7.1j59)
   - Titel + Build-Label in **einer Zeile** (+ dünne Trennlinie)

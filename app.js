@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j60c loaded");
+console.log("Build 7.1j60d loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j60c loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60d").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -669,6 +669,16 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     entwickler: "dev",
     developer: "dev",
     dev: "dev",
+    beschreibung: "desc",
+    kurzbeschreibung: "desc",
+    beschr: "desc",
+    beschrieb: "desc",
+    description: "desc",
+    desc: "desc",
+    eastereggs: "easter",
+    easteregg: "easter",
+    easter: "easter",
+    eggs: "easter",
     quelle: "source",
     source: "source",
     verfügbarkeit: "avail",
@@ -794,6 +804,10 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         return mode === "eq" ? (normSearch(r[COL.sub]) === v) : normSearch(r[COL.sub]).includes(v);
       case "dev":
         return mode === "eq" ? (normSearch(r[COL.dev]) === v) : normSearch(r[COL.dev]).includes(v);
+      case "desc":
+        return mode === "eq" ? (normSearch(r[COL.desc]) === v) : normSearch(r[COL.desc]).includes(v);
+      case "easter":
+        return mode === "eq" ? (normSearch(r[COL.easter]) === v) : normSearch(r[COL.easter]).includes(v);
       case "source":
         return mode === "eq" ? (normSearch(r[COL.source]) === v) : normSearch(r[COL.source]).includes(v);
       case "avail":
