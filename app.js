@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j60b loaded");
+console.log("Build 7.1j60c loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j60b loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60c").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -184,6 +184,11 @@ console.log("Build 7.1j60b loaded");
     return UI_SCALES[(idx + 1) % UI_SCALES.length].id;
   }
 
+  // --- UI: Adaptive toolbar compaction timer ---
+  // NOTE: Must be initialized BEFORE applyScale() runs during startup.
+  // applyScale() calls queueToolbarCompactness(), which touches this timer.
+  let _toolbarT = 0;
+
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
 
@@ -211,7 +216,6 @@ console.log("Build 7.1j60b loaded");
   }
 
   // --- UI: Adaptive toolbar compaction (keeps one line even on A+++) ---
-  let _toolbarT = 0;
   function updateToolbarCompactness(){
     const bar = el.toolbarRow;
     if (!bar) return;
