@@ -1000,6 +1000,17 @@ html.isPhone .fabPanelQuick{
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
   width: auto;
 }
+/* Phone: Schnellmenü-Header bleibt beim Scrollen sichtbar (Close immer erreichbar). */
+html.isPhone .fabPanelQuick .fabHead{
+  position: sticky;
+  /* Panel hat Padding – mit negativem Offset „kleben“ wir am inneren Rand */
+  top: calc(-12px * var(--uiScale));
+  margin-top: calc(-12px * var(--uiScale));
+  padding-top: calc(12px * var(--uiScale));
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  z-index: 2;
+}
+
 html.isPhone .fabPanelQuick .fabActions{
   position: sticky;
   bottom: 0;
@@ -1804,7 +1815,7 @@ html.modalOpen body{touch-action:none;}
      Idee: In Phone-Landscape ist Höhe knapp, Breite da.
      Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
      Portrait bleibt unberührt. */
-  .fabPanelQuick{
+  html.isNonPhone .fabPanelQuick{
     /* Der FAB (≡) ist nur Trigger – das Schnellmenü lebt als stabiles Dock.
        Damit gibt es keine Kollision mehr mit Header/Browserbar, auch wenn
        Mobile-UI den Viewport in Landscape minimal verschiebt. */
@@ -1832,39 +1843,39 @@ html.modalOpen body{touch-action:none;}
     /* Schriftgröße wird im allgemeinen Phone-Landscape-Block (.fabPanelQuick) fest gelegt.
        Hier keine zusätzliche Skalierung, damit es konsistent bleibt. */
   }
-  .fabPanelQuick > .fabHead{ grid-area: head; }
-  .fabPanelQuick > .fabSect{ margin-top: 0; }
-  .fabPanelQuick > .fabQuickField{ grid-area: field; }
-  .fabPanelQuick > .fabQuickDir{ grid-area: dir; }
-  .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
-  .fabPanelQuick > .fabActions{
+  html.isNonPhone .fabPanelQuick > .fabHead{ grid-area: head; }
+  html.isNonPhone .fabPanelQuick > .fabSect{ margin-top: 0; }
+  html.isNonPhone .fabPanelQuick > .fabQuickField{ grid-area: field; }
+  html.isNonPhone .fabPanelQuick > .fabQuickDir{ grid-area: dir; }
+  html.isNonPhone .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
+  html.isNonPhone .fabPanelQuick > .fabActions{
     grid-area: act;
     margin-top: 0;
     justify-content: stretch;
   }
-  .fabPanelQuick #fabOpenMenu{ width: 100%; }
+  html.isNonPhone .fabPanelQuick #fabOpenMenu{ width: 100%; }
 
   /* Optional info row: only reserve a row when the info is actually visible */
-  .fabPanelQuick.hasQuickInfo{
+  html.isNonPhone .fabPanelQuick.hasQuickInfo{
     grid-template-areas:
       "head head"
       "info info"
       "field dir"
       "act act";
   }
-  .fabPanelQuick.hasQuickInfo > .quickInfo{ grid-area: info; }
+  html.isNonPhone .fabPanelQuick.hasQuickInfo > .quickInfo{ grid-area: info; }
 
   /* Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
      aber einzeilig (spart Höhe, verhindert Abschneiden). */
-  .fabPanelQuick.hasQuickInfo > .quickInfo{ margin-top: 0; }
-  .fabPanelQuick .quickInfoB{ display: none !important; }
+  html.isNonPhone .fabPanelQuick.hasQuickInfo > .quickInfo{ margin-top: 0; }
+  html.isNonPhone .fabPanelQuick .quickInfoB{ display: none !important; }
 
 
 
   /* --- Build 7.1j12 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
      Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
      Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
-  .fabPanelText{
+  html.isNonPhone .fabPanelText{
     left: calc(14px * var(--uiScale));
     right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
     bottom: calc(14px * var(--uiScale));
@@ -1872,22 +1883,22 @@ html.modalOpen body{touch-action:none;}
     max-height: calc(100dvh - 28px);
   }
   /* Chip-Reihen im Schnellmenü: als Grid, damit weniger Wrap-Höhe entsteht */
-  #fabSortFieldRow{
+  html.isNonPhone #fabSortFieldRow{
     display:grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
   }
-  #fabSortDirRow{
+  html.isNonPhone #fabSortDirRow{
     display:grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
   }
-  #fabSortFieldRow .chip,
-  #fabSortDirRow .chip{
+  html.isNonPhone #fabSortFieldRow .chip,
+  html.isNonPhone #fabSortDirRow .chip{
     width: 100%;
     justify-content: center;
   }
-  .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
+  html.isNonPhone .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
 }
 
 /* --- Responsive: Desktop readability --- */
