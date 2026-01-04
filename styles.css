@@ -1116,9 +1116,10 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "depth depth"
       "field field"
-      "dir marks"
+      "dir dir"
+      "marks marks"
+      "depth depth"
       "action action";
     column-gap: 12px;
     row-gap: 10px;
@@ -1233,9 +1234,10 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "depth depth"
       "field field"
-      "dir marks"
+      "dir dir"
+      "marks marks"
+      "depth depth"
       "action action";
     column-gap: calc(16px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
@@ -1397,6 +1399,24 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .fabChips .chip{
   min-width: clamp(86px, 16vw, 130px);
   justify-content: center;
+}
+
+/* Schnellmenü: 2er-Gruppen immer gleich breit (Auf/Ab, An/Aus, Kompakt/Detail) */
+#fabQuickSortDirChips,
+#fabQuickMarksChips,
+#fabQuickDepthChips{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(10px * var(--uiScale));
+}
+#fabQuickSortDirChips .chip,
+#fabQuickMarksChips .chip,
+#fabQuickDepthChips .chip{
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
 }
 
 
