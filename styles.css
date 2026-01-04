@@ -4,7 +4,8 @@
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
 */
 :root{
-  --uiScale: 1;
+  --uiScaleRaw: 1;
+  --uiScale: var(--uiScaleRaw);
 
   /* Floating buttons */
   --fabEdge: 12px;
@@ -957,6 +958,13 @@ summary::-webkit-details-marker{display:none}
 /* Quick-Panel: Bottom-Offset als Custom Property, damit wir in kritischen Fällen
    (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
 .fabPanelQuick{
+  /* Schnellmenü: eigene Skalierung (reagiert auf Aa/A+, aber mit hartem Maximalwert).
+     Dadurch bleiben die Menüs stabil, während Karten weiter voll skalieren dürfen. */
+  --uiScaleCapped: clamp(1, var(--uiScaleRaw), 1.06);
+  --uiScale: var(--uiScaleCapped);
+
+  /* Quick-Panel: Bottom-Offset als Custom Property, damit wir in kritischen Fällen
+     (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
   --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
   bottom: var(--panelBottomQuick);
 }
@@ -990,32 +998,50 @@ summary::-webkit-details-marker{display:none}
     width: auto !important;
     padding: 10px !important;
 
-    /* Schnellmenü bleibt vom Aa-Slider entkoppelt (nur hier). */
-    font-size: 14.5px !important;
+    /* Schnellmenü bleibt stabil: Skalierung wird über --uiScale (clamp) gedeckelt. */
     line-height: 1.3 !important;
 
     /* Verhindert, dass das Grid freie Höhe auf die Reihen verteilt und dadurch
        der Footer-Button „unnötig groß“ gestreckt wird (v.a. wenn keine Info-Box da ist). */
+
+    /* Control-Grid: alle Blöcke gleichwertig (Sortierung / Markierungen) */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "head head"
+      "info info"
+      "field field"
+      "dir marks"
+      "action action";
+    column-gap: 12px;
+    row-gap: 10px;
+
     align-content: start !important;
     align-items: start !important;
   }
-  .fabPanelQuick .fabHead{ gap: 10px !important; padding-bottom: 6px !important; }
+  .fabPanelQuick .fabHead{ grid-area: head; gap: 10px !important; padding-bottom: 6px !important; }
   .fabPanelQuick .fabTitle{ font-size: 17px !important; }
   .fabPanelQuick .fabClose{ padding: 6px 10px !important; }
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
-  .fabPanelQuick .quickInfo{ margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
+  .fabPanelQuick .quickInfo{ grid-area: info; margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
   .fabPanelQuick .quickInfoText{ min-width:0 !important; }
   .fabPanelQuick .quickInfoA{ font-size: 13.5px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
   .fabPanelQuick .quickReset{ font-size: 16px !important; padding: 5px !important; }
   .fabPanelQuick .quickInfoB{ display:none !important; }
+
+  /* Grid-Areas (Phone-Landscape): alle Control-Blöcke auf einer visuellen Ebene */
+  .fabPanelQuick .fabQuickField{ grid-area: field; margin-top: 0 !important; }
+  .fabPanelQuick .fabQuickDir{ grid-area: dir; margin-top: 0 !important; }
+  .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 !important; }
+
 
   .fabPanelQuick .fabSect{ margin-top: 8px !important; }
   .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   .fabPanelQuick .fabChips{ gap: 8px !important; }
   .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; }
 
-  .fabPanelQuick .fabActions{ margin-top: 6px !important; justify-content: flex-end !important; }
+  .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: flex-end !important; justify-self: end !important; }
   .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
   .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
 
@@ -1057,11 +1083,12 @@ summary::-webkit-details-marker{display:none}
     width: auto;
     display: grid;
     /* rechte Spalte etwas großzügiger (damit Auf/Ab nicht umbrechen) */
-    grid-template-columns: 1.35fr .65fr;
+    grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "head head"
       "info info"
-      "field dir"
+      "field field"
+      "dir marks"
       "action action";
     column-gap: calc(16px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
@@ -1075,6 +1102,7 @@ summary::-webkit-details-marker{display:none}
   .fabPanelQuick .quickInfo{ grid-area: info; margin-top: 0; }
   .fabPanelQuick .fabQuickField{ grid-area: field; margin-top: 0; }
   .fabPanelQuick .fabQuickDir{ grid-area: dir; margin-top: 0; }
+  .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0; }
   .fabPanelQuick .fabActions{ grid-area: action; justify-self: end; margin-top: 0; }
 
   /* Button: nicht full-width, rechts unten im Panel */
@@ -1104,6 +1132,14 @@ summary::-webkit-details-marker{display:none}
   #fabSortDirRow .chip svg{ width: calc(18px * var(--uiScale)); height: calc(18px * var(--uiScale)); }
 }
 
+/* Schnellmenü: Control-Buttons immer 2-spaltig (gleichwertige Blöcke) */
+#fabSortDirRow,
+#fabMarkRow{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(10px * var(--uiScale));
+}
+
 .fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 
@@ -1123,6 +1159,21 @@ summary::-webkit-details-marker{display:none}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
 .fabChips{gap: calc(10px * var(--uiScale));}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
+
+/* Schnellmenü: Control-Grid (2 Buttons pro Block) */
+#fabSortDirRow,
+#fabMarkRow{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(10px * var(--uiScale));
+}
+#fabSortDirRow .chip,
+#fabMarkRow .chip{
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
 
 /* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar) */
@@ -1718,6 +1769,7 @@ html.modalOpen body{touch-action:none;}
   .fabPanelQuick > .fabSect{ margin-top: 0; }
   .fabPanelQuick > .fabQuickField{ grid-area: field; }
   .fabPanelQuick > .fabQuickDir{ grid-area: dir; }
+  .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
   .fabPanelQuick > .fabActions{
     grid-area: act;
     margin-top: 0;
