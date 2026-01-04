@@ -11,7 +11,7 @@ console.log("Build 7.1j60d loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60d").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j60e").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -51,6 +51,7 @@ console.log("Build 7.1j60d loaded");
     fabQuickReset: $("fabQuickReset"),
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
+    fabMarkRow: $("fabMarkRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -212,6 +213,15 @@ console.log("Build 7.1j60d loaded");
     if (!el.fabSortFieldRow) return;
     for (const b of el.fabSortFieldRow.querySelectorAll(".chip")){
       b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortField ? "true" : "false");
+    }
+  }
+
+  function updateFabMarkUI(){
+    if (!el.fabMarkRow) return;
+    const on = !!state.ui?.highlights;
+    for (const b of el.fabMarkRow.querySelectorAll('.chip')){
+      const k = b.getAttribute('data-key');
+      b.setAttribute('aria-pressed', (on && k === 'on') || (!on && k === 'off') ? 'true' : 'false');
     }
   }
 
@@ -394,6 +404,15 @@ function closeFabText(){
       ].join("");
     }
 
+    // Build mark/highlight toggle (visual only, not a filter)
+    if (el.fabMarkRow){
+      const on = !!state.ui?.highlights;
+      el.fabMarkRow.innerHTML = [
+        chipHtml("quickMarks", "on", "An", on),
+        chipHtml("quickMarks", "off", "Aus", !on),
+      ].join("");
+    }
+
     // Build quick sort field chips (compact subset)
     if (el.fabSortFieldRow){
       const quick = [
@@ -455,6 +474,15 @@ function closeFabText(){
           saveSortPrefs();
           updateFabSortUI();
           applyAndRender();
+          return;
+        }
+        if (group === "quickMarks"){
+          const next = (key === "on");
+          if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false };
+          state.ui.highlights = next;
+          updateFabMarkUI();
+          // Apply/remove highlights only in visible (opened) text areas.
+          try{ syncOpenTextHighlights(); }catch(_){/* ignore */}
           return;
         }
       });
@@ -559,7 +587,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     reminderCol: null,
     fileName: null,
     importedAt: 0,
-    ui: { lastCount: 0, lastFilterSig: "" },
+    ui: { lastCount: 0, lastFilterSig: "", highlights: false },
   };
 
   // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
@@ -3094,6 +3122,9 @@ function classifyAvailability(av){
       if (!label) return;
       const base = label.getAttribute("data-label") || "";
       label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
+
+      // Optional: apply/remove search term highlights in large text blocks (lazy, on open).
+      try{ syncHighlightsForDetails(det); }catch(_){/* ignore */}
     }, true);
   }
   function syncDetailsSummaryLabels(root){
@@ -3105,6 +3136,110 @@ function classifyAvailability(av){
         const base = label.getAttribute("data-label") || "";
         label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
       }
+    }catch(_){/* ignore */}
+  }
+
+  // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
+  function _escapeRegExp(s){
+    return String(s ?? "").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function getActiveHighlightTokens(){
+    const qRaw = String(state.q ?? "");
+    if (!qRaw.trim()) return [];
+    const sq = parseStructuredQuery(qRaw);
+    const toks = [];
+    // structured terms (ignore exclusions)
+    for (const t of (sq.terms || [])){
+      if (t && !t.neg && t.value) toks.push(String(t.value));
+    }
+    // free-text tokens (AND semantics)
+    const free = String(sq.free ?? "").trim();
+    if (free){
+      for (const part of free.split(/\s+/).filter(Boolean)) toks.push(part);
+    }
+
+    // Normalize: unique (case-insensitive), skip ultra-short + pure numbers.
+    const seen = new Set();
+    const out = [];
+    for (const raw of toks){
+      const t = String(raw ?? "").trim();
+      if (!t) continue;
+      if (t.length < 2) continue;
+      if (/^\d+$/.test(t)) continue;
+      const k = t.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(t);
+      if (out.length >= 30) break; // hard cap (perf + sanity)
+    }
+    // Prefer longer tokens first to reduce nested/partial highlights.
+    out.sort((a,b) => b.length - a.length);
+    return out;
+  }
+
+  function highlightTextToHtml(rawText, tokens){
+    const raw = String(rawText ?? "");
+    const list = (tokens || []).filter(Boolean);
+    if (!raw || !list.length) return esc(raw);
+    const re = new RegExp('(' + list.map(_escapeRegExp).join('|') + ')', 'gi');
+    let out = '';
+    let last = 0;
+    for (const m of raw.matchAll(re)){
+      const i = m.index ?? -1;
+      if (i < 0) continue;
+      out += esc(raw.slice(last, i));
+      out += `<span class="hl">${esc(m[0])}</span>`;
+      last = i + String(m[0]).length;
+    }
+    out += esc(raw.slice(last));
+    return out;
+  }
+
+  function syncHighlightsForPre(pre){
+    if (!pre) return;
+    if (!pre.dataset) return;
+    // Cache raw text once (so we can safely toggle on/off without losing formatting)
+    if (pre.dataset.raw == null){
+      pre.dataset.raw = pre.textContent || '';
+    }
+    const raw = pre.dataset.raw || '';
+    const on = !!state.ui?.highlights;
+    if (!on){
+      // Restore plain text (no markup)
+      pre.textContent = raw;
+      return;
+    }
+    const tokens = getActiveHighlightTokens();
+    if (!tokens.length){
+      pre.textContent = raw;
+      return;
+    }
+    pre.innerHTML = highlightTextToHtml(raw, tokens);
+  }
+
+  function syncHighlightsForDetails(det){
+    if (!det) return;
+    // Only for our big text sections
+    const isDesc = det.classList?.contains('d-desc');
+    const isEaster = det.classList?.contains('d-easter');
+    if (!isDesc && !isEaster) return;
+    // Only apply when open; on close we can restore to keep DOM clean.
+    const pre = det.querySelector('.detailsBody .pre');
+    if (!pre) return;
+    if (det.open){
+      syncHighlightsForPre(pre);
+    } else {
+      // Closing: always restore plain text.
+      try{ if (pre.dataset && pre.dataset.raw != null) pre.textContent = pre.dataset.raw; }catch(_){/* ignore */}
+    }
+  }
+
+  function syncOpenTextHighlights(){
+    try{
+      const open = el.cards?.querySelectorAll?.('details.d-desc[open] .detailsBody .pre, details.d-easter[open] .detailsBody .pre');
+      if (!open || !open.length) return;
+      for (const pre of open) syncHighlightsForPre(pre);
     }catch(_){/* ignore */}
   }
 
