@@ -7,6 +7,10 @@
   --uiScaleRaw: 1;
   --uiScale: var(--uiScaleRaw);
 
+  /* Visible viewport height helper (set by JS via VisualViewport when available).
+     Fallback stays at 1vh. Used to keep overlays stable when the mobile browser bar is shown. */
+  --vvh: 1vh;
+
   /* Floating buttons */
   --fabEdge: 12px;
   --fabBottom: 12px;
@@ -940,7 +944,10 @@ summary::-webkit-details-marker{display:none}
   right: calc(var(--fabEdge) * var(--uiScale));
   z-index:66;
   width: min(320px, calc(100vw - 28px));
+  /* Fallback: dynamic viewport units */
   max-height: calc(100dvh - 120px);
+  /* Prefer: VisualViewport-driven height (more reliable when browser bar is visible) */
+  max-height: calc(var(--vvh) * 100 - 120px);
   overflow:auto;
   -webkit-overflow-scrolling: touch;
   border:1px solid var(--border);
@@ -967,6 +974,35 @@ summary::-webkit-details-marker{display:none}
      (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
   --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
   bottom: var(--panelBottomQuick);
+}
+
+/* Phone Portrait + sichtbare Browserbar (oder generell niedrige sichtbare Höhe):
+   Dock das Schnellmenü wie in Phone-Landscape neben den FAB-Stack und begrenze es oben/unten.
+   Damit wird nichts abgeschnitten, auch wenn die VisualViewport-Höhe plötzlich schrumpft. */
+html.vhTight .fabPanelQuick{
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: none;
+  left: calc(14px * var(--uiScale));
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  width: auto;
+}
+
+/* In Tight-Mode soll der große Aktionsbutton immer erreichbar bleiben (auch wenn gescrollt wird). */
+html.vhTight .fabPanelQuick .fabActions{
+  position: sticky;
+  bottom: 0;
+  padding-top: calc(10px * var(--uiScale));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  border-top: 1px solid var(--border);
+  margin-top: calc(10px * var(--uiScale));
+}
+
+/* Textgrößen-Menü ebenfalls stabil halten, wenn die sichtbare Höhe knapp ist. */
+html.vhTight .fabPanelText{
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(var(--vvh) * 100 - 24px);
 }
 
 /* Phone Landscape (kritischer Fall: Browserbar sichtbar + großer globaler Schriftgrad)
