@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61e5p1 loaded");
+console.log("Build 7.1j61e5p2 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j61e5p1 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p1").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p2").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -265,8 +265,32 @@ console.log("Build 7.1j61e5p1 loaded");
 
   function updateFabSortFieldUI(){
     if (!el.fabSortFieldRow) return;
-    for (const b of el.fabSortFieldRow.querySelectorAll(".chip")){
-      b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortField ? "true" : "false");
+    const chips = el.fabSortFieldRow.querySelectorAll('.chip');
+    if (chips && chips.length){
+      for (const b of chips){
+        b.setAttribute('aria-pressed', b.getAttribute('data-key') === state.sortField ? 'true' : 'false');
+      }
+      return;
+    }
+    const btn = el.fabSortFieldRow.querySelector('#fabSortFieldBtn');
+    const panel = el.fabSortFieldRow.querySelector('#fabSortFieldPanel');
+    if (btn){
+      const map = {
+        'ID':'ID',
+        'Spieletitel':'Titel',
+        'Metascore':'Meta',
+        'Userwertung':'User',
+        'Spielzeit (Main)':'Main',
+        'Spielzeit (100%)':'100%',
+      };
+      const label = map[state.sortField] || state.sortField || 'ID';
+      const labEl = btn.querySelector('.ddBtnLabel');
+      if (labEl) labEl.textContent = label;
+    }
+    if (panel){
+      for (const it of panel.querySelectorAll('.ddItem')){
+        it.classList.toggle('is-active', (it.getAttribute('data-value') === state.sortField));
+      }
     }
   }
 
@@ -466,10 +490,9 @@ function closeFabText(){
         chipHtml("quickMarks", "off", "Aus", !on),
       ].join("");
     }
-
-    // Build quick sort field chips (compact subset)
+    // Build quick sort field (dropdown)
     if (el.fabSortFieldRow){
-      const quick = [
+      const enabled = [
         {k:"ID", label:"ID"},
         {k:"Spieletitel", label:"Titel"},
         {k:"Metascore", label:"Meta"},
@@ -477,7 +500,55 @@ function closeFabText(){
         {k:"Spielzeit (Main)", label:"Main"},
         {k:"Spielzeit (100%)", label:"100%"},
       ];
-      el.fabSortFieldRow.innerHTML = quick.map(sf => chipHtml("quickSortField", sf.k, sf.label, state.sortField === sf.k)).join("");
+      const cur = enabled.find(sf => sf.k === state.sortField) || enabled[0];
+
+      const items = enabled.map(sf => `
+        <button type="button" class="ddItem ${state.sortField===sf.k ? 'is-active' : ''}" data-value="${esc(sf.k)}">
+          <span class="ddMark">✓</span>
+          <span class="ddText">${esc(sf.label)}</span>
+        </button>
+      `).join("");
+
+      el.fabSortFieldRow.innerHTML = `
+        <div class="dd" id="fabSortFieldDD">
+          <button type="button" class="ddBtn" id="fabSortFieldBtn" aria-haspopup="listbox" aria-expanded="false" title="Sortieren nach">
+            <span class="ddBtnLabel">${esc(cur?.label ?? 'ID')}</span>
+            <span class="ddCaret">▾</span>
+          </button>
+          <div class="ddPanel" id="fabSortFieldPanel" role="listbox" hidden>
+            ${items}
+          </div>
+        </div>
+      `;
+
+      const dd = el.fabSortFieldRow.querySelector('#fabSortFieldDD');
+      const btn = el.fabSortFieldRow.querySelector('#fabSortFieldBtn');
+      const panel = el.fabSortFieldRow.querySelector('#fabSortFieldPanel');
+      if (dd) dd.addEventListener('click', (e) => e.stopPropagation());
+      if (btn && panel){
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          __toggleDesktopPanel(panel);
+        });
+        for (const it of panel.querySelectorAll('.ddItem')){
+          it.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const key = it.getAttribute('data-value') || 'ID';
+            state.sortField = key;
+            saveSortPrefs();
+
+            const label = enabled.find(sf => sf.k === key)?.label || key;
+            const labEl = btn.querySelector('.ddBtnLabel');
+            if (labEl) labEl.textContent = label;
+            for (const b of panel.querySelectorAll('.ddItem')){
+              b.classList.toggle('is-active', (b.getAttribute('data-value') === key));
+            }
+
+            applyAndRender();
+            __closeDesktopPanel();
+          });
+        }
+      }
     }
 
     // Wire FAB open/close

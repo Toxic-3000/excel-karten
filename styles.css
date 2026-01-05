@@ -1159,8 +1159,8 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
   html.isPhone .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; min-width: 0 !important; }
 
-  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: flex-end !important; justify-self: end !important; }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
+  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
+  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch !important; width: 100% !important; min-width: 0 !important; }
   html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
@@ -1259,13 +1259,8 @@ html.vhTight .fabPanelText{
 
   /* Button: nicht full-width, rechts unten im Panel */
   .fabPanelQuick #fabOpenMenu{ width: auto; min-width: calc(240px * var(--uiScale)); }
-
-  /* Chip-Rows wie im Phone-Landscape-Layout */
-  #fabSortFieldRow{
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
-  }
+  /* Sortieren-nach: Dropdown statt Chip-Cloud (überall) */
+  #fabSortFieldRow{ display:block; }
   #fabSortDirRow{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1311,6 +1306,16 @@ html.vhTight .fabPanelText{
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em;}
 .fabChips{gap: calc(10px * var(--uiScale));}
 .fabPanel .chip{ padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale)); font-weight:650; }
+
+/* Schnellmenü: Dropdown (Sortieren nach) soll wie ein Control wirken, nicht wie ein 'Desktop-Popover' */
+.fabPanelQuick .dd{ max-width: none; }
+.fabPanelQuick .ddBtn{
+  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  border-radius: 18px;
+  box-shadow: none;
+}
+.fabPanelQuick .ddPanel{ width: min(520px, calc(100vw - 64px)); }
+
 
 /* Schnellmenü: Control-Grid (2 Buttons pro Block) */
 #fabSortDirRow,
@@ -2665,3 +2670,7 @@ html.modalOpen body{touch-action:none;}
   white-space: nowrap;
 }
 
+
+
+/* Safety: Sortieren-nach im Schnellmenü ist ein Dropdown, nie ein Grid */
+#fabSortFieldRow{ display:block !important; }
