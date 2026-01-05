@@ -1,15 +1,17 @@
-# Spieleliste – Webansicht (Build 7.1j61e5p0)
+# Spieleliste – Webansicht (Build 7.1j61e5p1)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j61e5p0)
+## Änderungen in diesem Build (7.1j61e5p1)
 
-- Phase 0 (Reset & Diagnose): e4-Layout-Experiment im Schnellmenü zurückgenommen.
-  - Entfernt: Landscape-3er-Zeile (Sortierung/Markierungen/Karten nebeneinander), die in einigen Viewports kollidiert hat.
-  - Ergebnis: Schnellmenü wieder **linear und stabil** (kein Überlappen, kein „Wandern“).
-- Vorbereitung für den neuen Patchplan ab e5 (Button-System → Reihenfolge → Responsive → Scroll/Modal → Feinschliff).
+- Phase 1 (Button-System): Schnellmenü-Buttons **kompakter & konsistenter**.
+  - Chips im Schnellmenü: weniger Padding, definierte Mindesthöhe.
+  - Paar-Controls (Auf/Ab, An/Aus, Kompakt/Detail): **2-Spalten-Layout** → gleiche Breite.
+  - Action-Button im Schnellmenü: leicht kompakter (verhindert unnötige Scroll-Fallen).
+
+Hinweis: Phase 0 (Reset) ist weiterhin enthalten – e4-Layout-Experiment bleibt zurückgenommen.
 
 ## Änderungen in früheren Builds
 

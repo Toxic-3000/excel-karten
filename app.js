@@ -11,7 +11,7 @@ console.log("Build 7.1j61e3 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p0").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p1").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 

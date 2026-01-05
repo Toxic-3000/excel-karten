@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j32
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j61e5p1
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -976,6 +976,45 @@ summary::-webkit-details-marker{display:none}
   bottom: var(--panelBottomQuick);
 }
 
+/* =============================
+   Phase 1 (e5p1): Button-System vereinheitlichen (Schnellmenü)
+   Ziel: weniger "aufgeblasen", aber weiterhin gut tappbar.
+   - Chips & Action-Button kompakter
+   - Paar-Controls (Auf/Ab, An/Aus, Kompakt/Detail) gleich groß
+   ============================= */
+
+/* Quick-Chips: kompaktere Höhe/Padding – nur im Schnellmenü */
+.fabPanelQuick .chip{
+  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  min-height: calc(40px * var(--uiScale));
+  font-size: calc(14.5px * var(--uiScale));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Paar-Controls im Schnellmenü: immer 2 Spalten, gleiche Breite */
+.fabPanelQuick #fabSortDirRow,
+.fabPanelQuick #fabMarkRow,
+.fabPanelQuick #fabDepthRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(10px * var(--uiScale));
+}
+.fabPanelQuick #fabSortDirRow .chip,
+.fabPanelQuick #fabMarkRow .chip,
+.fabPanelQuick #fabDepthRow .chip{
+  width: 100%;
+}
+
+/* Action-Button im Schnellmenü: leicht kompakter (bleibt gut erreichbar) */
+.fabPanelQuick .fabActions .btn{
+  padding: calc(9px * var(--uiScale)) calc(14px * var(--uiScale));
+  min-height: calc(42px * var(--uiScale));
+  font-size: calc(14.5px * var(--uiScale));
+}
+
 /* Phone Portrait + sichtbare Browserbar (oder generell niedrige sichtbare Höhe):
    Dock das Schnellmenü wie in Phone-Landscape neben den FAB-Stack und begrenze es oben/unten.
    Damit wird nichts abgeschnitten, auch wenn die VisualViewport-Höhe plötzlich schrumpft. */
@@ -1157,11 +1196,13 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
-  html.isPhone .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; min-width: 0 !important; }
+  /* Phase 1: kompaktere Chips auch im kritischen Phone-Landscape-Modus */
+  html.isPhone .fabPanelQuick .chip{ padding: 6px 10px !important; font-size: 14px !important; min-width: 0 !important; min-height: 38px !important; }
 
   html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: flex-end !important; justify-self: end !important; }
   html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
-  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
+  /* Phase 1: Action-Button kompakter (verhindert unnötige Scroll-Fallen) */
+  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 9px 12px !important; min-height: 40px !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
