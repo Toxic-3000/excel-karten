@@ -1,10 +1,10 @@
-# Spieleliste – Webansicht (Build 7.1j61e0)
+# Spieleliste – Webansicht (Build 7.1j61e5p1)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j61e0)
+## Änderungen in diesem Build (7.1j61e5p1)
 
 - Phase-0 Reset: Schnellmenü wieder auf den letzten stabilen Stand zurückgesetzt (Basis: 7.1j61e3).
 

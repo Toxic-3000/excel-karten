@@ -1380,7 +1380,7 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .fabQuickSortFields,
 .fabPanelQuick .fabQuickSortDir,
 .fabPanelQuick .fabQuickMarks{
-  padding: 0 14px;
+  padding: 0 12px;
   margin-top: 12px;
 }
 
@@ -1389,14 +1389,27 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .fabQuickSortDir{ grid-area: dir; }
 .fabPanelQuick .fabQuickMarks{ grid-area: marks; }
 
-.fabPanelQuick .fabChips .chip{
-  min-width: clamp(82px, 16vw, 132px);
-}
-
 /* Chips im Schnellmenü: lieber konsistente Mindestbreiten statt „mal winzig, mal gigantisch“ */
 .fabPanelQuick .fabChips .chip{
-  min-width: clamp(86px, 16vw, 130px);
+  min-width: clamp(72px, 14vw, 110px);
   justify-content: center;
+}
+
+/* Phase 1: Schnellmenü-Chips kompakter (gleiche Höhe/Padding) */
+.fabPanelQuick .chip{
+  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  min-height: calc(36px * var(--uiScale));
+}
+
+/* Phase 1: Action-Button auf Phones vollbreit (bessere Tap-Fläche, kein "rechts schwebend") */
+@media (max-width: 700px){
+  .fabPanelQuick .fabActions{
+    justify-content: stretch;
+  }
+  .fabPanelQuick #fabOpenMenu{
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 
