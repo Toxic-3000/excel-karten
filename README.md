@@ -1,18 +1,15 @@
-# Spieleliste – Webansicht (Build 7.1j61e4)
+# Spieleliste – Webansicht (Build 7.1j61e5p0)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j61e4)
+## Änderungen in diesem Build (7.1j61e5p0)
 
-- Schnellmenü: **stabile Reihenfolge** im Portrait (Sortieren nach → Sortierung → Markierungen → Karten).
-- Schnellmenü: im Landscape sind **Sortierung / Markierungen / Karten nebeneinander** (mehr „alles auf einen Blick“, weniger Scrollen).
-
-- Mini-Patch 1 (Geräteklassen): **Phone (Portrait + Landscape) ist jetzt eine UI-Klasse**.
-  - `html.isPhone` wird per JS gesetzt (kleine Breite **oder** kleine Höhe in Landscape).
-  - Schnellmenü-Info ist auf Phones einzeilig (spart Höhe, stabiler).
-  - Desktop/Tablet bleiben unverändert.
+- Phase 0 (Reset & Diagnose): e4-Layout-Experiment im Schnellmenü zurückgenommen.
+  - Entfernt: Landscape-3er-Zeile (Sortierung/Markierungen/Karten nebeneinander), die in einigen Viewports kollidiert hat.
+  - Ergebnis: Schnellmenü wieder **linear und stabil** (kein Überlappen, kein „Wandern“).
+- Vorbereitung für den neuen Patchplan ab e5 (Button-System → Reihenfolge → Responsive → Scroll/Modal → Feinschliff).
 
 ## Änderungen in früheren Builds
 

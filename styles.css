@@ -2619,29 +2619,6 @@ html.modalOpen body{touch-action:none;}
   width: 100%;
 }
 
-/* Wrapper for the three toggle sections (Sortierung / Markierungen / Karten)
-   Portrait: stacked (one after another)
-   Landscape: side-by-side for "alles auf einen Blick" */
-.fabQuickTri{
-  display: flex;
-  flex-direction: column;
-  gap: calc(14px * var(--uiScale));
-}
-
-@media (orientation: landscape){
-  .fabQuickTri{
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: start;
-    gap: calc(14px * var(--uiScale));
-  }
-
-  /* In Landscape sollen die drei Sektionen gleich hoch starten und nicht "ziehen" */
-  .fabQuickTri .fabSect{
-    margin: 0;
-  }
-}
-
 /* Actions immer "unten" – ohne dass Breakpoint-Grids sie irgendwohin drücken. */
 .fabPanelQuick .fabActions{
   margin-top: auto;
