@@ -1,17 +1,17 @@
-# Spieleliste – Webansicht (Build 7.1j61e5p1)
+# Spieleliste – Webansicht (Build 7.1j61e0)
 
 Statische, **clientseitige** Webansicht für deine persönliche Spieleliste.
 Die Seite liest eine lokal ausgewählte **Excel-Datei (.xlsx)** ein und rendert daraus Karten.
 **Kein Backend, kein Upload**: Alles passiert im Browser.
 
-## Änderungen in diesem Build (7.1j61e5p1)
+## Änderungen in diesem Build (7.1j61e0)
 
-- Phase 1 (Button-System): Schnellmenü-Buttons **kompakter & konsistenter**.
-  - Chips im Schnellmenü: weniger Padding, definierte Mindesthöhe.
-  - Paar-Controls (Auf/Ab, An/Aus, Kompakt/Detail): **2-Spalten-Layout** → gleiche Breite.
-  - Action-Button im Schnellmenü: leicht kompakter (verhindert unnötige Scroll-Fallen).
+- Phase-0 Reset: Schnellmenü wieder auf den letzten stabilen Stand zurückgesetzt (Basis: 7.1j61e3).
 
-Hinweis: Phase 0 (Reset) ist weiterhin enthalten – e4-Layout-Experiment bleibt zurückgenommen.
+- Mini-Patch 1 (Geräteklassen): **Phone (Portrait + Landscape) ist jetzt eine UI-Klasse**.
+  - `html.isPhone` wird per JS gesetzt (kleine Breite **oder** kleine Höhe in Landscape).
+  - Schnellmenü-Info ist auf Phones einzeilig (spart Höhe, stabiler).
+  - Desktop/Tablet bleiben unverändert.
 
 ## Änderungen in früheren Builds
 

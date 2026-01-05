@@ -1,4 +1,4 @@
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j61e5p1
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j32
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -974,69 +974,6 @@ summary::-webkit-details-marker{display:none}
      (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
   --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
   bottom: var(--panelBottomQuick);
-
-  /* Phase 3a: weniger optisches "Gewicht" im Schnellmenü */
-  box-shadow: 0 10px 26px rgba(0,0,0,.12);
-}
-
-/* =============================
-   Phase 1 (e5p1): Button-System vereinheitlichen (Schnellmenü)
-   Ziel: weniger "aufgeblasen", aber weiterhin gut tappbar.
-   - Chips & Action-Button kompakter
-   - Paar-Controls (Auf/Ab, An/Aus, Kompakt/Detail) gleich groß
-   ============================= */
-
-/* Quick-Chips: kompaktere Höhe/Padding – nur im Schnellmenü */
-.fabPanelQuick .chip{
-  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
-  min-height: calc(38px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-/* Paar-Controls im Schnellmenü: immer 2 Spalten, gleiche Breite */
-.fabPanelQuick #fabSortDirRow,
-.fabPanelQuick #fabMarkRow,
-.fabPanelQuick #fabDepthRow{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(8px * var(--uiScale));
-}
-.fabPanelQuick #fabSortDirRow .chip,
-.fabPanelQuick #fabMarkRow .chip,
-.fabPanelQuick #fabDepthRow .chip{
-  width: 100%;
-}
-
-/* Action-Button im Schnellmenü: leicht kompakter (bleibt gut erreichbar) */
-.fabPanelQuick .fabActions .btn{
-  padding: calc(8px * var(--uiScale)) calc(14px * var(--uiScale));
-  min-height: calc(40px * var(--uiScale));
-  font-size: calc(14.2px * var(--uiScale));
-}
-
-/* Schnellmenü: Sortieren-nach – Chips (größer) vs Dropdown (Phone) */
-#fabSortFieldRow .fabSortFieldWrap{ width: 100%; }
-#fabSortFieldRow .sortChips{ display:flex; flex-wrap:wrap; gap: inherit; }
-#fabSortFieldRow .sortSelect{ width: 100%; display:none; }
-html.isPhone #fabSortFieldRow .sortChips{ display:none; }
-html.isPhone #fabSortFieldRow .sortSelect{ display:block; }
-html.isNonPhone #fabSortFieldRow .sortSelect{ display:none; }
-
-/* Schnellmenü: kompakter Dropdown-Stil */
-.fabPanelQuick .dd.ddFab{ max-width: none; }
-.fabPanelQuick .dd.ddFab .ddBtn{
-  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
-  border-radius: 999px;
-  box-shadow: none;
-}
-.fabPanelQuick .dd.ddFab .ddPanel{
-  width: 100%;
-  max-height: 300px;
-  box-shadow: 0 16px 34px rgba(0,0,0,.12);
 }
 
 /* Phone Portrait + sichtbare Browserbar (oder generell niedrige sichtbare Höhe):
@@ -1220,13 +1157,11 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
-  /* Phones: Portrait/Landscape sollen sich gleich anfühlen – lieber scrollen als springende Größen */
-  html.isPhone .fabPanelQuick .chip{ padding: 8px 11px !important; font-size: 13.8px !important; min-width: 0 !important; min-height: 38px !important; }
+  html.isPhone .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; min-width: 0 !important; }
 
-  /* Action-Button: immer unten, immer volle Breite (konstante Erwartbarkeit) */
-  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: 100% !important; min-width: 0 !important; }
-  html.isPhone .fabPanelQuick .btn{ font-size: 14.6px !important; padding: 11px 14px !important; min-height: 42px !important; }
+  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: flex-end !important; justify-self: end !important; }
+  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
+  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
@@ -1335,12 +1270,12 @@ html.vhTight .fabPanelText{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
-    /* volle Breite erlaubt – konstante Platzierung zwischen Portrait/Landscape */
+    /* etwas mehr Platz als vorher, damit die Chips wie im Phone-Landscape wirken */
+    max-width: calc(260px * var(--uiScale));
   }
   #fabSortDirRow .chip{
-    /* gleiche Dimensionen wie Standard-Chips (Portrait), damit nichts „springt“ */
-    padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
-    min-height: calc(40px * var(--uiScale));
+    padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+    min-height: calc(44px * var(--uiScale));
     font-weight: 650;
     justify-content: center;
     text-align: center;
@@ -1351,8 +1286,7 @@ html.vhTight .fabPanelText{
 
 /* Schnellmenü: Control-Buttons immer 2-spaltig (gleichwertige Blöcke) */
 #fabSortDirRow,
-#fabMarkRow,
-#fabDepthRow{
+#fabMarkRow{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: calc(10px * var(--uiScale));
