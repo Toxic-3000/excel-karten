@@ -999,6 +999,11 @@ html.isPhone .fabPanelQuick{
   left: calc(14px * var(--uiScale));
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
   width: auto;
+  /* Fix: In Phone-Ansichten hat das Panel effektiv eine feste Höhe.
+     Mit Flex können wir die Action-Zeile (Button) sauber an den unteren Rand drücken,
+     statt dass darunter „Leerraum“ entsteht. */
+  display: flex;
+  flex-direction: column;
 }
 /* Phone: Schnellmenü-Header bleibt beim Scrollen sichtbar (Close immer erreichbar). */
 html.isPhone .fabPanelQuick .fabHead{
@@ -1019,7 +1024,8 @@ html.isPhone .fabPanelQuick .fabActions{
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
   border-top: 1px solid var(--border);
-  margin-top: calc(10px * var(--uiScale));
+  /* Fix: Action-Zeile ans Panel-Ende schieben, nicht unterhalb des Contents „stehen lassen“. */
+  margin-top: auto;
 }
 
 /* Phone: Textgrößen-Menü ebenfalls gedockt und stabil (gleiches Verhalten wie Schnellmenü). */
@@ -1058,7 +1064,14 @@ html.vhTight .fabPanelQuick .fabActions{
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
   border-top: 1px solid var(--border);
-  margin-top: calc(10px * var(--uiScale));
+  /* Wenn der Inhalt kürzer als das Panel ist: Actionbar nach unten drücken */
+  margin-top: auto;
+}
+
+/* Auch ohne vhTight (z.B. wenn der Browser gerade großzügig ist) gilt:
+   In Phone-Ansichten soll der große Aktionsbutton am Panel-Bottom hängen. */
+html.isPhone .fabPanelQuick .fabActions{
+  margin-top: auto;
 }
 
 /* Phone-Landscape: Sticky-Actionbar wirkt schnell "klebrig" und verdeckt Layout.
