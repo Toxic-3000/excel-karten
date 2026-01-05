@@ -1196,13 +1196,13 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
-  /* Phase 1: kompaktere Chips auch im kritischen Phone-Landscape-Modus */
-  html.isPhone .fabPanelQuick .chip{ padding: 6px 10px !important; font-size: 14px !important; min-width: 0 !important; min-height: 38px !important; }
+  /* Phones: Portrait/Landscape sollen sich gleich anfühlen – lieber scrollen als springende Größen */
+  html.isPhone .fabPanelQuick .chip{ padding: 9px 12px !important; font-size: 14px !important; min-width: 0 !important; min-height: 40px !important; }
 
-  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: flex-end !important; justify-self: end !important; }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: auto !important; min-width: 240px !important; }
-  /* Phase 1: Action-Button kompakter (verhindert unnötige Scroll-Fallen) */
-  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 9px 12px !important; min-height: 40px !important; }
+  /* Action-Button: immer unten, immer volle Breite (konstante Erwartbarkeit) */
+  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
+  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: 100% !important; min-width: 0 !important; }
+  html.isPhone .fabPanelQuick .btn{ font-size: 15px !important; padding: 12px 14px !important; min-height: 44px !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
@@ -1311,12 +1311,12 @@ html.vhTight .fabPanelText{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
-    /* etwas mehr Platz als vorher, damit die Chips wie im Phone-Landscape wirken */
-    max-width: calc(260px * var(--uiScale));
+    /* volle Breite erlaubt – konstante Platzierung zwischen Portrait/Landscape */
   }
   #fabSortDirRow .chip{
-    padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-    min-height: calc(44px * var(--uiScale));
+    /* gleiche Dimensionen wie Standard-Chips (Portrait), damit nichts „springt“ */
+    padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+    min-height: calc(40px * var(--uiScale));
     font-weight: 650;
     justify-content: center;
     text-align: center;
@@ -1327,7 +1327,8 @@ html.vhTight .fabPanelText{
 
 /* Schnellmenü: Control-Buttons immer 2-spaltig (gleichwertige Blöcke) */
 #fabSortDirRow,
-#fabMarkRow{
+#fabMarkRow,
+#fabDepthRow{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: calc(10px * var(--uiScale));
