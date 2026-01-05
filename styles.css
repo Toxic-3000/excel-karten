@@ -1116,9 +1116,9 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "depth depth"
       "field field"
       "dir marks"
+      "cards cards"
       "action action";
     column-gap: 12px;
     row-gap: 10px;
@@ -1233,9 +1233,9 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "depth depth"
       "field field"
       "dir marks"
+      "cards cards"
       "action action";
     column-gap: calc(16px * var(--uiScale));
     row-gap: calc(10px * var(--uiScale));
@@ -1249,24 +1249,25 @@ html.vhTight .fabPanelText{
   .fabPanelQuick .fabHeader{ grid-area: head; }
   .fabPanelQuick .quickInfo,
   .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 0; }
-  .fabPanelQuick .fabQuickDepth{ grid-area: depth; margin-top: 0; }
+  /* Karten-Sektion (Kompakt/Detail) */
+  .fabPanelQuick .fabQuickDepth{ grid-area: cards; margin-top: 0; }
   .fabPanelQuick .fabQuickField,
   .fabPanelQuick .fabQuickSortFields{ grid-area: field; margin-top: 0; }
   .fabPanelQuick .fabQuickDir,
   .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0; }
   .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0; }
-  .fabPanelQuick .fabActions{ grid-area: action; justify-self: end; margin-top: 0; }
+  /* Action-Zeile: immer unten, volle Breite */
+  .fabPanelQuick .fabActions{ grid-area: action; justify-self: stretch; margin-top: 0; justify-content: stretch; }
 
-  /* Button: nicht full-width, rechts unten im Panel */
-  .fabPanelQuick #fabOpenMenu{ width: auto; min-width: calc(240px * var(--uiScale)); }
+  .fabPanelQuick #fabOpenMenu{ width: 100%; min-width: 0; }
   /* Sortieren-nach: Dropdown statt Chip-Cloud (überall) */
   #fabSortFieldRow{ display:block; }
   #fabSortDirRow{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(10px * var(--uiScale));
-    /* etwas mehr Platz als vorher, damit die Chips wie im Phone-Landscape wirken */
-    max-width: calc(260px * var(--uiScale));
+    /* volle Breite: keine künstliche Kappe */
+    max-width: none;
   }
   #fabSortDirRow .chip{
     padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
@@ -2674,3 +2675,24 @@ html.modalOpen body{touch-action:none;}
 
 /* Safety: Sortieren-nach im Schnellmenü ist ein Dropdown, nie ein Grid */
 #fabSortFieldRow{ display:block !important; }
+
+/* ===========================================================
+   Schnellmenü – Phase 2 Normalisierung
+   - In Phase 2 priorisieren wir Stabilität und Reihenfolge.
+   - Responsive 2-Spalten-Logik kommt erst in Phase 3.
+   =========================================================== */
+
+/* Panel folgt der DOM-Reihenfolge (keine Grid-Areas in Phase 2) */
+.fabPanelQuick{ display:block !important; }
+
+/* Dropdown immer volle Breite */
+.fabPanelQuick .dd{ width:100% !important; max-width:none !important; }
+.fabPanelQuick .ddBtn{ width:100% !important; }
+
+/* Rows im Schnellmenü: nie künstlich "kappen" */
+.fabPanelQuick #fabSortDirRow{ width:100% !important; max-width:none !important; }
+.fabPanelQuick #fabMarkRow{ width:100% !important; max-width:none !important; }
+
+/* Action-Button immer unten und immer volle Breite */
+.fabPanelQuick .fabActions{ justify-content:stretch !important; }
+.fabPanelQuick #fabOpenMenu{ width:100% !important; min-width:0 !important; }
