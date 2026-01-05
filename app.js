@@ -1,7 +1,7 @@
 window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
-console.log("Build 7.1j61e5p2 loaded");
+console.log("Build 7.1j61e5p3 loaded");
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -11,7 +11,7 @@ console.log("Build 7.1j61e5p2 loaded");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p2").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "7.1j61e5p3").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -47,12 +47,18 @@ console.log("Build 7.1j61e5p2 loaded");
     const h = Math.max(0, window.innerHeight || 0);
     const isLandscape = (w > 0 && h > 0) ? (w > h) : false;
     const phoneByWidth = (w > 0 && w <= 520);
-    // Landscape-Phones haben typischerweise eine sehr geringe Höhe.
-    // Tablets in Landscape (z.B. 800×480) sollen NICHT als Phone laufen.
-    const phoneByHeight = (isLandscape && h > 0 && h <= 450 && w > 0 && w <= 900);
+    // Height-based phone detection is essential for landscape phones.
+    // We restrict it to touch-like environments to avoid classifying small desktop windows as "phone".
+    const touchLike = !!(window.matchMedia && (
+      window.matchMedia("(pointer:coarse)").matches || window.matchMedia("(hover:none)").matches
+    ));
+    const phoneByHeight = (touchLike && h > 0 && h <= 520);
     const isPhone = phoneByWidth || phoneByHeight;
     document.documentElement.classList.toggle("isPhone", isPhone);
     document.documentElement.classList.toggle("isNonPhone", !isPhone);
+    // Expose deterministic hooks for CSS (Phase 3+).
+    document.documentElement.dataset.qmDevice = isPhone ? "phone" : "large";
+    document.documentElement.dataset.qmOrient = isLandscape ? "landscape" : "portrait";
   }
 
   // Initialize immediately + keep synced on bar show/hide.
@@ -265,8 +271,22 @@ console.log("Build 7.1j61e5p2 loaded");
 
   function updateFabSortFieldUI(){
     if (!el.fabSortFieldRow) return;
+    // Chips (Non-Phone)
     for (const b of el.fabSortFieldRow.querySelectorAll(".chip")){
       b.setAttribute("aria-pressed", b.getAttribute("data-key") === state.sortField ? "true" : "false");
+    }
+    // Dropdown (Phone): sync label + active mark
+    const dd = el.fabSortFieldRow.querySelector("#fabSortFieldDD");
+    if (dd){
+      const btnLabel = dd.querySelector(".ddBtnLabel");
+      const active = dd.querySelector(`.ddItem[data-value="${CSS.escape(state.sortField || "")}"]`);
+      if (btnLabel && active){
+        const txt = active.querySelector('.ddText')?.textContent || state.sortField;
+        btnLabel.textContent = txt;
+      }
+      for (const it of dd.querySelectorAll('.ddItem')){
+        it.classList.toggle('is-active', (it.getAttribute('data-value') === state.sortField));
+      }
     }
   }
 
@@ -477,7 +497,34 @@ function closeFabText(){
         {k:"Spielzeit (Main)", label:"Main"},
         {k:"Spielzeit (100%)", label:"100%"},
       ];
-      el.fabSortFieldRow.innerHTML = quick.map(sf => chipHtml("quickSortField", sf.k, sf.label, state.sortField === sf.k)).join("");
+
+      const chipsHtml = quick.map(sf => chipHtml("quickSortField", sf.k, sf.label, state.sortField === sf.k)).join("");
+      const cur = quick.find(x => x.k === state.sortField) || quick[0];
+      const ddItems = quick.map(sf => `
+        <button type="button" class="ddItem ${state.sortField===sf.k ? "is-active" : ""}" data-value="${esc(sf.k)}">
+          <span class="ddMark">✓</span>
+          <span class="ddText">${esc(sf.label)}</span>
+        </button>
+      `).join("");
+      const ddHtml = `
+        <div class="dd ddFab" id="fabSortFieldDD">
+          <button type="button" class="ddBtn" id="fabSortFieldBtn" aria-haspopup="listbox" aria-expanded="false" title="Sortieren nach">
+            <span class="ddBtnLabel">${esc(cur?.label ?? "ID")}</span>
+            <span class="ddCaret">▾</span>
+          </button>
+          <div class="ddPanel" id="fabSortFieldPanel" role="listbox" hidden>
+            ${ddItems}
+          </div>
+        </div>
+      `;
+
+      // Render both variants and switch purely via CSS (stable across rotation).
+      el.fabSortFieldRow.innerHTML = `
+        <div class="fabSortFieldWrap">
+          <div class="sortChips">${chipsHtml}</div>
+          <div class="sortSelect">${ddHtml}</div>
+        </div>
+      `;
     }
 
     // Wire FAB open/close
@@ -541,6 +588,32 @@ function closeFabText(){
         }
       });
     }
+
+    // Wire Schnellmenü sort-field dropdown (Phone)
+    // We render both chips + dropdown and switch purely via CSS.
+    try{
+      const dd = el.fabQuickPanel.querySelector('#fabSortFieldDD');
+      const btn = el.fabQuickPanel.querySelector('#fabSortFieldBtn');
+      const panel = el.fabQuickPanel.querySelector('#fabSortFieldPanel');
+      if (dd) dd.addEventListener('click', (e) => e.stopPropagation());
+      if (btn && panel){
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          __toggleDesktopPanel(panel);
+        });
+        for (const it of panel.querySelectorAll('.ddItem')){
+          it.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const key = it.getAttribute('data-value') || 'ID';
+            state.sortField = key;
+            saveSortPrefs();
+            updateFabSortFieldUI();
+            applyAndRender();
+            __closeDesktopPanel();
+          });
+        }
+      }
+    }catch(_){/* ignore */}
 
     // Open the full menu from the quick FAB (so you never have to scroll back up)
     if (el.fabOpenMenu){

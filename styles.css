@@ -974,6 +974,9 @@ summary::-webkit-details-marker{display:none}
      (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
   --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
   bottom: var(--panelBottomQuick);
+
+  /* Phase 3a: weniger optisches "Gewicht" im Schnellmenü */
+  box-shadow: 0 10px 26px rgba(0,0,0,.12);
 }
 
 /* =============================
@@ -985,9 +988,9 @@ summary::-webkit-details-marker{display:none}
 
 /* Quick-Chips: kompaktere Höhe/Padding – nur im Schnellmenü */
 .fabPanelQuick .chip{
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  min-height: calc(40px * var(--uiScale));
-  font-size: calc(14.5px * var(--uiScale));
+  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  min-height: calc(38px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1000,7 +1003,7 @@ summary::-webkit-details-marker{display:none}
 .fabPanelQuick #fabDepthRow{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(10px * var(--uiScale));
+  gap: calc(8px * var(--uiScale));
 }
 .fabPanelQuick #fabSortDirRow .chip,
 .fabPanelQuick #fabMarkRow .chip,
@@ -1010,9 +1013,30 @@ summary::-webkit-details-marker{display:none}
 
 /* Action-Button im Schnellmenü: leicht kompakter (bleibt gut erreichbar) */
 .fabPanelQuick .fabActions .btn{
-  padding: calc(9px * var(--uiScale)) calc(14px * var(--uiScale));
-  min-height: calc(42px * var(--uiScale));
-  font-size: calc(14.5px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(14px * var(--uiScale));
+  min-height: calc(40px * var(--uiScale));
+  font-size: calc(14.2px * var(--uiScale));
+}
+
+/* Schnellmenü: Sortieren-nach – Chips (größer) vs Dropdown (Phone) */
+#fabSortFieldRow .fabSortFieldWrap{ width: 100%; }
+#fabSortFieldRow .sortChips{ display:flex; flex-wrap:wrap; gap: inherit; }
+#fabSortFieldRow .sortSelect{ width: 100%; display:none; }
+html.isPhone #fabSortFieldRow .sortChips{ display:none; }
+html.isPhone #fabSortFieldRow .sortSelect{ display:block; }
+html.isNonPhone #fabSortFieldRow .sortSelect{ display:none; }
+
+/* Schnellmenü: kompakter Dropdown-Stil */
+.fabPanelQuick .dd.ddFab{ max-width: none; }
+.fabPanelQuick .dd.ddFab .ddBtn{
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  border-radius: 999px;
+  box-shadow: none;
+}
+.fabPanelQuick .dd.ddFab .ddPanel{
+  width: 100%;
+  max-height: 300px;
+  box-shadow: 0 16px 34px rgba(0,0,0,.12);
 }
 
 /* Phone Portrait + sichtbare Browserbar (oder generell niedrige sichtbare Höhe):
@@ -1197,12 +1221,12 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
   html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
   /* Phones: Portrait/Landscape sollen sich gleich anfühlen – lieber scrollen als springende Größen */
-  html.isPhone .fabPanelQuick .chip{ padding: 9px 12px !important; font-size: 14px !important; min-width: 0 !important; min-height: 40px !important; }
+  html.isPhone .fabPanelQuick .chip{ padding: 8px 11px !important; font-size: 13.8px !important; min-width: 0 !important; min-height: 38px !important; }
 
   /* Action-Button: immer unten, immer volle Breite (konstante Erwartbarkeit) */
   html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
   html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: end !important; width: 100% !important; min-width: 0 !important; }
-  html.isPhone .fabPanelQuick .btn{ font-size: 15px !important; padding: 12px 14px !important; min-height: 44px !important; }
+  html.isPhone .fabPanelQuick .btn{ font-size: 14.6px !important; padding: 11px 14px !important; min-height: 42px !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
