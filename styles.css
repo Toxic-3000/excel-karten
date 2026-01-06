@@ -1418,8 +1418,9 @@ html.vhTight .fabPanelText{
 
 /* Schnellmenü-Buttons: kompakter als das große Filter-Dialog-UI */
 .fabPanelQuick .chip{
-  padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
-  min-height: calc(34px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  min-height: calc(32px * var(--uiScale));
+  line-height: 1.2;
 }
 
 /* Buttons in den Schnellmenü-Reihen sollen immer exakt gleich breit sein */
@@ -2731,7 +2732,9 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabDepthRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(8px * var(--uiScale));
+  gap: calc(10px * var(--uiScale));
+  /* wichtig: keine zusätzliche Innen-Einrückung pro Row */
+  padding: 0 !important;
   width: 100%;
 }
 
@@ -2740,9 +2743,10 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabSortDirRow .chip,
 .fabPanelQuick #fabMarkRow .chip,
 .fabPanelQuick #fabDepthRow .chip {
-  min-height: calc(34px * var(--uiScale));
-  padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
+  min-height: calc(32px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
+  line-height: 1.2;
 }
 
 /* Schnellmenü: Icons & Label etwas kompakter */
@@ -2750,10 +2754,15 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabSortDirRow .chip svg{ width: calc(16px * var(--uiScale)); height: calc(16px * var(--uiScale)); }
 
 /* Ensure no accidental indentation differences between sections */
-.fabPanelQuick .fabSect{ margin-left:0 !important; padding-left:0 !important; }
+.fabPanelQuick .fabSect{ margin-left:0 !important; }
 
 /* Action-Button unten: ebenfalls minimal kompakter */
 .fabPanelQuick #fabOpenFiltersBtn {
   padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
 }
+
+
+.fabPanelQuick .fabSect {
+  padding: 0 calc(12px * var(--uiScale));
+ }
