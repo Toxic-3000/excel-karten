@@ -2814,3 +2814,44 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick .fabSect {
   padding: 0 calc(12px * var(--uiScale));
  }
+
+/* =======================
+   Patch V7_1j62b – Schnellmenü: Breite vereinheitlichen + Action-Button verkleinern
+   - Gleiche „gefühlte“ Breite wie Phone-Portrait, auch in Landscape/Desktop.
+   - Divider/Abstände im Kopf an Textgrößen-Menü angleichen.
+   ======================= */
+
+:root{
+  --quickMenuMaxW: calc(520px * var(--uiScale));
+}
+
+/* 1) Panel-Breite: nie mehr die komplette Landscape-Breite ausnutzen */
+.fabPanelQuick{
+  /* rechts neben der FAB-Stack „andocken“ (wie im Phone-Portrait), aber mit Max-Breite */
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
+  left: auto !important;
+  width: min(
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale))),
+    var(--quickMenuMaxW)
+  ) !important;
+  max-width: none !important;
+}
+
+/* 2) Kopf-Divider: überall identisch + gleiche Abstände wie im Textgrößen-Menü */
+.fabPanelQuick .fabHead{
+  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale)) !important;
+  border-bottom: 1px solid var(--line2) !important;
+  background: inherit !important;
+}
+
+/* 3) Sections: etwas mehr Luft, damit unten nichts „klebt“ (Desktop/Tablet) */
+.fabPanelQuick .fabBody{ padding-top: calc(12px * var(--uiScale)) !important; }
+.fabPanelQuick .fabSect + .fabSect{ margin-top: calc(12px * var(--uiScale)) !important; }
+
+/* 4) Action-Button unten („Suchen, Filtern & Sortieren“) etwas flacher */
+.fabPanelQuick #fabOpenMenu{
+  min-height: calc(32px * var(--uiScale)) !important;
+  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale)) !important;
+  font-size: calc(14px * var(--uiScale)) !important;
+  line-height: 1.2 !important;
+}
