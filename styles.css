@@ -1170,8 +1170,8 @@ html.vhTight .fabPanelText{
 
   html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
-  html.isPhone .fabPanelQuick .fabChips{ gap: 8px !important; }
-  html.isPhone .fabPanelQuick .chip{ padding: 7px 10px !important; font-size: 14px !important; min-width: 0 !important; }
+  html.isPhone .fabPanelQuick .quickGrid{ gap: 8px !important; }
+  html.isPhone .fabPanelQuick .chip{ padding: 6px 9px !important; font-size: 14px !important; min-width: 0 !important; min-height: 34px !important; }
 
   html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
   html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch !important; width: 100% !important; min-width: 0 !important; }
@@ -1282,9 +1282,11 @@ html.vhTight .fabPanelText{
     max-width: none;
   }
   #fabSortDirRow .chip{
-    padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
-    min-height: calc(44px * var(--uiScale));
+    /* kompakter & einheitlicher wie Markierungen/Karten */
+    padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
+    min-height: calc(34px * var(--uiScale));
     font-weight: 650;
+    font-size: calc(14px * var(--uiScale));
     justify-content: center;
     text-align: center;
     white-space: nowrap;
@@ -1406,16 +1408,25 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .fabQuickSortDir{ grid-area: dir; }
 .fabPanelQuick .fabQuickMarks{ grid-area: marks; }
 
-/* Chips im Schnellmenü: lieber konsistente Mindestbreiten statt „mal winzig, mal gigantisch“ */
-.fabPanelQuick .fabChips .chip{
-  min-width: clamp(72px, 14vw, 110px);
-  justify-content: center;
+/* Schnellmenü: einheitliche 2‑Spalten‑Grid-Reihen – gleiche Breite/Höhe für alle Buttons */
+.fabPanelQuick .quickGrid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(12px * var(--uiScale));
+  align-items: stretch;
 }
 
-/* Phase 1: Schnellmenü-Chips kompakter (gleiche Höhe/Padding) */
+/* Schnellmenü-Buttons: kompakter als das große Filter-Dialog-UI */
 .fabPanelQuick .chip{
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  min-height: calc(36px * var(--uiScale));
+  padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
+  min-height: calc(34px * var(--uiScale));
+}
+
+/* Buttons in den Schnellmenü-Reihen sollen immer exakt gleich breit sein */
+.fabPanelQuick .quickGrid .chip{
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
 }
 
 /* Phase 1: Action-Button auf Phones vollbreit (bessere Tap-Fläche, kein "rechts schwebend") */
@@ -2725,13 +2736,13 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* Einheitliche (leicht kleinere) Chip-Buttons im Schnellmenü */
+/* Schnellmenü: explizite Button-Norm, damit keine "Ausreißer" entstehen */
 .fabPanelQuick #fabSortDirRow .chip,
 .fabPanelQuick #fabMarkRow .chip,
 .fabPanelQuick #fabDepthRow .chip {
-  /* consistent + slightly smaller than before */
-  min-height: calc(40px * var(--uiScale));
-  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale));
-  font-size: calc(15px * var(--uiScale));
+  min-height: calc(34px * var(--uiScale));
+  padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
 }
 
 /* Schnellmenü: Icons & Label etwas kompakter */
@@ -2743,6 +2754,6 @@ html.modalOpen body{touch-action:none;}
 
 /* Action-Button unten: ebenfalls minimal kompakter */
 .fabPanelQuick #fabOpenFiltersBtn {
-  padding: calc(9px * var(--uiScale)) calc(14px * var(--uiScale));
-  font-size: calc(15px * var(--uiScale));
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
 }
