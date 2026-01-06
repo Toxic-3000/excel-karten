@@ -2655,7 +2655,7 @@ html.modalOpen body{touch-action:none;}
 #fabMarkRow{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(10px * var(--uiScale));
+  gap: calc(8px * var(--uiScale));
 }
 #fabSortDirRow .chip,
 #fabMarkRow .chip{
@@ -2669,7 +2669,7 @@ html.modalOpen body{touch-action:none;}
 #fabDepthRow{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(10px * var(--uiScale));
+  gap: calc(8px * var(--uiScale));
 }
 #fabDepthRow .chip{
   width: 100%;
@@ -2705,7 +2705,7 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabOpenMenu{ width:100% !important; min-width:0 !important; }
 
 /* ------------------------------------------------------------
-   Build 7.1j61e5p6 – Schnellmenü: nur "Auf/Ab" (kein Sortierfeld)
+   Build 7.1j61e5p7 – Schnellmenü: nur "Auf/Ab" (kein Sortierfeld)
    + einheitliche Button-Größen (etwas kompakter)
 ------------------------------------------------------------- */
 
@@ -2720,7 +2720,7 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabDepthRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(10px * var(--uiScale));
+  gap: calc(8px * var(--uiScale));
   width: 100%;
 }
 
@@ -2728,13 +2728,21 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabSortDirRow .chip,
 .fabPanelQuick #fabMarkRow .chip,
 .fabPanelQuick #fabDepthRow .chip {
-  min-height: calc(44px * var(--uiScale));
-  padding: calc(9px * var(--uiScale)) calc(16px * var(--uiScale));
-  font-size: calc(15.5px * var(--uiScale));
+  /* consistent + slightly smaller than before */
+  min-height: calc(40px * var(--uiScale));
+  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
 }
+
+/* Schnellmenü: Icons & Label etwas kompakter */
+.fabPanelQuick .chipLabel{ gap: calc(6px * var(--uiScale)); }
+.fabPanelQuick #fabSortDirRow .chip svg{ width: calc(16px * var(--uiScale)); height: calc(16px * var(--uiScale)); }
+
+/* Ensure no accidental indentation differences between sections */
+.fabPanelQuick .fabSect{ margin-left:0 !important; padding-left:0 !important; }
 
 /* Action-Button unten: ebenfalls minimal kompakter */
 .fabPanelQuick #fabOpenFiltersBtn {
-  padding: calc(10px * var(--uiScale)) calc(16px * var(--uiScale));
-  font-size: calc(15.5px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(14px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
 }
