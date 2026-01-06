@@ -1132,7 +1132,6 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "field field"
       "dir marks"
       "cards cards"
       "action action";
@@ -1164,7 +1163,6 @@ html.vhTight .fabPanelText{
 
   /* Grid-Areas (Phone-Landscape): alle Control-Blöcke auf einer visuellen Ebene */
   html.isPhone .fabPanelQuick .fabQuickField,
-  html.isPhone .fabPanelQuick .fabQuickSortFields{ grid-area: field; margin-top: 0 !important; }
   html.isPhone .fabPanelQuick .fabQuickDir,
   html.isPhone .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0 !important; }
   html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 !important; }
@@ -1249,7 +1247,6 @@ html.vhTight .fabPanelText{
     grid-template-areas:
       "head head"
       "info info"
-      "field field"
       "dir marks"
       "cards cards"
       "action action";
@@ -1268,7 +1265,6 @@ html.vhTight .fabPanelText{
   /* Karten-Sektion (Kompakt/Detail) */
   .fabPanelQuick .fabQuickDepth{ grid-area: cards; margin-top: 0; }
   .fabPanelQuick .fabQuickField,
-  .fabPanelQuick .fabQuickSortFields{ grid-area: field; margin-top: 0; }
   .fabPanelQuick .fabQuickDir,
   .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0; }
   .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0; }
@@ -1407,7 +1403,6 @@ html.vhTight .fabPanelText{
 }
 
 .fabPanelQuick .fabQuickDepth{ grid-area: depth; }
-.fabPanelQuick .fabQuickSortFields{ grid-area: field; }
 .fabPanelQuick .fabQuickSortDir{ grid-area: dir; }
 .fabPanelQuick .fabQuickMarks{ grid-area: marks; }
 
@@ -2003,7 +1998,6 @@ html.modalOpen body{touch-action:none;}
     grid-template-areas:
       "head head"
       "depth depth"
-      "field field"
       "dir marks"
       "act act";
     gap: calc(10px * var(--uiScale));
@@ -2015,8 +2009,6 @@ html.modalOpen body{touch-action:none;}
   html.isPhone .fabPanelQuick > .fabHeader{ grid-area: head; }
   html.isPhone .fabPanelQuick > .fabSect{ margin-top: 0; }
   html.isPhone .fabPanelQuick > .fabQuickDepth{ grid-area: depth; }
-  html.isPhone .fabPanelQuick > .fabQuickField,
-  html.isPhone .fabPanelQuick > .fabQuickSortFields{ grid-area: field; }
   html.isPhone .fabPanelQuick > .fabQuickDir,
   html.isPhone .fabPanelQuick > .fabQuickSortDir{ grid-area: dir; }
   html.isPhone .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
@@ -2033,7 +2025,6 @@ html.modalOpen body{touch-action:none;}
       "head head"
       "info info"
       "depth depth"
-      "field field"
       "dir marks"
       "act act";
   }
@@ -2712,3 +2703,38 @@ html.modalOpen body{touch-action:none;}
 /* Action-Button immer unten und immer volle Breite */
 .fabPanelQuick .fabActions{ justify-content:stretch !important; }
 .fabPanelQuick #fabOpenMenu{ width:100% !important; min-width:0 !important; }
+
+/* ------------------------------------------------------------
+   Build 7.1j61e5p6 – Schnellmenü: nur "Auf/Ab" (kein Sortierfeld)
+   + einheitliche Button-Größen (etwas kompakter)
+------------------------------------------------------------- */
+
+/* Safety: falls irgendwo noch Sortierfeld-UI existiert, ausblenden */
+.fabPanelQuick .fabQuickField,
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick #fabSortFieldRow { display: none !important; }
+
+/* Reihen mit zwei gleich großen Buttons */
+.fabPanelQuick #fabSortDirRow,
+.fabPanelQuick #fabMarkRow,
+.fabPanelQuick #fabDepthRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(10px * var(--uiScale));
+  width: 100%;
+}
+
+/* Einheitliche (leicht kleinere) Chip-Buttons im Schnellmenü */
+.fabPanelQuick #fabSortDirRow .chip,
+.fabPanelQuick #fabMarkRow .chip,
+.fabPanelQuick #fabDepthRow .chip {
+  min-height: calc(44px * var(--uiScale));
+  padding: calc(9px * var(--uiScale)) calc(16px * var(--uiScale));
+  font-size: calc(15.5px * var(--uiScale));
+}
+
+/* Action-Button unten: ebenfalls minimal kompakter */
+.fabPanelQuick #fabOpenFiltersBtn {
+  padding: calc(10px * var(--uiScale)) calc(16px * var(--uiScale));
+  font-size: calc(15.5px * var(--uiScale));
+}
