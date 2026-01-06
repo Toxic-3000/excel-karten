@@ -1015,7 +1015,8 @@ html.isPhone .fabPanelQuick .fabHead{
   top: calc(-12px * var(--uiScale));
   margin-top: calc(-12px * var(--uiScale));
   padding-top: calc(12px * var(--uiScale));
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  /* kein abgesetztes Kopfband auf Phone */
+  background: inherit;
   z-index: 2;
 }
 
@@ -1025,8 +1026,9 @@ html.isPhone .fabPanelQuick .fabActions{
   position: relative;
   padding-top: calc(10px * var(--uiScale));
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
-  border-top: 1px solid var(--border);
+  /* kein abgesetztes Fußband auf Phone */
+  background: inherit;
+  border-top: 0;
   /* Fix: Action-Zeile ans Panel-Ende schieben, nicht unterhalb des Contents „stehen lassen“. */
   margin-top: auto;
 }
@@ -1059,14 +1061,53 @@ html.isNonPhone .fabPanelQuick{
   overflow: auto;
 }
 
+/* ------------------------------------------------------------
+   Schnellmenü: visuell einheitlich über Phone/Tablet/Desktop
+   ------------------------------------------------------------
+   Problem-Cluster aus den Tests:
+   - Phone: graue Kopf-/Fußbänder (Header/Actions weichen farblich vom Panel ab)
+   - Desktop/Tablet: zusätzliche Trennlinie oben, die auf Phone nicht auftaucht
+   - Desktop/Tablet: unten kleben Button-Reihen „unscharf“ aneinander
+
+   Lösung:
+   - Header + Actions bekommen die Panel-Hintergrundfarbe (per `background: inherit`)
+   - Trennlinie im Header wird für das Schnellmenü deaktiviert
+   - Actions bekommt eine definierte Top-Luft
+   - Buttons im Schnellmenü leicht kompakter + einheitliche Höhe
+*/
+
+.fabPanelQuick .fabHead{
+  background: inherit;        /* kein separater grauer Balken */
+  border-bottom: 0;           /* keine Geräte-spezifische Trennlinie */
+}
+
+.fabPanelQuick .fabActions{
+  background: inherit;        /* kein separater grauer Balken */
+  box-shadow: none;           /* keine dunkle Kante am Fuß */
+  margin-top: calc(12px * var(--uiScale));
+  padding-top: calc(10px * var(--uiScale));
+}
+
+/* Quick-Buttons: minimal kleiner + gleiche Höhe */
+.fabPanelQuick .chip{
+  min-height: calc(34px * var(--uiScale));
+  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale));
+}
+
+/* Der große Action-Button soll sich wie ein normaler Chip anfühlen */
+.fabPanelQuick .chip.action{
+  min-height: calc(32px * var(--uiScale));
+}
+
 /* In Tight-Mode soll der große Aktionsbutton immer erreichbar bleiben (auch wenn gescrollt wird). */
 html.vhTight .fabPanelQuick .fabActions{
   position: sticky;
   bottom: 0;
   padding-top: calc(10px * var(--uiScale));
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
-  border-top: 1px solid var(--border);
+  /* Kein abgesetztes „Fußband“ – gleiche Fläche wie Panel */
+  background: inherit;
+  border-top: 0;
   /* Wenn der Inhalt kürzer als das Panel ist: Actionbar nach unten drücken */
   margin-top: auto;
 }
