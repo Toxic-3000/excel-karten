@@ -1014,7 +1014,6 @@ html.isPhone .fabPanelQuick .fabHead{
   /* Panel hat Padding – mit negativem Offset „kleben“ wir am inneren Rand */
   top: calc(-12px * var(--uiScale));
   margin-top: calc(-12px * var(--uiScale));
-  padding-top: calc(12px * var(--uiScale));
   /* kein abgesetztes Kopfband auf Phone */
   background: inherit;
   z-index: 2;
@@ -1343,13 +1342,21 @@ html.vhTight .fabPanelText{
   gap: calc(10px * var(--uiScale));
 }
 
-.fabHead{display:flex; align-items:center; justify-content:flex-start; gap: calc(10px * var(--uiScale));}
+.fabHead{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap: calc(10px * var(--uiScale));
+  /* Einheitliche Header-Paddings für Schnellmenü + Textgrößenmenü */
+  padding: calc(14px * var(--uiScale)) calc(16px * var(--uiScale)) calc(10px * var(--uiScale));
+}
 .fabTitle{font-weight: 750; letter-spacing: .2px;}
 
-/* Schnellmenü: Headline dezent hervorheben (ruhig, ohne "Alert"-Look) */
-.fabPanelQuick .fabHead{
-  padding-bottom: calc(8px * var(--uiScale));
+/* Einheitliche Trennlinie in Panel-Headern (Schnellmenü, Textgröße, …)
+   Ziel: gleiche Breite/Dicke/Abstände auf allen Geräteklassen */
+.fabPanel .fabHead{
   border-bottom: 1px solid color-mix(in oklab, var(--filterAccent) 26%, var(--border) 74%);
+  box-sizing: border-box;
 }
 .fabClose{
   border:1px solid var(--border);
