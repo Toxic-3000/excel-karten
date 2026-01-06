@@ -993,9 +993,12 @@ html.vhTight .fabPanelQuick{
    Phones werden daher als *eine* UI-Klasse behandelt (orientation-agnostic).
 */
 html.isPhone .fabPanelQuick{
-  top: calc(12px + env(safe-area-inset-top, 0px));
+  /* Phone default: wrap content, dock to bottom, and only scroll if needed */
+  top: auto;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  max-height: none;
+  height: auto;
+  max-height: calc(var(--vh, 100vh) - 18px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  overflow: auto;
   left: calc(14px * var(--uiScale));
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
   width: auto;
