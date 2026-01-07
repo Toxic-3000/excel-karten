@@ -1194,7 +1194,7 @@ html.vhTight .fabPanelText{
        where the visible viewport is already reduced by the address bar.
        In this mode it's better that the panel can overlap the FAB stack, so the content
        fits without forced scrolling. */
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc((12px * var(--uiScale)) + env(safe-area-inset-bottom, 0px)) !important;
     max-height: none !important;
 
     /* In Phone-Landscape soll das Schnellmenü die gleiche Breite/Andock-Logik wie das
@@ -1220,27 +1220,37 @@ html.vhTight .fabPanelText{
       "dir marks"
       "cards cards"
       "action action";
-    column-gap: 12px;
-    row-gap: 10px;
+    column-gap: calc(12px * var(--uiScale));
+    row-gap: calc(10px * var(--uiScale));
 
     align-content: start !important;
     align-items: start !important;
   }
+  /* Phone: FAB-Menüs an globale Aa-Skalierung koppeln (var(--uiScale)) */
   html.isPhone .fabPanelQuick .fabHead,
-  html.isPhone .fabPanelQuick .fabHeader{ grid-area: head; gap: 10px !important; padding-bottom: 6px !important; }
+  html.isPhone .fabPanelQuick .fabHeader{
+    grid-area: head;
+    gap: calc(10px * var(--uiScale)) !important;
+    padding-bottom: calc(6px * var(--uiScale)) !important;
+  }
   html.isPhone .fabPanelQuick .fabTitle,
-  html.isPhone .fabPanelQuick .fabTitleText{ font-size: 17px !important; }
-  html.isPhone .fabPanelQuick .fabClose{ padding: 6px 10px !important; }
+  html.isPhone .fabPanelQuick .fabTitleText{ font-size: calc(17px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelQuick .fabClose{ padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale)) !important; }
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
   html.isPhone .fabPanelQuick .quickInfo,
-  html.isPhone .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
+  html.isPhone .fabPanelQuick .fabQuickInfo{
+    grid-area: info;
+    margin-top: calc(8px * var(--uiScale)) !important;
+    padding: calc(9px * var(--uiScale)) calc(10px * var(--uiScale)) !important;
+    border-radius: calc(16px * var(--uiScale)) !important;
+  }
   html.isPhone .fabPanelQuick .quickInfoText,
   html.isPhone .fabPanelQuick .fabQuickCount{ min-width:0 !important; }
   html.isPhone .fabPanelQuick .quickInfoA,
-  html.isPhone .fabPanelQuick #fabQuickInfoA{ font-size: 13.5px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+  html.isPhone .fabPanelQuick #fabQuickInfoA{ font-size: calc(13.5px * var(--uiScale)) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
   html.isPhone .fabPanelQuick .quickReset,
-  html.isPhone .fabPanelQuick #fabQuickReset{ font-size: 16px !important; padding: 5px !important; }
+  html.isPhone .fabPanelQuick #fabQuickReset{ font-size: calc(16px * var(--uiScale)) !important; padding: calc(5px * var(--uiScale)) !important; }
   html.isPhone .fabPanelQuick .quickInfoB,
   html.isPhone .fabPanelQuick #fabQuickInfoB{ display:none !important; }
 
@@ -1253,20 +1263,20 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 !important; }
 
 
-  html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
-  html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
-  html.isPhone .fabPanelQuick .quickGrid{ gap: 8px !important; }
-  html.isPhone .fabPanelQuick .chip{ padding: 6px 9px !important; font-size: 14px !important; min-width: 0 !important; min-height: 34px !important; }
+  html.isPhone .fabPanelQuick .fabSect{ margin-top: calc(8px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)) !important; font-size: calc(12.5px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelQuick .quickGrid{ gap: calc(8px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelQuick .chip{ padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale)) !important; font-size: calc(14px * var(--uiScale)) !important; min-width: 0 !important; min-height: calc(34px * var(--uiScale)) !important; }
 
   /* Phone-Landscape: Textgrößen-Menü – gleiche Typo/Buttons/Abstände wie Schnellmenü */
-  html.isPhone .fabPanelText .fabSect{ margin-top: 8px !important; }
-  html.isPhone .fabPanelText .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
-  html.isPhone .fabPanelText .chipRow{ gap: 8px !important; }
-  html.isPhone .fabPanelText .chip{ padding: 6px 9px !important; font-size: 14px !important; min-width: 0 !important; min-height: 34px !important; }
+  html.isPhone .fabPanelText .fabSect{ margin-top: calc(8px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelText .fabLabel{ margin-bottom: calc(6px * var(--uiScale)) !important; font-size: calc(12.5px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelText .chipRow{ gap: calc(8px * var(--uiScale)) !important; }
+  html.isPhone .fabPanelText .chip{ padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale)) !important; font-size: calc(14px * var(--uiScale)) !important; min-width: 0 !important; min-height: calc(34px * var(--uiScale)) !important; }
 
   html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
   html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch !important; width: 100% !important; min-width: 0 !important; }
-  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
+  html.isPhone .fabPanelQuick .btn{ font-size: calc(14.5px * var(--uiScale)) !important; padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale)) !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
