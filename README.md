@@ -1,11 +1,13 @@
-# Spieleliste – Build V7_1j62i
+# Spieleliste – Build V7_1j62e
 
-Dieses ZIP basiert auf dem Build **V7_1j62h** und poliert die **FAB-Menüs** (Schnellmenü & Textgröße) visuell so nach, dass sie auf allen Geräten wie aus einem Guss wirken.
+Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
 
-## Änderungen in V7_1j62i (gegenüber V7_1j62h)
-- Textgrößenmenü (FAB) außerhalb von Phone **schmal wie die Phone-Variante** (kein großer Leerraum rechts).
-- Schnellmenü-Actionbutton „Suchen, Filtern & Sortieren“ **etwas schmaler** (zentriert, nicht mehr rand-zu-rand).
-- Abstände zur oberen Trennlinie in beiden Panels vereinheitlicht (Header/erste Sektion).
+## Änderungen in V7_1j62e (gegenüber V7_1j62d)
+
+- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
+- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
+- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
+
 ## Stand der Webansicht in diesem Build
 
 - **Schnellmenü:** Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail – Platzhalter), Sprung in „Suchen, Filtern & Sortieren“.
