@@ -1091,7 +1091,7 @@ html.isNonPhone .fabPanelQuick{
    damit kein unnötiger Leerraum rechts entsteht. */
 html.isNonPhone .fabPanelText{
   width: min(
-    calc(320px * var(--uiScale)),
+    clamp(300px, calc(320px * var(--uiScale)), 340px),
     calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
   );
   overflow: auto;
@@ -1241,7 +1241,7 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelQuick .quickInfo,
   html.isPhone .fabPanelQuick .fabQuickInfo{
     grid-area: info;
-    margin-top: calc(8px * var(--uiScale)) !important;
+    margin-top: 0 !important;
     padding: calc(9px * var(--uiScale)) calc(10px * var(--uiScale)) !important;
     border-radius: calc(16px * var(--uiScale)) !important;
   }
@@ -1264,6 +1264,10 @@ html.vhTight .fabPanelText{
 
 
   html.isPhone .fabPanelQuick .fabSect{ margin-top: calc(8px * var(--uiScale)) !important; }
+
+.fabPanel .fabSect:first-of-type{
+  padding-top: calc(14px * var(--uiScale));
+}
   html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)) !important; font-size: calc(12.5px * var(--uiScale)) !important; }
   html.isPhone .fabPanelQuick .quickGrid{ gap: calc(8px * var(--uiScale)) !important; }
   html.isPhone .fabPanelQuick .chip{ padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale)) !important; font-size: calc(14px * var(--uiScale)) !important; min-width: 0 !important; min-height: calc(34px * var(--uiScale)) !important; }
@@ -1275,7 +1279,15 @@ html.vhTight .fabPanelText{
   html.isPhone .fabPanelText .chip{ padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale)) !important; font-size: calc(14px * var(--uiScale)) !important; min-width: 0 !important; min-height: calc(34px * var(--uiScale)) !important; }
 
   html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch !important; width: 100% !important; min-width: 0 !important; }
+  html.isPhone .fabPanelQuick #fabOpenMenu{
+  width: calc(100% - (18px * var(--uiScale)));
+  margin: 0 auto;
+  justify-content: center;
+  border-radius: 20px;
+  padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
+  min-height: calc(38px * var(--uiScale));
+}
   html.isPhone .fabPanelQuick .btn{ font-size: calc(14.5px * var(--uiScale)) !important; padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale)) !important; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
@@ -1381,7 +1393,7 @@ html.vhTight .fabPanelText{
   /* Action-Zeile: immer unten, volle Breite */
   .fabPanelQuick .fabActions{ grid-area: action; justify-self: stretch; margin-top: 0; justify-content: stretch; }
 
-  .fabPanelQuick #fabOpenMenu{ width: 100%; min-width: 0; }
+  .fabPanelQuick #fabOpenMenu{ width: calc(100% - (18px * var(--uiScale))); margin: 0 auto; min-width: 0; }
   /* Sortieren-nach: Dropdown statt Chip-Cloud (überall) */
   #fabSortFieldRow{ display:block; }
   #fabSortDirRow{
@@ -1547,6 +1559,9 @@ html.vhTight .fabPanelText{
   min-height: calc(38px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
   line-height: 1.15;
+  width: calc(100% - calc(16px * var(--uiScale)));
+  margin: 0 auto;
+
 }
 
 /* Buttons in den Schnellmenü-Reihen sollen immer exakt gleich breit sein */
@@ -1556,16 +1571,6 @@ html.vhTight .fabPanelText{
   justify-content: center;
 }
 
-/* Phase 1: Action-Button auf Phones vollbreit (bessere Tap-Fläche, kein "rechts schwebend") */
-@media (max-width: 700px){
-  .fabPanelQuick .fabActions{
-    justify-content: stretch;
-  }
-  .fabPanelQuick #fabOpenMenu{
-    width: 100%;
-    min-width: 0;
-  }
-}
 
 
 /* Schnellmenü: Statusbox mit Reset-Aktion */
@@ -2158,7 +2163,7 @@ html.modalOpen body{touch-action:none;}
     margin-top: 0;
     justify-content: stretch;
   }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ width: 100%; }
+  html.isPhone .fabPanelQuick #fabOpenMenu{ width: calc(100% - (18px * var(--uiScale))); margin: 0 auto; }
 
   /* Optional info row: only reserve a row when the info is actually visible */
   html.isPhone .fabPanelQuick.hasQuickInfo{
@@ -2844,18 +2849,19 @@ html.modalOpen body{touch-action:none;}
 /* Action-Button: nicht mehr „zu breit“ auf großen Screens */
 .fabPanelQuick .fabActions{ justify-content:center !important; }
 .fabPanelQuick #fabOpenMenu{
-  width: min(100%, calc(360px * var(--uiScale))) !important;
+  width: min(calc(100% - (18px * var(--uiScale))), calc(360px * var(--uiScale))) !important;
+  margin: 0 auto;
   min-width: 0 !important;
 }
 
 /* Einheitlicher Abstand: Kopf-Linie → Inhalt (Schnellmenü & Textgrößenmenü) */
 .fabPanelQuick .fabHead,
 .fabPanelText  .fabHead{
-  padding-bottom: calc(8px * var(--uiScale)) !important;
+  padding-bottom: calc(12px * var(--uiScale)) !important;
 }
 .fabPanelQuick .fabSect,
 .fabPanelText  .fabSect{
-  margin-top: calc(8px * var(--uiScale)) !important;
+  margin-top: 0 !important;
 }
 
 /* ------------------------------------------------------------
