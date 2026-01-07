@@ -1,3 +1,5 @@
+  html.isPhone .fabPanelQuick .quickGrid,
+  html.isPhone .fabPanelText .chipRow{ gap: 8px; }
 /* Spieleliste Webansicht – Clean Rebuild – Build 7.1j32
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
@@ -1225,46 +1227,53 @@ html.vhTight .fabPanelText{
     align-items: start !important;
   }
   html.isPhone .fabPanelQuick .fabHead,
-  html.isPhone .fabPanelQuick .fabHeader{ grid-area: head; gap: 10px !important; padding-bottom: 6px !important; }
+ html.isPhone .fabPanelQuick .fabHeader{ grid-area: head; gap: 10px ; padding-bottom: 6px ; }
   html.isPhone .fabPanelQuick .fabTitle,
-  html.isPhone .fabPanelQuick .fabTitleText{ font-size: 17px !important; }
-  html.isPhone .fabPanelQuick .fabClose{ padding: 6px 10px !important; }
+ html.isPhone .fabPanelQuick .fabTitleText{ font-size: 17px ; }
+ html.isPhone .fabPanelQuick .fabClose{ padding: 6px 10px ; }
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
   html.isPhone .fabPanelQuick .quickInfo,
-  html.isPhone .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 8px !important; padding: 9px 10px !important; border-radius: 16px !important; }
+ html.isPhone .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 8px ; padding: 9px 10px ; border-radius: 16px ; }
   html.isPhone .fabPanelQuick .quickInfoText,
-  html.isPhone .fabPanelQuick .fabQuickCount{ min-width:0 !important; }
+ html.isPhone .fabPanelQuick .fabQuickCount{ min-width:0 ; }
   html.isPhone .fabPanelQuick .quickInfoA,
-  html.isPhone .fabPanelQuick #fabQuickInfoA{ font-size: 13.5px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+ html.isPhone .fabPanelQuick #fabQuickInfoA{ font-size: 13.5px ; white-space: nowrap ; overflow: hidden ; text-overflow: ellipsis ; }
   html.isPhone .fabPanelQuick .quickReset,
-  html.isPhone .fabPanelQuick #fabQuickReset{ font-size: 16px !important; padding: 5px !important; }
+ html.isPhone .fabPanelQuick #fabQuickReset{ font-size: 16px ; padding: 5px ; }
   html.isPhone .fabPanelQuick .quickInfoB,
-  html.isPhone .fabPanelQuick #fabQuickInfoB{ display:none !important; }
+ html.isPhone .fabPanelQuick #fabQuickInfoB{ display:none ; }
 
-  html.isPhone .fabPanelQuick .fabQuickDepth{ grid-area: depth; margin-top: 0 !important; }
+ html.isPhone .fabPanelQuick .fabQuickDepth{ grid-area: depth; margin-top: 0 ; }
 
   /* Grid-Areas (Phone-Landscape): alle Control-Blöcke auf einer visuellen Ebene */
   html.isPhone .fabPanelQuick .fabQuickField,
   html.isPhone .fabPanelQuick .fabQuickDir,
-  html.isPhone .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0 !important; }
-  html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 !important; }
+ html.isPhone .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0 ; }
+ html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 ; }
 
 
-  html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px !important; }
-  html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
-  html.isPhone .fabPanelQuick .quickGrid{ gap: 8px !important; }
-  html.isPhone .fabPanelQuick .chip{ padding: 6px 9px !important; font-size: 14px !important; min-width: 0 !important; min-height: 34px !important; }
+ html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px ; }
+ html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px ; font-size: 12.5px ; }
+ 
+   html.isPhone .fabPanelQuick .chip,
+  html.isPhone .fabPanelText .chip{
+  padding: 6px 9px;
+  font-size: 14px;
+  min-width: 0;
+  min-height: 34px;
+  }
+
 
   /* Phone-Landscape: Textgrößen-Menü – gleiche Typo/Buttons/Abstände wie Schnellmenü */
-  html.isPhone .fabPanelText .fabSect{ margin-top: 8px !important; }
-  html.isPhone .fabPanelText .fabLabel{ margin-bottom: 6px !important; font-size: 12.5px !important; }
-  html.isPhone .fabPanelText .chipRow{ gap: 8px !important; }
-  html.isPhone .fabPanelText .chip{ padding: 6px 9px !important; font-size: 14px !important; min-width: 0 !important; min-height: 34px !important; }
+ html.isPhone .fabPanelText .fabSect{ margin-top: 8px ; }
+ html.isPhone .fabPanelText .fabLabel{ margin-bottom: 6px ; font-size: 12.5px ; }
+ 
+ 
 
-  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 !important; justify-content: stretch !important; justify-self: stretch !important; }
-  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch !important; width: 100% !important; min-width: 0 !important; }
-  html.isPhone .fabPanelQuick .btn{ font-size: 14.5px !important; padding: 10px 14px !important; }
+ html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 ; justify-content: stretch ; justify-self: stretch ; }
+ html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch ; width: 100% ; min-width: 0 ; }
+ html.isPhone .fabPanelQuick .btn{ font-size: 14.5px ; padding: 10px 14px ; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
@@ -2139,7 +2148,7 @@ html.modalOpen body{touch-action:none;}
   html.isPhone .fabPanelQuick.hasQuickInfo > .quickInfo,
   html.isPhone .fabPanelQuick.hasQuickInfo > .fabQuickInfo{ margin-top: 0; }
   html.isPhone .fabPanelQuick .quickInfoB,
-  html.isPhone .fabPanelQuick #fabQuickInfoB{ display: none !important; }
+ html.isPhone .fabPanelQuick #fabQuickInfoB{ display: none ; }
 
 
 
