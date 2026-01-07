@@ -1384,10 +1384,10 @@ html.vhTight .fabPanelText{
   }
   #fabSortDirRow .chip{
     /* kompakter & einheitlicher wie Markierungen/Karten */
-    padding: calc(6px * var(--uiScale)) calc(9px * var(--uiScale));
-    min-height: calc(34px * var(--uiScale));
-    font-weight: 650;
-    font-size: calc(14px * var(--uiScale));
+    --chip-pad-y: calc(6px * var(--uiScale));
+    --chip-pad-x: calc(9px * var(--uiScale));
+    --chip-min-h: calc(34px * var(--uiScale));
+    --chip-font: calc(14px * var(--uiScale));
     justify-content: center;
     text-align: center;
     white-space: nowrap;
@@ -1421,7 +1421,13 @@ html.vhTight .fabPanelText{
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em; font-size: calc(12.5px * var(--uiScale));}
 .fabChips{gap: var(--sp-4);}
-.fabPanel .chip{ padding: var(--sp-3) var(--ctl-pad-x); min-height: var(--ctl-h-sm); font-weight:650; font-size: var(--ctl-font-md); }
+/* FAB panels use the same chip component but with compact sizing tokens */
+.fabPanel{
+  --chip-pad-y: var(--sp-3);
+  --chip-pad-x: var(--ctl-pad-x);
+  --chip-min-h: var(--ctl-h-sm);
+  --chip-font: var(--ctl-font-md);
+}
 
 /* Schnellmenü: Dropdown (Sortieren nach) soll wie ein Control wirken, nicht wie ein 'Desktop-Popover' */
 .fabPanelQuick .dd{ max-width: none; }
@@ -1854,8 +1860,12 @@ html.modalOpen body{touch-action:none;}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  /* Chip sizing is token-based to avoid a cascade of one-off overrides.
+     Defaults preserve the original look; panels can override via CSS variables. */
+  padding: var(--chip-pad-y, calc(9px * var(--uiScale))) var(--chip-pad-x, calc(12px * var(--uiScale)));
   font-weight:650;
+  font-size: var(--chip-font, inherit);
+  min-height: var(--chip-min-h, auto);
   cursor:pointer;
   user-select:none;
 }

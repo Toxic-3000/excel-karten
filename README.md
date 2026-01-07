@@ -1,8 +1,8 @@
-# Spieleliste – Build V7_1j62m
+# Spieleliste – Build V7_1j62n
 
 Dieser Build ist eine **CSS-Entschlackungsrunde (Phase B)** auf Basis von **V7_1j62e** – Ziel: **wartbarer CSS‑Unterbau ohne Optik‑Änderung**.
 
-## Änderungen in V7_1j62m (gegenüber V7_1j62k)
+## Änderungen in V7_1j62n (gegenüber V7_1j62k)
 
 - **Duplikate entfernt / zusammengeführt:** doppelte Grid-Regeln im Schnellmenü bereinigt.
 - **Gemeinsame „Pill“-Oberfläche zentralisiert:** `:is(.pill, .btn, .badge)` bündelt die wiederkehrenden Basiswerte (Border/Background/Radius/Color) – die Einzelregeln enthalten nur noch das, was wirklich unterscheidet.
