@@ -1087,6 +1087,24 @@ html.isNonPhone .fabPanelQuick{
   overflow: auto;
 }
 
+/* Non-Phone: Textgrößen-Menü soll in Breite/Typo/Buttons exakt zum Schnellmenü passen.
+   Auf großen Screens schrumpft es sonst „content-sized“ und wirkt nicht wie aus einem Guss. */
+html.isNonPhone .fabPanelText{
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
+  overflow: auto;
+}
+
+/* Non-Phone: Chips im Textgrößen-Menü wie im Schnellmenü (Größe/Abstände/Höhe) */
+html.isNonPhone .fabPanelText .chip{
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  min-height: calc(32px * var(--uiScale));
+  line-height: 1.2;
+}
+html.isNonPhone .fabPanelText .chipRow{ gap: calc(12px * var(--uiScale)); }
+
 /* ------------------------------------------------------------
    Schnellmenü: visuell einheitlich über Phone/Tablet/Desktop
    ------------------------------------------------------------
@@ -1280,7 +1298,10 @@ html.vhTight .fabPanelText{
 
   .fabPanelText{
     max-width: calc(420px * var(--uiScale));
-    width: auto;
+    width: min(
+      calc(420px * var(--uiScale)),
+      calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+    );
   }
 
   /* Schnellmenü in Portrait bewusst kompakt halten (keine Mindestbreite erzwingen). */
@@ -1306,7 +1327,10 @@ html.vhTight .fabPanelText{
   /* Textgröße-Menü: kompakt lassen (nicht full-width), nur andocken */
   .fabPanelText{
     max-width: calc(420px * var(--uiScale));
-    width: auto;
+    width: min(
+      calc(420px * var(--uiScale)),
+      calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+    );
   }
 
   /* Schnellmenü: zweispaltiger Aufbau wie Phone-Landscape – ohne harte Höhen-/Font-Deckelung */

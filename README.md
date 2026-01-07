@@ -1,12 +1,11 @@
-# Spieleliste – Build V7_1j62e
+# Spieleliste – Build V7_1j62f
 
-Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
+Dieses ZIP basiert auf dem Build **V7_1j62e** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße) – insbesondere für Tablet/Desktop.
 
-## Änderungen in V7_1j62e (gegenüber V7_1j62d)
+## Änderungen in V7_1j62f (gegenüber V7_1j62e)
 
-- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
-- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
-- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
+- **Textgrößenmenü auf größeren Geräten harmonisiert:** Breite und Button-/Chip-Maße sind jetzt auf **Tablet/Desktop** im gleichen Stil wie im **Schnellmenü** (kein „content-sized“ Schrumpfen mehr).
+- **Abstände im Textgrößenmenü angeglichen:** Chip-Gaps und Zeilenrhythmus entsprechen nun dem Schnellmenü, damit beide Panels als Einheit wirken.
 
 ## Stand der Webansicht in diesem Build
 
