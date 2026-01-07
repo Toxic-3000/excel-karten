@@ -943,7 +943,7 @@ summary::-webkit-details-marker{display:none}
   position:fixed;
   right: calc(var(--fabEdge) * var(--uiScale));
   z-index:66;
-  width: min(320px, calc(100vw - 28px));
+  width: min(var(--textPanelW), calc(100vw - 28px));
   /* Fallback: dynamic viewport units */
   max-height: calc(100dvh - 120px);
   /* Prefer: VisualViewport-driven height (more reliable when browser bar is visible) */
