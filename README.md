@@ -1,4 +1,4 @@
-# Spieleliste – Build V7_1j62c
+# Spieleliste – Build V7_1j62d
 
 Dieses ZIP ist eine **baugleiche** Kopie des zuletzt als stabil markierten Builds (Basis: V7_1j61e5p11), mit **aktualisierter Buildnummer** in UI, Asset-Cachebustern und dieser README.
 
