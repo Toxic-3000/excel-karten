@@ -1,12 +1,18 @@
-# Spieleliste – Build V7_1j62d
+# Spieleliste – Build V7_1j62e
 
-Dieses ZIP ist eine **baugleiche** Kopie des zuletzt als stabil markierten Builds (Basis: V7_1j61e5p11), mit **aktualisierter Buildnummer** in UI, Asset-Cachebustern und dieser README.
+Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
+
+## Änderungen in V7_1j62e (gegenüber V7_1j62d)
+
+- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
+- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
+- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
 
 ## Stand der Webansicht in diesem Build
 
-- **Schnellmenü**: Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail) und der Sprung in „Suchen, Filtern & Sortieren“.
-- **Trennlinien (Divider)**: einheitlicher Look (gleiche Dicke/Breite/Abstände) im Schnellmenü **und** im Textgrößenmenü.
-- **Buttons**: konsistente Höhen/Breiten und Abstände über Phone, Tablet und Desktop.
+- **Schnellmenü:** Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail – Platzhalter), Sprung in „Suchen, Filtern & Sortieren“.
+- **Textgröße:** A / A+ / A++ / A+++ + „Textdarstellung“ (Normal/Kompakt – Platzhalter).
+- **Trennlinie:** pro Menü genau **eine** Linie im Header-Stil.
 
 ## Inhalt
 
@@ -17,4 +23,4 @@ Dieses ZIP ist eine **baugleiche** Kopie des zuletzt als stabil markierten Build
 
 ## Lokal starten
 
-Öffne `index.html` direkt im Browser oder lege alle Dateien in denselben Ordner auf GitHub Pages.
+Öffne `index.html` direkt im Browser oder lade alle Dateien gemeinsam auf GitHub Pages.
