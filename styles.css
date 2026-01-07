@@ -1006,7 +1006,7 @@ html.vhTight .fabPanelQuick{
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
   left: auto;
   width: min(
-    calc(420px * var(--uiScale)),
+		calc(320px * var(--uiScale)),
     calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
   );
 }
@@ -1087,11 +1087,11 @@ html.isNonPhone .fabPanelQuick{
   overflow: auto;
 }
 
-/* Non-Phone: Textgrößen-Menü soll in Breite/Typo/Buttons exakt zum Schnellmenü passen.
-   Auf großen Screens schrumpft es sonst „content-sized“ und wirkt nicht wie aus einem Guss. */
+/* Non-Phone: Textgrößen-Menü soll bewusst schmal bleiben (Phone-Optik),
+   damit kein unnötiger Leerraum rechts entsteht. */
 html.isNonPhone .fabPanelText{
   width: min(
-    calc(420px * var(--uiScale)),
+    calc(320px * var(--uiScale)),
     calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
   );
   overflow: auto;
@@ -2841,9 +2841,22 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabSortDirRow{ width:100% !important; max-width:none !important; }
 .fabPanelQuick #fabMarkRow{ width:100% !important; max-width:none !important; }
 
-/* Action-Button immer unten und immer volle Breite */
-.fabPanelQuick .fabActions{ justify-content:stretch !important; }
-.fabPanelQuick #fabOpenMenu{ width:100% !important; min-width:0 !important; }
+/* Action-Button: nicht mehr „zu breit“ auf großen Screens */
+.fabPanelQuick .fabActions{ justify-content:center !important; }
+.fabPanelQuick #fabOpenMenu{
+  width: min(100%, calc(360px * var(--uiScale))) !important;
+  min-width: 0 !important;
+}
+
+/* Einheitlicher Abstand: Kopf-Linie → Inhalt (Schnellmenü & Textgrößenmenü) */
+.fabPanelQuick .fabHead,
+.fabPanelText  .fabHead{
+  padding-bottom: calc(8px * var(--uiScale)) !important;
+}
+.fabPanelQuick .fabSect,
+.fabPanelText  .fabSect{
+  margin-top: calc(8px * var(--uiScale)) !important;
+}
 
 /* ------------------------------------------------------------
    Build 7.1j61e5p7 – Schnellmenü: nur "Auf/Ab" (kein Sortierfeld)

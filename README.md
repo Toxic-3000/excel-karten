@@ -1,11 +1,14 @@
-# Spieleliste – Build V7_1j62g
+# Spieleliste – Build V7_1j62h
 
-Dieses ZIP basiert auf dem Build **V7_1j62f** und koppelt die **FAB-Menüs** (Schnellmenü & Textgröße) auf **allen Geräten/Ansichten** an das globale **Aa-Scaling**.
+Dieses ZIP basiert auf dem Build **V7_1j62g** und poliert die **FAB-Menüs** (Schnellmenü & Textgröße) visuell so nach, dass sie auf allen Geräten wie aus einem Guss wirken.
 
-## Änderungen in V7_1j62g (gegenüber V7_1j62f)
+## Änderungen in V7_1j62h (gegenüber V7_1j62g)
 
-- **Globale Aa-Kopplung:** Schriftgrößen, Chip-/Button-Maße und relevante Abstände in **beiden** FAB-Menüs folgen nun konsistent `var(--uiScale)`.
-- **Phone-Landscape bereinigt:** zuvor harte Pixelwerte im FAB-Menü wurden auf skalierende `calc(... * var(--uiScale))` umgestellt.
+- **Textgrößenmenü: schmale Breite überall** (wie in der Phone-Optik) – kein unnötiger Leerraum rechts.
+- **Schnellmenü-Action-Button („Suchen, Filtern & Sortieren“) schmaler** auf großen Displays (zentriert, begrenzte Max-Breite).
+- **Header-Trennlinie & Abstände vereinheitlicht:** gleicher Abstand unter der Linie und konsistente Section-Abstände in beiden Menüs.
+
+Keine Logikänderungen an Filtern/Sortierung/Markierungen – rein visuelle Harmonisierung.
 
 ## Stand der Webansicht in diesem Build
 
