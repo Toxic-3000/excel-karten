@@ -378,11 +378,17 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   outline:none;
 }
 .pills{display:flex; flex-wrap:wrap; gap: var(--sp-4); align-items:center}
-.pill{
+/* Gemeinsame „Pill“-Oberfläche (Buttons, Pills, Badges)
+   -> reduziert Duplikate, Optik bleibt identisch */
+:is(.pill, .btn, .badge){
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   border-radius:999px;
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  color:var(--fg);
+}
+
+.pill{
+padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-weight:600;
   font-variant-numeric: tabular-nums;
 }
@@ -391,12 +397,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .pill-bad{border-color: color-mix(in oklab, var(--bad) 55%, var(--border) 45%)}
 
 .btn{
-  border:1px solid var(--border);
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  color:var(--fg);
-  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
-  border-radius:999px;
-  font-weight:650;
+padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
+font-weight:650;
   cursor:pointer;
   box-shadow: var(--shadow);
   user-select:none;
@@ -513,10 +515,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   margin: calc(10px * var(--uiScale)) 0 calc(8px * var(--uiScale));
 }
 .badge{
-  border:1px solid var(--border);
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  border-radius:999px;
-  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-weight:600;
   font-size: var(--ctl-font-sm);
   display:inline-flex;
@@ -1387,14 +1386,6 @@ html.vhTight .fabPanelText{
   #fabSortDirRow .chip svg{ width: calc(18px * var(--uiScale)); height: calc(18px * var(--uiScale)); }
 }
 
-/* Schnellmenü: Control-Buttons immer 2-spaltig (gleichwertige Blöcke) */
-#fabSortDirRow,
-#fabMarkRow{
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-4);
-}
-
 .fabHead{
   display:flex;
   align-items:center;
@@ -1449,8 +1440,9 @@ html.vhTight .fabPanelText{
 
 .fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
 
-/* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar) */
-.quickInfo{
+/* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar)
+   Beide Markup-Varianten teilen sich 1:1 die Optik. */
+:is(.quickInfo, .fabQuickInfo){
   margin-top: calc(12px * var(--uiScale));
   padding: calc(10px * var(--uiScale));
   border:1px solid color-mix(in oklab, var(--filterAccent) 28%, var(--border) 72%);
@@ -1463,19 +1455,6 @@ html.vhTight .fabPanelText{
   gap: var(--sp-4);
 }
 
-/* Schnellmenü: aktuelles Markup (fabQuickInfo...) – gleiche Optik wie quickInfo */
-.fabQuickInfo{
-  margin-top: calc(12px * var(--uiScale));
-  padding: calc(10px * var(--uiScale));
-  border:1px solid color-mix(in oklab, var(--filterAccent) 28%, var(--border) 72%);
-  border-radius: 16px;
-  background: color-mix(in oklab, var(--filterAccent) 8%, var(--bg) 92%);
-  box-shadow: none;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: var(--sp-4);
-}
 .fabQuickCount{
   display:flex;
   flex-direction:column;
