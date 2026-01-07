@@ -6,6 +6,23 @@
 :root{
   --uiScaleRaw: 1;
   --uiScale: var(--uiScaleRaw);
+  /* Spacing scale (uiScale-aware) – single source of truth */
+  --sp-1: calc(4px * var(--uiScale));
+  --sp-2: calc(6px * var(--uiScale));
+  --sp-3: calc(8px * var(--uiScale));
+  --sp-4: calc(10px * var(--uiScale));
+  --sp-5: calc(12px * var(--uiScale));
+  --sp-6: calc(14px * var(--uiScale));
+  --sp-7: calc(16px * var(--uiScale));
+  --sp-8: calc(20px * var(--uiScale));
+
+  /* Common control metrics */
+  --ctl-font-sm: calc(13px * var(--uiScale));
+  --ctl-font-md: calc(14px * var(--uiScale));
+  --ctl-h-sm: calc(34px * var(--uiScale));
+  --ctl-h-md: calc(38px * var(--uiScale));
+  --ctl-pad-x: calc(12px * var(--uiScale));
+
 
   /* Visible viewport height helper (set by JS via VisualViewport when available).
      Fallback stays at 1vh. Used to keep overlays stable when the mobile browser bar is shown. */
@@ -134,8 +151,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-bottom:1px solid var(--border);
 }
 .topbar{
-  display:flex; gap: calc(12px * var(--uiScale)); align-items:center; justify-content:flex-start;
-  padding: calc(14px * var(--uiScale)) calc(12px * var(--uiScale)) calc(10px * var(--uiScale));
+  display:flex; gap: var(--sp-5); align-items:center; justify-content:flex-start;
+  padding: var(--sp-6) var(--sp-5) var(--sp-4);
 }
 .brand{
   font-weight:800;
@@ -146,11 +163,11 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   align-items:center;
   justify-content:space-between;
   width:100%;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .brandName{display:block; min-width:0;}
 .build{
-  font-size: calc(13px * var(--uiScale));
+  font-size: var(--ctl-font-sm);
   font-weight:600;
   opacity:.65;
   margin-left: auto;
@@ -164,15 +181,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .hdrRule{
   height:1px;
   background: color-mix(in oklab, var(--border) 82%, transparent);
-  margin: 0 calc(12px * var(--uiScale));
+  margin: 0 var(--sp-5);
 }
 
 .subbar{
   /* A bit more air below the thin divider so the search field doesn't feel glued to it */
-  padding: calc(6px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  padding: var(--sp-2) var(--sp-5) var(--sp-5);
   display:flex;
   flex-direction:column;
-  gap:calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 
 /* Kompakte Button-Variante (Chip-Look) */
@@ -186,7 +203,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   width:min(820px, 100%);
   display:flex;
   align-items:center;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .toolbarRow #btnMenu{
   flex: 1 1 auto;
@@ -195,8 +212,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 /* Smaller pill variant for compact toolbars */
 .pill.pill-sm{
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  font-size: calc(13px * var(--uiScale));
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--ctl-font-sm);
 }
 .pill .pillLabel{opacity:.75; margin-right: calc(6px * var(--uiScale));}
 .pill .pillCount{font-variant-numeric: tabular-nums;}
@@ -219,15 +236,15 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .fileMoreTop{
   display:flex;
   align-items:center;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
   flex-wrap:wrap;
   margin-bottom: calc(8px * var(--uiScale));
 }
 
 /* Make the Excel button feel like a chip so it pairs nicely with the XLSX status pill */
 .fileMoreTop .btn.btn-compact{
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
-  font-size: calc(13px * var(--uiScale));
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--ctl-font-sm);
 }
 
 /* Adaptive compaction: when space is tight (e.g. A+++), we hide secondary bits instead of wrapping */
@@ -245,7 +262,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 .fileMeta{
   white-space:nowrap;
-  font-size: calc(13px * var(--uiScale));
+  font-size: var(--ctl-font-sm);
   opacity:.7;
 }
 
@@ -360,7 +377,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-weight:500;
   outline:none;
 }
-.pills{display:flex; flex-wrap:wrap; gap: calc(10px * var(--uiScale)); align-items:center}
+.pills{display:flex; flex-wrap:wrap; gap: var(--sp-4); align-items:center}
 .pill{
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
@@ -445,7 +462,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 .rowMeta{
-  display:flex; justify-content:flex-start; align-items:center; gap:calc(10px * var(--uiScale));
+  display:flex; justify-content:flex-start; align-items:center; gap: var(--sp-4);
 }
 .idBadge{
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
@@ -501,7 +518,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   border-radius:999px;
   padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-weight:600;
-  font-size: calc(13px * var(--uiScale));
+  font-size: var(--ctl-font-sm);
   display:inline-flex;
   gap: calc(6px * var(--uiScale));
   align-items:center;
@@ -549,7 +566,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .infoStack{
   display:flex;
   flex-direction:column;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .infoItem{min-width:0}
 .infoItem .k{margin-bottom: calc(4px * var(--uiScale));}
@@ -602,7 +619,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   margin-top:calc(10px * var(--uiScale));
   display:flex;
   flex-direction:column;
-  gap:calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .detailsWrap details{margin:0}
 .kvTable{
@@ -658,7 +675,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
     display:grid;
     grid-template-columns: 1fr 1fr;
     /* gleiche Spalten-/Gap-Logik wie bei den unteren 2er-Kacheln */
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
     align-items:start;
   }
   .info{
@@ -698,7 +715,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
   .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
@@ -793,10 +810,10 @@ summary::-webkit-details-marker{display:none}
   border-radius: 8px;
   padding: 0 .12em;
 }
-.small{font-size: calc(13px * var(--uiScale)); opacity:.8; font-weight:500}
+.small{font-size: var(--ctl-font-sm); opacity:.8; font-weight:500}
 
 .platBlock{margin: calc(12px * var(--uiScale)) 0}
-.platHead{display:flex; gap: calc(10px * var(--uiScale)); align-items:center; flex-wrap:wrap}
+.platHead{display:flex; gap: var(--sp-4); align-items:center; flex-wrap:wrap}
 .bar{
   height: calc(10px * var(--uiScale));
   border-radius:999px;
@@ -818,7 +835,7 @@ summary::-webkit-details-marker{display:none}
 .emptyTitle{font-weight:750; font-size: calc(22px * var(--uiScale))}
 .emptyText{margin-top: calc(8px * var(--uiScale)); opacity:.9; font-weight:450; line-height:1.5}
 .emptyActions{margin-top: calc(14px * var(--uiScale))}
-.emptyHint{margin-top: calc(14px * var(--uiScale)); font-size: calc(13px * var(--uiScale)); opacity:.8; font-weight:450}
+.emptyHint{margin-top: calc(14px * var(--uiScale)); font-size: var(--ctl-font-sm); opacity:.8; font-weight:450}
 
 .toTop{
   position:fixed;
@@ -943,7 +960,7 @@ summary::-webkit-details-marker{display:none}
   position:fixed;
   right: calc(var(--fabEdge) * var(--uiScale));
   z-index:66;
-  width: min(var(--textPanelW), calc(100vw - 28px));
+  width: min(320px, calc(100vw - 28px));
   /* Fallback: dynamic viewport units */
   max-height: calc(100dvh - 120px);
   /* Prefer: VisualViewport-driven height (more reliable when browser bar is visible) */
@@ -1327,7 +1344,7 @@ html.vhTight .fabPanelText{
       "cards cards"
       "action action";
     column-gap: calc(16px * var(--uiScale));
-    row-gap: calc(10px * var(--uiScale));
+    row-gap: var(--sp-4);
     align-items: start;
     align-content: start;
     /* viel Luft, aber nie über den Viewport hinaus */
@@ -1353,7 +1370,7 @@ html.vhTight .fabPanelText{
   #fabSortDirRow{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
     /* volle Breite: keine künstliche Kappe */
     max-width: none;
   }
@@ -1375,14 +1392,14 @@ html.vhTight .fabPanelText{
 #fabMarkRow{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 
 .fabHead{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
   /* Einheitliche Header-Paddings für Schnellmenü + Textgrößenmenü */
   padding: calc(14px * var(--uiScale)) calc(16px * var(--uiScale)) calc(10px * var(--uiScale));
 }
@@ -1403,8 +1420,8 @@ html.vhTight .fabPanelText{
 }
 .fabSect{margin-top: calc(12px * var(--uiScale));}
 .fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em; font-size: calc(12.5px * var(--uiScale));}
-.fabChips{gap: calc(10px * var(--uiScale));}
-.fabPanel .chip{ padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale)); min-height: calc(34px * var(--uiScale)); font-weight:650; font-size: calc(14px * var(--uiScale)); }
+.fabChips{gap: var(--sp-4);}
+.fabPanel .chip{ padding: var(--sp-3) var(--ctl-pad-x); min-height: var(--ctl-h-sm); font-weight:650; font-size: var(--ctl-font-md); }
 
 /* Schnellmenü: Dropdown (Sortieren nach) soll wie ein Control wirken, nicht wie ein 'Desktop-Popover' */
 .fabPanelQuick .dd{ max-width: none; }
@@ -1421,7 +1438,7 @@ html.vhTight .fabPanelText{
 #fabMarkRow{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 #fabSortDirRow .chip,
 #fabMarkRow .chip{
@@ -1443,7 +1460,7 @@ html.vhTight .fabPanelText{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 
 /* Schnellmenü: aktuelles Markup (fabQuickInfo...) – gleiche Optik wie quickInfo */
@@ -1457,7 +1474,7 @@ html.vhTight .fabPanelText{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .fabQuickCount{
   display:flex;
@@ -1496,7 +1513,7 @@ html.vhTight .fabPanelText{
 .fabPanelQuick .quickGrid{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(12px * var(--uiScale));
+  gap: var(--sp-5);
   align-items: stretch;
 }
 
@@ -1688,7 +1705,7 @@ html.modalOpen body{touch-action:none;}
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap: calc(12px * var(--uiScale));
+  gap: var(--sp-5);
 }
 .sheetTitle{font-weight:650; flex: 1 1 auto; min-width: 0;}
 .sheetBody{
@@ -1732,7 +1749,7 @@ html.modalOpen body{touch-action:none;}
 .activeFilters{
   display:flex;
   flex-wrap:wrap;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
   margin-top: calc(10px * var(--uiScale));
   padding: calc(10px * var(--uiScale)) calc(10px * var(--uiScale));
   border:1px solid var(--border);
@@ -1744,7 +1761,7 @@ html.modalOpen body{touch-action:none;}
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
   border-radius: 999px;
-  padding: calc(7px * var(--uiScale)) calc(10px * var(--uiScale));
+  padding: var(--sp-3) var(--sp-4);
   font-weight:650;
   cursor:pointer;
   user-select:none;
@@ -1770,7 +1787,7 @@ html.modalOpen body{touch-action:none;}
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .acc > summary::-webkit-details-marker{display:none}
 .accTitle{font-weight:650}
@@ -1796,7 +1813,7 @@ html.modalOpen body{touch-action:none;}
 }
 
 .toggle{
-  display:flex; gap:calc(10px * var(--uiScale)); align-items:center;
+  display:flex; gap: var(--sp-4); align-items:center;
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
   padding:calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
@@ -1810,12 +1827,12 @@ html.modalOpen body{touch-action:none;}
   display:flex;
   flex-wrap:wrap;
   /* Gleichmäßige Abstände auch bei Wrap (Portrait/Querformat) */
-  gap: calc(12px * var(--uiScale));
+  gap: var(--sp-5);
 }
 .chipRow > .chip{margin:0}
 
 /* FAB-Panels: etwas kompaktere Chip-Abstände (Schnellmenü = Referenz) */
-.fabPanel .chipRow{ gap: calc(10px * var(--uiScale)); }
+.fabPanel .chipRow{ gap: var(--sp-4); }
 
 /* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
 #sortDirRow{margin-top: calc(12px * var(--uiScale));}
@@ -1823,7 +1840,7 @@ html.modalOpen body{touch-action:none;}
 /* Sort block: dropdown + direction toggle side-by-side */
 .sortBar{
   display:flex;
-  gap: calc(12px * var(--uiScale));
+  gap: var(--sp-5);
   align-items:center;
 }
 .sortBar .sortField{ flex: 1 1 auto; }
@@ -1918,7 +1935,7 @@ html.modalOpen body{touch-action:none;}
   position: sticky;
   bottom: 0;
   display:flex;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
   justify-content: space-between;
   align-items: center;
   margin-top: calc(16px * var(--uiScale));
@@ -2003,7 +2020,7 @@ html.modalOpen body{touch-action:none;}
     width:100%;
     display:grid;
     grid-template-columns: 1fr auto auto; /* Datei | Treffer | XLSX */
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
     align-items:center;
   }
   #pillFile{
@@ -2028,7 +2045,7 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    gap:calc(10px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc,
   .detailsWrap .d-trophy,
@@ -2056,7 +2073,7 @@ html.modalOpen body{touch-action:none;}
     /* Phone Landscape: Infoblock exakt so breit wie die rechte Kachel unten (Humorstatistik) */
     grid-template-columns: 1fr 1fr;
     /* Gap identisch zu .detailsWrap (Store/Humor) → Kanten fluchten sauber */
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
     align-items:start;
   }
 
@@ -2107,7 +2124,7 @@ html.modalOpen body{touch-action:none;}
       "depth depth"
       "dir marks"
       "act act";
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
 
     /* Schriftgröße wird im allgemeinen Phone-Landscape-Block (.fabPanelQuick) fest gelegt.
        Hier keine zusätzliche Skalierung, damit es konsistent bleibt. */
@@ -2161,12 +2178,12 @@ html.modalOpen body{touch-action:none;}
   html.isPhone #fabSortFieldRow{
     display:grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
   }
   html.isPhone #fabSortDirRow{
     display:grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
   }
   html.isPhone #fabSortFieldRow .chip,
   html.isPhone #fabSortDirRow .chip{
@@ -2221,7 +2238,7 @@ html.modalOpen body{touch-action:none;}
   /* Akkordeon-Header: klarer als „Kapitel“, weniger Button-Vibe */
   .acc > summary{
     padding: calc(11px * var(--uiScale)) calc(14px * var(--uiScale));
-    gap: calc(12px * var(--uiScale));
+    gap: var(--sp-5);
   }
   .accTitle{ font-weight: 700; }
   .accSummary{
@@ -2265,7 +2282,7 @@ html.modalOpen body{touch-action:none;}
 /* Genre: kleiner, dunkler – Kontextbadge */
 .badge.genre{
   background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
-  font-size: calc(13px * var(--uiScale));
+  font-size: var(--ctl-font-sm);
   font-weight:600;
   height: calc(28px * var(--uiScale));
   padding: calc(5px * var(--uiScale)) calc(10px * var(--uiScale));
@@ -2420,9 +2437,9 @@ html.modalOpen body{touch-action:none;}
 
 
 /* Schnellfilter: gebündelt (Highlights/Fortschritt) + zweite Zeile Presets */
-#quickRow{display:flex; flex-direction:column; gap: calc(12px * var(--uiScale));}
-#quickRow .quickGroups{display:flex; flex-wrap:wrap; gap: calc(12px * var(--uiScale)); align-items:center;}
-#quickRow .quickGroup{display:flex; flex-wrap:wrap; gap: calc(12px * var(--uiScale));}
+#quickRow{display:flex; flex-direction:column; gap: var(--sp-5);}
+#quickRow .quickGroups{display:flex; flex-wrap:wrap; gap: var(--sp-5); align-items:center;}
+#quickRow .quickGroup{display:flex; flex-wrap:wrap; gap: var(--sp-5);}
 #quickRow .quickGroup.progress{padding-left: calc(10px * var(--uiScale)); margin-left: calc(2px * var(--uiScale)); border-left: 1px solid color-mix(in oklab, var(--fg) 10%, transparent 90%);}
 #quickRow .quickLine{flex-wrap:wrap;}
 
@@ -2631,7 +2648,7 @@ html.modalOpen body{touch-action:none;}
   }
 
   .badge{
-    font-size: calc(13px * var(--uiScale));
+    font-size: var(--ctl-font-sm);
     height: calc(27px * var(--uiScale));
   }
 
@@ -2682,7 +2699,7 @@ html.modalOpen body{touch-action:none;}
   /* Zwei-Spalten-Kopf: Infoblock so breit wie die rechte Detail-Kachel (Humorstatistik)
      → gleiche 2-Spalten-Logik wie unten (Store/Humor) für ruhige Kanten/Fluchten.
      Wichtig: kein clamp/vw hier, sonst driftet die Kante je nach Browser-UI. */
-  .topGrid{ grid-template-columns: 1fr 1fr; gap: calc(10px * var(--uiScale)); }
+  .topGrid{ grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
 
   /* Infoblock minimal dichter */
   .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
@@ -2713,7 +2730,7 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    gap: calc(10px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
   .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
@@ -2827,7 +2844,7 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick #fabDepthRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(10px * var(--uiScale));
+  gap: var(--sp-4);
   /* wichtig: keine zusätzliche Innen-Einrückung pro Row */
   padding: 0 !important;
   width: 100%;

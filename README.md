@@ -1,26 +1,15 @@
-# Spieleliste – Build V7_1j62j
+# Spieleliste – Build V7_1j62k
 
-Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
+Dieser Build ist eine **CSS-Entschlackungsrunde (Phase A)** auf Basis von **V7_1j62e** – mit dem Ziel, die Styles wieder wartbarer zu machen, **ohne** die Optik zu verändern.
 
-## Änderungen in V7_1j62j (gegenüber V7_1j62d)
+## Änderungen in V7_1j62k (gegenüber V7_1j62e)
 
-- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
-- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
-- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
+- **Neue CSS-Tokens (uiScale-aware):** Spacing-Skala (`--sp-*`) und Control-Metriken (`--ctl-*`) als zentrale „Single Source of Truth“.
+- **Gezielte Umstellung ohne Look-Drift:** Erste, klar begrenzte Stellen (Header/Toolbar-Rhythmus + FAB-Panel-Chips) nutzen nun die Tokens statt duplizierter `calc(...)`-Werte.
+- **Keine neue Logik, keine neuen Zustände, kein Redesign.** Ziel ist ausschließlich weniger Redundanz und weniger Override-Wildwuchs für kommende Patches.
 
 ## Stand der Webansicht in diesem Build
 
-- **Schnellmenü:** Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail – Platzhalter), Sprung in „Suchen, Filtern & Sortieren“.
-- **Textgröße:** A / A+ / A++ / A+++ + „Textdarstellung“ (Normal/Kompakt – Platzhalter).
-- **Trennlinie:** pro Menü genau **eine** Linie im Header-Stil.
+- Stabiler UI-Stand wie V7_1j62e (Optik beibehalten).
+- Hosting/Struktur unverändert.
 
-## Inhalt
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `xlsx.full.min.js`
-
-## Lokal starten
-
-Öffne `index.html` direkt im Browser oder lade alle Dateien gemeinsam auf GitHub Pages.
