@@ -1,6 +1,6 @@
 # Spieleliste – Build V7_1j62b
 
-Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62a** und enthält **nur Schnellmenü-Feinschliff** (Breite/Spacing/Action-Button). Buildnummern, UI-Label und Cachebuster wurden entsprechend auf **V7_1j62b** angehoben.
+Dieses ZIP ist eine **baugleiche** Kopie des zuletzt als stabil markierten Builds (Basis: V7_1j61e5p11), mit **aktualisierter Buildnummer** in UI, Asset-Cachebustern und dieser README.
 
 ## Stand der Webansicht in diesem Build
 

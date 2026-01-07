@@ -957,6 +957,17 @@ summary::-webkit-details-marker{display:none}
   padding: calc(12px * var(--uiScale));
 }
 
+/* Einheitliche Trennlinie in den kleinen FAB-Menüs (Schnellmenü + Textgröße)
+   – gleiche Dicke/Breite/Abstände, unabhängig von Gerät/Orientation. */
+.fabDivider{
+  height: 1px;
+  width: 100%;
+  background: color-mix(in oklab, var(--fg) 16%, transparent 84%);
+  opacity: .55;
+  border-radius: 999px;
+  margin: calc(10px * var(--uiScale)) 0 calc(10px * var(--uiScale));
+}
+
 /* Robust: hidden Panels wirklich unsichtbar (verhindert CSS-Overrides in seltenen Browserfällen) */
 .fabPanel[hidden]{display:none !important;}
 
@@ -983,9 +994,14 @@ html.vhTight .fabPanelQuick{
   top: calc(12px + env(safe-area-inset-top, 0px));
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   max-height: none;
-  left: calc(14px * var(--uiScale));
+  /* In allen Ansichten dieselbe "Panel-Logik": rechts am FAB-Stack anliegen,
+     aber eine feste, ruhige Maximalbreite haben (damit Landscape nicht eskaliert). */
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
-  width: auto;
+  left: auto;
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
 }
 
 /* Phone (Portrait + Landscape): Schnellmenü als gedocktes Panel neben dem FAB-Stack.
@@ -999,9 +1015,12 @@ html.isPhone .fabPanelQuick{
   height: auto;
   max-height: calc(var(--vh, 100vh) - 18px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
   overflow: auto;
-  left: calc(14px * var(--uiScale));
   right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
-  width: auto;
+  left: auto;
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
   /* Fix: In Phone-Ansichten hat das Panel effektiv eine feste Höhe.
      Mit Flex können wir die Action-Zeile (Button) sauber an den unteren Rand drücken,
      statt dass darunter „Leerraum“ entsteht. */
@@ -1053,8 +1072,9 @@ html.isNonPhone .fabPanelText{
 }
 
 html.isNonPhone .fabPanelQuick{
+  /* gleiche Panel-Breite wie Phone-Portrait (relativ zur Anzeige), nur skaliert */
   width: min(
-    calc(720px * var(--uiScale)),
+    calc(420px * var(--uiScale)),
     calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
   );
   overflow: auto;
@@ -1246,13 +1266,13 @@ html.vhTight .fabPanelText{
   }
 
   .fabPanelText{
-    max-width: calc(520px * var(--uiScale));
+    max-width: calc(420px * var(--uiScale));
     width: auto;
   }
 
   /* Schnellmenü in Portrait bewusst kompakt halten (keine Mindestbreite erzwingen). */
   .fabPanelQuick{
-    max-width: calc(520px * var(--uiScale));
+    max-width: calc(420px * var(--uiScale));
     width: auto;
   }
 }
@@ -1272,15 +1292,18 @@ html.vhTight .fabPanelText{
 
   /* Textgröße-Menü: kompakt lassen (nicht full-width), nur andocken */
   .fabPanelText{
-    max-width: calc(520px * var(--uiScale));
+    max-width: calc(420px * var(--uiScale));
     width: auto;
   }
 
   /* Schnellmenü: zweispaltiger Aufbau wie Phone-Landscape – ohne harte Höhen-/Font-Deckelung */
   .fabPanelQuick{
-    /* Breite: nie größer als 720px (skaliert), aber auch nie breiter als der freie Viewport neben dem FAB-Stack */
-    max-width: calc(720px * var(--uiScale));
-    width: min(calc(100vw - 104px), calc(720px * var(--uiScale)));
+    /* Breite: wie Phone-Portrait, damit Landscape nicht unnötig breit wird */
+    max-width: calc(420px * var(--uiScale));
+    width: min(
+      calc(420px * var(--uiScale)),
+      calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+    );
     display: grid;
     /* rechte Spalte etwas großzügiger (damit Auf/Ab nicht umbrechen) */
     grid-template-columns: 1fr 1fr;
@@ -1469,6 +1492,14 @@ html.vhTight .fabPanelText{
   padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   min-height: calc(32px * var(--uiScale));
   line-height: 1.2;
+}
+
+/* Schnellmenü: Hauptbutton bewusst etwas kleiner als im großen Dialog (wirkt sonst "zu hoch"). */
+.fabPanelQuick #fabOpenMenu{
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  min-height: calc(38px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+  line-height: 1.15;
 }
 
 /* Buttons in den Schnellmenü-Reihen sollen immer exakt gleich breit sein */
@@ -2814,44 +2845,3 @@ html.modalOpen body{touch-action:none;}
 .fabPanelQuick .fabSect {
   padding: 0 calc(12px * var(--uiScale));
  }
-
-/* =======================
-   Patch V7_1j62b – Schnellmenü: Breite vereinheitlichen + Action-Button verkleinern
-   - Gleiche „gefühlte“ Breite wie Phone-Portrait, auch in Landscape/Desktop.
-   - Divider/Abstände im Kopf an Textgrößen-Menü angleichen.
-   ======================= */
-
-:root{
-  --quickMenuMaxW: calc(520px * var(--uiScale));
-}
-
-/* 1) Panel-Breite: nie mehr die komplette Landscape-Breite ausnutzen */
-.fabPanelQuick{
-  /* rechts neben der FAB-Stack „andocken“ (wie im Phone-Portrait), aber mit Max-Breite */
-  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
-  left: auto !important;
-  width: min(
-    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale))),
-    var(--quickMenuMaxW)
-  ) !important;
-  max-width: none !important;
-}
-
-/* 2) Kopf-Divider: überall identisch + gleiche Abstände wie im Textgrößen-Menü */
-.fabPanelQuick .fabHead{
-  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale)) !important;
-  border-bottom: 1px solid var(--line2) !important;
-  background: inherit !important;
-}
-
-/* 3) Sections: etwas mehr Luft, damit unten nichts „klebt“ (Desktop/Tablet) */
-.fabPanelQuick .fabBody{ padding-top: calc(12px * var(--uiScale)) !important; }
-.fabPanelQuick .fabSect + .fabSect{ margin-top: calc(12px * var(--uiScale)) !important; }
-
-/* 4) Action-Button unten („Suchen, Filtern & Sortieren“) etwas flacher */
-.fabPanelQuick #fabOpenMenu{
-  min-height: calc(32px * var(--uiScale)) !important;
-  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale)) !important;
-  font-size: calc(14px * var(--uiScale)) !important;
-  line-height: 1.2 !important;
-}
