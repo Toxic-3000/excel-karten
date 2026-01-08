@@ -1,13 +1,13 @@
-# Spieleliste – Build V7_1j62o
+# Spieleliste – Build V7_1j62p
 
-Dieser Build ist **CSS-Entschlackung Phase E** auf Basis von **V7_1j62e** – Ziel: **weniger Overrides, gleiche Optik**.
+Dieser Build ist **CSS-Entschlackung Phase F** auf Basis von **V7_1j62e** – Ziel: **weniger Overrides, gleiche Optik**.
 
-## Änderungen in V7_1j62o (gegenüber V7_1j62n)
+## Änderungen in V7_1j62p (gegenüber V7_1j62o)
 
-- **Buttons tokenisiert:** `.btn` liest jetzt Padding/Font/Shadow/Weight über `--btn-*` Tokens (Defaults = bisheriger Look).
-- **Badges tokenisiert:** `.badge` liest Padding/Font/Height/Gap/Weight über `--badge-*` Tokens (Defaults = bisheriger Look).
-- **Responsive Tweaks als Token-Overrides:** mehrere Stellen, die vorher direkt `padding/font-size/height` überschrieben, setzen nun nur noch `--badge-*` bzw. `--btn-*`.
-- **Keine Optik-Änderungen beabsichtigt:** das ist ein Umbau „unter der Haube“, damit Phase F/G deutlich mehr Duplikate entfernen können.
+- **Dropdown-Styles tokenisiert:** `.dd`/`.ddBtn`/`.ddPanel` nutzen jetzt `--dd-*` Tokens (Defaults = bisherige Optik).
+- **Schnellmenü-Dropdown ohne `!important`:** `.fabPanelQuick .dd` setzt nur noch Tokens (Padding/Shadow/Panel-Breite), statt Breite/Max-Breite mit `!important` zu erzwingen.
+- **Duplikate entfernt:** frühere Schnellmenü-spezifische `.dd*`-Overrides wurden zusammengeführt bzw. entfallen.
+- **Keine Optik-Änderungen beabsichtigt:** Ziel ist weniger Spezifitätskrieg, gleiche Darstellung.
 
 ---
 

@@ -1447,15 +1447,6 @@ html.vhTight .fabPanelText{
   --chip-font: var(--ctl-font-md);
 }
 
-/* Schnellmenü: Dropdown (Sortieren nach) soll wie ein Control wirken, nicht wie ein 'Desktop-Popover' */
-.fabPanelQuick .dd{ max-width: none; }
-.fabPanelQuick .ddBtn{
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
-  border-radius: 18px;
-  box-shadow: none;
-}
-.fabPanelQuick .ddPanel{ width: min(520px, calc(100vw - 64px)); }
-
 
 /* Schnellmenü: Control-Grid (2 Buttons pro Block) */
 #fabSortDirRow,
@@ -2568,18 +2559,29 @@ html.modalOpen body{touch-action:none;}
 .genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
 
 /* --- Desktop custom dropdowns (Build 7.0v-D1d) --- */
-.dd{ position: relative; display: inline-block; width: 100%; max-width: 560px; }
+.dd{
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: var(--dd-max-w, 560px);
+  /* Tokens (Defaults = bisherige Optik) */
+  --dd-btn-pad-y: 10px;
+  --dd-btn-pad-x: 12px;
+  --dd-btn-radius: 18px;
+  --dd-btn-shadow: 0 8px 24px rgba(0,0,0,.08);
+  --dd-panel-w: min(560px, calc(100vw - 64px));
+}
 .ddBtn{
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 18px;
+  padding: var(--dd-btn-pad-y) var(--dd-btn-pad-x);
+  border-radius: var(--dd-btn-radius);
   border: 1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  box-shadow: var(--dd-btn-shadow);
   font-weight: 650;
 }
 .ddBtn:focus-visible{
@@ -2592,7 +2594,7 @@ html.modalOpen body{touch-action:none;}
   position: absolute;
   left: 0;
   top: calc(100% + 8px);
-  width: min(560px, calc(100vw - 64px));
+  width: var(--dd-panel-w);
   max-height: 320px;
   overflow: auto;
   padding: 10px;
@@ -2833,9 +2835,15 @@ html.modalOpen body{touch-action:none;}
 /* Panel folgt der DOM-Reihenfolge (keine Grid-Areas in Phase 2) */
 .fabPanelQuick{ display:block !important; }
 
-/* Dropdown immer volle Breite */
-.fabPanelQuick .dd{ width:100% !important; max-width:none !important; }
-.fabPanelQuick .ddBtn{ width:100% !important; }
+/* Dropdown im Schnellmenü: wirkt wie ein Control (keine Desktop-Popover-Optik) */
+.fabPanelQuick .dd{
+  max-width: none;
+  --dd-btn-pad-y: calc(9px * var(--uiScale));
+  --dd-btn-pad-x: calc(12px * var(--uiScale));
+  --dd-btn-radius: 18px;
+  --dd-btn-shadow: none;
+  --dd-panel-w: min(520px, calc(100vw - 64px));
+}
 
 /* Rows im Schnellmenü: nie künstlich "kappen" */
 .fabPanelQuick #fabSortDirRow{ width:100% !important; max-width:none !important; }
