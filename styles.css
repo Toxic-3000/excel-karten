@@ -1244,10 +1244,8 @@ html.vhTight .fabPanelText{
     align-content: start !important;
     align-items: start !important;
   }
-  html.isPhone .fabPanelQuick .fabHead,
- html.isPhone .fabPanelQuick .fabHeader{ grid-area: head; gap: 10px ; padding-bottom: 6px ; }
-  html.isPhone .fabPanelQuick .fabTitle,
- html.isPhone .fabPanelQuick .fabTitleText{ font-size: 17px ; }
+  html.isPhone .fabPanelQuick :is(.fabHead,.fabHeader){ grid-area: head; gap: 10px ; padding-bottom: 6px ; }
+  html.isPhone .fabPanelQuick :is(.fabTitle,.fabTitleText){ font-size: 17px ; }
  html.isPhone .fabPanelQuick .fabClose{ padding: 6px 10px ; }
 
   /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */

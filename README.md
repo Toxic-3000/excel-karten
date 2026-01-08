@@ -1,8 +1,8 @@
-# Spieleliste – Build V7_1j62q
+# Spieleliste – Build V7_1j62r
 
 CSS-Entschlackung Phase G (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1j62q (gegenüber V7_1j62p)
+## Änderungen in V7_1j62r (gegenüber V7_1j62p)
 
 - Schnellmenü-Styles am CSS-Ende konsolidiert (DOM-Reihenfolge, 2er-Segmente, Action unten).
 - Schnellmenü ohne die vorherigen, überlappenden !important-Overrides; Werte sind jetzt deterministisch.
