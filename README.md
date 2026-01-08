@@ -1,26 +1,13 @@
-# Spieleliste – Build V7_1j62e
+# Spieleliste – Build V7_1j62t
 
-Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
+CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1j62e (gegenüber V7_1j62d)
+## Änderungen in V7_1j62t (gegenüber V7_1j62s)
 
-- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
-- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
-- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
+- Tote CSS-Regeln entfernt (nicht mehr verwendete Klassen/IDs), ohne Layout-Änderungen.
+- FAB-Menü-Styles weiter konsolidiert: weniger Spezifitäts-/Override-Kollisionen, gleiche Optik.
+- CSS-Datei aufgeräumt (Legacy-Kommentare/Altlasten reduziert), Kaskade bleibt stabil und deterministisch.
 
-## Stand der Webansicht in diesem Build
-
-- **Schnellmenü:** Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail – Platzhalter), Sprung in „Suchen, Filtern & Sortieren“.
-- **Textgröße:** A / A+ / A++ / A+++ + „Textdarstellung“ (Normal/Kompakt – Platzhalter).
-- **Trennlinie:** pro Menü genau **eine** Linie im Header-Stil.
-
-## Inhalt
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `xlsx.full.min.js`
-
-## Lokal starten
-
-Öffne `index.html` direkt im Browser oder lade alle Dateien gemeinsam auf GitHub Pages.
+## Nicht geändert
+- Optik/Spacing des UIs (Ziel: 1:1).
+- Logik/Funktionen.
