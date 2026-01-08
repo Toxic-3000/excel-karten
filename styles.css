@@ -5,7 +5,7 @@
 
 /* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
 /*
-  CSS Cleanup Phase J/K (V7_1j62t):
+  CSS Cleanup Phase J/K (V7_1j62u):
   - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
   - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
 */
@@ -119,7 +119,6 @@
   }
 
 
-
   html.isPhone .fabPanelQuick{
     /* Kritischer Fall (Phone Landscape):
        Die Browserbar reduziert die sichtbare Höhe. Mit max-height allein kann das Panel
@@ -183,9 +182,7 @@
  html.isPhone .fabPanelQuick .fabQuickDepth{ grid-area: depth; margin-top: 0 ; }
 
   /* Grid-Areas (Phone-Landscape): alle Control-Blöcke auf einer visuellen Ebene */
-  html.isPhone .fabPanelQuick .fabQuickField,
   html.isPhone .fabPanelQuick .fabQuickDir,
- html.isPhone .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0 ; }
  html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 ; }
 
 
@@ -228,7 +225,6 @@
   }
 
 
-
   .sheet{
     top: calc(env(safe-area-inset-top, 0px) + 8px);
     bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
@@ -258,7 +254,6 @@
   }
 
 
-
   /* Topbar: Titel links, Aktionen rechts */
   .topbar{justify-content:space-between;}
   .brand{flex: 1 1 auto; min-width: 0;}
@@ -283,7 +278,7 @@
     text-overflow:ellipsis;
     white-space:nowrap;
   }
-  #pillRows, #pillXlsx{white-space:nowrap;}
+  #pillRows, #pillXlsxPanel{white-space:nowrap;}
 }
 
 
@@ -321,7 +316,6 @@ body{
 /* Desktop: prefer the variable Segoe face when available (often calmer on Windows). */
 @media (min-width: 980px){
   body{ font-family: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif; }
-
 
 
   body{
@@ -533,7 +527,6 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 }
 
 /* Adaptive tightening: hide XLSX in the toolbar first, then shorten the Treffer label */
-.toolbarRow.compact1 #pillXlsxTop{display:none;}
 .toolbarRow.compact2 .pillLabel{display:none; margin-right:0;}
 .toolbarRow.compact2 #btnMenu{padding-left: calc(10px * var(--uiScale)); padding-right: calc(10px * var(--uiScale));}
 
@@ -828,14 +821,12 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   }
 
 
-
   .sheet{
     top: 4vh;
     bottom: 4vh;
     max-height: calc(100dvh - 8vh);
     border-radius: 22px;
   }
-
 
 
   /* Ruhigeres Lesen auf größeren Screens */
@@ -879,7 +870,6 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   .accBody{
     padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale)) calc(14px * var(--uiScale));
   }
-
 
 
   body{
@@ -1534,7 +1524,6 @@ html.vhTight .fabPanelText{
 */
 
 
-
 /* Tablet/Desktop Portrait:
    Panels wie in Landscape an den FAB-Stack andocken (rechts Platz für Buttons lassen),
    damit Schnellmenü + Textgröße in Portrait nicht über den Button-Stack gelegt werden. */
@@ -1607,16 +1596,13 @@ html.vhTight .fabPanelText{
   .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 0; }
   /* Karten-Sektion (Kompakt/Detail) */
   .fabPanelQuick .fabQuickDepth{ grid-area: cards; margin-top: 0; }
-  .fabPanelQuick .fabQuickField,
   .fabPanelQuick .fabQuickDir,
-  .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0; }
   .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0; }
   /* Action-Zeile: immer unten, volle Breite */
   .fabPanelQuick .fabActions{ grid-area: action; justify-self: stretch; margin-top: 0; justify-content: stretch; }
 
   .fabPanelQuick #fabOpenMenu{ width: 100%; min-width: 0; }
   /* Sortieren-nach: Dropdown statt Chip-Cloud (überall) */
-  #fabSortFieldRow{ display:block; }
   #fabSortDirRow{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1718,15 +1704,12 @@ html.vhTight .fabPanelText{
 
 /* Schnellmenü-Abschnitte im aktuellen DOM */
 .fabPanelQuick .fabQuickDepth,
-.fabPanelQuick .fabQuickSortFields,
-.fabPanelQuick .fabQuickSortDir,
 .fabPanelQuick .fabQuickMarks{
   padding: 0 12px;
   margin-top: 12px;
 }
 
 .fabPanelQuick .fabQuickDepth{ grid-area: depth; }
-.fabPanelQuick .fabQuickSortDir{ grid-area: dir; }
 .fabPanelQuick .fabQuickMarks{ grid-area: marks; }
 
 /* Schnellmenü: einheitliche 2‑Spalten‑Grid-Reihen – gleiche Breite/Höhe für alle Buttons */
@@ -1770,7 +1753,6 @@ html.vhTight .fabPanelText{
   }
 
 
-
   .sheet{
     top: calc(env(safe-area-inset-top, 0px) + 10px);
     bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
@@ -1784,7 +1766,6 @@ html.vhTight .fabPanelText{
     padding-top: calc(12px * var(--uiScale));
   }
 }
-
 
 
 /* Schnellmenü: Statusbox mit Reset-Aktion */
@@ -1878,9 +1859,6 @@ html.modalOpen body{touch-action:none;}
    Höhe ist knapp → Sticky Header/Actions würden zu viel verdecken.
    Stattdessen wird die gesamte .sheet zum Scroll-Container.
 */
-
-
-
 
 
 .sheetHead{
@@ -2177,8 +2155,6 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-
-
 /* --- Responsive: Landscape header refinement (phones, small height) --- */
 /* Ziel: Suche bekommt volle Breite, Actions rechtsbündig, Info-Chips geordnet. */
 /* Portrait bleibt unberührt. */
@@ -2207,7 +2183,6 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-humor{grid-column: 2; grid-row: 2;}
   .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 3;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
-
 
 
   .tShort{display:none}
@@ -2292,7 +2267,6 @@ html.modalOpen body{touch-action:none;}
   html.isPhone .fabPanelQuick > .fabSect{ margin-top: 0; }
   html.isPhone .fabPanelQuick > .fabQuickDepth{ grid-area: depth; }
   html.isPhone .fabPanelQuick > .fabQuickDir,
-  html.isPhone .fabPanelQuick > .fabQuickSortDir{ grid-area: dir; }
   html.isPhone .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
   html.isPhone .fabPanelQuick > .fabActions{
     grid-area: act;
@@ -2321,7 +2295,6 @@ html.modalOpen body{touch-action:none;}
  html.isPhone .fabPanelQuick #fabQuickInfoB{ display: none ; }
 
 
-
   /* --- Build 7.1j12 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
      Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
      Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
@@ -2333,17 +2306,11 @@ html.modalOpen body{touch-action:none;}
     max-height: calc(100dvh - 28px);
   }
   /* Chip-Reihen im Schnellmenü: als Grid, damit weniger Wrap-Höhe entsteht */
-  html.isPhone #fabSortFieldRow{
-    display:grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--sp-4);
-  }
   html.isPhone #fabSortDirRow{
     display:grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--sp-4);
   }
-  html.isPhone #fabSortFieldRow .chip,
   html.isPhone #fabSortDirRow .chip{
     width: 100%;
     justify-content: center;
@@ -2359,10 +2326,8 @@ html.modalOpen body{touch-action:none;}
   .title{font-size: calc(24px * var(--uiScale))}
 
 
-
   .title{ font-size: calc(clamp(24px, 1.8vw, 30px) * var(--uiScale)); }
 }
-
 
 
 /* --- Build 7.1j12 – Typografie-Feinschliff (Desktop/Tablet)
@@ -2534,11 +2499,6 @@ html.modalOpen body{touch-action:none;}
 .pill-warn{ background: color-mix(in oklab, var(--warn) 10%, #ffffff 90%); }
 .pill-bad{ background: color-mix(in oklab, var(--bad) 10%, #ffffff 90%); }
 
-/* XLSX-Status: Grünton an Filter-Aktiv (Schnellmenü-FAB) angleichen */
-#pillXlsx.pill-ok{
-  background: color-mix(in oklab, var(--filterAccent) 10%, #ffffff 90%);
-  border-color: color-mix(in oklab, var(--filterAccent) 55%, var(--border) 45%);
-}
 .fabPanel{
   background: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
 }
@@ -2586,7 +2546,6 @@ html.modalOpen body{touch-action:none;}
    Ziel: ruhigere Typografie, bessere Scanbarkeit, angenehmere Zeilenlängen
    ohne neue UI-Elemente und ohne Layout-Änderungen in Portrait/Mobile.
 */
-
 
 
 /* Genre-Auswahl: wir verwenden überall die Custom-Dropdown-Variante (keine native <select> Picker)
@@ -2735,13 +2694,11 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-
 /* Search help body inside the bottom-sheet: add a touch of spacing before the next section. */
 .sheetBody #menuSearchHelpBody{ margin-bottom: calc(10px * var(--uiScale)); }
 
 /* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
-
 
 
 /* ===========================================================
@@ -2760,8 +2717,6 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* Sektionen folgen strikt der DOM-Reihenfolge */
-.fabPanelQuick .fabQuickSortFields,
-.fabPanelQuick .fabQuickSortDir,
 .fabPanelQuick .fabQuickMarks,
 .fabPanelQuick .fabQuickDepth,
 .fabPanelQuick .fabActions{
@@ -2775,12 +2730,6 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* Sortierfeld-UI: aktuell nicht Teil des Schnellmenüs */
-.fabPanelQuick .fabQuickField,
-.fabPanelQuick .fabQuickSortFields,
-.fabPanelQuick #fabSortFieldRow{
-  display:none;
-}
-
 /* Dropdown (falls irgendwo noch vorhanden): wirkt wie ein Control, ohne Desktop-Popover-Optik */
 .fabPanelQuick .dd{
   max-width: none;
@@ -2839,9 +2788,3 @@ html.modalOpen body{touch-action:none;}
 }
 
 /* Legacy-ID (falls in älteren Markups noch vorhanden) */
-.fabPanelQuick #fabOpenFiltersBtn{
-  width: 100%;
-  min-width: 0;
-  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
-  font-size: calc(14px * var(--uiScale));
-}
