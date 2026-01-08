@@ -2767,19 +2767,23 @@ html.modalOpen body{touch-action:none;}
 #menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
 
 
-/* === Schnellmenü: feste Reihenfolge & gleichmäßige Button-Breiten (e3) ===
-   Ziel: Lesefluss immer gleich (Sortieren nach → Sortierung → Markierungen → Karten),
-   unabhängig von Breakpoints/Orientation. */
 
-/* Override der bisherigen Grid-Layout-Variante (die je nach Breakpoint umsortiert). */
+/* ===========================================================
+   Schnellmenü – Konsolidierung (Phase G)
+   Ziel: gleiche Optik, weniger Überschreibungen.
+   - Keine Grid-Area-Umsortierung; DOM-Reihenfolge zählt.
+   - Rows (Auf/Ab, An/Aus, Karten) sind 2er-Segmente mit identischer Breite.
+   - Sortierfeld bleibt ausgeblendet (Dropdown-Phase erst später, falls reaktiviert).
+   =========================================================== */
+
 .fabPanelQuick{
-  display:flex !important;
+  display:flex;
   flex-direction: column;
   align-items: stretch;
   gap: calc(14px * var(--uiScale));
 }
 
-/* In Flex-Layout sollen die Sektionen schlicht der DOM-Reihenfolge folgen. */
+/* Sektionen folgen strikt der DOM-Reihenfolge */
 .fabPanelQuick .fabQuickSortFields,
 .fabPanelQuick .fabQuickSortDir,
 .fabPanelQuick .fabQuickMarks,
@@ -2788,54 +2792,20 @@ html.modalOpen body{touch-action:none;}
   width: 100%;
 }
 
-/* Actions immer "unten" – ohne dass Breakpoint-Grids sie irgendwohin drücken. */
+/* Actions immer unten */
 .fabPanelQuick .fabActions{
   margin-top: auto;
+  justify-content: stretch;
 }
 
-/* Auf/Ab & An/Aus als 2er-Segmente mit identischer Breite – auf ALLEN Viewports. */
-#fabSortDirRow,
-#fabMarkRow{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(8px * var(--uiScale));
-}
-#fabSortDirRow .chip,
-#fabMarkRow .chip{
-  width: 100%;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
+/* Sortierfeld-UI: aktuell nicht Teil des Schnellmenüs */
+.fabPanelQuick .fabQuickField,
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick #fabSortFieldRow{
+  display:none;
 }
 
-/* Karten (Kompakt/Detail) als echtes 2er-Segment – exakt gleiche Breite wie Auf/Ab & An/Aus. */
-#fabDepthRow{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(8px * var(--uiScale));
-}
-#fabDepthRow .chip{
-  width: 100%;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
-}
-
-
-
-/* Safety: Sortieren-nach im Schnellmenü ist ein Dropdown, nie ein Grid */
-#fabSortFieldRow{ display:block !important; }
-
-/* ===========================================================
-   Schnellmenü – Phase 2 Normalisierung
-   - In Phase 2 priorisieren wir Stabilität und Reihenfolge.
-   - Responsive 2-Spalten-Logik kommt erst in Phase 3.
-   =========================================================== */
-
-/* Panel folgt der DOM-Reihenfolge (keine Grid-Areas in Phase 2) */
-.fabPanelQuick{ display:block !important; }
-
-/* Dropdown im Schnellmenü: wirkt wie ein Control (keine Desktop-Popover-Optik) */
+/* Dropdown (falls irgendwo noch vorhanden): wirkt wie ein Control, ohne Desktop-Popover-Optik */
 .fabPanelQuick .dd{
   max-width: none;
   --dd-btn-pad-y: calc(9px * var(--uiScale));
@@ -2845,61 +2815,57 @@ html.modalOpen body{touch-action:none;}
   --dd-panel-w: min(520px, calc(100vw - 64px));
 }
 
-/* Rows im Schnellmenü: nie künstlich "kappen" */
-.fabPanelQuick #fabSortDirRow{ width:100% !important; max-width:none !important; }
-.fabPanelQuick #fabMarkRow{ width:100% !important; max-width:none !important; }
-
-/* Action-Button immer unten und immer volle Breite */
-.fabPanelQuick .fabActions{ justify-content:stretch !important; }
-.fabPanelQuick #fabOpenMenu{ width:100% !important; min-width:0 !important; }
-
-/* ------------------------------------------------------------
-   Build 7.1j61e5p7 – Schnellmenü: nur "Auf/Ab" (kein Sortierfeld)
-   + einheitliche Button-Größen (etwas kompakter)
-------------------------------------------------------------- */
-
-/* Safety: falls irgendwo noch Sortierfeld-UI existiert, ausblenden */
-.fabPanelQuick .fabQuickField,
-.fabPanelQuick .fabQuickSortFields,
-.fabPanelQuick #fabSortFieldRow { display: none !important; }
-
-/* Reihen mit zwei gleich großen Buttons */
+/* 2er-Segmente: Auf/Ab, An/Aus, Karten */
 .fabPanelQuick #fabSortDirRow,
 .fabPanelQuick #fabMarkRow,
-.fabPanelQuick #fabDepthRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.fabPanelQuick #fabDepthRow{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sp-4);
-  /* wichtig: keine zusätzliche Innen-Einrückung pro Row */
-  padding: 0 !important;
+  padding: 0;
   width: 100%;
 }
 
-/* Einheitliche (leicht kleinere) Chip-Buttons im Schnellmenü */
-/* Schnellmenü: explizite Button-Norm, damit keine "Ausreißer" entstehen */
 .fabPanelQuick #fabSortDirRow .chip,
 .fabPanelQuick #fabMarkRow .chip,
-.fabPanelQuick #fabDepthRow .chip {
+.fabPanelQuick #fabDepthRow .chip{
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+
+  /* Optik/Größe (wie bisher) */
   min-height: calc(32px * var(--uiScale));
   padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
   line-height: 1.2;
 }
 
-/* Schnellmenü: Icons & Label etwas kompakter */
+/* Chip-Label kompakter */
 .fabPanelQuick .chipLabel{ gap: calc(6px * var(--uiScale)); }
-.fabPanelQuick #fabSortDirRow .chip svg{ width: calc(16px * var(--uiScale)); height: calc(16px * var(--uiScale)); }
+.fabPanelQuick #fabSortDirRow .chip svg{
+  width: calc(16px * var(--uiScale));
+  height: calc(16px * var(--uiScale));
+}
 
-/* Ensure no accidental indentation differences between sections */
-.fabPanelQuick .fabSect{ margin-left:0 !important; }
+/* Sektionen: keine versehentliche Einrückung */
+.fabPanelQuick .fabSect{
+  margin-left: 0;
+  padding: 0 calc(12px * var(--uiScale));
+}
 
-/* Action-Button unten: ebenfalls minimal kompakter */
-.fabPanelQuick #fabOpenFiltersBtn {
+/* Primäre Aktion: volle Breite, aber kompakt wie der Rest */
+.fabPanelQuick #fabOpenMenu{
+  width: 100%;
+  min-width: 0;
   padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
 }
 
-
-.fabPanelQuick .fabSect {
-  padding: 0 calc(12px * var(--uiScale));
- }
+/* Legacy-ID (falls in älteren Markups noch vorhanden) */
+.fabPanelQuick #fabOpenFiltersBtn{
+  width: 100%;
+  min-width: 0;
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+}
