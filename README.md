@@ -1,8 +1,17 @@
-# Spieleliste – Build V7_1j62n
+# Spieleliste – Build V7_1j62o
 
-Dieser Build ist eine **CSS-Entschlackungsrunde (Phase B)** auf Basis von **V7_1j62e** – Ziel: **wartbarer CSS‑Unterbau ohne Optik‑Änderung**.
+Dieser Build ist **CSS-Entschlackung Phase E** auf Basis von **V7_1j62e** – Ziel: **weniger Overrides, gleiche Optik**.
 
-## Änderungen in V7_1j62n (gegenüber V7_1j62k)
+## Änderungen in V7_1j62o (gegenüber V7_1j62n)
+
+- **Buttons tokenisiert:** `.btn` liest jetzt Padding/Font/Shadow/Weight über `--btn-*` Tokens (Defaults = bisheriger Look).
+- **Badges tokenisiert:** `.badge` liest Padding/Font/Height/Gap/Weight über `--badge-*` Tokens (Defaults = bisheriger Look).
+- **Responsive Tweaks als Token-Overrides:** mehrere Stellen, die vorher direkt `padding/font-size/height` überschrieben, setzen nun nur noch `--badge-*` bzw. `--btn-*`.
+- **Keine Optik-Änderungen beabsichtigt:** das ist ein Umbau „unter der Haube“, damit Phase F/G deutlich mehr Duplikate entfernen können.
+
+---
+
+## Änderungen in V7_1j62n (historisch)
 
 - **Duplikate entfernt / zusammengeführt:** doppelte Grid-Regeln im Schnellmenü bereinigt.
 - **Gemeinsame „Pill“-Oberfläche zentralisiert:** `:is(.pill, .btn, .badge)` bündelt die wiederkehrenden Basiswerte (Border/Background/Radius/Color) – die Einzelregeln enthalten nur noch das, was wirklich unterscheidet.

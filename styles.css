@@ -25,6 +25,21 @@
   --ctl-h-md: calc(38px * var(--uiScale));
   --ctl-pad-x: calc(12px * var(--uiScale));
 
+  /* Component tokens (Phase E): reduce overrides by letting components read tokens.
+     Defaults are set to the current look to avoid any visual drift. */
+  --btn-pad-y: calc(12px * var(--uiScale));
+  --btn-pad-x: calc(14px * var(--uiScale));
+  --btn-font: inherit;
+  --btn-weight: 650;
+  --btn-shadow: var(--shadow);
+
+  --badge-pad-y: calc(5px * var(--uiScale));
+  --badge-pad-x: calc(9px * var(--uiScale));
+  --badge-font: var(--ctl-font-sm);
+  --badge-weight: 600;
+  --badge-gap: calc(6px * var(--uiScale));
+  --badge-h: calc(28px * var(--uiScale));
+
 
   /* Visible viewport height helper (set by JS via VisualViewport when available).
      Fallback stays at 1vh. Used to keep overlays stable when the mobile browser bar is shown. */
@@ -196,8 +211,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 /* Kompakte Button-Variante (Chip-Look) */
 .btn.btn-compact{
-  padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
-  box-shadow: none;
+  --btn-pad-y: calc(9px * var(--uiScale));
+  --btn-pad-x: calc(12px * var(--uiScale));
+  --btn-shadow: none;
 }
 
 /* Toolbar row (adaptive): button + results + xlsx + details */
@@ -245,8 +261,9 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 /* Make the Excel button feel like a chip so it pairs nicely with the XLSX status pill */
 .fileMoreTop .btn.btn-compact{
-  padding: var(--sp-3) var(--sp-4);
-  font-size: var(--ctl-font-sm);
+  --btn-pad-y: var(--sp-3);
+  --btn-pad-x: var(--sp-4);
+  --btn-font: var(--ctl-font-sm);
 }
 
 /* Adaptive compaction: when space is tight (e.g. A+++), we hide secondary bits instead of wrapping */
@@ -399,10 +416,11 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
 .pill-bad{border-color: color-mix(in oklab, var(--bad) 55%, var(--border) 45%)}
 
 .btn{
-padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
-font-weight:650;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
   cursor:pointer;
-  box-shadow: var(--shadow);
+  box-shadow: var(--btn-shadow);
   user-select:none;
 }
 .btn:active{transform:translateY(1px)}
@@ -517,13 +535,13 @@ font-weight:650;
   margin: calc(10px * var(--uiScale)) 0 calc(8px * var(--uiScale));
 }
 .badge{
-padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
-  font-weight:600;
-  font-size: var(--ctl-font-sm);
+  padding: var(--badge-pad-y) var(--badge-pad-x);
+  font-weight: var(--badge-weight);
+  font-size: var(--badge-font);
   display:inline-flex;
-  gap: calc(6px * var(--uiScale));
+  gap: var(--badge-gap);
   align-items:center;
-  height: calc(28px * var(--uiScale));
+  height: var(--badge-h);
   font-variant-numeric: tabular-nums;
 }
 /* Fixed-ish lengths per type (for visual calm) */
@@ -1273,7 +1291,7 @@ html.vhTight .fabPanelText{
 
  html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 ; justify-content: stretch ; justify-self: stretch ; }
  html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch ; width: 100% ; min-width: 0 ; }
- html.isPhone .fabPanelQuick .btn{ font-size: 14.5px ; padding: 10px 14px ; }
+ html.isPhone .fabPanelQuick .btn{ --btn-font: 14.5px; --btn-pad-y: 10px; --btn-pad-x: 14px; }
 
   /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
   html.isPhone .fabPanelText{
@@ -2219,14 +2237,13 @@ html.modalOpen body{touch-action:none;}
 
   /* Badges: leicht ruhiger (kleiner, gleiche Höhe) */
   .badge{
-    font-size: calc(12.5px * var(--uiScale));
-    height: calc(27px * var(--uiScale));
-    padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+    --badge-font: calc(12.5px * var(--uiScale));
+    --badge-h: calc(27px * var(--uiScale));
+    --badge-pad-y: calc(5px * var(--uiScale));
+    --badge-pad-x: calc(9px * var(--uiScale));
   }
   .badge.genre{
-    font-size: calc(12.5px * var(--uiScale));
-    height: calc(27px * var(--uiScale));
-    padding: calc(5px * var(--uiScale)) calc(10px * var(--uiScale));
+    --badge-pad-x: calc(10px * var(--uiScale));
   }
 
   /* Infoblock: etwas weniger „aufgeblasen“ auf Desktop/Tablet */
@@ -2280,10 +2297,11 @@ html.modalOpen body{touch-action:none;}
 /* Genre: kleiner, dunkler – Kontextbadge */
 .badge.genre{
   background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
-  font-size: var(--ctl-font-sm);
-  font-weight:600;
-  height: calc(28px * var(--uiScale));
-  padding: calc(5px * var(--uiScale)) calc(10px * var(--uiScale));
+  --badge-font: var(--ctl-font-sm);
+  --badge-weight: 600;
+  --badge-h: calc(28px * var(--uiScale));
+  --badge-pad-y: calc(5px * var(--uiScale));
+  --badge-pad-x: calc(10px * var(--uiScale));
 }
 
 /* Trophäenstatus im Header: neutral, Status nur über kleinen Punkt */
@@ -2355,9 +2373,10 @@ html.modalOpen body{touch-action:none;}
   .badgeRow{gap: calc(5px * var(--uiScale)); margin: calc(6px * var(--uiScale)) 0;}
   .headDivider{margin: calc(8px * var(--uiScale)) 0 calc(6px * var(--uiScale));}
   .badge{
-    padding: calc(4px * var(--uiScale)) calc(8px * var(--uiScale));
-    font-size: calc(12.5px * var(--uiScale));
-    height: calc(26px * var(--uiScale));
+    --badge-pad-y: calc(4px * var(--uiScale));
+    --badge-pad-x: calc(8px * var(--uiScale));
+    --badge-font: calc(12.5px * var(--uiScale));
+    --badge-h: calc(26px * var(--uiScale));
   }
   .info{
     margin-top: calc(8px * var(--uiScale));
@@ -2501,7 +2520,7 @@ html.modalOpen body{touch-action:none;}
   }
 
   .badgeRow{ gap: calc(7px * var(--uiScale)); }
-  .badge{ font-size: calc(13.5px * var(--uiScale)); }
+  .badge{ --badge-font: calc(13.5px * var(--uiScale)); }
 
   .info{
     padding: calc(14px * var(--uiScale));
@@ -2646,8 +2665,8 @@ html.modalOpen body{touch-action:none;}
   }
 
   .badge{
-    font-size: var(--ctl-font-sm);
-    height: calc(27px * var(--uiScale));
+    --badge-font: var(--ctl-font-sm);
+    --badge-h: calc(27px * var(--uiScale));
   }
 
   .info{
