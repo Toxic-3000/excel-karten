@@ -2208,10 +2208,8 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 3;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 
-
-
-  .tShort{display:none}
-  .tLong{display:inline}
+  /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
+     (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
 }
 
 
@@ -2454,7 +2452,10 @@ html.modalOpen body{touch-action:none;}
 }
 
 
-/* Trophy label variants: short on portrait, long on landscape/desktop */
+/* Trophy-Status-Text (Badge):
+   - Default: kurze Labels (portrait + kleines landscape)
+   - Ab breitem Landscape oder Desktop: ausführliche Labels */
+.tShort{display:inline}
 .tLong{display:none}
 
 @media (min-width: 900px){
@@ -2483,6 +2484,11 @@ html.modalOpen body{touch-action:none;}
     padding: calc(10px * var(--uiScale));
     font-size: 1em;
   }
+}
+
+/* Breites Landscape oder Desktop: ausführliche Labels */
+@media (min-width: 900px),
+       (orientation: landscape) and (min-width: 700px){
   .tShort{display:none}
   .tLong{display:inline}
 }
