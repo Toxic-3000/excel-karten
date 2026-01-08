@@ -1,11 +1,12 @@
-# Spieleliste – Build V7_1j62u
+# Spieleliste – Build V7_1j62t
 
-CSS-Entschlackung (ohne Optik-/Layout-Änderungen).
+CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1j62u (gegenüber V7_1j62t)
+## Änderungen in V7_1j62t (gegenüber V7_1j62s)
 
-- **Tote CSS-Regeln entfernt**, die im aktuellen DOM nicht mehr vorkommen (z. B. alte `#pillXlsx*`/`#fabSortFieldRow`/`#fabOpenFiltersBtn`-Selektoren sowie Legacy-Klassen wie `.fabQuickField`/`.fabQuickSort*`).
-- **Buildnummer & Cachebuster** konsistent aktualisiert (Meta-Tag + `?v=`-Parameter).
+- Tote CSS-Regeln entfernt (nicht mehr verwendete Klassen/IDs), ohne Layout-Änderungen.
+- FAB-Menü-Styles weiter konsolidiert: weniger Spezifitäts-/Override-Kollisionen, gleiche Optik.
+- CSS-Datei aufgeräumt (Legacy-Kommentare/Altlasten reduziert), Kaskade bleibt stabil und deterministisch.
 
 ## Nicht geändert
 - Optik/Spacing des UIs (Ziel: 1:1).
