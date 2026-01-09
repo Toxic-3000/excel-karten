@@ -1,7 +1,12 @@
-# Spieleliste – Build V7_1j63g
+# Spieleliste – Build V7_1j63h
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
+
+## Änderungen in V7_1j63h (gegenüber V7_1j63g)
+
+- **Globale Suche erweitert:** Das freie Suchfeld durchsucht nun **alle relevanten Felder** (inkl. **Kurzbeschreibung**), sodass die globale Suche „alle Matches“ liefert.
+- Feldspezifische Suche (z. B. „Beschreibung: …“) bleibt unverändert.
 
 ## Änderungen in V7_1j63g (gegenüber V7_1j63f)
 

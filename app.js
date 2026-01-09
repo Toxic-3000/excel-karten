@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63g
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63h
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63g").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63h").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1281,11 +1281,20 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (av) state.distinct.availability.add(av);
 
       // Cached full-text search haystack (free text search)
-      // Keep it compact: only fields that are searched globally.
-      row.__hay = [
-        row[COL.title], row[COL.genre], row[COL.sub], row[COL.dev],
-        row[COL.source], row[COL.avail]
+      // Global search is intentionally broad (matches across all relevant fields).
+      row.__hayAll = [
+        row[COL.title],
+        row[COL.genre],
+        row[COL.sub],
+        row[COL.dev],
+        row[COL.desc],
+        row[COL.system],
+        row[COL.source],
+        row[COL.avail],
+        row[COL.store],
       ].map(normSearch).join(' ');
+      // Backward compat: some helper paths still read __hay
+      row.__hay = row.__hayAll;
     }
 
     state.rows = rows;
@@ -2098,9 +2107,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) continue;
         } else if (qTokens.length){
-          const hay = (r.__hay || [
+          const hay = (r.__hayAll || r.__hay || [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
+            r[COL.desc], r[COL.system], r[COL.source], r[COL.avail], r[COL.store]
           ].map(normSearch).join(" "));
           let ok = true;
           for (const t of qTokens){
@@ -2712,9 +2721,19 @@ function scheduleApplyAndRender(delayMs){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) return false;
         } else if (qTokens.length){
-          const hay = (r.__hay || [
-            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
+          // Global search should be broad: match across *all* relevant fields (OR across fields).
+          // We still use AND-semantics across multiple tokens (typical multi-word search).
+          // Cache under a dedicated key so older builds' caches don't leak into new behavior.
+          const hay = (r.__hayAll || [
+            r[COL.title],
+            r[COL.genre],
+            r[COL.sub],
+            r[COL.dev],
+            r[COL.desc],
+            r[COL.system],
+            r[COL.source],
+            r[COL.avail],
+            r[COL.store],
           ].map(normSearch).join(" "));
           // AND-semantics for tokens: every token must appear somewhere.
           for (const t of qTokens){
