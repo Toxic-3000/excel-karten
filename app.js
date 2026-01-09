@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62u").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62v").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -93,6 +93,7 @@ console.log("Build loader ready");
     fabTextPanel: $("fabTextPanel"),
     fabTextClose: $("fabTextClose"),
     fabScaleRow: $("fabScaleRow"),
+    fabTextDensityRow: $("fabTextDensityRow"),
 
     // 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü)
     fabQuick: $("fabQuick"),
@@ -246,6 +247,39 @@ console.log("Build loader ready");
 
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
+
+  // --- UI: Textdarstellung (Normal / Kompakt) ---
+  const TEXT_DENSITY_KEY = "spieleliste_textDensity";
+  const TEXT_DENSITIES = [
+    { id: "normal",  label: "Normal" },
+    { id: "compact", label: "Kompakt" },
+  ];
+
+  function getTextDensity(){
+    const saved = (localStorage.getItem(TEXT_DENSITY_KEY) || "").trim();
+    if (saved && TEXT_DENSITIES.some(d => d.id === saved)) return saved;
+    return "normal";
+  }
+
+  let currentTextDensity = getTextDensity();
+
+  function applyTextDensity(mode){
+    const m = TEXT_DENSITIES.some(d => d.id === mode) ? mode : "normal";
+    currentTextDensity = m;
+    try{ document.documentElement.setAttribute("data-textdensity", m); }catch(_){/* ignore */}
+    try{ localStorage.setItem(TEXT_DENSITY_KEY, m); }catch(_){/* ignore */}
+    updateFabTextDensityUI();
+  }
+
+  function updateFabTextDensityUI(){
+    if (!el.fabTextDensityRow) return;
+    for (const b of el.fabTextDensityRow.querySelectorAll(".chip")){
+      b.setAttribute("aria-pressed", b.getAttribute("data-key") === currentTextDensity ? "true" : "false");
+    }
+  }
+
+  applyTextDensity(currentTextDensity);
+
 
   // No more header button: quick access lives in the FAB panel.
 
@@ -474,6 +508,11 @@ function closeFabText(){
       el.fabScaleRow.innerHTML = UI_SCALES.map(s => chipHtml("uiScale", s.id, s.label, s.id === currentScalePreset)).join("");
     }
 
+    // Build text density chips (Normal / Kompakt)
+    if (el.fabTextDensityRow){
+      el.fabTextDensityRow.innerHTML = TEXT_DENSITIES.map(d => chipHtml("textDensity", d.id, d.label, d.id === currentTextDensity)).join("");
+    }
+
     // Build quick sort direction chips
     if (el.fabSortDirRow){
       el.fabSortDirRow.innerHTML = [
@@ -585,6 +624,10 @@ function closeFabText(){
         if (group === "uiScale"){
           currentScalePreset = key;
           applyScale(currentScalePreset);
+          return;
+        }
+        if (group === "textDensity"){
+          applyTextDensity(key);
           return;
         }
         if (group === "quickSortField"){

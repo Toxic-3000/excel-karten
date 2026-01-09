@@ -1169,6 +1169,69 @@ summary::-webkit-details-marker{display:none}
 .chev{opacity:.7}
 .detailsBody{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(14px * var(--uiScale)); line-height:1.55}
 .pre{white-space:pre-wrap}
+
+/* --- Textdarstellung (Normal/Kompakt)
+   Gilt nur für die großen Langtext-Blöcke: Beschreibung + Eastereggs.
+   Steuerung: html[data-textdensity="normal|compact"] (Default: normal).
+   Ziel:
+   - Phone: nur minimal straffer
+   - Tablet/Desktop: Normal leicht luftiger, Kompakt deutlich dichter + breitere Zeilen
+*/
+:root{
+  --td-line: 1.55;
+  --td-pad-y: calc(12px * var(--uiScale));
+  --td-pad-x: calc(12px * var(--uiScale));
+  --td-pad-b: calc(14px * var(--uiScale));
+  --td-max: 100%;
+  --td-pre-margin: 0;
+}
+html[data-textdensity="compact"]{
+  --td-line: 1.45;
+  --td-pad-y: calc(11px * var(--uiScale));
+  --td-pad-x: calc(11px * var(--uiScale));
+  --td-pad-b: calc(13px * var(--uiScale));
+  --td-max: 100%;
+  --td-pre-margin: 0;
+}
+
+details.d-desc .detailsBody,
+details.d-easter .detailsBody{
+  padding: var(--td-pad-y) var(--td-pad-x) var(--td-pad-b);
+  line-height: var(--td-line);
+}
+
+details.d-desc .detailsBody .pre,
+details.d-easter .detailsBody .pre{
+  max-width: var(--td-max);
+  margin-inline: var(--td-pre-margin);
+}
+
+/* Tablet/Desktop: Normal etwas luftiger; Kompakt dichter + breiter (mehr Fläche) */
+@media (min-width: 701px) and (min-height: 521px){
+  :root{
+    --td-line: 1.62;
+    --td-pad-y: calc(14px * var(--uiScale));
+    --td-pad-x: calc(18px * var(--uiScale));
+    --td-pad-b: calc(16px * var(--uiScale));
+    --td-max: 92ch;
+    --td-pre-margin: auto;
+  }
+  html[data-textdensity="compact"]{
+    --td-line: 1.45;
+    --td-pad-y: calc(12px * var(--uiScale));
+    --td-pad-x: calc(14px * var(--uiScale));
+    --td-pad-b: calc(14px * var(--uiScale));
+    --td-max: 104ch;
+    --td-pre-margin: auto;
+  }
+}
+
+@media (min-width: 1100px){
+  html[data-textdensity="compact"]{
+    --td-max: 110ch;
+  }
+}
+
 .hl{
   background: color-mix(in oklab, var(--filterAccent) 22%, transparent);
   border-radius: 8px;
