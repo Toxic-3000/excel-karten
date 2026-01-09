@@ -1,6 +1,13 @@
-# Spieleliste – Build V7_1j63b
+# Spieleliste – Build V7_1j63c
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1j63c (gegenüber V7_1j63b)
+
+### Mini: Fokus nach dem Aufklappen
+- Wenn du im **Mini-Modus** eine Karte aufklappst (Header/▾), scrollt die Ansicht automatisch so, dass die aufgeklappte Karte vollständig im sichtbaren Bereich liegt ("100% im Fokus").
+
+---
 
 ## Änderungen in V7_1j63b (gegenüber V7_1j62u)
 

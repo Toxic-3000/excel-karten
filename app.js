@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63b
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63c
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63c").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3353,6 +3353,42 @@ function classifyAvailability(av){
     try{ tog.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
   }
 
+  // Ensure an expanded Mini/Kompakt card is fully brought into view.
+  // "Force" means: even if it's already visible, we snap it to the top margin.
+  function scrollCardFullyIntoView(cardEl, opts){
+    if (!cardEl) return;
+    const o = Object.assign({ marginTop: 12, marginBottom: 12, behavior: 'smooth', force: true }, (opts || {}));
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const bhv = prefersReduced ? 'auto' : o.behavior;
+
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return;
+    const rect = cardEl.getBoundingClientRect();
+
+    // If the card can't fully fit, best effort: align top to margin.
+    const available = vh - o.marginTop - o.marginBottom;
+    if (rect.height > available){
+      const deltaTop = rect.top - o.marginTop;
+      window.scrollBy({ top: deltaTop, left: 0, behavior: bhv });
+      return;
+    }
+
+    const topTooHigh = rect.top < o.marginTop;
+    const bottomTooLow = rect.bottom > (vh - o.marginBottom);
+    let delta = 0;
+
+    if (topTooHigh){
+      delta = rect.top - o.marginTop;
+    } else if (bottomTooLow){
+      delta = rect.bottom - (vh - o.marginBottom);
+    } else if (o.force){
+      // Snap into focus even if already fully visible.
+      delta = rect.top - o.marginTop;
+    }
+
+    if (delta) window.scrollBy({ top: delta, left: 0, behavior: bhv });
+  }
+
   let __cardToggleWired = false;
   function wireCardToggle(){
     if (__cardToggleWired) return;
@@ -3386,6 +3422,18 @@ function classifyAvailability(av){
 
       card.classList.toggle('is-expanded', willOpen);
       syncCardChevron(card);
+
+      // In Mini: after expanding, force the card fully into focus (100% in view).
+      // We wait for layout to settle (height change + full-width span in 2-column).
+      if (willOpen && view === 'mini'){
+        const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+        const marginTop = topbarH + 12;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
+          });
+        });
+      }
     });
   }
 
