@@ -1,6 +1,17 @@
-# Spieleliste – Build V7_1j63d
+# Spieleliste – Build V7_1j63e
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1j63e (gegenüber V7_1j63d)
+
+### Textdarstellung (Aa): Viewpoint bleibt stabil
+- Wenn du die **Textdarstellung/Schriftgröße** änderst, wird dein aktueller **Blickpunkt im Viewport** gehalten – auch wenn du **keine Karte angetippt** hast.
+- Technisch wird ein Viewpoint-Anchor (über den Viewport-Mittelpunkt) gesetzt und nach dem Reflow wieder eingerastet.
+
+### Scroll-Koordination
+- Fokus-Scrolls (z.B. Mini-Aufklappen) und Viewpoint-Anchor (Aa) werden koordiniert, damit sich die Mechaniken nicht gegenseitig "ziehen".
+
+---
 
 ## Änderungen in V7_1j63d (gegenüber V7_1j63c)
 
