@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63f
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63g
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63f").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63g").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -227,7 +227,7 @@ console.log("Build loader ready");
 
   function applyScale(presetId){
     const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
-    const __anchorId = _getAnchorCardId();
+    const __anchor = _captureAnchor();
     document.documentElement.style.setProperty("--uiScaleRaw", String(preset.v));
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
@@ -235,7 +235,7 @@ console.log("Build loader ready");
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
     // Keep the current card in view after font scaling changes.
-    _scheduleRefocusCard(__anchorId, { behavior: "auto", force: false });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
 
   function cycleScale(currentId){
@@ -766,7 +766,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
   }
   function applyCardView(v, opts={}){
     const next = CARD_VIEWS.includes(v) ? v : "detail";
-    const __anchorId = _getAnchorCardId();
+    const __anchor = _captureAnchor();
     if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "detail" };
     state.ui.cardView = next;
     try{ document.body.setAttribute("data-cardview", next); }catch(_){/* ignore */}
@@ -779,7 +779,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       try{ saveCardView(next); }catch(_){/* ignore */}
     }
     // Keep the anchor card in view after switching card modes.
-    _scheduleRefocusCard(__anchorId, { behavior: "auto", force: false });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
   function syncCardsForView(view){
     if (!el.cards) return;
@@ -3404,10 +3404,16 @@ function classifyAvailability(av){
 
 // --- Anchor & Restore: keep the "current" card in view across layout-changing UI actions ---
 // Layout changes (card view, text scale, etc.) can shift scroll positions because card heights change.
-// We treat the last active/expanded card as an anchor and refocus it after the layout settles.
+// Anchor priority:
+//  1) Expanded card (Mini/Kompakt)
+//  2) Last active card (clicked)
+//  3) Viewport anchor (top-most visible card) – even if the user never clicked
+// Restore modes:
+//  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
+//  - "focus": ensure the card is fully visible (used for explicit actions)
 let __lastActiveCardId = "";
 let __refocusT = 0;
-let __pendingRefocusId = "";
+let __pendingRestore = null; // { id, offset }
 
 function _setLastActiveCard(card){
   try{
@@ -3416,35 +3422,98 @@ function _setLastActiveCard(card){
   }catch(_){/* ignore */}
 }
 
-function _getAnchorCardId(){
-  try{
-    const expanded = el.cards?.querySelector?.(".card.is-expanded");
-    const id1 = String(expanded?.getAttribute?.("data-id") || "").trim();
-    if (id1) return id1;
-  }catch(_){/* ignore */}
-  return String(__lastActiveCardId || "").trim();
+function _getTopMargin(){
+  const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+  return topbarH + 12;
 }
 
-function _scheduleRefocusCard(anchorId, opts){
-  const id = String(anchorId || "").trim();
-  if (!id) return;
-  __pendingRefocusId = id;
+function _getViewportAnchor(){
+  try{
+    if (!el.cards) return null;
+    const marginTop = _getTopMargin();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return null;
+    const cards = el.cards.querySelectorAll('.card');
+    let best = null;
+    let bestTop = Infinity;
+    for (const c of cards){
+      const r = c.getBoundingClientRect();
+      // visible at least a bit below marginTop
+      if (r.bottom <= marginTop + 1) continue;
+      if (r.top >= vh - 1) continue;
+      if (r.top < bestTop){
+        bestTop = r.top;
+        best = { el: c, rect: r };
+      }
+    }
+    if (!best?.el) return null;
+    const id = String(best.el.getAttribute('data-id') || '').trim();
+    if (!id) return null;
+    return { id, offset: (best.rect.top - marginTop) };
+  }catch(_){
+    return null;
+  }
+}
 
-  const o = Object.assign({ behavior: "auto", force: false }, (opts || {}));
+function _captureAnchor(){
+  try{
+    const marginTop = _getTopMargin();
+    // 1) Expanded
+    const expanded = el.cards?.querySelector?.('.card.is-expanded');
+    if (expanded){
+      const id1 = String(expanded.getAttribute('data-id') || '').trim();
+      if (id1){
+        const r = expanded.getBoundingClientRect();
+        return { id: id1, offset: (r.top - marginTop) };
+      }
+    }
+    // 2) Last active
+    const id2 = String(__lastActiveCardId || '').trim();
+    if (id2){
+      const c2 = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(id2)}"]`);
+      if (c2){
+        const r2 = c2.getBoundingClientRect();
+        return { id: id2, offset: (r2.top - marginTop) };
+      }
+    }
+    // 3) Viewport anchor
+    return _getViewportAnchor();
+  }catch(_){
+    return null;
+  }
+}
+
+function _scheduleRestore(anchor, opts){
+  const a = anchor && typeof anchor === 'object' ? anchor : null;
+  const id = String(a?.id || '').trim();
+  if (!id) return;
+  __pendingRestore = { id, offset: Number.isFinite(a?.offset) ? a.offset : 0 };
+
+  const o = Object.assign({ behavior: 'auto', mode: 'offset', force: false }, (opts || {}));
   try{ window.clearTimeout(__refocusT); }catch(_){/* ignore */}
   __refocusT = window.setTimeout(() => {
-    const cid = String(__pendingRefocusId || "").trim();
-    if (!cid) return;
-    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(cid)}"]`);
+    const p = __pendingRestore;
+    if (!p?.id) return;
+    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(p.id)}"]`);
     if (!card) return;
 
-    const topbarH = (document.querySelector(".topbar")?.offsetHeight ?? 0);
-    const marginTop = topbarH + 12;
+    const marginTop = _getTopMargin();
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const bhv = prefersReduced ? 'auto' : String(o.behavior || 'auto');
 
-    // Wait for layout to settle (especially after card view switches or font scaling).
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: !!o.force, behavior: String(o.behavior || "auto") });
+        if (String(o.mode || 'offset') === 'focus'){
+          scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: !!o.force, behavior: bhv });
+          return;
+        }
+        // offset restore: keep the card at the same relative position to the viewport top
+        const r = card.getBoundingClientRect();
+        const desiredTop = marginTop + (Number.isFinite(p.offset) ? p.offset : 0);
+        const delta = r.top - desiredTop;
+        if (delta){
+          window.scrollBy({ top: delta, left: 0, behavior: bhv });
+        }
       });
     });
   }, 90);

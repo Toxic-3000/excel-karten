@@ -1,13 +1,16 @@
-# Spieleliste – Build V7_1j63f
+# Spieleliste – Build V7_1j63g
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63f (gegenüber V7_1j63d)
+## Änderungen in V7_1j63g (gegenüber V7_1j63f)
+
+- **Anchor & Restore verbessert:** Funktioniert jetzt auch **ohne Klick** (Viewport-Anker = oberste sichtbare Karte).
+- Bei **Kartenmodus**- und **Textgröße**-Änderungen wird die Ankerkarte nach dem Reflow **an derselben relativen Scroll-Position** wiederhergestellt (stabiler als „irgendwo hin springen“).
 
 ### Anchor & Restore: Karte bleibt im Fokus bei Layout-Änderungen
 - Wenn sich das Layout stark ändert (z.B. **Textgröße (Aa)** oder **Kartenmodus Mini/Kompakt/Detail**), wird die **aktuelle/zuletzt aktive Karte** automatisch wieder in den sichtbaren Bereich geholt.
-- Priorität für den Anker: **geöffnete Karte** → sonst **zuletzt aktive Karte**.
+- Priorität für den Anker: **geöffnete Karte** → sonst **zuletzt aktive Karte** → sonst **oberste sichtbare Karte (Viewport-Anker)**.
 - Re-Fokus passiert nach dem Reflow (debounced), ohne “CSS-Flickenteppich” (rein über eine zentrale Scroll-Logik).
 
 ---
