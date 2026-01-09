@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63d
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63f
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63e").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63f").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -227,27 +227,15 @@ console.log("Build loader ready");
 
   function applyScale(presetId){
     const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
-    // Viewpoint stabil halten: auch ohne vorherigen Klick soll sich der Scroll-Blickpunkt
-    // bei Textgrößenänderungen (Aa) nicht "wegschieben".
-    const anchor = (typeof captureViewportAnchor === 'function') ? captureViewportAnchor() : null;
-    // Blockiere kurz Fokus-Scrolls, damit es kein "Zerren" gibt.
-    if (typeof setScrollMode === 'function') setScrollMode('text-anchor', 260);
-
+    const __anchorId = _getAnchorCardId();
     document.documentElement.style.setProperty("--uiScaleRaw", String(preset.v));
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
     updateFabScaleUI();
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
-
-    // Nach dem Reflow den Blickpunkt wieder exakt "einrasten".
-    if (anchor){
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          try{ restoreViewportAnchor(anchor); }catch(_){/* ignore */}
-        });
-      });
-    }
+    // Keep the current card in view after font scaling changes.
+    _scheduleRefocusCard(__anchorId, { behavior: "auto", force: false });
   }
 
   function cycleScale(currentId){
@@ -778,6 +766,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
   }
   function applyCardView(v, opts={}){
     const next = CARD_VIEWS.includes(v) ? v : "detail";
+    const __anchorId = _getAnchorCardId();
     if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "detail" };
     state.ui.cardView = next;
     try{ document.body.setAttribute("data-cardview", next); }catch(_){/* ignore */}
@@ -789,6 +778,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     if (opts?.save !== false) {
       try{ saveCardView(next); }catch(_){/* ignore */}
     }
+    // Keep the anchor card in view after switching card modes.
+    _scheduleRefocusCard(__anchorId, { behavior: "auto", force: false });
   }
   function syncCardsForView(view){
     if (!el.cards) return;
@@ -3340,6 +3331,7 @@ function classifyAvailability(av){
     el.cards.addEventListener("toggle", (ev) => {
       const det = ev.target;
       if (!det || det.tagName !== "DETAILS") return;
+      try{ _setLastActiveCard(det.closest(".card")); }catch(_){/* ignore */}
       const sum = det.querySelector("summary");
       const label = sum?.querySelector("[data-label]");
       if (!label) return;
@@ -3363,56 +3355,6 @@ function classifyAvailability(av){
   }
 
   // --- Karten: Tap-Header Toggle in Mini/Kompakt (Detail bleibt Akkordeon-only) ---
-
-  // --- Scroll-Koordination (verhindert "Scroll-Zerren" zwischen Fokus-Scroll & Textgröße-Anchor) ---
-  // Modes: 'none' | 'expand-focus' | 'text-anchor'
-  let __scrollMode = 'none';
-  let __scrollModeUntil = 0;
-  function _now(){ return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
-  function setScrollMode(mode, holdMs){
-    __scrollMode = mode;
-    __scrollModeUntil = _now() + Math.max(0, Number(holdMs || 0));
-  }
-  function getScrollMode(){
-    if (__scrollMode !== 'none' && _now() > __scrollModeUntil){
-      __scrollMode = 'none';
-      __scrollModeUntil = 0;
-    }
-    return __scrollMode;
-  }
-
-  // --- Viewpoint-Anchor: hält den aktuellen Blickpunkt stabil bei Textgrößenänderungen (Aa) ---
-  function _topbarHeight(){
-    try{ return (document.querySelector('.topbar')?.offsetHeight ?? 0); }catch(_){ return 0; }
-  }
-  function captureViewportAnchor(){
-    const topbarH = _topbarHeight();
-    const x = Math.floor((window.innerWidth || 0) / 2);
-    // Anchor-Punkt: leicht oberhalb der optischen Mitte (fühlt sich beim Lesen natürlicher an)
-    const y = Math.floor(((window.innerHeight || 0) + topbarH) * 0.46);
-    const elAt = document.elementFromPoint ? document.elementFromPoint(x, y) : null;
-    const card = elAt?.closest?.('.card') || null;
-    if (!card) return null;
-    const rect = card.getBoundingClientRect();
-    return {
-      cardEl: card,
-      // Position innerhalb der Karte, die wir festhalten wollen
-      yInCard: y - rect.top,
-      anchorY: y,
-      marginTop: topbarH + 12,
-    };
-  }
-  function restoreViewportAnchor(anchor){
-    if (!anchor || !anchor.cardEl) return;
-    const card = anchor.cardEl;
-    const rect = card.getBoundingClientRect();
-    const currentY = rect.top + anchor.yInCard;
-    const delta = currentY - anchor.anchorY;
-    if (Math.abs(delta) > 1){
-      window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
-    }
-  }
-
   function syncCardChevron(card){
     if (!card) return;
     const tog = card.querySelector('.cardToggle');
@@ -3458,6 +3400,56 @@ function classifyAvailability(av){
     if (delta) window.scrollBy({ top: delta, left: 0, behavior: bhv });
   }
 
+
+
+// --- Anchor & Restore: keep the "current" card in view across layout-changing UI actions ---
+// Layout changes (card view, text scale, etc.) can shift scroll positions because card heights change.
+// We treat the last active/expanded card as an anchor and refocus it after the layout settles.
+let __lastActiveCardId = "";
+let __refocusT = 0;
+let __pendingRefocusId = "";
+
+function _setLastActiveCard(card){
+  try{
+    const id = String(card?.getAttribute?.("data-id") || "").trim();
+    if (id) __lastActiveCardId = id;
+  }catch(_){/* ignore */}
+}
+
+function _getAnchorCardId(){
+  try{
+    const expanded = el.cards?.querySelector?.(".card.is-expanded");
+    const id1 = String(expanded?.getAttribute?.("data-id") || "").trim();
+    if (id1) return id1;
+  }catch(_){/* ignore */}
+  return String(__lastActiveCardId || "").trim();
+}
+
+function _scheduleRefocusCard(anchorId, opts){
+  const id = String(anchorId || "").trim();
+  if (!id) return;
+  __pendingRefocusId = id;
+
+  const o = Object.assign({ behavior: "auto", force: false }, (opts || {}));
+  try{ window.clearTimeout(__refocusT); }catch(_){/* ignore */}
+  __refocusT = window.setTimeout(() => {
+    const cid = String(__pendingRefocusId || "").trim();
+    if (!cid) return;
+    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(cid)}"]`);
+    if (!card) return;
+
+    const topbarH = (document.querySelector(".topbar")?.offsetHeight ?? 0);
+    const marginTop = topbarH + 12;
+
+    // Wait for layout to settle (especially after card view switches or font scaling).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: !!o.force, behavior: String(o.behavior || "auto") });
+      });
+    });
+  }, 90);
+}
+
   let __cardToggleWired = false;
   function wireCardToggle(){
     if (__cardToggleWired) return;
@@ -3471,6 +3463,7 @@ function classifyAvailability(av){
       const target = ev.target;
       const card = target?.closest?.('.card');
       if (!card) return;
+      _setLastActiveCard(card);
 
       // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
       const openDetailBtn = target?.closest?.('.openDetailBtn');
@@ -3482,12 +3475,8 @@ function classifyAvailability(av){
 
         // Switch global view first, then refocus the same card (stable, non-random scroll).
         applyCardView('detail');
-        // Fokus-Scroll koordinieren, damit direkt danach (z.B. Aa) kein "Zerren" entsteht.
-        try{ setScrollMode('expand-focus', 420); }catch(_){/* ignore */}
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            // Wenn gerade ein Text-Anchor aktiv ist, nicht gegensteuern.
-            try{ if (getScrollMode() === 'text-anchor') return; }catch(_){/* ignore */}
             scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
           });
         });
@@ -3519,11 +3508,8 @@ function classifyAvailability(av){
       if (willOpen && view === 'mini'){
         const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
-        // Fokus-Scroll koordinieren.
-        try{ setScrollMode('expand-focus', 420); }catch(_){/* ignore */}
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            try{ if (getScrollMode() === 'text-anchor') return; }catch(_){/* ignore */}
             scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
           });
         });
