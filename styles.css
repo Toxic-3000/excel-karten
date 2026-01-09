@@ -697,6 +697,27 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
 }
 .cards{padding:6px 4px}
 
+/* ============================================================
+   Build V7_1j63a – Kartenmodi (mini / compact / detail)
+   Reiner Darstellungsmodus via body[data-cardview].
+   ============================================================ */
+
+/* Grid / Spaltenlogik je Modus */
+body[data-cardview="mini"] #cards.cards,
+body[data-cardview="compact"] #cards.cards{
+  display:grid;
+  gap: calc(14px * var(--uiScale));
+}
+body[data-cardview="mini"] #cards.cards{ grid-template-columns: 1fr; }
+body[data-cardview="compact"] #cards.cards{ grid-template-columns: 1fr; }
+
+@media (min-width: 760px){
+  body[data-cardview="mini"] #cards.cards{ grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 980px){
+  body[data-cardview="compact"] #cards.cards{ grid-template-columns: 1fr 1fr; }
+}
+
 /* Inline, temporary hint shown after closing the filter menu.
    Not fixed/sticky (avoids Phone-Landscape quirks). */
 .viewToast{
@@ -732,6 +753,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
 .rowMeta{
   display:flex; justify-content:flex-start; align-items:center; gap: var(--sp-4);
 }
+.head{ position:relative; }
 .idBadge{
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
   border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
@@ -767,6 +789,70 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   font-size: calc(24px * var(--uiScale));
   margin:10px 0 8px;
   word-break:break-word;
+}
+
+/* Kartenmodi: gedeckelte Typo + 2-Zeilen Titel in Mini */
+body[data-cardview="compact"] .title{
+  font-size: clamp(20px, calc(24px * var(--uiScale)), 24px);
+}
+body[data-cardview="mini"] .title{
+  font-size: clamp(18px, calc(22px * var(--uiScale)), 22px);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:hidden;
+}
+
+/* Mini: Genre-Zeile unter dem Header (1 Zeile, Ellipsis) */
+.miniGenre{ display:none; }
+body[data-cardview="mini"] .miniGenre{
+  display:block;
+  margin: 2px 0 6px;
+  font-size: calc(13px * var(--uiScale));
+  opacity: .78;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Best-of-both: Toggle-Hinweis (Chevron) nur in Mini/Kompakt */
+.cardChev{ display:none; }
+body[data-cardview="mini"] .cardChev,
+body[data-cardview="compact"] .cardChev{
+  display:grid;
+  place-items:center;
+  position:absolute;
+  right: calc(10px * var(--uiScale));
+  bottom: calc(10px * var(--uiScale));
+  width: calc(28px * var(--uiScale));
+  height: calc(28px * var(--uiScale));
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  font-size: calc(16px * var(--uiScale));
+  opacity: .65;
+}
+body[data-cardview="mini"] .head,
+body[data-cardview="compact"] .head{ cursor:pointer; }
+body[data-cardview="mini"] .card[data-expanded="true"] .cardChev,
+body[data-cardview="compact"] .card[data-expanded="true"] .cardChev{
+  transform: rotate(180deg);
+}
+
+/* Modus-spezifische Sichtbarkeit */
+body[data-cardview="mini"] .badgeRow-trophy{ display:none; } /* kein Spielstatus in Mini */
+body[data-cardview="mini"] .detailsWrap,
+body[data-cardview="compact"] .detailsWrap{ display:none; } /* Akkordeons nur in Detail */
+
+/* Collapse-Logik: In Mini/Kompakt kann der Header den Body ein-/ausklappen */
+body[data-cardview="mini"] .card[data-expanded="false"] .info{ display:none; }
+body[data-cardview="compact"] .card[data-expanded="false"] .info{ display:none; }
+
+/* Mini/Kompakt: kompaktere Kartenabstände im Grid */
+body[data-cardview="mini"] .card,
+body[data-cardview="compact"] .card{
+  margin: 0;
+  padding: calc(12px * var(--uiScale));
 }
 
 .badgeRow{display:flex; flex-wrap:wrap; gap: calc(6px * var(--uiScale)); margin:8px 0}
@@ -1169,69 +1255,6 @@ summary::-webkit-details-marker{display:none}
 .chev{opacity:.7}
 .detailsBody{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(14px * var(--uiScale)); line-height:1.55}
 .pre{white-space:pre-wrap}
-
-/* --- Textdarstellung (Normal/Kompakt)
-   Gilt nur für die großen Langtext-Blöcke: Beschreibung + Eastereggs.
-   Steuerung: html[data-textdensity="normal|compact"] (Default: normal).
-   Ziel:
-   - Phone: nur minimal straffer
-   - Tablet/Desktop: Normal leicht luftiger, Kompakt deutlich dichter + breitere Zeilen
-*/
-:root{
-  --td-line: 1.55;
-  --td-pad-y: calc(12px * var(--uiScale));
-  --td-pad-x: calc(12px * var(--uiScale));
-  --td-pad-b: calc(14px * var(--uiScale));
-  --td-max: 100%;
-  --td-pre-margin: 0;
-}
-html[data-textdensity="compact"]{
-  --td-line: 1.45;
-  --td-pad-y: calc(11px * var(--uiScale));
-  --td-pad-x: calc(11px * var(--uiScale));
-  --td-pad-b: calc(13px * var(--uiScale));
-  --td-max: 100%;
-  --td-pre-margin: 0;
-}
-
-details.d-desc .detailsBody,
-details.d-easter .detailsBody{
-  padding: var(--td-pad-y) var(--td-pad-x) var(--td-pad-b);
-  line-height: var(--td-line);
-}
-
-details.d-desc .detailsBody .pre,
-details.d-easter .detailsBody .pre{
-  max-width: var(--td-max);
-  margin-inline: var(--td-pre-margin);
-}
-
-/* Tablet/Desktop: Normal etwas luftiger; Kompakt dichter + breiter (mehr Fläche) */
-@media (min-width: 701px) and (min-height: 521px){
-  :root{
-    --td-line: 1.62;
-    --td-pad-y: calc(14px * var(--uiScale));
-    --td-pad-x: calc(18px * var(--uiScale));
-    --td-pad-b: calc(16px * var(--uiScale));
-    --td-max: 92ch;
-    --td-pre-margin: auto;
-  }
-  html[data-textdensity="compact"]{
-    --td-line: 1.45;
-    --td-pad-y: calc(12px * var(--uiScale));
-    --td-pad-x: calc(14px * var(--uiScale));
-    --td-pad-b: calc(14px * var(--uiScale));
-    --td-max: 104ch;
-    --td-pre-margin: auto;
-  }
-}
-
-@media (min-width: 1100px){
-  html[data-textdensity="compact"]{
-    --td-max: 110ch;
-  }
-}
-
 .hl{
   background: color-mix(in oklab, var(--filterAccent) 22%, transparent);
   border-radius: 8px;

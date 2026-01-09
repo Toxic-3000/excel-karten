@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62v").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63a").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -93,7 +93,6 @@ console.log("Build loader ready");
     fabTextPanel: $("fabTextPanel"),
     fabTextClose: $("fabTextClose"),
     fabScaleRow: $("fabScaleRow"),
-    fabTextDensityRow: $("fabTextDensityRow"),
 
     // 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü)
     fabQuick: $("fabQuick"),
@@ -106,6 +105,7 @@ console.log("Build loader ready");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabMarkRow: $("fabMarkRow"),
+    fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -210,6 +210,31 @@ console.log("Build loader ready");
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
   const UI_SCALE_KEY = "spieleliste_uiScalePreset";
+
+  // --- UI: Kartenmodus (mini / compact / detail) ---
+  const CARD_VIEW_KEY = "spieleliste_cardView";
+  const CARD_VIEWS = ["mini", "compact", "detail"];
+
+  function getCardView(){
+    try{
+      const saved = String(localStorage.getItem(CARD_VIEW_KEY) || "").trim();
+      if (CARD_VIEWS.includes(saved)) return saved;
+    }catch(_){/* ignore */}
+    return "detail";
+  }
+
+  let currentCardView = getCardView();
+  function applyCardView(next){
+    const v = CARD_VIEWS.includes(next) ? next : "detail";
+    currentCardView = v;
+    try{ document.body.dataset.cardview = v; }catch(_){/* ignore */}
+    try{ localStorage.setItem(CARD_VIEW_KEY, v); }catch(_){/* ignore */}
+    try{ updateFabCardViewUI(); }catch(_){/* ignore */}
+    try{ applyCardExpandedDefaults(); }catch(_){/* ignore */}
+  }
+
+  // Apply initial card view early (before any render).
+  try{ applyCardView(currentCardView); }catch(_){/* ignore */}
   // Feiner abgestufte Skalierung + etwas größere Basisschrift (CSS): lesbarer, ohne Sprung-Gefühl.
   const UI_SCALES = [
     { id: "normal",    v: 1.00, label: "A" },
@@ -247,39 +272,6 @@ console.log("Build loader ready");
 
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
-
-  // --- UI: Textdarstellung (Normal / Kompakt) ---
-  const TEXT_DENSITY_KEY = "spieleliste_textDensity";
-  const TEXT_DENSITIES = [
-    { id: "normal",  label: "Normal" },
-    { id: "compact", label: "Kompakt" },
-  ];
-
-  function getTextDensity(){
-    const saved = (localStorage.getItem(TEXT_DENSITY_KEY) || "").trim();
-    if (saved && TEXT_DENSITIES.some(d => d.id === saved)) return saved;
-    return "normal";
-  }
-
-  let currentTextDensity = getTextDensity();
-
-  function applyTextDensity(mode){
-    const m = TEXT_DENSITIES.some(d => d.id === mode) ? mode : "normal";
-    currentTextDensity = m;
-    try{ document.documentElement.setAttribute("data-textdensity", m); }catch(_){/* ignore */}
-    try{ localStorage.setItem(TEXT_DENSITY_KEY, m); }catch(_){/* ignore */}
-    updateFabTextDensityUI();
-  }
-
-  function updateFabTextDensityUI(){
-    if (!el.fabTextDensityRow) return;
-    for (const b of el.fabTextDensityRow.querySelectorAll(".chip")){
-      b.setAttribute("aria-pressed", b.getAttribute("data-key") === currentTextDensity ? "true" : "false");
-    }
-  }
-
-  applyTextDensity(currentTextDensity);
-
 
   // No more header button: quick access lives in the FAB panel.
 
@@ -334,6 +326,13 @@ console.log("Build loader ready");
     for (const b of el.fabMarkRow.querySelectorAll('.chip')){
       const k = b.getAttribute('data-key');
       b.setAttribute('aria-pressed', (on && k === 'on') || (!on && k === 'off') ? 'true' : 'false');
+    }
+  }
+
+  function updateFabCardViewUI(){
+    if (!el.fabDepthRow) return;
+    for (const b of el.fabDepthRow.querySelectorAll('.chip')){
+      b.setAttribute('aria-pressed', b.getAttribute('data-key') === currentCardView ? 'true' : 'false');
     }
   }
 
@@ -508,11 +507,6 @@ function closeFabText(){
       el.fabScaleRow.innerHTML = UI_SCALES.map(s => chipHtml("uiScale", s.id, s.label, s.id === currentScalePreset)).join("");
     }
 
-    // Build text density chips (Normal / Kompakt)
-    if (el.fabTextDensityRow){
-      el.fabTextDensityRow.innerHTML = TEXT_DENSITIES.map(d => chipHtml("textDensity", d.id, d.label, d.id === currentTextDensity)).join("");
-    }
-
     // Build quick sort direction chips
     if (el.fabSortDirRow){
       el.fabSortDirRow.innerHTML = [
@@ -527,6 +521,15 @@ function closeFabText(){
       el.fabMarkRow.innerHTML = [
         chipHtml("quickMarks", "on", "An", on),
         chipHtml("quickMarks", "off", "Aus", !on),
+      ].join("");
+    }
+
+    // Build card view (Mini / Kompakt / Detail)
+    if (el.fabDepthRow){
+      el.fabDepthRow.innerHTML = [
+        chipHtml("cardView", "mini", "Mini", currentCardView === "mini"),
+        chipHtml("cardView", "compact", "Kompakt", currentCardView === "compact"),
+        chipHtml("cardView", "detail", "Detail", currentCardView === "detail"),
       ].join("");
     }
     // Build quick sort field (dropdown)
@@ -626,10 +629,6 @@ function closeFabText(){
           applyScale(currentScalePreset);
           return;
         }
-        if (group === "textDensity"){
-          applyTextDensity(key);
-          return;
-        }
         if (group === "quickSortField"){
           state.sortField = key;
           saveSortPrefs();
@@ -651,6 +650,11 @@ function closeFabText(){
           updateFabMarkUI();
           // Apply/remove highlights only in visible (opened) text areas.
           try{ syncOpenTextHighlights(); }catch(_){/* ignore */}
+          return;
+        }
+        if (group === "cardView"){
+          applyCardView(key);
+          // No forced rerender needed: CSS handles visibility. Ensure defaults are applied.
           return;
         }
       });
@@ -3212,16 +3216,19 @@ function classifyAvailability(av){
         ? `<div class="pre">${esc(easter)}</div>`
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
+      const initExpanded = (currentCardView === "mini") ? "false" : "true";
       return `
-        <article class="card">
+        <article class="card" data-expanded="${initExpanded}">
           <div class="topGrid">
-            <div class="head">
+            <div class="head" role="button" tabindex="0" aria-expanded="${initExpanded}">
               <div class="rowMeta">
                 <div class="idBadge">ID ${esc(id || "—")}</div>
                 ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
               </div>
 
               <div class="title">${esc(title)}</div>
+
+              <div class="miniGenre">${esc(genre)}</div>
 
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
@@ -3238,6 +3245,8 @@ function classifyAvailability(av){
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
+
+              <button class="cardChev" type="button" aria-label="Karte öffnen oder schließen">▾</button>
             </div>
 
             ${info}
@@ -3304,6 +3313,51 @@ function classifyAvailability(av){
         label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
       }
     }catch(_){/* ignore */}
+  }
+
+  // --- Kartenmodi: Header-Toggle (nur Mini & Kompakt) ---
+  let __cardToggleWired = false;
+  function wireCardHeadToggle(){
+    if (__cardToggleWired) return;
+    if (!el.cards) return;
+    __cardToggleWired = true;
+    const _toggle = (head) => {
+      if (!head) return;
+      if (currentCardView === 'detail') return;
+      const card = head.closest('.card');
+      if (!card) return;
+      const cur = String(card.getAttribute('data-expanded') || 'false') === 'true';
+      const next = cur ? 'false' : 'true';
+      card.setAttribute('data-expanded', next);
+      try{ head.setAttribute('aria-expanded', next); }catch(_){/* ignore */}
+    };
+
+    el.cards.addEventListener('click', (ev) => {
+      const head = ev.target?.closest?.('.head');
+      if (!head) return;
+      _toggle(head);
+    });
+
+    el.cards.addEventListener('keydown', (ev) => {
+      const head = ev.target?.closest?.('.head');
+      if (!head) return;
+      const k = ev.key;
+      if (k === 'Enter' || k === ' '){
+        ev.preventDefault();
+        _toggle(head);
+      }
+    });
+  }
+
+  function applyCardExpandedDefaults(){
+    if (!el.cards) return;
+    // Detail: irrelevant (everything visible). Compact: open by default. Mini: closed by default.
+    const def = (currentCardView === 'mini') ? 'false' : 'true';
+    for (const c of el.cards.querySelectorAll('.card')){
+      c.setAttribute('data-expanded', def);
+      const h = c.querySelector('.head');
+      if (h) try{ h.setAttribute('aria-expanded', def); }catch(_){/* ignore */}
+    }
   }
 
   // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
@@ -3831,6 +3885,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
+  // Wire delegated card header toggling once (Mini/Kompakt).
+  wireCardHeadToggle();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
