@@ -1,6 +1,14 @@
-# Spieleliste – Build V7_1j63c
+# Spieleliste – Build V7_1j63d
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1j63d (gegenüber V7_1j63c)
+
+### Mini: Direkter Wechsel zu Detail (ohne "Scroll-Willkür")
+- In einer **aufgeklappten Mini-Karte** erscheint jetzt **"Detail öffnen"**.
+- Klick darauf wechselt sofort in die **Detail-Ansicht** und bringt **dieselbe Karte** wieder vollständig in den Fokus (stabiler Übergang ohne Sprung zu anderen Titeln).
+
+---
 
 ## Änderungen in V7_1j63c (gegenüber V7_1j63b)
 

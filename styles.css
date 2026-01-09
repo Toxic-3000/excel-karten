@@ -832,6 +832,10 @@ body[data-cardview="mini"] .info,
 body[data-cardview="mini"] .detailsWrap{ display:none; }
 body[data-cardview="mini"] .card.is-expanded .info{ display:block; }
 
+/* Mini: Action-Zeile erscheint nur bei aufgeklappten Karten (z.B. "Detail öffnen"). */
+.miniActions{ display:none; justify-content:flex-end; gap: calc(8px * var(--uiScale)); padding-top: calc(8px * var(--uiScale)); }
+body[data-cardview="mini"] .card.is-expanded .miniActions{ display:flex; }
+
 /* Kompakt: Header + Info-Block, keine Akkordeons. */
 body[data-cardview="compact"] .miniGenre{ display:none; }
 body[data-cardview="compact"] .detailsWrap{ display:none; }

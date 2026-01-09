@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63c
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63d
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63d").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3278,6 +3278,10 @@ function classifyAvailability(av){
             </div>
 
             ${info}
+
+            <div class="miniActions">
+              <button class="chip openDetailBtn" type="button" aria-label="In Detailansicht öffnen">Detail öffnen</button>
+            </div>
           </div>
 
           <div class="detailsWrap">
@@ -3402,6 +3406,24 @@ function classifyAvailability(av){
       const target = ev.target;
       const card = target?.closest?.('.card');
       if (!card) return;
+
+      // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
+      const openDetailBtn = target?.closest?.('.openDetailBtn');
+      if (openDetailBtn){
+        ev.preventDefault();
+        ev.stopPropagation();
+        const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+        const marginTop = topbarH + 12;
+
+        // Switch global view first, then refocus the same card (stable, non-random scroll).
+        applyCardView('detail');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
+          });
+        });
+        return;
+      }
 
       // Only react to taps on the header area or the chevron.
       const isChevron = !!target?.closest?.('.cardToggle');
