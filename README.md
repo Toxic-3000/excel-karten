@@ -1,9 +1,9 @@
-# Spieleliste – Build V7_1j63t
+# Spieleliste – Build V7_1j63u
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63t (gegenüber V7_1j63i)
+## Änderungen in V7_1j63u (gegenüber V7_1j63i)
 
 - **Mini nutzt die verfügbare Breite korrekt (Phone-Landscape):** Im Mini-Modus bleibt die rechte Grid-Spalte nicht mehr „leer“ – dadurch haben Titel & Badges links die volle Breite und **Digital/Verfügbarkeit** brechen nicht unnötig um.
 - **„Detail öffnen“ jetzt auch in Kompakt:** Der Button ist nun nicht nur in aufgeklapptem Mini sichtbar, sondern auch in der **Kompaktkarte** (als eigene Zeile unter dem Info-Block).
