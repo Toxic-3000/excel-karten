@@ -1,6 +1,13 @@
-# Spieleliste – Build V7_1j63o
+# Spieleliste – Build V7_1j63p
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+
+## Änderungen in V7_1j63p (gegenüber V7_1j63o)
+
+- **Anchor-System jetzt wirklich POV-basiert:** Beim Wechsel von **Mini/Kompakt/Detail** oder bei **Textgröße (Aa)** wird die **Karte mit der größten sichtbaren Fläche im Viewport** als Anker gewählt (statt „zuletzt geklickt“).
+- **Robuster in 2‑Spalten‑Layouts:** Die Auswahl berücksichtigt **sichtbare Fläche + Nähe zur Viewport-Mitte** und ist damit deutlich stabiler bei Desktop/Tablet, auch wenn die Viewport-Mitte im „Gutter“ zwischen zwei Spalten liegt.
+- **Keine "Stale Active"-Fallen mehr:** Ein früherer Klick auf eine Karte zieht den Anker **nicht** mehr weg, wenn du später woanders hin scrollst und dann den Modus/die Schrift änderst.
 
 
 ## Änderungen in V7_1j63o (gegenüber V7_1j63j)

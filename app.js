@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63o
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63p
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -22,7 +22,7 @@ console.log("Build loader ready");
   let __pendingRestore = null;
   let __pendingRestoreToken = 0;
 
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63o").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63p").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3488,56 +3488,103 @@ function _getTopMargin(){
 
 function _getViewportAnchor(){
   const cards = Array.from(document.querySelectorAll('.game-card[data-id]'));
+  if(!cards.length) return null;
+
   const mt = _getTopMargin();
   const vh = window.innerHeight || 0;
   const vw = window.innerWidth || 0;
+  if(vh <= 0 || vw <= 0) return null;
 
-  // Fokuspunkt: eher im oberen Sichtbereich (unterhalb der Toolbar),
-  // damit "was ich gerade betrachte" besser getroffen wird als "oberste Karte".
-  const targetY = mt + Math.max(80, (vh - mt) * 0.33);
-  const targetX = vw * 0.5;
+  // "Point of View" = Karte, die im aktuellen Viewport am meisten echte Fläche einnimmt.
+  // Das ist über Geräte & Spalten hinweg deutlich stabiler als "zuletzt angeklickt".
+  const viewport = {left: 0, top: mt, right: vw, bottom: vh};
+  const centerX = vw * 0.5;
+  const centerY = mt + (vh - mt) * 0.5;
 
   let best = null;
+  let bestArea = 0;
+  let bestDist = Infinity;
+
   for(const el of cards){
     const r = el.getBoundingClientRect();
-    if(r.bottom <= mt + 6) continue;
-    if(r.top >= vh - 6) continue;
+    // Quick reject
+    if(r.bottom <= mt) continue;
+    if(r.top >= vh) continue;
+    if(r.right <= 0) continue;
+    if(r.left >= vw) continue;
 
-    const cy = (r.top + r.bottom) / 2;
+    const ix = Math.max(0, Math.min(r.right, viewport.right) - Math.max(r.left, viewport.left));
+    const iy = Math.max(0, Math.min(r.bottom, viewport.bottom) - Math.max(r.top, viewport.top));
+    const area = ix * iy;
+    if(area <= 0) continue;
+
     const cx = (r.left + r.right) / 2;
+    const cy = (r.top + r.bottom) / 2;
+    const dist = Math.hypot(cx - centerX, cy - centerY);
 
-    const dy = Math.abs(cy - targetY);
-    const dx = Math.abs(cx - targetX);
-
-    // Y dominiert klar (Scroll-Achse), X dient als Tie-Breaker (2 Spalten / Desktop)
-    const score = dy * 1000 + dx;
-    if(!best || score < best.score) best = {el, r, score};
+    if(area > bestArea + 1 || (Math.abs(area - bestArea) <= 1 && dist < bestDist)){
+      bestArea = area;
+      bestDist = dist;
+      best = { el, r };
+    }
   }
-  if(!best) return null;
-  return { id: best.el.getAttribute('data-id'), offset: best.r.top - mt };
+
+  if(best){
+    return { id: (best.el.getAttribute('data-id') || '').trim(), offset: best.r.top - mt };
+  }
+
+  // Fallback (sehr selten): über elementFromPoint mehrere Probepunkte testen.
+  const probes = [
+    [vw * 0.5, mt + (vh - mt) * 0.33],
+    [vw * 0.25, mt + (vh - mt) * 0.33],
+    [vw * 0.75, mt + (vh - mt) * 0.33],
+    [vw * 0.5,  mt + (vh - mt) * 0.5],
+  ];
+  for(const [x, y] of probes){
+    const el = document.elementFromPoint(Math.round(x), Math.round(y));
+    const card = el && el.closest ? el.closest('.game-card[data-id]') : null;
+    if(card){
+      const r = card.getBoundingClientRect();
+      const id = (card.getAttribute('data-id') || '').trim();
+      if(id) return { id, offset: r.top - mt };
+    }
+  }
+  return null;
 }
 
 function _captureAnchor(){
-  // 1) Wenn eine Karte explizit geöffnet ist: die nehmen (stabilster Kontext)
-  const expandedId = __expandedId;
-  if(expandedId){
-    const el = _getCardEl(expandedId);
-    if(el) return { id: expandedId, offset: el.getBoundingClientRect().top - _getTopMargin(), expandedId };
-  }
+  const mt = _getTopMargin();
+  const vh = window.innerHeight || 0;
 
-  // 2) Wenn zuletzt aktiv angeklickt: die nehmen
-  const activeId = __lastActiveCardId;
-  if(activeId){
-    const el = _getCardEl(activeId);
-    if(el) return { id: activeId, offset: el.getBoundingClientRect().top - _getTopMargin(), expandedId };
-  }
+  const expandedId = String(__expandedId || '').trim();
+  const activeId = String(__lastActiveCardId || '').trim();
 
-  // 3) Sonst: "Point of View" aus dem sichtbaren Bereich (ID-basiert)
+  const isVisible = (id) => {
+    const el = _getCardEl(id);
+    if(!el) return false;
+    const r = el.getBoundingClientRect();
+    return (r.bottom > (mt + 8)) && (r.top < (vh - 8));
+  };
+
+  // 1) IMMER zuerst: Karte im aktuellen "Point of View" bestimmen.
+  //    Das verhindert, dass ein alter "lastActive" die Navigation kapert.
   const viewport = _getViewportAnchor();
   if(viewport && viewport.id){
     __lastViewportId = viewport.id;
     __lastViewportOffset = viewport.offset || 0;
     return { id: viewport.id, offset: viewport.offset || 0, expandedId };
+  }
+
+  // 2) Fallback: explizit geöffnete Karte – aber nur, wenn sie noch sichtbar ist.
+  if(expandedId && isVisible(expandedId)){
+    const el = _getCardEl(expandedId);
+    if(el) return { id: expandedId, offset: el.getBoundingClientRect().top - mt, expandedId };
+  }
+
+  // 3) Fallback: zuletzt aktiv geklickte Karte – ebenfalls nur, wenn sichtbar.
+  if(activeId && isVisible(activeId)){
+    const el = _getCardEl(activeId);
+    if(el) return { id: activeId, offset: el.getBoundingClientRect().top - mt, expandedId };
   }
 
   // 4) Letzter bekannter Viewport-Fokus als Fallback
