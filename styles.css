@@ -2320,7 +2320,7 @@ html.modalOpen body{touch-action:none;}
      (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
 }
 
-/* V7_1j63k: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
+/* V7_1j63l: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
    In breiteren Viewports war der rechte Info-Block zu dominant, dadurch sind Badges
    links unnötig umgebrochen. Wir kappen die rechte Spalte und geben dem linken Bereich
    zuverlässig mehr Luft – Detail bleibt unangetastet. */

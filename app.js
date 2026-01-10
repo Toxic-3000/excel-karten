@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63k
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63l
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63k").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63l").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3433,6 +3433,7 @@ function classifyAvailability(av){
 //  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
 //  - "focus": ensure the card is fully visible (used for explicit actions)
 let __lastActiveCardId = "";
+let __expandedId = "";
 let __lastViewportId = "";
 let __lastViewportOffset = 0;
 let __scrollAnchorRAF = 0;
@@ -3579,6 +3580,7 @@ function _scheduleRestore(anchor, opts){
       const target = ev.target;
       const card = target?.closest?.('.card');
       if (!card) return;
+	  const cardId = String(card.getAttribute('data-id') || card.dataset?.id || '').trim();
       _setLastActiveCard(card);
 
       // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
@@ -3589,7 +3591,8 @@ function _scheduleRestore(anchor, opts){
         const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
 
-        // Switch global view first, then refocus the same card (stable, non-random scroll).
+	    // Switch global view first, then refocus the same card (stable, non-random scroll).
+	    if (cardId) __expandedId = cardId;
         applyCardView('detail');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -3608,6 +3611,10 @@ function _scheduleRestore(anchor, opts){
       try{ if (window.getSelection && String(window.getSelection()?.toString() || '').length) return; }catch(_){/* ignore */}
 
       const willOpen = !card.classList.contains('is-expanded');
+	  if (cardId){
+	    if (willOpen) __expandedId = cardId;
+	    else if (__expandedId === cardId) __expandedId = '';
+	  }
 
       // Keep one expanded card at a time (cleaner in 2-column landscape).
       if (willOpen){
