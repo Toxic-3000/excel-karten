@@ -1,7 +1,13 @@
-# Spieleliste – Build V7_1j63j
+# Spieleliste – Build V7_1j63q
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
+
+## Änderungen in V7_1j63q (gegenüber V7_1j63j)
+
+- **Neuer Flow: Mini → Kompakt → Detail (lokal pro Karte):** In der aufgeklappten Karte gibt es jetzt ein **Details‑Chevron**. Damit werden die **Akkordeons nur für diese eine Karte** eingeblendet – ohne Wechsel in eine globale Detail‑Listenansicht.
+- **Tap auf nächste Karte schließt vorherige (inkl. Details):** Der bestehende „Single‑Open“-Flow bleibt unverändert; Details werden beim Wechsel sauber geschlossen.
+- **CSS bleibt clean:** Details werden über eine klare Zustandsklasse pro Karte (**.is-detail**) sichtbar/unsichtbar geschaltet – keine kaskadierenden Overrides.
 
 ## Änderungen in V7_1j63j (gegenüber V7_1j63i)
 

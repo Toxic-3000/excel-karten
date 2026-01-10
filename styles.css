@@ -835,15 +835,28 @@ body[data-cardview="mini"] .info,
 body[data-cardview="mini"] .detailsWrap{ display:none; }
 body[data-cardview="mini"] .card.is-expanded .info{ display:block; }
 
+/* Mini: Lokales Detail innerhalb einer einzigen Karte (Akkordeons sichtbar). */
+body[data-cardview="mini"] .card.is-detail .detailsWrap{ display:flex; }
+body[data-cardview="mini"] .card.is-detail .headDivider{ display:block; }
+body[data-cardview="mini"] .card.is-detail .badgeRow-trophy{ display:flex; }
+
 /* Mini: Action-Zeile erscheint nur bei aufgeklappten Karten (z.B. "Detail öffnen"). */
 .miniActions{ display:none; justify-content:flex-end;
   grid-column: 1 / -1; gap: calc(8px * var(--uiScale)); padding-top: calc(8px * var(--uiScale)); }
 body[data-cardview="mini"] .card.is-expanded .miniActions{ display:flex; }
 body[data-cardview="compact"] .card.is-expanded .miniActions{display:flex;}
 
+/* Detail-Toggle in der Action-Zeile */
+.miniActions .detailToggle{ display:inline-flex; align-items:center; gap: calc(6px * var(--uiScale)); }
+.miniActions .detailToggle .chev{ font-size: calc(18px * var(--uiScale)); line-height:1; }
+/* In Kompakt: Text weglassen, damit die Liste ruhig bleibt (Chevron bleibt). */
+body[data-cardview="compact"] .miniActions .detailToggle .txt{ display:none; }
+
 /* Kompakt: Header + Info-Block, keine Akkordeons. */
 body[data-cardview="compact"] .miniGenre{ display:none; }
 body[data-cardview="compact"] .detailsWrap{ display:none; }
+/* Kompakt: Lokales Detail für genau eine Karte zulassen. */
+body[data-cardview="compact"] .card.is-detail .detailsWrap{ display:flex; }
 body[data-cardview="compact"] .info{ display:none; }
 body[data-cardview="compact"] .card.is-expanded .info{ display:block; }
 

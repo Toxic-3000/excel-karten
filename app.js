@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63j
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63q
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63j").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63q").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -785,6 +785,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     if (!el.cards) return;
     const cards = el.cards.querySelectorAll('.card');
     for (const c of cards){
+      // Local detail state never persists across global view switches.
+      c.classList.remove('is-detail');
       if (view === "detail"){
         c.classList.remove('is-expanded');
       } else if (view === "compact"){
@@ -796,6 +798,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       const tog = c.querySelector('.cardToggle');
       if (tog) tog.textContent = c.classList.contains('is-expanded') ? '▴' : '▾';
       try{ tog?.setAttribute('aria-expanded', c.classList.contains('is-expanded') ? 'true' : 'false'); }catch(_){/* ignore */}
+      try{ syncDetailToggle(c); }catch(_){/* ignore */}
     }
   }
 
@@ -3305,7 +3308,10 @@ function classifyAvailability(av){
             ${info}
 
             <div class="miniActions">
-              <button class="chip openDetailBtn" type="button" aria-label="In Detailansicht öffnen">Detail öffnen</button>
+              <button class="chip detailToggle" type="button" aria-label="Details anzeigen" aria-expanded="false">
+                <span class="chev" aria-hidden="true">▾</span>
+                <span class="txt">Details</span>
+              </button>
             </div>
           </div>
 
@@ -3381,6 +3387,19 @@ function classifyAvailability(av){
     const open = card.classList.contains('is-expanded');
     tog.textContent = open ? '▴' : '▾';
     try{ tog.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
+  }
+
+  function syncDetailToggle(card){
+    if (!card) return;
+    const btn = card.querySelector('.detailToggle');
+    if (!btn) return;
+    const open = card.classList.contains('is-detail');
+    const chev = btn.querySelector('.chev');
+    const txt  = btn.querySelector('.txt');
+    if (chev) chev.textContent = open ? '▴' : '▾';
+    if (txt) txt.textContent = open ? 'Details' : 'Details';
+    try{ btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
+    try{ btn.setAttribute('aria-label', open ? 'Details verbergen' : 'Details anzeigen'); }catch(_){/* ignore */}
   }
 
   // Ensure an expanded Mini/Kompakt card is fully brought into view.
@@ -3555,16 +3574,42 @@ function _scheduleRestore(anchor, opts){
       if (!card) return;
       _setLastActiveCard(card);
 
-      // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
-      const openDetailBtn = target?.closest?.('.openDetailBtn');
-      if (openDetailBtn){
+      // Local Detail (within Mini/Kompakt): toggle accordions for this one card.
+      const detailBtn = target?.closest?.('.detailToggle');
+      if (detailBtn){
         ev.preventDefault();
         ev.stopPropagation();
+
+        // Ensure the card is open (Mini → Kompakt) before showing details.
+        if (!card.classList.contains('is-expanded')){
+          // Close others first (single-open rule)
+          for (const other of el.cards.querySelectorAll('.card.is-expanded')){
+            if (other !== card) {
+              other.classList.remove('is-expanded','is-detail');
+              syncCardChevron(other);
+              syncDetailToggle(other);
+            }
+          }
+          card.classList.add('is-expanded');
+          syncCardChevron(card);
+        }
+
+        const willShow = !card.classList.contains('is-detail');
+        // Only one card may show details at a time.
+        if (willShow){
+          for (const other of el.cards.querySelectorAll('.card.is-detail')){
+            if (other !== card) {
+              other.classList.remove('is-detail');
+              syncDetailToggle(other);
+            }
+          }
+        }
+        card.classList.toggle('is-detail', willShow);
+        syncDetailToggle(card);
+
+        // Bring the card into focus after the layout grows/shrinks.
         const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
-
-        // Switch global view first, then refocus the same card (stable, non-random scroll).
-        applyCardView('detail');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
@@ -3586,12 +3631,18 @@ function _scheduleRestore(anchor, opts){
       // Keep one expanded card at a time (cleaner in 2-column landscape).
       if (willOpen){
         for (const other of el.cards.querySelectorAll('.card.is-expanded')){
-          if (other !== card) { other.classList.remove('is-expanded'); syncCardChevron(other); }
+          if (other !== card) {
+            other.classList.remove('is-expanded','is-detail');
+            syncCardChevron(other);
+            syncDetailToggle(other);
+          }
         }
       }
 
       card.classList.toggle('is-expanded', willOpen);
+      if (!willOpen) card.classList.remove('is-detail');
       syncCardChevron(card);
+      syncDetailToggle(card);
 
       // In Mini: after expanding, force the card fully into focus (100% in view).
       // We wait for layout to settle (height change + full-width span in 2-column).
