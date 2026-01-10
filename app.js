@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63t
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62r").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63t").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -105,6 +105,7 @@ console.log("Build loader ready");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabMarkRow: $("fabMarkRow"),
+    fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -226,12 +227,15 @@ console.log("Build loader ready");
 
   function applyScale(presetId){
     const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
+    const __anchor = _captureAnchor();
     document.documentElement.style.setProperty("--uiScaleRaw", String(preset.v));
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
     updateFabScaleUI();
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
+    // Keep the current card in view after font scaling changes.
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
 
   function cycleScale(currentId){
@@ -300,6 +304,15 @@ console.log("Build loader ready");
     for (const b of el.fabMarkRow.querySelectorAll('.chip')){
       const k = b.getAttribute('data-key');
       b.setAttribute('aria-pressed', (on && k === 'on') || (!on && k === 'off') ? 'true' : 'false');
+    }
+  }
+
+  function updateFabCardViewUI(){
+    if (!el.fabDepthRow) return;
+    const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
+    for (const b of el.fabDepthRow.querySelectorAll('.chip')){
+      const k = b.getAttribute('data-key');
+      b.setAttribute('aria-pressed', (k === cv) ? 'true' : 'false');
     }
   }
 
@@ -490,6 +503,16 @@ function closeFabText(){
         chipHtml("quickMarks", "off", "Aus", !on),
       ].join("");
     }
+
+    // Build card view buttons (Mini / Kompakt / Detail)
+    if (el.fabDepthRow){
+      const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
+      el.fabDepthRow.innerHTML = [
+        chipHtml("quickCardView", "mini", "Mini", cv === "mini"),
+        chipHtml("quickCardView", "compact", "Kompakt", cv === "compact"),
+        chipHtml("quickCardView", "detail", "Detail", cv === "detail"),
+      ].join("");
+    }
     // Build quick sort field (dropdown)
     if (el.fabSortFieldRow){
       const enabled = [
@@ -610,6 +633,12 @@ function closeFabText(){
           try{ syncOpenTextHighlights(); }catch(_){/* ignore */}
           return;
         }
+        if (group === "quickCardView"){
+          const next = (key === "mini" || key === "compact" || key === "detail") ? key : "detail";
+          applyCardView(next);
+          try{ saveCardView(next); }catch(_){/* ignore */}
+          return;
+        }
       });
     }
 
@@ -712,13 +741,70 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     reminderCol: null,
     fileName: null,
     importedAt: 0,
-    ui: { lastCount: 0, lastFilterSig: "", highlights: false },
+    ui: { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "mini", expandedId: "", detailId: "" },
   };
 
   // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
   // (Data changes reset this automatically because `state.rows` reference changes.)
   let __lastApplyKey = "";
   let __lastRowsRef = null;
+
+  // --- Kartenmodus (Mini / Kompakt / Detail) ---
+  const CARDVIEW_KEY = "spieleliste_cardView";
+  const CARD_VIEWS = ["mini","compact","detail"];
+
+  function loadCardView(){
+    try{
+      const v = String(localStorage.getItem(CARDVIEW_KEY) || "").trim().toLowerCase();
+      return CARD_VIEWS.includes(v) ? v : "mini";
+    }catch(_){
+      return "mini";
+    }
+  }
+  function saveCardView(v){
+    try{ localStorage.setItem(CARDVIEW_KEY, v); }catch(_){/* ignore */}
+  }
+  function applyCardView(v, opts={}){
+    const next = CARD_VIEWS.includes(v) ? v : "mini";
+    const __anchor = _captureAnchor();
+    if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "mini", expandedId: "", detailId: "" };
+    state.ui.cardView = next;
+    try{ document.body.setAttribute("data-cardview", next); }catch(_){/* ignore */}
+    try{ updateFabCardViewUI(); }catch(_){/* ignore */}
+    // Keep per-card expanded states sane when switching views.
+    if (!opts?.skipCardSync) {
+      try{ syncCardsForView(next); }catch(_){/* ignore */}
+    }
+    if (opts?.save !== false) {
+      try{ saveCardView(next); }catch(_){/* ignore */}
+    }
+    // Keep the anchor card in view after switching card modes.
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
+  }
+  function syncCardsForView(view){
+    if (!el.cards) return;
+
+    // Reset per-card expansion states when switching global views
+    if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "mini", expandedId: "", detailId: "" };
+    state.ui.expandedId = "";
+    state.ui.detailId = "";
+
+    const cards = el.cards.querySelectorAll('.card');
+    for (const c of cards){
+      if (view === "compact"){
+        c.classList.add('is-expanded');
+        c.classList.remove('is-detail');
+      } else if (view === "detail"){
+        c.classList.remove('is-expanded');
+        c.classList.remove('is-detail');
+      } else {
+        // mini
+        c.classList.remove('is-expanded');
+        c.classList.remove('is-detail');
+      }
+      syncCardChevron(c);
+    }
+  }
 
   function esc(s){
     return String(s ?? "")
@@ -1202,11 +1288,20 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (av) state.distinct.availability.add(av);
 
       // Cached full-text search haystack (free text search)
-      // Keep it compact: only fields that are searched globally.
-      row.__hay = [
-        row[COL.title], row[COL.genre], row[COL.sub], row[COL.dev],
-        row[COL.source], row[COL.avail]
+      // Global search is intentionally broad (matches across all relevant fields).
+      row.__hayAll = [
+        row[COL.title],
+        row[COL.genre],
+        row[COL.sub],
+        row[COL.dev],
+        row[COL.desc],
+        row[COL.system],
+        row[COL.source],
+        row[COL.avail],
+        row[COL.store],
       ].map(normSearch).join(' ');
+      // Backward compat: some helper paths still read __hay
+      row.__hay = row.__hayAll;
     }
 
     state.rows = rows;
@@ -1216,6 +1311,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
     el.empty.style.display = "none";
 
+    // Nach Excel-Import immer in Mini starten (Workflow: Mini → Kompakt → Detail pro Karte)
+    try{
+      applyCardView('mini', { save: true, skipCardSync: false });
+      if (state.ui){ state.ui.expandedId = ""; state.ui.detailId = ""; }
+    }catch(_){/* ignore */}
     buildFilterUI();
     applyAndRender();
   }
@@ -2019,9 +2119,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) continue;
         } else if (qTokens.length){
-          const hay = (r.__hay || [
+          const hay = (r.__hayAll || r.__hay || [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
+            r[COL.desc], r[COL.system], r[COL.source], r[COL.avail], r[COL.store]
           ].map(normSearch).join(" "));
           let ok = true;
           for (const t of qTokens){
@@ -2633,9 +2733,19 @@ function scheduleApplyAndRender(delayMs){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) return false;
         } else if (qTokens.length){
-          const hay = (r.__hay || [
-            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
+          // Global search should be broad: match across *all* relevant fields (OR across fields).
+          // We still use AND-semantics across multiple tokens (typical multi-word search).
+          // Cache under a dedicated key so older builds' caches don't leak into new behavior.
+          const hay = (r.__hayAll || [
+            r[COL.title],
+            r[COL.genre],
+            r[COL.sub],
+            r[COL.dev],
+            r[COL.desc],
+            r[COL.system],
+            r[COL.source],
+            r[COL.avail],
+            r[COL.store],
           ].map(normSearch).join(" "));
           // AND-semantics for tokens: every token must appear somewhere.
           for (const t of qTokens){
@@ -3082,6 +3192,7 @@ function classifyAvailability(av){
 
   function render(rows){
     const __rt0 = PERF_DETAIL ? performance.now() : 0;
+    const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -3169,16 +3280,25 @@ function classifyAvailability(av){
         ? `<div class="pre">${esc(easter)}</div>`
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
+      const isExpanded = (cv === 'compact') ? true : (cv === 'mini' ? (String(state.ui?.expandedId||'') === String(id||'')) : false);
+      const isDetail = (String(state.ui?.detailId||'') === String(id||'')) && isExpanded;
+      const expandedClass = isExpanded ? ' is-expanded' : '';
+      const detailClass = isDetail ? ' is-detail' : '';
       return `
-        <article class="card">
+        <article class="card${expandedClass}${detailClass}" data-id="${esc(id || "")}">
           <div class="topGrid">
             <div class="head">
               <div class="rowMeta">
                 <div class="idBadge">ID ${esc(id || "—")}</div>
-                ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
+                <div class="rowMetaRight">
+                  ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
+                  
+                </div>
               </div>
 
               <div class="title">${esc(title)}</div>
+
+              <div class="miniGenre" aria-label="Genre">${esc(genre)}</div>
 
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
@@ -3195,7 +3315,11 @@ function classifyAvailability(av){
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
-            </div>
+            
+              <div class="chevRow chevRow-mini" aria-hidden="false">
+                <button class="chevBtn chevMini" type="button" aria-label="Kompaktbereich öffnen/schließen" aria-expanded="${isExpanded ? 'true' : 'false'}">${isExpanded ? '▴' : '▾'}</button>
+              </div>
+</div>
 
             ${info}
           </div>
@@ -3241,6 +3365,7 @@ function classifyAvailability(av){
     el.cards.addEventListener("toggle", (ev) => {
       const det = ev.target;
       if (!det || det.tagName !== "DETAILS") return;
+      try{ _setLastActiveCard(det.closest(".card")); }catch(_){/* ignore */}
       const sum = det.querySelector("summary");
       const label = sum?.querySelector("[data-label]");
       if (!label) return;
@@ -3261,6 +3386,266 @@ function classifyAvailability(av){
         label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
       }
     }catch(_){/* ignore */}
+  }
+
+  // --- Karten: Tap-Header Toggle in Mini/Kompakt (Detail bleibt Akkordeon-only) ---
+  function syncCardChevron(card){
+    if (!card) return;
+    const open = card.classList.contains('is-expanded');
+    const detail = card.classList.contains('is-detail');
+
+    const miniBtn = card.querySelector('.chevMini');
+    if (miniBtn){
+      miniBtn.textContent = open ? '▴' : '▾';
+      try{ miniBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
+    }
+    const detailBtn = card.querySelector('.chevDetail');
+    if (detailBtn){
+      detailBtn.textContent = detail ? '▴' : '▾';
+      try{ detailBtn.setAttribute('aria-expanded', detail ? 'true' : 'false'); }catch(_){/* ignore */}
+    }
+  }
+
+  // Ensure an expanded Mini/Kompakt card is fully brought into view.
+  // "Force" means: even if it's already visible, we snap it to the top margin.
+  function scrollCardFullyIntoView(cardEl, opts){
+    if (!cardEl) return;
+    const o = Object.assign({ marginTop: 12, marginBottom: 12, behavior: 'smooth', force: true }, (opts || {}));
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const bhv = prefersReduced ? 'auto' : o.behavior;
+
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return;
+    const rect = cardEl.getBoundingClientRect();
+
+    // If the card can't fully fit, best effort: align top to margin.
+    const available = vh - o.marginTop - o.marginBottom;
+    if (rect.height > available){
+      const deltaTop = rect.top - o.marginTop;
+      window.scrollBy({ top: deltaTop, left: 0, behavior: bhv });
+      return;
+    }
+
+    const topTooHigh = rect.top < o.marginTop;
+    const bottomTooLow = rect.bottom > (vh - o.marginBottom);
+    let delta = 0;
+
+    if (topTooHigh){
+      delta = rect.top - o.marginTop;
+    } else if (bottomTooLow){
+      delta = rect.bottom - (vh - o.marginBottom);
+    } else if (o.force){
+      // Snap into focus even if already fully visible.
+      delta = rect.top - o.marginTop;
+    }
+
+    if (delta) window.scrollBy({ top: delta, left: 0, behavior: bhv });
+  }
+
+
+
+// --- Anchor & Restore: keep the "current" card in view across layout-changing UI actions ---
+// Layout changes (card view, text scale, etc.) can shift scroll positions because card heights change.
+// Anchor priority:
+//  1) Expanded card (Mini/Kompakt)
+//  2) Last active card (clicked)
+//  3) Viewport anchor (top-most visible card) – even if the user never clicked
+// Restore modes:
+//  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
+//  - "focus": ensure the card is fully visible (used for explicit actions)
+let __lastActiveCardId = "";
+let __refocusT = 0;
+let __pendingRestore = null; // { id, offset }
+
+function _setLastActiveCard(card){
+  try{
+    const id = String(card?.getAttribute?.("data-id") || "").trim();
+    if (id) __lastActiveCardId = id;
+  }catch(_){/* ignore */}
+}
+
+function _getTopMargin(){
+  // Desktop/Tablet nutzt teils .hdr statt .topbar – wir nehmen beides,
+  // damit der Anker wirklich unter der fixen Kopfzeile landet.
+  const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
+  return topbarH + 12;
+}
+
+function _getViewportAnchor(){
+  try{
+    if (!el.cards) return null;
+    const marginTop = _getTopMargin();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return null;
+    const cards = el.cards.querySelectorAll('.card');
+    let best = null;
+    let bestTop = Infinity;
+    for (const c of cards){
+      const r = c.getBoundingClientRect();
+      // visible at least a bit below marginTop
+      if (r.bottom <= marginTop + 1) continue;
+      if (r.top >= vh - 1) continue;
+      if (r.top < bestTop){
+        bestTop = r.top;
+        best = { el: c, rect: r };
+      }
+    }
+    if (!best?.el) return null;
+    const id = String(best.el.getAttribute('data-id') || '').trim();
+    if (!id) return null;
+    return { id, offset: (best.rect.top - marginTop) };
+  }catch(_){
+    return null;
+  }
+}
+
+function _captureAnchor(){
+  try{
+    const marginTop = _getTopMargin();
+    // 1) Expanded
+    const expanded = el.cards?.querySelector?.('.card.is-expanded');
+    if (expanded){
+      const id1 = String(expanded.getAttribute('data-id') || '').trim();
+      if (id1){
+        const r = expanded.getBoundingClientRect();
+        return { id: id1, offset: (r.top - marginTop) };
+      }
+    }
+    // 2) Last active
+    const id2 = String(__lastActiveCardId || '').trim();
+    if (id2){
+      const c2 = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(id2)}"]`);
+      if (c2){
+        const r2 = c2.getBoundingClientRect();
+        return { id: id2, offset: (r2.top - marginTop) };
+      }
+    }
+    // 3) Viewport anchor
+    return _getViewportAnchor();
+  }catch(_){
+    return null;
+  }
+}
+
+function _scheduleRestore(anchor, opts){
+  const a = anchor && typeof anchor === 'object' ? anchor : null;
+  const id = String(a?.id || '').trim();
+  if (!id) return;
+  __pendingRestore = { id, offset: Number.isFinite(a?.offset) ? a.offset : 0 };
+
+  const o = Object.assign({ behavior: 'auto', mode: 'offset', force: false }, (opts || {}));
+  try{ window.clearTimeout(__refocusT); }catch(_){/* ignore */}
+  __refocusT = window.setTimeout(() => {
+    const p = __pendingRestore;
+    if (!p?.id) return;
+    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(p.id)}"]`);
+    if (!card) return;
+
+    const marginTop = _getTopMargin();
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const bhv = prefersReduced ? 'auto' : String(o.behavior || 'auto');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (String(o.mode || 'offset') === 'focus'){
+          scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: !!o.force, behavior: bhv });
+          return;
+        }
+        // offset restore: keep the card at the same relative position to the viewport top
+        const r = card.getBoundingClientRect();
+        const desiredTop = marginTop + (Number.isFinite(p.offset) ? p.offset : 0);
+        const delta = r.top - desiredTop;
+        if (delta){
+          window.scrollBy({ top: delta, left: 0, behavior: bhv });
+        }
+      });
+    });
+  }, 90);
+}
+
+  let __cardToggleWired = false;
+  function wireCardToggle(){
+    if (__cardToggleWired) return;
+    if (!el.cards) return;
+    __cardToggleWired = true;
+
+    el.cards.addEventListener('click', (ev) => {
+      const view = (state.ui && state.ui.cardView) ? state.ui.cardView : 'mini';
+      // Unser 3-Stufen-Workflow ist primär für Mini gedacht. In Detail ignorieren wir Tap-Toggles.
+      if (view === 'detail') return;
+
+      const target = ev.target;
+      const card = target?.closest?.('.card');
+      if (!card) return;
+
+      const id = String(card.getAttribute('data-id') || '').trim();
+      if (!id) return;
+
+      const isMiniChevron = !!target?.closest?.('.chevMini');
+      const isDetailChevron = !!target?.closest?.('.chevDetail');
+      const isHeadTap = !!target?.closest?.('.head');
+
+      // Avoid toggling when selecting text
+      try{ if (window.getSelection && String(window.getSelection()?.toString() || '').length) return; }catch(_){/* ignore */}
+
+      // Detail-Chevron: toggelt nur Detail (kein Fokus/Scroll!)
+      if (isDetailChevron){
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (!card.classList.contains('is-expanded')) return;
+
+        const willDetail = !card.classList.contains('is-detail');
+
+        // Detail ist nur für die aktuell geöffnete Karte sinnvoll → andere Detail-Zustände schließen.
+        for (const other of el.cards.querySelectorAll('.card.is-detail')){
+          if (other !== card) { other.classList.remove('is-detail'); syncCardChevron(other); }
+        }
+
+        card.classList.toggle('is-detail', willDetail);
+        if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: view, expandedId: "", detailId: "" };
+        state.ui.detailId = willDetail ? id : "";
+        syncCardChevron(card);
+        return;
+      }
+
+      // Mini-Chevron oder Tap auf Karte: Mini → Kompakt (Fokus), bzw. Karte schließen
+      if (!isMiniChevron && !isHeadTap) return;
+
+      ev.preventDefault();
+
+      const isOpen = card.classList.contains('is-expanded');
+      const willOpen = !isOpen;
+
+      // Beim Öffnen einer neuen Karte: vorherige schließen (inkl. Detail)
+      if (willOpen){
+        for (const other of el.cards.querySelectorAll('.card.is-expanded')){
+          if (other !== card) { other.classList.remove('is-expanded'); other.classList.remove('is-detail'); syncCardChevron(other); }
+        }
+        for (const other of el.cards.querySelectorAll('.card.is-detail')){
+          if (other !== card) { other.classList.remove('is-detail'); syncCardChevron(other); }
+        }
+      }
+
+      // Toggle der Karte selbst
+      card.classList.toggle('is-expanded', willOpen);
+      if (!willOpen) card.classList.remove('is-detail');
+
+      if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: view, expandedId: "", detailId: "" };
+      state.ui.expandedId = willOpen ? id : "";
+      state.ui.detailId = (willOpen && card.classList.contains('is-detail')) ? id : "";
+      syncCardChevron(card);
+
+      // Fokus nur bei Mini → Kompakt (oder Kartenwechsel in Mini/Compact)
+      if (willOpen && view === 'mini'){
+        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
+        const marginTop = topbarH + 12;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
+          });
+        });
+      }
+    });
   }
 
   // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
@@ -3785,9 +4170,18 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   }
 
   // Build the floating quick access UI (FAB) once.
+  // Initialize card view early so the Schnellmenü reflects the stored state.
+  try{
+    const cv = loadCardView();
+    if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "mini", expandedId: "", detailId: "" };
+    state.ui.cardView = cv;
+    document.body.setAttribute('data-cardview', cv);
+  }catch(_){/* ignore */}
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
+  // Wire card header toggle (Mini/Kompakt only).
+  wireCardToggle();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
