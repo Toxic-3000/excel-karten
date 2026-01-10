@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63j
+/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j47
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63j").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63a").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -210,6 +210,31 @@ console.log("Build loader ready");
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
   const UI_SCALE_KEY = "spieleliste_uiScalePreset";
+
+  // --- UI: Kartenmodus (mini / compact / detail) ---
+  const CARD_VIEW_KEY = "spieleliste_cardView";
+  const CARD_VIEWS = ["mini", "compact", "detail"];
+
+  function getCardView(){
+    try{
+      const saved = String(localStorage.getItem(CARD_VIEW_KEY) || "").trim();
+      if (CARD_VIEWS.includes(saved)) return saved;
+    }catch(_){/* ignore */}
+    return "detail";
+  }
+
+  let currentCardView = getCardView();
+  function applyCardView(next){
+    const v = CARD_VIEWS.includes(next) ? next : "detail";
+    currentCardView = v;
+    try{ document.body.dataset.cardview = v; }catch(_){/* ignore */}
+    try{ localStorage.setItem(CARD_VIEW_KEY, v); }catch(_){/* ignore */}
+    try{ updateFabCardViewUI(); }catch(_){/* ignore */}
+    try{ applyCardExpandedDefaults(); }catch(_){/* ignore */}
+  }
+
+  // Apply initial card view early (before any render).
+  try{ applyCardView(currentCardView); }catch(_){/* ignore */}
   // Feiner abgestufte Skalierung + etwas größere Basisschrift (CSS): lesbarer, ohne Sprung-Gefühl.
   const UI_SCALES = [
     { id: "normal",    v: 1.00, label: "A" },
@@ -227,15 +252,12 @@ console.log("Build loader ready");
 
   function applyScale(presetId){
     const preset = UI_SCALES.find(x => x.id === presetId) || UI_SCALES[1];
-    const __anchor = _captureAnchor();
     document.documentElement.style.setProperty("--uiScaleRaw", String(preset.v));
     document.documentElement.style.setProperty("--uiScale", String(preset.v));
     localStorage.setItem(UI_SCALE_KEY, preset.id);
     updateFabScaleUI();
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
-    // Keep the current card in view after font scaling changes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
 
   function cycleScale(currentId){
@@ -309,10 +331,8 @@ console.log("Build loader ready");
 
   function updateFabCardViewUI(){
     if (!el.fabDepthRow) return;
-    const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
     for (const b of el.fabDepthRow.querySelectorAll('.chip')){
-      const k = b.getAttribute('data-key');
-      b.setAttribute('aria-pressed', (k === cv) ? 'true' : 'false');
+      b.setAttribute('aria-pressed', b.getAttribute('data-key') === currentCardView ? 'true' : 'false');
     }
   }
 
@@ -504,13 +524,12 @@ function closeFabText(){
       ].join("");
     }
 
-    // Build card view buttons (Mini / Kompakt / Detail)
+    // Build card view (Mini / Kompakt / Detail)
     if (el.fabDepthRow){
-      const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
       el.fabDepthRow.innerHTML = [
-        chipHtml("quickCardView", "mini", "Mini", cv === "mini"),
-        chipHtml("quickCardView", "compact", "Kompakt", cv === "compact"),
-        chipHtml("quickCardView", "detail", "Detail", cv === "detail"),
+        chipHtml("cardView", "mini", "Mini", currentCardView === "mini"),
+        chipHtml("cardView", "compact", "Kompakt", currentCardView === "compact"),
+        chipHtml("cardView", "detail", "Detail", currentCardView === "detail"),
       ].join("");
     }
     // Build quick sort field (dropdown)
@@ -633,10 +652,9 @@ function closeFabText(){
           try{ syncOpenTextHighlights(); }catch(_){/* ignore */}
           return;
         }
-        if (group === "quickCardView"){
-          const next = (key === "mini" || key === "compact" || key === "detail") ? key : "detail";
-          applyCardView(next);
-          try{ saveCardView(next); }catch(_){/* ignore */}
+        if (group === "cardView"){
+          applyCardView(key);
+          // No forced rerender needed: CSS handles visibility. Ensure defaults are applied.
           return;
         }
       });
@@ -741,63 +759,13 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     reminderCol: null,
     fileName: null,
     importedAt: 0,
-    ui: { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "detail" },
+    ui: { lastCount: 0, lastFilterSig: "", highlights: false },
   };
 
   // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
   // (Data changes reset this automatically because `state.rows` reference changes.)
   let __lastApplyKey = "";
   let __lastRowsRef = null;
-
-  // --- Kartenmodus (Mini / Kompakt / Detail) ---
-  const CARDVIEW_KEY = "spieleliste_cardView";
-  const CARD_VIEWS = ["mini","compact","detail"];
-
-  function loadCardView(){
-    try{
-      const v = String(localStorage.getItem(CARDVIEW_KEY) || "").trim().toLowerCase();
-      return CARD_VIEWS.includes(v) ? v : "detail";
-    }catch(_){
-      return "detail";
-    }
-  }
-  function saveCardView(v){
-    try{ localStorage.setItem(CARDVIEW_KEY, v); }catch(_){/* ignore */}
-  }
-  function applyCardView(v, opts={}){
-    const next = CARD_VIEWS.includes(v) ? v : "detail";
-    const __anchor = _captureAnchor();
-    if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "detail" };
-    state.ui.cardView = next;
-    try{ document.body.setAttribute("data-cardview", next); }catch(_){/* ignore */}
-    try{ updateFabCardViewUI(); }catch(_){/* ignore */}
-    // Keep per-card expanded states sane when switching views.
-    if (!opts?.skipCardSync) {
-      try{ syncCardsForView(next); }catch(_){/* ignore */}
-    }
-    if (opts?.save !== false) {
-      try{ saveCardView(next); }catch(_){/* ignore */}
-    }
-    // Keep the anchor card in view after switching card modes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
-  }
-  function syncCardsForView(view){
-    if (!el.cards) return;
-    const cards = el.cards.querySelectorAll('.card');
-    for (const c of cards){
-      if (view === "detail"){
-        c.classList.remove('is-expanded');
-      } else if (view === "compact"){
-        c.classList.add('is-expanded');
-      } else {
-        // mini
-        c.classList.remove('is-expanded');
-      }
-      const tog = c.querySelector('.cardToggle');
-      if (tog) tog.textContent = c.classList.contains('is-expanded') ? '▴' : '▾';
-      try{ tog?.setAttribute('aria-expanded', c.classList.contains('is-expanded') ? 'true' : 'false'); }catch(_){/* ignore */}
-    }
-  }
 
   function esc(s){
     return String(s ?? "")
@@ -1281,20 +1249,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (av) state.distinct.availability.add(av);
 
       // Cached full-text search haystack (free text search)
-      // Global search is intentionally broad (matches across all relevant fields).
-      row.__hayAll = [
-        row[COL.title],
-        row[COL.genre],
-        row[COL.sub],
-        row[COL.dev],
-        row[COL.desc],
-        row[COL.system],
-        row[COL.source],
-        row[COL.avail],
-        row[COL.store],
+      // Keep it compact: only fields that are searched globally.
+      row.__hay = [
+        row[COL.title], row[COL.genre], row[COL.sub], row[COL.dev],
+        row[COL.source], row[COL.avail]
       ].map(normSearch).join(' ');
-      // Backward compat: some helper paths still read __hay
-      row.__hay = row.__hayAll;
     }
 
     state.rows = rows;
@@ -2107,9 +2066,9 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) continue;
         } else if (qTokens.length){
-          const hay = (r.__hayAll || r.__hay || [
+          const hay = (r.__hay || [
             r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.desc], r[COL.system], r[COL.source], r[COL.avail], r[COL.store]
+            r[COL.source], r[COL.avail]
           ].map(normSearch).join(" "));
           let ok = true;
           for (const t of qTokens){
@@ -2721,19 +2680,9 @@ function scheduleApplyAndRender(delayMs){
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) return false;
         } else if (qTokens.length){
-          // Global search should be broad: match across *all* relevant fields (OR across fields).
-          // We still use AND-semantics across multiple tokens (typical multi-word search).
-          // Cache under a dedicated key so older builds' caches don't leak into new behavior.
-          const hay = (r.__hayAll || [
-            r[COL.title],
-            r[COL.genre],
-            r[COL.sub],
-            r[COL.dev],
-            r[COL.desc],
-            r[COL.system],
-            r[COL.source],
-            r[COL.avail],
-            r[COL.store],
+          const hay = (r.__hay || [
+            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
+            r[COL.source], r[COL.avail]
           ].map(normSearch).join(" "));
           // AND-semantics for tokens: every token must appear somewhere.
           for (const t of qTokens){
@@ -3180,7 +3129,6 @@ function classifyAvailability(av){
 
   function render(rows){
     const __rt0 = PERF_DETAIL ? performance.now() : 0;
-    const cv = (state.ui && state.ui.cardView) ? state.ui.cardView : "detail";
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -3268,22 +3216,19 @@ function classifyAvailability(av){
         ? `<div class="pre">${esc(easter)}</div>`
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
-      const expandedClass = (cv === 'compact') ? ' is-expanded' : '';
+      const initExpanded = (currentCardView === "mini") ? "false" : "true";
       return `
-        <article class="card${expandedClass}" data-id="${esc(id || "")}">
+        <article class="card" data-expanded="${initExpanded}">
           <div class="topGrid">
-            <div class="head">
+            <div class="head" role="button" tabindex="0" aria-expanded="${initExpanded}">
               <div class="rowMeta">
                 <div class="idBadge">ID ${esc(id || "—")}</div>
-                <div class="rowMetaRight">
-                  ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
-                  <button class="cardToggle" type="button" aria-label="Karte öffnen/schließen" aria-expanded="${cv === 'compact' ? 'true' : 'false'}">${cv === 'compact' ? '▴' : '▾'}</button>
-                </div>
+                ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
               </div>
 
               <div class="title">${esc(title)}</div>
 
-              <div class="miniGenre" aria-label="Genre">${esc(genre)}</div>
+              <div class="miniGenre">${esc(genre)}</div>
 
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
@@ -3300,13 +3245,11 @@ function classifyAvailability(av){
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
+
+              <button class="cardChev" type="button" aria-label="Karte öffnen oder schließen">▾</button>
             </div>
 
             ${info}
-
-            <div class="miniActions">
-              <button class="chip openDetailBtn" type="button" aria-label="In Detailansicht öffnen">Detail öffnen</button>
-            </div>
           </div>
 
           <div class="detailsWrap">
@@ -3350,7 +3293,6 @@ function classifyAvailability(av){
     el.cards.addEventListener("toggle", (ev) => {
       const det = ev.target;
       if (!det || det.tagName !== "DETAILS") return;
-      try{ _setLastActiveCard(det.closest(".card")); }catch(_){/* ignore */}
       const sum = det.querySelector("summary");
       const label = sum?.querySelector("[data-label]");
       if (!label) return;
@@ -3373,238 +3315,49 @@ function classifyAvailability(av){
     }catch(_){/* ignore */}
   }
 
-  // --- Karten: Tap-Header Toggle in Mini/Kompakt (Detail bleibt Akkordeon-only) ---
-  function syncCardChevron(card){
-    if (!card) return;
-    const tog = card.querySelector('.cardToggle');
-    if (!tog) return;
-    const open = card.classList.contains('is-expanded');
-    tog.textContent = open ? '▴' : '▾';
-    try{ tog.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
-  }
-
-  // Ensure an expanded Mini/Kompakt card is fully brought into view.
-  // "Force" means: even if it's already visible, we snap it to the top margin.
-  function scrollCardFullyIntoView(cardEl, opts){
-    if (!cardEl) return;
-    const o = Object.assign({ marginTop: 12, marginBottom: 12, behavior: 'smooth', force: true }, (opts || {}));
-    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const bhv = prefersReduced ? 'auto' : o.behavior;
-
-    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    if (!vh) return;
-    const rect = cardEl.getBoundingClientRect();
-
-    // If the card can't fully fit, best effort: align top to margin.
-    const available = vh - o.marginTop - o.marginBottom;
-    if (rect.height > available){
-      const deltaTop = rect.top - o.marginTop;
-      window.scrollBy({ top: deltaTop, left: 0, behavior: bhv });
-      return;
-    }
-
-    const topTooHigh = rect.top < o.marginTop;
-    const bottomTooLow = rect.bottom > (vh - o.marginBottom);
-    let delta = 0;
-
-    if (topTooHigh){
-      delta = rect.top - o.marginTop;
-    } else if (bottomTooLow){
-      delta = rect.bottom - (vh - o.marginBottom);
-    } else if (o.force){
-      // Snap into focus even if already fully visible.
-      delta = rect.top - o.marginTop;
-    }
-
-    if (delta) window.scrollBy({ top: delta, left: 0, behavior: bhv });
-  }
-
-
-
-// --- Anchor & Restore: keep the "current" card in view across layout-changing UI actions ---
-// Layout changes (card view, text scale, etc.) can shift scroll positions because card heights change.
-// Anchor priority:
-//  1) Expanded card (Mini/Kompakt)
-//  2) Last active card (clicked)
-//  3) Viewport anchor (top-most visible card) – even if the user never clicked
-// Restore modes:
-//  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
-//  - "focus": ensure the card is fully visible (used for explicit actions)
-let __lastActiveCardId = "";
-let __refocusT = 0;
-let __pendingRestore = null; // { id, offset }
-
-function _setLastActiveCard(card){
-  try{
-    const id = String(card?.getAttribute?.("data-id") || "").trim();
-    if (id) __lastActiveCardId = id;
-  }catch(_){/* ignore */}
-}
-
-function _getTopMargin(){
-  // Desktop/Tablet nutzt teils .hdr statt .topbar – wir nehmen beides,
-  // damit der Anker wirklich unter der fixen Kopfzeile landet.
-  const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
-  return topbarH + 12;
-}
-
-function _getViewportAnchor(){
-  try{
-    if (!el.cards) return null;
-    const marginTop = _getTopMargin();
-    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    if (!vh) return null;
-    const cards = el.cards.querySelectorAll('.card');
-    let best = null;
-    let bestTop = Infinity;
-    for (const c of cards){
-      const r = c.getBoundingClientRect();
-      // visible at least a bit below marginTop
-      if (r.bottom <= marginTop + 1) continue;
-      if (r.top >= vh - 1) continue;
-      if (r.top < bestTop){
-        bestTop = r.top;
-        best = { el: c, rect: r };
-      }
-    }
-    if (!best?.el) return null;
-    const id = String(best.el.getAttribute('data-id') || '').trim();
-    if (!id) return null;
-    return { id, offset: (best.rect.top - marginTop) };
-  }catch(_){
-    return null;
-  }
-}
-
-function _captureAnchor(){
-  try{
-    const marginTop = _getTopMargin();
-    // 1) Expanded
-    const expanded = el.cards?.querySelector?.('.card.is-expanded');
-    if (expanded){
-      const id1 = String(expanded.getAttribute('data-id') || '').trim();
-      if (id1){
-        const r = expanded.getBoundingClientRect();
-        return { id: id1, offset: (r.top - marginTop) };
-      }
-    }
-    // 2) Last active
-    const id2 = String(__lastActiveCardId || '').trim();
-    if (id2){
-      const c2 = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(id2)}"]`);
-      if (c2){
-        const r2 = c2.getBoundingClientRect();
-        return { id: id2, offset: (r2.top - marginTop) };
-      }
-    }
-    // 3) Viewport anchor
-    return _getViewportAnchor();
-  }catch(_){
-    return null;
-  }
-}
-
-function _scheduleRestore(anchor, opts){
-  const a = anchor && typeof anchor === 'object' ? anchor : null;
-  const id = String(a?.id || '').trim();
-  if (!id) return;
-  __pendingRestore = { id, offset: Number.isFinite(a?.offset) ? a.offset : 0 };
-
-  const o = Object.assign({ behavior: 'auto', mode: 'offset', force: false }, (opts || {}));
-  try{ window.clearTimeout(__refocusT); }catch(_){/* ignore */}
-  __refocusT = window.setTimeout(() => {
-    const p = __pendingRestore;
-    if (!p?.id) return;
-    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(p.id)}"]`);
-    if (!card) return;
-
-    const marginTop = _getTopMargin();
-    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const bhv = prefersReduced ? 'auto' : String(o.behavior || 'auto');
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (String(o.mode || 'offset') === 'focus'){
-          scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: !!o.force, behavior: bhv });
-          return;
-        }
-        // offset restore: keep the card at the same relative position to the viewport top
-        const r = card.getBoundingClientRect();
-        const desiredTop = marginTop + (Number.isFinite(p.offset) ? p.offset : 0);
-        const delta = r.top - desiredTop;
-        if (delta){
-          window.scrollBy({ top: delta, left: 0, behavior: bhv });
-        }
-      });
-    });
-  }, 90);
-}
-
+  // --- Kartenmodi: Header-Toggle (nur Mini & Kompakt) ---
   let __cardToggleWired = false;
-  function wireCardToggle(){
+  function wireCardHeadToggle(){
     if (__cardToggleWired) return;
     if (!el.cards) return;
     __cardToggleWired = true;
+    const _toggle = (head) => {
+      if (!head) return;
+      if (currentCardView === 'detail') return;
+      const card = head.closest('.card');
+      if (!card) return;
+      const cur = String(card.getAttribute('data-expanded') || 'false') === 'true';
+      const next = cur ? 'false' : 'true';
+      card.setAttribute('data-expanded', next);
+      try{ head.setAttribute('aria-expanded', next); }catch(_){/* ignore */}
+    };
 
     el.cards.addEventListener('click', (ev) => {
-      const view = (state.ui && state.ui.cardView) ? state.ui.cardView : 'detail';
-      if (view === 'detail') return; // no global tap toggle
+      const head = ev.target?.closest?.('.head');
+      if (!head) return;
+      _toggle(head);
+    });
 
-      const target = ev.target;
-      const card = target?.closest?.('.card');
-      if (!card) return;
-      _setLastActiveCard(card);
-
-      // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
-      const openDetailBtn = target?.closest?.('.openDetailBtn');
-      if (openDetailBtn){
+    el.cards.addEventListener('keydown', (ev) => {
+      const head = ev.target?.closest?.('.head');
+      if (!head) return;
+      const k = ev.key;
+      if (k === 'Enter' || k === ' '){
         ev.preventDefault();
-        ev.stopPropagation();
-        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
-        const marginTop = topbarH + 12;
-
-        // Switch global view first, then refocus the same card (stable, non-random scroll).
-        applyCardView('detail');
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
-          });
-        });
-        return;
-      }
-
-      // Only react to taps on the header area or the chevron.
-      const isChevron = !!target?.closest?.('.cardToggle');
-      const isHeader = !!target?.closest?.('.head');
-      if (!isChevron && !isHeader) return;
-
-      // Avoid toggling when selecting text (rare, but possible).
-      try{ if (window.getSelection && String(window.getSelection()?.toString() || '').length) return; }catch(_){/* ignore */}
-
-      const willOpen = !card.classList.contains('is-expanded');
-
-      // Keep one expanded card at a time (cleaner in 2-column landscape).
-      if (willOpen){
-        for (const other of el.cards.querySelectorAll('.card.is-expanded')){
-          if (other !== card) { other.classList.remove('is-expanded'); syncCardChevron(other); }
-        }
-      }
-
-      card.classList.toggle('is-expanded', willOpen);
-      syncCardChevron(card);
-
-      // In Mini: after expanding, force the card fully into focus (100% in view).
-      // We wait for layout to settle (height change + full-width span in 2-column).
-      if (willOpen && view === 'mini'){
-        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
-        const marginTop = topbarH + 12;
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
-          });
-        });
+        _toggle(head);
       }
     });
+  }
+
+  function applyCardExpandedDefaults(){
+    if (!el.cards) return;
+    // Detail: irrelevant (everything visible). Compact: open by default. Mini: closed by default.
+    const def = (currentCardView === 'mini') ? 'false' : 'true';
+    for (const c of el.cards.querySelectorAll('.card')){
+      c.setAttribute('data-expanded', def);
+      const h = c.querySelector('.head');
+      if (h) try{ h.setAttribute('aria-expanded', def); }catch(_){/* ignore */}
+    }
   }
 
   // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
@@ -4129,18 +3882,11 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   }
 
   // Build the floating quick access UI (FAB) once.
-  // Initialize card view early so the Schnellmenü reflects the stored state.
-  try{
-    const cv = loadCardView();
-    if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false, cardView: "detail" };
-    state.ui.cardView = cv;
-    document.body.setAttribute('data-cardview', cv);
-  }catch(_){/* ignore */}
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
-  // Wire card header toggle (Mini/Kompakt only).
-  wireCardToggle();
+  // Wire delegated card header toggling once (Mini/Kompakt).
+  wireCardHeadToggle();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
