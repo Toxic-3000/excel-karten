@@ -717,7 +717,10 @@ body[data-cardview="compact"] .cards .card{
 @media (min-width: 520px) and (orientation: landscape){
   body[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
-@media (min-width: 640px) and (orientation: landscape){
+/* Kompakt: auf Phone-Landscape bewusst 1-spaltig.
+   2 Spalten erst ab Tablet/Desktop, damit der Flow stabil bleibt.
+   (Mini darf in Phone-Landscape weiterhin 2-spaltig sein.) */
+@media (min-width: 900px){
   body[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
 
@@ -868,6 +871,9 @@ body[data-cardview="compact"] .card.is-expanded .info{ display:block; }
   align-items:center;
   height: var(--badge-h);
   font-variant-numeric: tabular-nums;
+  /* Badges sollen ruhig bleiben und nicht innerhalb umbrechen.
+     Wrap passiert auf Zeilen-Ebene (.badgeRow), nicht im Badge selbst. */
+  white-space: nowrap;
 }
 /* Fixed-ish lengths per type (for visual calm) */
 .badge.platform{min-width: calc(54px * var(--uiScale)); justify-content:center}
@@ -2290,6 +2296,19 @@ html.modalOpen body{touch-action:none;}
 
   /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
      (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
+}
+
+/* V7_1j63i: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
+   In breiteren Viewports war der rechte Info-Block zu dominant, dadurch sind Badges
+   links unnötig umgebrochen. Wir kappen die rechte Spalte und geben dem linken Bereich
+   zuverlässig mehr Luft – Detail bleibt unangetastet. */
+@media (min-width: 720px){
+  body[data-cardview="compact"] .topGrid,
+  body[data-cardview="mini"] .card.is-expanded .topGrid{
+    grid-template-columns: minmax(0, 1fr) minmax(calc(260px * var(--uiScale)), calc(360px * var(--uiScale)));
+  }
+  body[data-cardview="compact"] .topGrid > *,
+  body[data-cardview="mini"] .card.is-expanded .topGrid > *{ min-width: 0; }
 }
 
 

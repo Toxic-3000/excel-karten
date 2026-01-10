@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63h
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63i
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63h").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63i").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3442,7 +3442,9 @@ function _setLastActiveCard(card){
 }
 
 function _getTopMargin(){
-  const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+  // Desktop/Tablet nutzt teils .hdr statt .topbar – wir nehmen beides,
+  // damit der Anker wirklich unter der fixen Kopfzeile landet.
+  const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
   return topbarH + 12;
 }
 
@@ -3558,7 +3560,7 @@ function _scheduleRestore(anchor, opts){
       if (openDetailBtn){
         ev.preventDefault();
         ev.stopPropagation();
-        const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
 
         // Switch global view first, then refocus the same card (stable, non-random scroll).
@@ -3594,7 +3596,7 @@ function _scheduleRestore(anchor, opts){
       // In Mini: after expanding, force the card fully into focus (100% in view).
       // We wait for layout to settle (height change + full-width span in 2-column).
       if (willOpen && view === 'mini'){
-        const topbarH = (document.querySelector('.topbar')?.offsetHeight ?? 0);
+        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {

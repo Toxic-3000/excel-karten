@@ -1,7 +1,14 @@
-# Spieleliste – Build V7_1j63h
+# Spieleliste – Build V7_1j63i
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
+
+## Änderungen in V7_1j63i (gegenüber V7_1j63h)
+
+- **Kompakt in Phone-Landscape wieder 1-spaltig:** Keine „zufälligen“ 2-Spalten mehr auf Smartphones im Querformat; 2-Spalten-Kompakt startet jetzt erst ab Tablet/Desktop-Breite.
+- **Mini/Kompakt nutzen die Kartenbreite besser aus (Desktop/Tablet):** Der rechte Info-Block wird in breiten Viewports begrenzt, damit links mehr Platz für Badges/Text ist (weniger unnötige Umbrüche).
+- **Badges brechen nicht innerhalb um:** Badges bleiben in einer Zeile; Umbrüche passieren nur zwischen Badges.
+- **Anchor/Refocus robuster auf Desktop/Windows-Tablet:** Top-Margin berücksichtigt nun auch die Desktop-Header-Struktur (Fallback auf `.hdr`).
 
 ## Änderungen in V7_1j63h (gegenüber V7_1j63g)
 
