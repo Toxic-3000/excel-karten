@@ -1,9 +1,9 @@
-# Spieleliste – Build V7_1j63l
+# Spieleliste – Build V7_1j63m
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63l (gegenüber V7_1j63j)
+## Änderungen in V7_1j63m (gegenüber V7_1j63j)
 
 - **Anchor-System jetzt ID-basiert & POV-orientiert:** Der Viewport-Anker ist nicht mehr nur „oberste sichtbare Karte“, sondern die Karte, die dem **Fokuspunkt im Viewport** am nächsten ist (stabiler in 2‑Spalten‑Layouts auf Desktop/Tablet).
 - **Merkt die Fokus‑ID auch ohne Klick:** Beim **Scrollen** und **Resize** wird die aktuell „im Blick“ liegende Karten‑ID gespeichert – der Wechsel Mini/Kompakt/Detail funktioniert damit zuverlässiger, selbst wenn du vorher nichts angeklickt hast.

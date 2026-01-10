@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63l
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63m
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,18 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63l").trim();
+
+  // --- Anchor/Focus state (must be defined early; used by hoisted functions) ---
+  let __lastActiveCardId = "";
+  let __expandedId = "";
+  let __lastViewportId = "";
+  let __lastViewportOffset = 0;
+  let __scrollAnchorRAF = 0;
+  let __refocusT = 0;
+  let __pendingRestore = null;
+  let __pendingRestoreToken = 0;
+
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63m").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3432,12 +3443,6 @@ function classifyAvailability(av){
 // Restore modes:
 //  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
 //  - "focus": ensure the card is fully visible (used for explicit actions)
-let __lastActiveCardId = "";
-let __expandedId = "";
-let __lastViewportId = "";
-let __lastViewportOffset = 0;
-let __scrollAnchorRAF = 0;
-
 function _rememberViewportAnchorNow(){
   const a = _getViewportAnchor();
   if(a && a.id){
@@ -3453,9 +3458,6 @@ function _scheduleRememberViewportAnchor(){
     _rememberViewportAnchorNow();
   });
 }
-
-let __refocusT = 0;
-let __pendingRestore = null; // { id, offset }
 
 function _setLastActiveCard(card){
   try{
