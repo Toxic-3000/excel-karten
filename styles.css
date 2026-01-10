@@ -5,14 +5,14 @@
 
 /* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
 /*
-  CSS Cleanup Phase J/K (V7_1j62t):
+  CSS Cleanup Phase J/K (V7_1k63a):
   - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
   - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
 */
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build 7.1j32
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63a
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -2865,3 +2865,116 @@ html.modalOpen body{touch-action:none;}
   padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
   font-size: calc(14px * var(--uiScale));
 }
+
+
+/* --- Kartenmodi (Mini/Kompakt/Detail) --- */
+:root{ --cardGap: calc(12px * var(--uiScale)); }
+
+/* Grid only for Mini/Kompakt; Detail stays as the classic vertical reading mode. */
+:root[data-cardview="mini"] .cards,
+:root[data-cardview="compact"] .cards{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--cardGap);
+}
+
+/* Remove big vertical margins when grid is active */
+:root[data-cardview="mini"] .card,
+:root[data-cardview="compact"] .card{
+  margin: 0 !important;
+}
+
+/* Mini: in phone landscape we allow 2 columns */
+@media (orientation: landscape){
+  html.isPhone:root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Kompakt: 2 columns only on non-phone widths; phones stay single-column even in landscape. */
+@media (min-width: 900px){
+  :root[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Expanded cards should span both columns in 2-col layouts */
+:root[data-cardview="mini"] .card[data-compact-open="1"],
+:root[data-cardview="mini"] .card[data-detail-open="1"],
+:root[data-cardview="compact"] .card[data-detail-open="1"]{
+  grid-column: 1 / -1;
+}
+
+/* --- Visibility rules --- */
+
+/* Defaults (Detail): everything as-is */
+
+/* Mini: hide compact + detail until card is opened */
+:root[data-cardview="mini"] .compactWrap{ display: none; }
+:root[data-cardview="mini"] .detailsWrap{ display: none; }
+:root[data-cardview="mini"] .badgeRow-trophy{ display: none; }
+
+:root[data-cardview="mini"] .card[data-compact-open="1"] .compactWrap{ display: block; }
+:root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap{ display: block; }
+
+/* Kompakt: show compact for all, hide details unless active detail-open */
+:root[data-cardview="compact"] .detailsWrap{ display: none; }
+:root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{ display: block; }
+
+/* Mini-Genre: only relevant in Mini mode */
+.miniGenre{ display: none; }
+:root[data-cardview="mini"] .miniGenre{
+  display: block;
+  margin-top: calc(8px * var(--uiScale));
+  font-size: calc(12.5px * var(--uiScale));
+  opacity: .78;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make the head feel tappable in Mini/Kompakt */
+:root[data-cardview="mini"] .head,
+:root[data-cardview="compact"] .head{
+  cursor: pointer;
+}
+
+/* --- Chevrons --- */
+.cardChevron{
+  appearance: none;
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, var(--border) 90%);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius: 999px;
+  width: calc(36px * var(--uiScale));
+  height: calc(28px * var(--uiScale));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(16px * var(--uiScale));
+  line-height: 1;
+  opacity: .75;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, #ffffff 55%, transparent 45%);
+}
+.cardChevron:active{ transform: translateY(1px); }
+
+/* Chevron 1: bottom of the mini area (head) */
+.chev1{
+  margin-top: calc(10px * var(--uiScale));
+  align-self: flex-end;
+}
+
+/* Chevron 2: below compact block, centered */
+.chev2Wrap{ display: none; justify-content: center; margin-top: calc(10px * var(--uiScale)); }
+.chev2{ transform: rotate(0deg); }
+
+:root[data-cardview="mini"] .card[data-compact-open="1"] .chev2Wrap{ display: flex; }
+:root[data-cardview="compact"] .card[data-active] .chev2Wrap{ display: flex; }
+
+/* In Detail mode hide chevrons + mini genre */
+:root[data-cardview="detail"] .cardChevron{ display: none; }
+:root[data-cardview="detail"] .miniGenre{ display: none; }
+
+/* Rotate chevrons when opened */
+:root[data-cardview="mini"] .card[data-compact-open="1"] .chev1,
+:root[data-cardview="compact"] .card[data-detail-open="1"] .chev2,
+:root[data-cardview="mini"] .card[data-detail-open="1"] .chev2{
+  transform: rotate(180deg);
+}
+

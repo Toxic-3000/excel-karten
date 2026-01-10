@@ -11,9 +11,9 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62y").trim();
-  const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
-  const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63a").trim();
+  const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
+  const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
   // --- Mobile viewport robustness (Android address bar / browser UI) ---
   // Some mobile browsers keep `vh` / even `dvh` a bit optimistic when the address bar is visible.
@@ -37,7 +37,7 @@ console.log("Build loader ready");
   }
 
   // --- Device class: Phone vs Tablet/Desktop (orientation-agnostic) ---
-  // We treat *phones* as one coherent UI class (portrait and landscape behave the same),
+  // We treat *phones* as one coherent UI class (portrait && landscape behave the same),
   // because mobile browser chrome + limited height are the dominant constraints.
   // Detection is intentionally conservative:
   // - portrait phones: small width
@@ -105,6 +105,7 @@ console.log("Build loader ready");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabMarkRow: $("fabMarkRow"),
+    fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -303,12 +304,21 @@ console.log("Build loader ready");
     }
   }
 
+  function updateFabDepthUI(){
+    if (!el.fabDepthRow) return;
+    const cur = String(state.cardView || 'detail');
+    for (const b of el.fabDepthRow.querySelectorAll('.chip')){
+      const k = b.getAttribute('data-key');
+      b.setAttribute('aria-pressed', (k === cur) ? 'true' : 'false');
+    }
+  }
+
   // --- UI: Adaptive toolbar compaction (keeps one line even on A+++) ---
   function updateToolbarCompactness(){
     const bar = el.toolbarRow;
     if (!bar) return;
     bar.classList.remove("compact2");
-    // If things don't fit (e.g. A+++), show only the number and slightly reduce button padding.
+    // If things don't fit (e.g. A+++), show only the number && slightly reduce button padding.
     if (bar.scrollWidth > bar.clientWidth + 1) bar.classList.add("compact2");
   }
 
@@ -357,7 +367,7 @@ console.log("Build loader ready");
         if (!e) return false;
         if (e.disabled) return false;
         if (e.getAttribute && e.getAttribute("aria-hidden") === "true") return false;
-        // offsetParent==null filters display:none and some hidden states; keep focusable only when visible
+        // offsetParent==null filters display:none && some hidden states; keep focusable only when visible
         if (e.offsetParent === null) return false;
         return true;
       });
@@ -490,6 +500,17 @@ function closeFabText(){
         chipHtml("quickMarks", "off", "Aus", !on),
       ].join("");
     }
+
+    // Build card view mode chips (Mini/Kompakt/Detail)
+    if (el.fabDepthRow){
+      const cur = String(state.cardView || "detail");
+      el.fabDepthRow.innerHTML = [
+        chipHtml("cardView", "mini", "Mini", cur === "mini"),
+        chipHtml("cardView", "compact", "Kompakt", cur === "compact"),
+        chipHtml("cardView", "detail", "Detail", cur === "detail"),
+      ].join("");
+    }
+
     // Build quick sort field (dropdown)
     if (el.fabSortFieldRow){
       const enabled = [
@@ -601,6 +622,11 @@ function closeFabText(){
           applyAndRender();
           return;
         }
+        if (group === "cardView"){
+          const next = String(key || 'detail');
+          setCardView(next);
+          return;
+        }
         if (group === "quickMarks"){
           const next = (key === "on");
           if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false };
@@ -686,6 +712,156 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   const REMINDER_CANDIDATES = ["Erinnerung", "Reminder", "Notiz", "Hinweis", "Memo"];
 
+  // --- Kartenmodi (Mini/Kompakt/Detail) ---
+  const CARDVIEW_KEY = 'spieleliste.cardview';
+  const CARDVIEW_DEFAULT_BEFORE_IMPORT = 'detail';
+  const CARDVIEW_DEFAULT_AFTER_IMPORT = 'mini';
+
+  function loadCardView(){
+    try{
+      const v = String(localStorage.getItem(CARDVIEW_KEY) || '').trim().toLowerCase();
+      if (v === 'mini' || v === 'compact' || v === 'detail') return v;
+    }catch(_){/* ignore */}
+    return CARDVIEW_DEFAULT_BEFORE_IMPORT;
+  }
+
+  function saveCardView(v){
+    try{ localStorage.setItem(CARDVIEW_KEY, String(v)); }catch(_){/* ignore */}
+  }
+
+  function setCardView(mode){
+    const m = String(mode || '').trim().toLowerCase();
+    if (m !== 'mini' && m !== 'compact' && m !== 'detail') return;
+    if (state.cardView === m) return;
+    state.cardView = m;
+    // Reset per-card openness when switching global mode
+    state.activeCardId = null;
+    state.detailOpenId = null;
+    try{ document.documentElement.dataset.cardview = m; }catch(_){/* ignore */}
+    saveCardView(m);
+    try{ updateFabDepthUI(); }catch(_){/* ignore */}
+    // Card view is purely presentational; rerender is fine (keeps DOM deterministic)
+    try{ applyAndRender(); }catch(_){/* ignore */}
+  }
+
+  function _isCardInView(card){
+    try{
+      const r = card.getBoundingClientRect();
+      const vh = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 0);
+      // consider it in view if top is within 20%..90% of viewport
+      return (r.top >= vh*0.20) && (r.top <= vh*0.90);
+    }catch(_){ return true }
+  }
+
+  function focusCardTop(card){
+    try{ card.scrollIntoView({block:'start', behavior:'smooth'}); }catch(_){/* ignore */}
+  }
+
+  function onCardTapById(id){
+    const m = String(state.cardView || 'detail');
+    if (m === 'detail') return;
+    const cur = String(state.activeCardId || '');
+    if (m === 'mini'){
+      if (cur === String(id)){
+        // toggle close back to Mini
+        state.activeCardId = null;
+        state.detailOpenId = null;
+        syncCardStates();
+        return;
+      }
+      state.activeCardId = String(id);
+      state.detailOpenId = null;
+      syncCardStates();
+      const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(String(id))}"]`);
+      if (card) focusCardTop(card);
+      return;
+    }
+    if (m === 'compact'){
+      if (cur === String(id) && state.detailOpenId === String(id)){
+        // toggle close Detail back to Kompakt
+        state.detailOpenId = null;
+        syncCardStates();
+        return;
+      }
+      state.activeCardId = String(id);
+      state.detailOpenId = String(id);
+      syncCardStates();
+      const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(String(id))}"]`);
+      if (card && !_isCardInView(card)) focusCardTop(card);
+      return;
+    }
+  }
+
+  function toggleDetailById(id){
+    const m = String(state.cardView || 'detail');
+    if (m === 'detail') return;
+    if (String(state.activeCardId || '') !== String(id)) return;
+    if (state.detailOpenId === String(id)) state.detailOpenId = null;
+    else state.detailOpenId = String(id);
+    syncCardStates();
+  }
+
+  function syncCardStates(){
+    if (!el.cards) return;
+    const m = String(state.cardView || 'detail');
+    const active = String(state.activeCardId || '');
+    const detail = String(state.detailOpenId || '');
+    for (const card of el.cards.querySelectorAll('.card')){
+      const id = String(card.getAttribute('data-id') || '');
+      const isActive = (active && id === active);
+      card.toggleAttribute('data-active', isActive);
+      // compact-open
+      const compactOpen = (m === 'compact') || (m === 'detail') || (m === 'mini' && isActive);
+      if (compactOpen) card.setAttribute('data-compact-open','1');
+      else card.removeAttribute('data-compact-open');
+      const detailOpen = (m === 'detail') || (detail && id === detail);
+      if (detailOpen) card.setAttribute('data-detail-open','1');
+      else card.removeAttribute('data-detail-open');
+      // a11y: make header toggles focusable in mini/compact
+      const head = card.querySelector('.head');
+      if (head){
+        if (m === 'detail'){ head.removeAttribute('role'); head.removeAttribute('tabindex'); }
+        else { head.setAttribute('role','button'); head.setAttribute('tabindex','0'); }
+      }
+    }
+  }
+
+  function wireCardModeInteractions(){
+    if (!el.cards || el.cards.__cardModeWired) return;
+    el.cards.__cardModeWired = true;
+    el.cards.addEventListener('click', (e) => {
+      const m = String(state.cardView || 'detail');
+      if (m === 'detail') return;
+      const t = e.target;
+      const card = t.closest?.('.card');
+      if (!card) return;
+      const id = card.getAttribute('data-id');
+      if (!id) return;
+      const chev = t.closest?.('[data-chev]');
+      if (chev){
+        const which = chev.getAttribute('data-chev');
+        if (which === '1'){ onCardTapById(id); }
+        if (which === '2'){ toggleDetailById(id); }
+        return;
+      }
+      const head = t.closest?.('.head');
+      if (head && card.contains(head)){ onCardTapById(id); }
+    });
+    // Keyboard support: Enter/Space on header
+    el.cards.addEventListener('keydown', (e) => {
+      const m = String(state.cardView || 'detail');
+      if (m === 'detail') return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const head = e.target?.closest?.('.head');
+      if (!head) return;
+      const card = head.closest?.('.card');
+      const id = card?.getAttribute?.('data-id');
+      if (!id) return;
+      e.preventDefault();
+      onCardTapById(id);
+    });
+  }
+
   const state = {
     rows: [],
     q: "",
@@ -712,8 +888,15 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     reminderCol: null,
     fileName: null,
     importedAt: 0,
+    cardView: "detail",
+    activeCardId: null,
+    detailOpenId: null,
     ui: { lastCount: 0, lastFilterSig: "", highlights: false },
   };
+
+  // Initialize card view mode (persisted)
+  state.cardView = loadCardView();
+  try{ document.documentElement.dataset.cardview = state.cardView; }catch(_){/* ignore */}
 
   // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
   // (Data changes reset this automatically because `state.rows` reference changes.)
@@ -766,7 +949,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
   }
 
-  // Search-normalization: aims to make "Point-and-Click" ≈ "point and click"
+  // Search-normalization: aims to make "Point-and-Click" ≈ "point && click"
   // while staying deterministic (no fuzzy magic).
   function normSearch(s){
     return String(s ?? "")
@@ -1058,7 +1241,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   function pill(text, kind){
     // XLSX status is shown in the toolbar when there is enough space,
-    // and always inside the Excel/Import details panel.
+    // && always inside the Excel/Import details panel.
     const targets = [el.pillXlsxPanel].filter(Boolean);
     for (const t of targets){
       t.textContent = "XLSX: " + text;
@@ -1121,7 +1304,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     state.distinct.trophies.clear();
 
     // Build rows as objects, while capturing Store hyperlink URLs
-    // We use sheet_to_json with header row 1, and also keep range info to map row index -> cell address.
+    // We use sheet_to_json with header row 1, && also keep range info to map row index -> cell address.
     const range = XLSX.utils.decode_range(ws["!ref"]);
     const headerRow = range.s.r; // 0
     // Get headers from first row
@@ -1161,7 +1344,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       }
 
       // Precomputed fields for fast filtering/search (Build 7.1b)
-      // Note: we only cache normalized values and derived aggregates; we do NOT change the user-visible data.
+      // Note: we only cache normalized values && derived aggregates; we do NOT change the user-visible data.
       const _id = String(row[COL.id] ?? '').trim();
       row.__id = _id;
       const _idNum = Number(_id);
@@ -1214,6 +1397,19 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     state.importedAt = Date.now();
     if (el.pillFile) el.pillFile.textContent = state.fileName;
     if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
+
+    // After a successful import: default to Mini unless the user has an explicit saved preference.
+    try{
+      const persisted = String(localStorage.getItem(CARDVIEW_KEY) || '').trim();
+      if (!persisted){
+        state.cardView = CARDVIEW_DEFAULT_AFTER_IMPORT;
+        state.activeCardId = null;
+        state.detailOpenId = null;
+        try{ document.documentElement.dataset.cardview = state.cardView; }catch(_){/* ignore */}
+        try{ saveCardView(state.cardView); }catch(_){/* ignore */}
+        try{ updateFabDepthUI(); }catch(_){/* ignore */}
+      }
+    }catch(_){/* ignore */}
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -1244,7 +1440,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     panel.__portal = { parent: panel.parentNode, next: panel.nextSibling };
     floats.appendChild(panel);
     panel.classList.add("isPortal");
-    // make sure clicks inside the panel don't bubble up and auto-close it
+    // make sure clicks inside the panel don't bubble up && auto-close it
     panel.addEventListener("click", (e) => e.stopPropagation());
   }
 
@@ -1488,7 +1684,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         }
       } else {
         // Mobile/Tablet: custom dropdown so we can show real divider lines (native pickers
-        // render optgroups as headings and separators as selectable rows with radio circles).
+        // render optgroups as headings && separators as selectable rows with radio circles).
         const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
         const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
 
@@ -2128,7 +2324,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function clearAllFiltersOnly(){
-    // Clear filters and search without touching the current sort (Schnellmenü-Reset).
+    // Clear filters && search without touching the current sort (Schnellmenü-Reset).
     setSearchQuery("", "fabReset");
 const f = state.filters;
     f.fav = false;
@@ -2304,7 +2500,7 @@ const f = state.filters;
   function startReminderLoop(){
     if (_reminderTimerId){ try{ window.clearInterval(_reminderTimerId); }catch(_){/*ignore*/} _reminderTimerId = 0; }
     _reminderTimerId = window.setInterval(() => {
-      // Reminder: only when filters are active, the menu is closed, and there was no "user intent" recently.
+      // Reminder: only when filters are active, the menu is closed, && there was no "user intent" recently.
       if (!hasActiveFiltersOrSearch()) return;
       if (!inCardsView()) return;
       if (el?.dlg?.open) return;
@@ -2434,7 +2630,7 @@ const f = state.filters;
 
   function applySignature(){
     // Keep this cheap: only include values that affect the filtered/sorted result.
-    // NOTE: UI scale / viewport are CSS-only and don't require re-rendering.
+    // NOTE: UI scale / viewport are CSS-only && don't require re-rendering.
     return [
       String(state.q ?? ""),
       filterSignature(),
@@ -3170,7 +3366,7 @@ function classifyAvailability(av){
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
       return `
-        <article class="card">
+        <article class="card" data-id="${esc(id || "")}">
           <div class="topGrid">
             <div class="head">
               <div class="rowMeta">
@@ -3195,9 +3391,18 @@ function classifyAvailability(av){
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
+
+              <div class="miniGenre" title="${esc(genre)}">${esc(genre)}</div>
+
+              <button class="cardChevron chev1" type="button" data-chev="1" aria-label="Karte öffnen" title="Öffnen">▾</button>
             </div>
 
-            ${info}
+            <div class="compactWrap">
+              ${info}
+              <div class="chev2Wrap">
+                <button class="cardChevron chev2" type="button" data-chev="2" aria-label="Details ein-/ausklappen" title="Details">▾</button>
+              </div>
+            </div>
           </div>
 
           <div class="detailsWrap">
@@ -3221,6 +3426,9 @@ function classifyAvailability(av){
     syncDetailsSummaryLabels(el.cards);
 
 
+    // Apply card-mode openness to newly rendered cards
+    try{ syncCardStates(); }catch(_){/* ignore */}
+
     if (PERF_DETAIL) {
       const __rt2 = performance.now();
       const htmlMs = (__rt1 - __rt0);
@@ -3232,7 +3440,7 @@ function classifyAvailability(av){
   }
 
   // Perf polish: avoid attaching toggle listeners to every <details> on every render.
-  // We wire a single delegated listener once and just sync initial labels after each render.
+  // We wire a single delegated listener once && just sync initial labels after each render.
   let __detailsToggleWired = false;
   function wireDetailsToggle(){
     if (__detailsToggleWired) return;
@@ -3717,7 +3925,7 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
       document.body.style.width = "100%";
     }else{
       html.classList.remove("modalOpen");
-      // Unfreeze and restore
+      // Unfreeze && restore
       document.body.style.position = "";
       document.body.style.top = "";
       document.body.style.left = "";
@@ -3788,6 +3996,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
+  // Wire card-mode interactions (Mini/Kompakt/Detail) once.
+  wireCardModeInteractions();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
