@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63m
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63n
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -22,7 +22,7 @@ console.log("Build loader ready");
   let __pendingRestore = null;
   let __pendingRestoreToken = 0;
 
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63m").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63n").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -1882,9 +1882,22 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   function cssEscape(s){
     const v = String(s ?? "");
-    try{ return (window.CSS && typeof CSS.escape === "function") ? CSS.escape(v) : v; }
+    try{ return (window.CSS && typeof CSS.escape === "function") ? cssEscape(v) : v; }
     catch{ return v; }
   }
+
+// Helper: find a card element by its data-id (IDs are numeric but we still escape defensively)
+function _getCardEl(id) {
+  if (id === null || id === undefined || id === "") return null;
+  const safeId = cssEscape(String(id));
+  try {
+    return (el.list && el.list.querySelector(`.game-card[data-id="${safeId}"]`)) || null;
+  } catch (e) {
+    // Fallback if selector escaping behaves oddly
+    return (el.list && el.list.querySelector(`.game-card[data-id="${String(id)}"]`)) || null;
+  }
+}
+
 
   function syncGenreSelectFromState(){
     // Mobile select
@@ -3544,7 +3557,7 @@ function _scheduleRestore(anchor, opts){
   __refocusT = window.setTimeout(() => {
     const p = __pendingRestore;
     if (!p?.id) return;
-    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(p.id)}"]`);
+        const card = _getCardEl(p.id);
     if (!card) return;
 
     const marginTop = _getTopMargin();
