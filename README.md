@@ -1,80 +1,26 @@
-# Spieleliste – Build V7_1j63s
+# Spieleliste – Build V7_1j62j
 
-CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+Dieses ZIP basiert auf dem zuletzt als stabil markierten Build **V7_1j62d** und enthält ausschließlich **Layout-/Typo-Konsolidierung** für die beiden kleinen FAB-Menüs (Schnellmenü & Textgröße).
 
+## Änderungen in V7_1j62j (gegenüber V7_1j62d)
 
-## Änderungen in V7_1j63s (gegenüber V7_1j63q)
+- **Schnellmenü = Referenz:** Das **Textgrößenmenü** übernimmt jetzt die gleichen Schriftgrade, Button-Höhen/Paddings und Abstände wie das Schnellmenü.
+- **Einheitlicher Chip-Rhythmus in FAB-Panels:** kompaktere Chip-Gaps innerhalb der FAB-Panels (Schnellmenü als Maßstab).
+- **UI-Skalierung gedeckelt wie im Schnellmenü:** Das Textgrößenmenü nutzt die gleiche „capped“ Panel-Skalierung, damit beide Menüs über A/A+/A++/A+++ wie aus einem Guss wirken.
 
-- **Mini → Detail**: Der bisherige „Details“-Button wurde durch einen **kleinen Chevron-Button** ersetzt (ruhiger, kompakter Look).
-- **FAB-Kollision**: Chevron-Buttons (oben rechts und unten bei „Details“) bekommen auf Phones automatisch **Abstand nach rechts** (Safe-Area gegen die FAB-Spalte).
-- **Fokusverhalten**: Beim Tippen auf den Detail-Chevron wird **kein Fokus/Scroll neu gesetzt**. Der flüssige Fokus-Flow von **Mini → Kompakt** bleibt unverändert.
+## Stand der Webansicht in diesem Build
 
-- **Neuer Flow: Mini → Kompakt → Detail (lokal pro Karte):** In der aufgeklappten Karte gibt es jetzt ein **Details‑Chevron**. Damit werden die **Akkordeons nur für diese eine Karte** eingeblendet – ohne Wechsel in eine globale Detail‑Listenansicht.
-- **Tap auf nächste Karte schließt vorherige (inkl. Details):** Der bestehende „Single‑Open“-Flow bleibt unverändert; Details werden beim Wechsel sauber geschlossen.
-- **CSS bleibt clean:** Details werden über eine klare Zustandsklasse pro Karte (**.is-detail**) sichtbar/unsichtbar geschaltet – keine kaskadierenden Overrides.
+- **Schnellmenü:** Sortierung (↑ Auf / ↓ Ab), Markierungen (An/Aus), Karten (Kompakt/Detail – Platzhalter), Sprung in „Suchen, Filtern & Sortieren“.
+- **Textgröße:** A / A+ / A++ / A+++ + „Textdarstellung“ (Normal/Kompakt – Platzhalter).
+- **Trennlinie:** pro Menü genau **eine** Linie im Header-Stil.
 
-## Änderungen in V7_1j63j (gegenüber V7_1j63i)
+## Inhalt
 
-- **Mini nutzt die verfügbare Breite korrekt (Phone-Landscape):** Im Mini-Modus bleibt die rechte Grid-Spalte nicht mehr „leer“ – dadurch haben Titel & Badges links die volle Breite und **Digital/Verfügbarkeit** brechen nicht unnötig um.
-- **„Detail öffnen“ jetzt auch in Kompakt:** Der Button ist nun nicht nur in aufgeklapptem Mini sichtbar, sondern auch in der **Kompaktkarte** (als eigene Zeile unter dem Info-Block).
-- **Button-Layout sauber über beide Spalten:** Die Action-Zeile spannt im 2-Spalten-Topgrid immer über die volle Kartenbreite (kein „links festkleben“).
+- `index.html`
+- `styles.css`
+- `app.js`
+- `xlsx.full.min.js`
 
-## Änderungen in V7_1j63h (gegenüber V7_1j63g)
+## Lokal starten
 
-- **Globale Suche erweitert:** Das freie Suchfeld durchsucht nun **alle relevanten Felder** (inkl. **Kurzbeschreibung**), sodass die globale Suche „alle Matches“ liefert.
-- Feldspezifische Suche (z. B. „Beschreibung: …“) bleibt unverändert.
-
-## Änderungen in V7_1j63g (gegenüber V7_1j63f)
-
-- **Anchor & Restore verbessert:** Funktioniert jetzt auch **ohne Klick** (Viewport-Anker = oberste sichtbare Karte).
-- Bei **Kartenmodus**- und **Textgröße**-Änderungen wird die Ankerkarte nach dem Reflow **an derselben relativen Scroll-Position** wiederhergestellt (stabiler als „irgendwo hin springen“).
-
-### Anchor & Restore: Karte bleibt im Fokus bei Layout-Änderungen
-- Wenn sich das Layout stark ändert (z.B. **Textgröße (Aa)** oder **Kartenmodus Mini/Kompakt/Detail**), wird die **aktuelle/zuletzt aktive Karte** automatisch wieder in den sichtbaren Bereich geholt.
-- Priorität für den Anker: **geöffnete Karte** → sonst **zuletzt aktive Karte** → sonst **oberste sichtbare Karte (Viewport-Anker)**.
-- Re-Fokus passiert nach dem Reflow (debounced), ohne “CSS-Flickenteppich” (rein über eine zentrale Scroll-Logik).
-
----
-
-## Änderungen in V7_1j63d (gegenüber V7_1j63c)
-
-### Mini: Direkter Wechsel zu Detail (ohne "Scroll-Willkür")
-- In einer **aufgeklappten Mini-Karte** erscheint jetzt **"Detail öffnen"**.
-- Klick darauf wechselt sofort in die **Detail-Ansicht** und bringt **dieselbe Karte** wieder vollständig in den Fokus (stabiler Übergang ohne Sprung zu anderen Titeln).
-
----
-
-## Änderungen in V7_1j63c (gegenüber V7_1j63b)
-
-### Mini: Fokus nach dem Aufklappen
-- Wenn du im **Mini-Modus** eine Karte aufklappst (Header/▾), scrollt die Ansicht automatisch so, dass die aufgeklappte Karte vollständig im sichtbaren Bereich liegt ("100% im Fokus").
-
----
-
-## Änderungen in V7_1j63b (gegenüber V7_1j62u)
-
-### Karten-Feature (Mini / Kompakt / Detail)
-- Neuer Darstellungsmodus im Schnellmenü (≡) unter **Karten**: **Mini**, **Kompakt**, **Detail**.
-- Zustand wird im Browser gespeichert (LocalStorage) und beim Neustart wiederhergestellt.
-- **Mini:** zeigt Header + Genre-Zeile. Tap auf Header (oder ▾) klappt die Karte auf und zeigt den Info-Block.
-- **Kompakt:** zeigt Header + Info-Block, ohne Akkordeons. Tap auf Header (oder ▾) kann den Info-Block ein-/ausblenden.
-- **Detail:** unverändert – Akkordeons wie bisher, kein globales Tap-Toggle.
-
-### Layout
-- **Landscape (Phone):** Im **Mini-Modus** werden zwei Karten nebeneinander dargestellt; aufgeklappte Karte spannt volle Breite.
-- **Landscape (ab 640px):** Im **Kompakt-Modus** ebenfalls zwei Karten nebeneinander.
-
----
-
-## Änderungen in V7_1j62u (gegenüber V7_1j62t)
-
-- Fix: Trophy-Status-Badges zeigen im Phone-Landscape wieder Text (kurz) statt leer.
-- CSS: Trophy-Label-Logik vereinheitlicht (Default kurz, ab breitem Landscape/Desk ausführlich), ohne widersprüchliche Überschreibungen.
-
-- Tote CSS-Regeln entfernt (nicht mehr verwendete Klassen/IDs), ohne Layout-Änderungen.
-- FAB-Menü-Styles weiter konsolidiert: weniger Spezifitäts-/Override-Kollisionen, gleiche Optik.
-- CSS-Datei aufgeräumt (Legacy-Kommentare/Altlasten reduziert), Kaskade bleibt stabil und deterministisch.
-
-## Nicht geändert
-- Optik/Spacing des UIs (Ziel: 1:1).
-- Logik/Funktionen.
+Öffne `index.html` direkt im Browser oder lade alle Dateien gemeinsam auf GitHub Pages.
