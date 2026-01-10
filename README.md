@@ -1,32 +1,16 @@
-# Spieleliste – Build V7_1j63a
+# Spieleliste – Build V7_1j62u
 
-Dieses Build ergänzt das **Kartenmodus-Feature** (Mini / Kompakt / Detail) als **reinen Darstellungsmodus**.
+CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1j63a (gegenüber V7_1j62u)
+## Änderungen in V7_1j62u (gegenüber V7_1j62t)
 
-### Kartenmodi (globaler Zustand)
-- Neuer globaler Darstellungszustand: `data-cardview="mini|compact|detail"` (am `<body>`).
-- **Default: Detail**.
-- Persistenz via `localStorage` (`spieleliste_cardView`).
+- Fix: Trophy-Status-Badges zeigen im Phone-Landscape wieder Text (kurz) statt leer.
+- CSS: Trophy-Label-Logik vereinheitlicht (Default kurz, ab breitem Landscape/Desk ausführlich), ohne widersprüchliche Überschreibungen.
 
-### Sichtbarkeit gemäß Spezifikation
-- **Immer sichtbar (alle Modi):** ID, Titel, Favoritenstern (nur Anzeige), Plattform-Badges, Quelle/Verfügbarkeit.
-- **Kompakt & Detail:** Spielstatus-Badges + kompletter Info-Block (Genre, Subgenre, Entwickler, Spielzeit, Metascore, Userwertung).
-- **Nur Detail:** Akkordeons (Beschreibung, Store, Trophäen, Humorstatistik, Eastereggs).
-- **Mini:** Genre als 1-zeilige Zeile unter dem Titel (Ellipsis), keine Spielstatus-Badges, keine Akkordeons.
-
-### Interaktion (Mini & Kompakt)
-- **Best of both:** Tap/Klick auf den **Headerbereich** toggelt offen/zu.
-- Subtiles **Chevron (▾/▴)** als Hinweis (ebenfalls klickbar).
-- Kartenkörper bleibt inert (keine globale Tap-Zone außerhalb des Headers).
-- Detail bleibt unverändert (keine globale Tap-Interaktion; Akkordeons wie bisher).
-
-### Layout / Spalten
-- Mini/Kompakt nutzen ein Grid-Layout:
-  - **Mini:** ab breiterem Viewport 2 Spalten.
-  - **Kompakt:** ab Desktop/Tablet 2 Spalten.
+- Tote CSS-Regeln entfernt (nicht mehr verwendete Klassen/IDs), ohne Layout-Änderungen.
+- FAB-Menü-Styles weiter konsolidiert: weniger Spezifitäts-/Override-Kollisionen, gleiche Optik.
+- CSS-Datei aufgeräumt (Legacy-Kommentare/Altlasten reduziert), Kaskade bleibt stabil und deterministisch.
 
 ## Nicht geändert
-- Datenmodell / Excel-Import (Excel bleibt Source of Truth).
-- Filter/Suche/Sortierung/Markierungen/Textgröße – Zustände bleiben entkoppelt.
-- Detail-Optik (Ist-Zustand) bleibt das Default-Verhalten.
+- Optik/Spacing des UIs (Ziel: 1:1).
+- Logik/Funktionen.

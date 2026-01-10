@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63a").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62u").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -105,7 +105,6 @@ console.log("Build loader ready");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabMarkRow: $("fabMarkRow"),
-    fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -210,31 +209,6 @@ console.log("Build loader ready");
 
   // --- UI: Textgröße (A / A+ / A++ / A+++) ---
   const UI_SCALE_KEY = "spieleliste_uiScalePreset";
-
-  // --- UI: Kartenmodus (mini / compact / detail) ---
-  const CARD_VIEW_KEY = "spieleliste_cardView";
-  const CARD_VIEWS = ["mini", "compact", "detail"];
-
-  function getCardView(){
-    try{
-      const saved = String(localStorage.getItem(CARD_VIEW_KEY) || "").trim();
-      if (CARD_VIEWS.includes(saved)) return saved;
-    }catch(_){/* ignore */}
-    return "detail";
-  }
-
-  let currentCardView = getCardView();
-  function applyCardView(next){
-    const v = CARD_VIEWS.includes(next) ? next : "detail";
-    currentCardView = v;
-    try{ document.body.dataset.cardview = v; }catch(_){/* ignore */}
-    try{ localStorage.setItem(CARD_VIEW_KEY, v); }catch(_){/* ignore */}
-    try{ updateFabCardViewUI(); }catch(_){/* ignore */}
-    try{ applyCardExpandedDefaults(); }catch(_){/* ignore */}
-  }
-
-  // Apply initial card view early (before any render).
-  try{ applyCardView(currentCardView); }catch(_){/* ignore */}
   // Feiner abgestufte Skalierung + etwas größere Basisschrift (CSS): lesbarer, ohne Sprung-Gefühl.
   const UI_SCALES = [
     { id: "normal",    v: 1.00, label: "A" },
@@ -326,13 +300,6 @@ console.log("Build loader ready");
     for (const b of el.fabMarkRow.querySelectorAll('.chip')){
       const k = b.getAttribute('data-key');
       b.setAttribute('aria-pressed', (on && k === 'on') || (!on && k === 'off') ? 'true' : 'false');
-    }
-  }
-
-  function updateFabCardViewUI(){
-    if (!el.fabDepthRow) return;
-    for (const b of el.fabDepthRow.querySelectorAll('.chip')){
-      b.setAttribute('aria-pressed', b.getAttribute('data-key') === currentCardView ? 'true' : 'false');
     }
   }
 
@@ -523,15 +490,6 @@ function closeFabText(){
         chipHtml("quickMarks", "off", "Aus", !on),
       ].join("");
     }
-
-    // Build card view (Mini / Kompakt / Detail)
-    if (el.fabDepthRow){
-      el.fabDepthRow.innerHTML = [
-        chipHtml("cardView", "mini", "Mini", currentCardView === "mini"),
-        chipHtml("cardView", "compact", "Kompakt", currentCardView === "compact"),
-        chipHtml("cardView", "detail", "Detail", currentCardView === "detail"),
-      ].join("");
-    }
     // Build quick sort field (dropdown)
     if (el.fabSortFieldRow){
       const enabled = [
@@ -650,11 +608,6 @@ function closeFabText(){
           updateFabMarkUI();
           // Apply/remove highlights only in visible (opened) text areas.
           try{ syncOpenTextHighlights(); }catch(_){/* ignore */}
-          return;
-        }
-        if (group === "cardView"){
-          applyCardView(key);
-          // No forced rerender needed: CSS handles visibility. Ensure defaults are applied.
           return;
         }
       });
@@ -3216,19 +3169,16 @@ function classifyAvailability(av){
         ? `<div class="pre">${esc(easter)}</div>`
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
-      const initExpanded = (currentCardView === "mini") ? "false" : "true";
       return `
-        <article class="card" data-expanded="${initExpanded}">
+        <article class="card">
           <div class="topGrid">
-            <div class="head" role="button" tabindex="0" aria-expanded="${initExpanded}">
+            <div class="head">
               <div class="rowMeta">
                 <div class="idBadge">ID ${esc(id || "—")}</div>
                 ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
               </div>
 
               <div class="title">${esc(title)}</div>
-
-              <div class="miniGenre">${esc(genre)}</div>
 
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
@@ -3245,8 +3195,6 @@ function classifyAvailability(av){
               <div class="badgeRow badgeRow-trophy">
                 ${trophyBadge}
               </div>
-
-              <button class="cardChev" type="button" aria-label="Karte öffnen oder schließen">▾</button>
             </div>
 
             ${info}
@@ -3313,51 +3261,6 @@ function classifyAvailability(av){
         label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
       }
     }catch(_){/* ignore */}
-  }
-
-  // --- Kartenmodi: Header-Toggle (nur Mini & Kompakt) ---
-  let __cardToggleWired = false;
-  function wireCardHeadToggle(){
-    if (__cardToggleWired) return;
-    if (!el.cards) return;
-    __cardToggleWired = true;
-    const _toggle = (head) => {
-      if (!head) return;
-      if (currentCardView === 'detail') return;
-      const card = head.closest('.card');
-      if (!card) return;
-      const cur = String(card.getAttribute('data-expanded') || 'false') === 'true';
-      const next = cur ? 'false' : 'true';
-      card.setAttribute('data-expanded', next);
-      try{ head.setAttribute('aria-expanded', next); }catch(_){/* ignore */}
-    };
-
-    el.cards.addEventListener('click', (ev) => {
-      const head = ev.target?.closest?.('.head');
-      if (!head) return;
-      _toggle(head);
-    });
-
-    el.cards.addEventListener('keydown', (ev) => {
-      const head = ev.target?.closest?.('.head');
-      if (!head) return;
-      const k = ev.key;
-      if (k === 'Enter' || k === ' '){
-        ev.preventDefault();
-        _toggle(head);
-      }
-    });
-  }
-
-  function applyCardExpandedDefaults(){
-    if (!el.cards) return;
-    // Detail: irrelevant (everything visible). Compact: open by default. Mini: closed by default.
-    const def = (currentCardView === 'mini') ? 'false' : 'true';
-    for (const c of el.cards.querySelectorAll('.card')){
-      c.setAttribute('data-expanded', def);
-      const h = c.querySelector('.head');
-      if (h) try{ h.setAttribute('aria-expanded', def); }catch(_){/* ignore */}
-    }
   }
 
   // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
@@ -3885,8 +3788,6 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
-  // Wire delegated card header toggling once (Mini/Kompakt).
-  wireCardHeadToggle();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();
