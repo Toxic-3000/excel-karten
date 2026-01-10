@@ -1,9 +1,9 @@
-# Spieleliste – Build V7_1j63r
+# Spieleliste – Build V7_1j63s
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63r (gegenüber V7_1j63q)
+## Änderungen in V7_1j63s (gegenüber V7_1j63q)
 
 - **Mini → Detail**: Der bisherige „Details“-Button wurde durch einen **kleinen Chevron-Button** ersetzt (ruhiger, kompakter Look).
 - **FAB-Kollision**: Chevron-Buttons (oben rechts und unten bei „Details“) bekommen auf Phones automatisch **Abstand nach rechts** (Safe-Area gegen die FAB-Spalte).

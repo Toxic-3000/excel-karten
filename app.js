@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63r
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63s
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63r").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63s").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3280,8 +3280,8 @@ function classifyAvailability(av){
                 <div class="idBadge">ID ${esc(id || "—")}</div>
                 <div class="rowMetaRight">
                   ${isFav ? `<div class="favIcon" title="Favorit">⭐</div>` : `<div class="favSpacer" aria-hidden="true"></div>`}
-                  <button class="cardToggle" type="button" aria-label="Karte öffnen/schließen" aria-expanded="${cv === 'compact' ? 'true' : 'false'}">${cv === 'compact' ? '▴' : '▾'}</button>
                 </div>
+                <button class="cardToggle chevronBtn chevronBtnTop" type="button" aria-label="Karte öffnen/schließen" aria-expanded="${cv === 'compact' ? 'true' : 'false'}" title="${cv === 'compact' ? 'Kompakt schließen' : 'Kompakt öffnen'}">${cv === 'compact' ? '▴' : '▾'}</button>
               </div>
 
               <div class="title">${esc(title)}</div>
@@ -3307,11 +3307,9 @@ function classifyAvailability(av){
 
             ${info}
 
-            <div class="miniActions">
-              <button class="detailToggleChevron" type="button" aria-label="Details anzeigen" aria-expanded="false" title="Details">
+            <button class="detailToggleChevron chevronBtn chevronBtnBottom" type="button" aria-label="Details anzeigen" aria-expanded="false" title="Details">
                 <span class="chev" aria-hidden="true">▾</span>
               </button>
-            </div>
           </div>
 
           <div class="detailsWrap">
