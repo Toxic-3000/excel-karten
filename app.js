@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63p
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63j
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,18 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-
-  // --- Anchor/Focus state (must be defined early; used by hoisted functions) ---
-  let __lastActiveCardId = "";
-  let __expandedId = "";
-  let __lastViewportId = "";
-  let __lastViewportOffset = 0;
-  let __scrollAnchorRAF = 0;
-  let __refocusT = 0;
-  let __pendingRestore = null;
-  let __pendingRestoreToken = 0;
-
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63p").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63j").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -246,7 +235,7 @@ console.log("Build loader ready");
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
     // Keep the current card in view after font scaling changes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "focus", force: true });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
 
   function cycleScale(currentId){
@@ -693,7 +682,6 @@ const __onFabViewportChange = () => {
   __fabResizeT = window.setTimeout(() => closeFabs(), 120);
 };
 window.addEventListener("resize", __onFabViewportChange, { passive: true });
-window.addEventListener("resize", _scheduleRememberViewportAnchor, { passive: true });
 window.addEventListener("orientationchange", () => closeFabs(), { passive: true });
   }
 
@@ -791,7 +779,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       try{ saveCardView(next); }catch(_){/* ignore */}
     }
     // Keep the anchor card in view after switching card modes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "focus", force: true });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
   }
   function syncCardsForView(view){
     if (!el.cards) return;
@@ -1882,22 +1870,9 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   function cssEscape(s){
     const v = String(s ?? "");
-    try{ return (window.CSS && typeof CSS.escape === "function") ? cssEscape(v) : v; }
+    try{ return (window.CSS && typeof CSS.escape === "function") ? CSS.escape(v) : v; }
     catch{ return v; }
   }
-
-// Helper: find a card element by its data-id (IDs are numeric but we still escape defensively)
-function _getCardEl(id) {
-  if (id === null || id === undefined || id === "") return null;
-  const safeId = cssEscape(String(id));
-  try {
-    return (el.list && el.list.querySelector(`.game-card[data-id="${safeId}"]`)) || null;
-  } catch (e) {
-    // Fallback if selector escaping behaves oddly
-    return (el.list && el.list.querySelector(`.game-card[data-id="${String(id)}"]`)) || null;
-  }
-}
-
 
   function syncGenreSelectFromState(){
     // Mobile select
@@ -2924,7 +2899,6 @@ function scheduleApplyAndRender(delayMs){
     syncViewHint();
     const __t1 = PERF ? performance.now() : 0;
     render(out);
-  _scheduleRememberViewportAnchor();
     if (PERF) {
       const __t2 = performance.now();
       const applyMs = (__t1 - __t0);
@@ -3456,21 +3430,9 @@ function classifyAvailability(av){
 // Restore modes:
 //  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
 //  - "focus": ensure the card is fully visible (used for explicit actions)
-function _rememberViewportAnchorNow(){
-  const a = _getViewportAnchor();
-  if(a && a.id){
-    __lastViewportId = a.id;
-    __lastViewportOffset = a.offset || 0;
-  }
-}
-
-function _scheduleRememberViewportAnchor(){
-  if(__scrollAnchorRAF) return;
-  __scrollAnchorRAF = requestAnimationFrame(() => {
-    __scrollAnchorRAF = 0;
-    _rememberViewportAnchorNow();
-  });
-}
+let __lastActiveCardId = "";
+let __refocusT = 0;
+let __pendingRestore = null; // { id, offset }
 
 function _setLastActiveCard(card){
   try{
@@ -3487,111 +3449,60 @@ function _getTopMargin(){
 }
 
 function _getViewportAnchor(){
-  const cards = Array.from(document.querySelectorAll('.game-card[data-id]'));
-  if(!cards.length) return null;
-
-  const mt = _getTopMargin();
-  const vh = window.innerHeight || 0;
-  const vw = window.innerWidth || 0;
-  if(vh <= 0 || vw <= 0) return null;
-
-  // "Point of View" = Karte, die im aktuellen Viewport am meisten echte Fläche einnimmt.
-  // Das ist über Geräte & Spalten hinweg deutlich stabiler als "zuletzt angeklickt".
-  const viewport = {left: 0, top: mt, right: vw, bottom: vh};
-  const centerX = vw * 0.5;
-  const centerY = mt + (vh - mt) * 0.5;
-
-  let best = null;
-  let bestArea = 0;
-  let bestDist = Infinity;
-
-  for(const el of cards){
-    const r = el.getBoundingClientRect();
-    // Quick reject
-    if(r.bottom <= mt) continue;
-    if(r.top >= vh) continue;
-    if(r.right <= 0) continue;
-    if(r.left >= vw) continue;
-
-    const ix = Math.max(0, Math.min(r.right, viewport.right) - Math.max(r.left, viewport.left));
-    const iy = Math.max(0, Math.min(r.bottom, viewport.bottom) - Math.max(r.top, viewport.top));
-    const area = ix * iy;
-    if(area <= 0) continue;
-
-    const cx = (r.left + r.right) / 2;
-    const cy = (r.top + r.bottom) / 2;
-    const dist = Math.hypot(cx - centerX, cy - centerY);
-
-    if(area > bestArea + 1 || (Math.abs(area - bestArea) <= 1 && dist < bestDist)){
-      bestArea = area;
-      bestDist = dist;
-      best = { el, r };
+  try{
+    if (!el.cards) return null;
+    const marginTop = _getTopMargin();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return null;
+    const cards = el.cards.querySelectorAll('.card');
+    let best = null;
+    let bestTop = Infinity;
+    for (const c of cards){
+      const r = c.getBoundingClientRect();
+      // visible at least a bit below marginTop
+      if (r.bottom <= marginTop + 1) continue;
+      if (r.top >= vh - 1) continue;
+      if (r.top < bestTop){
+        bestTop = r.top;
+        best = { el: c, rect: r };
+      }
     }
+    if (!best?.el) return null;
+    const id = String(best.el.getAttribute('data-id') || '').trim();
+    if (!id) return null;
+    return { id, offset: (best.rect.top - marginTop) };
+  }catch(_){
+    return null;
   }
-
-  if(best){
-    return { id: (best.el.getAttribute('data-id') || '').trim(), offset: best.r.top - mt };
-  }
-
-  // Fallback (sehr selten): über elementFromPoint mehrere Probepunkte testen.
-  const probes = [
-    [vw * 0.5, mt + (vh - mt) * 0.33],
-    [vw * 0.25, mt + (vh - mt) * 0.33],
-    [vw * 0.75, mt + (vh - mt) * 0.33],
-    [vw * 0.5,  mt + (vh - mt) * 0.5],
-  ];
-  for(const [x, y] of probes){
-    const el = document.elementFromPoint(Math.round(x), Math.round(y));
-    const card = el && el.closest ? el.closest('.game-card[data-id]') : null;
-    if(card){
-      const r = card.getBoundingClientRect();
-      const id = (card.getAttribute('data-id') || '').trim();
-      if(id) return { id, offset: r.top - mt };
-    }
-  }
-  return null;
 }
 
 function _captureAnchor(){
-  const mt = _getTopMargin();
-  const vh = window.innerHeight || 0;
-
-  const expandedId = String(__expandedId || '').trim();
-  const activeId = String(__lastActiveCardId || '').trim();
-
-  const isVisible = (id) => {
-    const el = _getCardEl(id);
-    if(!el) return false;
-    const r = el.getBoundingClientRect();
-    return (r.bottom > (mt + 8)) && (r.top < (vh - 8));
-  };
-
-  // 1) IMMER zuerst: Karte im aktuellen "Point of View" bestimmen.
-  //    Das verhindert, dass ein alter "lastActive" die Navigation kapert.
-  const viewport = _getViewportAnchor();
-  if(viewport && viewport.id){
-    __lastViewportId = viewport.id;
-    __lastViewportOffset = viewport.offset || 0;
-    return { id: viewport.id, offset: viewport.offset || 0, expandedId };
+  try{
+    const marginTop = _getTopMargin();
+    // 1) Expanded
+    const expanded = el.cards?.querySelector?.('.card.is-expanded');
+    if (expanded){
+      const id1 = String(expanded.getAttribute('data-id') || '').trim();
+      if (id1){
+        const r = expanded.getBoundingClientRect();
+        return { id: id1, offset: (r.top - marginTop) };
+      }
+    }
+    // 2) Last active
+    const id2 = String(__lastActiveCardId || '').trim();
+    if (id2){
+      const c2 = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(id2)}"]`);
+      if (c2){
+        const r2 = c2.getBoundingClientRect();
+        return { id: id2, offset: (r2.top - marginTop) };
+      }
+    }
+    // 3) Viewport anchor
+    return _getViewportAnchor();
+  }catch(_){
+    return null;
   }
-
-  // 2) Fallback: explizit geöffnete Karte – aber nur, wenn sie noch sichtbar ist.
-  if(expandedId && isVisible(expandedId)){
-    const el = _getCardEl(expandedId);
-    if(el) return { id: expandedId, offset: el.getBoundingClientRect().top - mt, expandedId };
-  }
-
-  // 3) Fallback: zuletzt aktiv geklickte Karte – ebenfalls nur, wenn sichtbar.
-  if(activeId && isVisible(activeId)){
-    const el = _getCardEl(activeId);
-    if(el) return { id: activeId, offset: el.getBoundingClientRect().top - mt, expandedId };
-  }
-
-  // 4) Letzter bekannter Viewport-Fokus als Fallback
-  if(__lastViewportId) return { id: __lastViewportId, offset: __lastViewportOffset || 0, expandedId };
-  return null;
 }
-
 
 function _scheduleRestore(anchor, opts){
   const a = anchor && typeof anchor === 'object' ? anchor : null;
@@ -3604,7 +3515,7 @@ function _scheduleRestore(anchor, opts){
   __refocusT = window.setTimeout(() => {
     const p = __pendingRestore;
     if (!p?.id) return;
-        const card = _getCardEl(p.id);
+    const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(p.id)}"]`);
     if (!card) return;
 
     const marginTop = _getTopMargin();
@@ -3642,7 +3553,6 @@ function _scheduleRestore(anchor, opts){
       const target = ev.target;
       const card = target?.closest?.('.card');
       if (!card) return;
-	  const cardId = String(card.getAttribute('data-id') || card.dataset?.id || '').trim();
       _setLastActiveCard(card);
 
       // Mini/Kompakt: allow jumping directly into Detail from the expanded card.
@@ -3653,8 +3563,7 @@ function _scheduleRestore(anchor, opts){
         const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
         const marginTop = topbarH + 12;
 
-	    // Switch global view first, then refocus the same card (stable, non-random scroll).
-	    if (cardId) __expandedId = cardId;
+        // Switch global view first, then refocus the same card (stable, non-random scroll).
         applyCardView('detail');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -3673,10 +3582,6 @@ function _scheduleRestore(anchor, opts){
       try{ if (window.getSelection && String(window.getSelection()?.toString() || '').length) return; }catch(_){/* ignore */}
 
       const willOpen = !card.classList.contains('is-expanded');
-	  if (cardId){
-	    if (willOpen) __expandedId = cardId;
-	    else if (__expandedId === cardId) __expandedId = '';
-	  }
 
       // Keep one expanded card at a time (cleaner in 2-column landscape).
       if (willOpen){
@@ -4051,7 +3956,6 @@ function renderTrophyDetails(row){
   });
 
   window.addEventListener("scroll", () => {
-    _scheduleRememberViewportAnchor();
     const modalOpen = document.documentElement.classList.contains("modalOpen");
     if (modalOpen) return;
     if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();

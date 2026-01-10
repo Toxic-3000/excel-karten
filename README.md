@@ -1,20 +1,13 @@
-# Spieleliste – Build V7_1j63p
+# Spieleliste – Build V7_1j63j
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63p (gegenüber V7_1j63o)
+## Änderungen in V7_1j63j (gegenüber V7_1j63i)
 
-- **Anchor-System jetzt wirklich POV-basiert:** Beim Wechsel von **Mini/Kompakt/Detail** oder bei **Textgröße (Aa)** wird die **Karte mit der größten sichtbaren Fläche im Viewport** als Anker gewählt (statt „zuletzt geklickt“).
-- **Robuster in 2‑Spalten‑Layouts:** Die Auswahl berücksichtigt **sichtbare Fläche + Nähe zur Viewport-Mitte** und ist damit deutlich stabiler bei Desktop/Tablet, auch wenn die Viewport-Mitte im „Gutter“ zwischen zwei Spalten liegt.
-- **Keine "Stale Active"-Fallen mehr:** Ein früherer Klick auf eine Karte zieht den Anker **nicht** mehr weg, wenn du später woanders hin scrollst und dann den Modus/die Schrift änderst.
-
-
-## Änderungen in V7_1j63o (gegenüber V7_1j63j)
-
-- **Anchor-System jetzt ID-basiert & POV-orientiert:** Der Viewport-Anker ist nicht mehr nur „oberste sichtbare Karte“, sondern die Karte, die dem **Fokuspunkt im Viewport** am nächsten ist (stabiler in 2‑Spalten‑Layouts auf Desktop/Tablet).
-- **Merkt die Fokus‑ID auch ohne Klick:** Beim **Scrollen** und **Resize** wird die aktuell „im Blick“ liegende Karten‑ID gespeichert – der Wechsel Mini/Kompakt/Detail funktioniert damit zuverlässiger, selbst wenn du vorher nichts angeklickt hast.
-- **Wechsel von Mini/Kompakt/Detail & Textgröße refokussiert stabil:** Restore nutzt jetzt **mode: focus** (statt offset), damit die gemerkte ID sicher wieder in den sichtbaren Bereich geholt wird – besonders auf Desktop/Windows‑Tablet.
+- **Mini nutzt die verfügbare Breite korrekt (Phone-Landscape):** Im Mini-Modus bleibt die rechte Grid-Spalte nicht mehr „leer“ – dadurch haben Titel & Badges links die volle Breite und **Digital/Verfügbarkeit** brechen nicht unnötig um.
+- **„Detail öffnen“ jetzt auch in Kompakt:** Der Button ist nun nicht nur in aufgeklapptem Mini sichtbar, sondern auch in der **Kompaktkarte** (als eigene Zeile unter dem Info-Block).
+- **Button-Layout sauber über beide Spalten:** Die Action-Zeile spannt im 2-Spalten-Topgrid immer über die volle Kartenbreite (kein „links festkleben“).
 
 ## Änderungen in V7_1j63h (gegenüber V7_1j63g)
 
