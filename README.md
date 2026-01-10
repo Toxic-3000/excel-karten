@@ -1,8 +1,8 @@
-# Spieleliste – Build V7_1j62u
+# Spieleliste – Build V7_1j62w
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1j62u (gegenüber V7_1j62t)
+## Änderungen in V7_1j62w (gegenüber V7_1j62t)
 
 - Fix: Trophy-Status-Badges zeigen im Phone-Landscape wieder Text (kurz) statt leer.
 - CSS: Trophy-Label-Logik vereinheitlicht (Default kurz, ab breitem Landscape/Desk ausführlich), ohne widersprüchliche Überschreibungen.
