@@ -697,59 +697,6 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
 }
 .cards{padding:6px 4px}
 
-/* --- Kartenmodi (Mini / Kompakt / Detail) ---
-   Gesteuert über: body[data-cardview="mini|compact|detail"]
-   Ziel: wenige klare Regeln (Sichtbarkeit & Spacing). */
-
-/* Grid nur in Mini/Kompakt (für 2-Spalten-Landscape). */
-body[data-cardview="mini"] .cards,
-body[data-cardview="compact"] .cards{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: calc(20px * var(--uiScale));
-}
-body[data-cardview="mini"] .cards .card,
-body[data-cardview="compact"] .cards .card{
-  margin: 0;
-}
-
-/* Landscape: zwei Karten nebeneinander (Mini immer, Kompakt ab etwas mehr Breite). */
-@media (min-width: 520px) and (orientation: landscape){
-  body[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-}
-/* Kompakt: auf Phone-Landscape bewusst 1-spaltig.
-   2 Spalten erst ab Tablet/Desktop, damit der Flow stabil bleibt.
-   (Mini darf in Phone-Landscape weiterhin 2-spaltig sein.) */
-@media (min-width: 900px){
-  body[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-}
-
-/* Mini: Beim Aufklappen soll die geöffnete Karte die volle Breite bekommen. */
-@media (min-width: 520px) and (orientation: landscape){
-  body[data-cardview="mini"] .card.is-expanded{ grid-column: 1 / -1; }
-}
-
-/* Detail: Kein globales Aufklappen-UI */
-body[data-cardview="detail"] .cardToggle{ display: none; }
-
-/* Mini: stark reduziert */
-body[data-cardview="mini"] .miniGenre{ display: block; }
-body[data-cardview="mini"] .badgeRow-trophy,
-body[data-cardview="mini"] .headDivider{ display: none; }
-body[data-cardview="mini"] .info,
-body[data-cardview="mini"] .detailsWrap{ display: none; }
-body[data-cardview="mini"] .card.is-expanded .info{ display: block; }
-body[data-cardview="mini"] .card.is-expanded.is-detail .detailsWrap{ display:block; }
-
-
-/* Kompakt: Header + Info, keine Akkordeons */
-body[data-cardview="compact"] .miniGenre{ display: none; }
-body[data-cardview="compact"] .detailsWrap{ display: none; }
-body[data-cardview="compact"] .card.is-expanded.is-detail .detailsWrap{ display:block; }
-
-body[data-cardview="compact"] .card:not(.is-expanded) .info{ display: none; }
-
-
 /* Inline, temporary hint shown after closing the filter menu.
    Not fixed/sticky (avoids Phone-Landscape quirks). */
 .viewToast{
@@ -785,7 +732,6 @@ body[data-cardview="compact"] .card:not(.is-expanded) .info{ display: none; }
 .rowMeta{
   display:flex; justify-content:flex-start; align-items:center; gap: var(--sp-4);
 }
-.rowMetaRight{ margin-left:auto; display:flex; align-items:center; gap: var(--sp-4); }
 .idBadge{
   background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
   border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
@@ -802,7 +748,8 @@ body[data-cardview="compact"] .card:not(.is-expanded) .info{ display: none; }
   height: calc(28px * var(--uiScale));
   border-radius:999px;
   display:grid;place-items:center;
-  margin: 0; /* liegt in .rowMetaRight */
+  margin-left:auto; /* rechtsbündig im Header-Bereich */
+  margin-right: calc(14px * var(--uiScale)); /* etwas weiter nach links, nicht am Rand kleben */
   border:1px solid var(--border);
   background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
 }
@@ -811,74 +758,9 @@ body[data-cardview="compact"] .card:not(.is-expanded) .info{ display: none; }
 .favSpacer{
   width: calc(34px * var(--uiScale));
   height: calc(28px * var(--uiScale));
-  margin: 0; /* liegt in .rowMetaRight */
+  margin-left:auto;
+  margin-right: calc(14px * var(--uiScale));
 }
-
-.cardToggle{
-  width: calc(44px * var(--uiScale));
-  height: calc(36px * var(--uiScale));
-  border-radius:999px;
-  border:1px solid var(--border);
-  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-  display:grid; place-items:center;
-  font-size: calc(18px * var(--uiScale));
-  line-height:1;
-  cursor:pointer;
-  user-select:none;
-}
-.cardToggle:active{ transform: translateY(1px); }
-
-/* --- 3-Stufen-Flow (Mini → Kompakt → Detail): Chevrons (zart, einheitlich) --- */
-.chevRow{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding-top: calc(8px * var(--uiScale));
-  grid-column: 1 / -1;
-}
-.chevBtn{
-  width: calc(44px * var(--uiScale));
-  height: calc(34px * var(--uiScale));
-  border-radius:999px;
-  border:1px solid var(--border);
-  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
-  display:grid; place-items:center;
-  font-size: calc(18px * var(--uiScale));
-  line-height:1;
-  cursor:pointer;
-  user-select:none;
-  opacity:.75;
-}
-.chevBtn:active{ transform: translateY(1px); }
-.chevBtn:hover{ opacity:.92; }
-
-/* Detail-Chevron erst sichtbar, wenn Kompakt geöffnet ist */
-.chevRow-detail{ display:none; }
-body[data-cardview="mini"] .card.is-expanded .chevRow-detail{ display:flex; }
-body[data-cardview="compact"] .card.is-expanded .chevRow-detail{ display:flex; }
-
-.miniGenre{ display:none; margin: calc(6px * var(--uiScale)) 0 calc(2px * var(--uiScale)); font-weight:600; opacity:.86; }
-
-/* --- Sichtbarkeit je Modus --- */
-/* Mini zeigt nur Header + Genre-Zeile; Info/Details erst beim Aufklappen. */
-body[data-cardview="mini"] .miniGenre{ display:block; }
-body[data-cardview="mini"] .headDivider{ display:none; }
-body[data-cardview="mini"] .badgeRow-trophy{ display:none; }
-body[data-cardview="mini"] .info,
-body[data-cardview="mini"] .detailsWrap{ display:none; }
-body[data-cardview="mini"] .card.is-expanded .info{ display:block; }
-
-/* Mini: Action-Zeile erscheint nur bei aufgeklappten Karten (z.B. "Detail öffnen"). */
-.miniActions{ display:none; justify-content:flex-end;
-  grid-column: 1 / -1; gap: calc(8px * var(--uiScale)); padding-top: calc(8px * var(--uiScale)); }
-body[data-cardview="mini"] .card.is-expanded .miniActions{ display:flex; }
-body[data-cardview="compact"] .card.is-expanded .miniActions{display:flex;}
-
-/* Kompakt: Header + Info-Block, keine Akkordeons. */
-body[data-cardview="compact"] .miniGenre{ display:none; }
-body[data-cardview="compact"] .detailsWrap{ display:none; }
-body[data-cardview="compact"] .info{ display:none; }
-body[data-cardview="compact"] .card.is-expanded .info{ display:block; }
 
 .title{
   font-weight:750;
@@ -906,9 +788,6 @@ body[data-cardview="compact"] .card.is-expanded .info{ display:block; }
   align-items:center;
   height: var(--badge-h);
   font-variant-numeric: tabular-nums;
-  /* Badges sollen ruhig bleiben und nicht innerhalb umbrechen.
-     Wrap passiert auf Zeilen-Ebene (.badgeRow), nicht im Badge selbst. */
-  white-space: nowrap;
 }
 /* Fixed-ish lengths per type (for visual calm) */
 .badge.platform{min-width: calc(54px * var(--uiScale)); justify-content:center}
@@ -2309,31 +2188,11 @@ html.modalOpen body{touch-action:none;}
 @media (min-width: 520px) and (orientation: landscape){
   .topGrid{
     display:grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 0.80fr 1.20fr;
     gap:calc(12px * var(--uiScale));
     align-items:start;
   }
   .topGrid .info{margin-top:0}
-
-  /* Mini: wenn nicht aufgeklappt, volle Breite nutzen (rechte Spalte wäre sonst leer) */
-  body[data-cardview="mini"] .card:not(.is-expanded) .topGrid{grid-template-columns:1fr;}
-
-  /* Kompakt/Detail & aufgeklapptes Mini: Info-Block rechts neben Inhalt */
-  body[data-cardview="compact"] .topGrid,
-  body[data-cardview="detail"] .topGrid,
-  body[data-cardview="mini"] .card.is-expanded .topGrid{grid-template-columns:0.80fr 1.20fr;}
-
-  /* Mini: in geschlossenem Zustand volle Breite nutzen (sonst bleibt die rechte Spalte leer). */
-  body[data-cardview="mini"] .card:not(.is-expanded) .topGrid{
-    grid-template-columns: 1fr;
-  }
-
-  /* Kompakt/Detail + aufgeklapptes Mini: Info-Block rechts neben den Hauptinfos. */
-  body[data-cardview="compact"] .topGrid,
-  body[data-cardview="detail"] .topGrid,
-  body[data-cardview="mini"] .card.is-expanded .topGrid{
-    grid-template-columns: 0.80fr 1.20fr;
-  }
 
   .detailsWrap{
     display:grid;
@@ -2351,19 +2210,6 @@ html.modalOpen body{touch-action:none;}
 
   /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
      (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
-}
-
-/* V7_1j63t: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
-   In breiteren Viewports war der rechte Info-Block zu dominant, dadurch sind Badges
-   links unnötig umgebrochen. Wir kappen die rechte Spalte und geben dem linken Bereich
-   zuverlässig mehr Luft – Detail bleibt unangetastet. */
-@media (min-width: 720px){
-  body[data-cardview="compact"] .topGrid,
-  body[data-cardview="mini"] .card.is-expanded .topGrid{
-    grid-template-columns: minmax(0, 1fr) minmax(calc(260px * var(--uiScale)), calc(360px * var(--uiScale)));
-  }
-  body[data-cardview="compact"] .topGrid > *,
-  body[data-cardview="mini"] .card.is-expanded .topGrid > *{ min-width: 0; }
 }
 
 
