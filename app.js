@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63j
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63k
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63j").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63k").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -235,7 +235,7 @@ console.log("Build loader ready");
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
     // Keep the current card in view after font scaling changes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "focus", force: true });
   }
 
   function cycleScale(currentId){
@@ -682,6 +682,7 @@ const __onFabViewportChange = () => {
   __fabResizeT = window.setTimeout(() => closeFabs(), 120);
 };
 window.addEventListener("resize", __onFabViewportChange, { passive: true });
+window.addEventListener("resize", _scheduleRememberViewportAnchor, { passive: true });
 window.addEventListener("orientationchange", () => closeFabs(), { passive: true });
   }
 
@@ -779,7 +780,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       try{ saveCardView(next); }catch(_){/* ignore */}
     }
     // Keep the anchor card in view after switching card modes.
-    _scheduleRestore(__anchor, { behavior: "auto", mode: "offset", force: false });
+    _scheduleRestore(__anchor, { behavior: "auto", mode: "focus", force: true });
   }
   function syncCardsForView(view){
     if (!el.cards) return;
@@ -2899,6 +2900,7 @@ function scheduleApplyAndRender(delayMs){
     syncViewHint();
     const __t1 = PERF ? performance.now() : 0;
     render(out);
+  _scheduleRememberViewportAnchor();
     if (PERF) {
       const __t2 = performance.now();
       const applyMs = (__t1 - __t0);
@@ -3431,6 +3433,26 @@ function classifyAvailability(av){
 //  - "offset": keep the same relative position to the viewport top (feels like "scroll stays put")
 //  - "focus": ensure the card is fully visible (used for explicit actions)
 let __lastActiveCardId = "";
+let __lastViewportId = "";
+let __lastViewportOffset = 0;
+let __scrollAnchorRAF = 0;
+
+function _rememberViewportAnchorNow(){
+  const a = _getViewportAnchor();
+  if(a && a.id){
+    __lastViewportId = a.id;
+    __lastViewportOffset = a.offset || 0;
+  }
+}
+
+function _scheduleRememberViewportAnchor(){
+  if(__scrollAnchorRAF) return;
+  __scrollAnchorRAF = requestAnimationFrame(() => {
+    __scrollAnchorRAF = 0;
+    _rememberViewportAnchorNow();
+  });
+}
+
 let __refocusT = 0;
 let __pendingRestore = null; // { id, offset }
 
@@ -3449,60 +3471,64 @@ function _getTopMargin(){
 }
 
 function _getViewportAnchor(){
-  try{
-    if (!el.cards) return null;
-    const marginTop = _getTopMargin();
-    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    if (!vh) return null;
-    const cards = el.cards.querySelectorAll('.card');
-    let best = null;
-    let bestTop = Infinity;
-    for (const c of cards){
-      const r = c.getBoundingClientRect();
-      // visible at least a bit below marginTop
-      if (r.bottom <= marginTop + 1) continue;
-      if (r.top >= vh - 1) continue;
-      if (r.top < bestTop){
-        bestTop = r.top;
-        best = { el: c, rect: r };
-      }
-    }
-    if (!best?.el) return null;
-    const id = String(best.el.getAttribute('data-id') || '').trim();
-    if (!id) return null;
-    return { id, offset: (best.rect.top - marginTop) };
-  }catch(_){
-    return null;
+  const cards = Array.from(document.querySelectorAll('.game-card[data-id]'));
+  const mt = _getTopMargin();
+  const vh = window.innerHeight || 0;
+  const vw = window.innerWidth || 0;
+
+  // Fokuspunkt: eher im oberen Sichtbereich (unterhalb der Toolbar),
+  // damit "was ich gerade betrachte" besser getroffen wird als "oberste Karte".
+  const targetY = mt + Math.max(80, (vh - mt) * 0.33);
+  const targetX = vw * 0.5;
+
+  let best = null;
+  for(const el of cards){
+    const r = el.getBoundingClientRect();
+    if(r.bottom <= mt + 6) continue;
+    if(r.top >= vh - 6) continue;
+
+    const cy = (r.top + r.bottom) / 2;
+    const cx = (r.left + r.right) / 2;
+
+    const dy = Math.abs(cy - targetY);
+    const dx = Math.abs(cx - targetX);
+
+    // Y dominiert klar (Scroll-Achse), X dient als Tie-Breaker (2 Spalten / Desktop)
+    const score = dy * 1000 + dx;
+    if(!best || score < best.score) best = {el, r, score};
   }
+  if(!best) return null;
+  return { id: best.el.getAttribute('data-id'), offset: best.r.top - mt };
 }
 
 function _captureAnchor(){
-  try{
-    const marginTop = _getTopMargin();
-    // 1) Expanded
-    const expanded = el.cards?.querySelector?.('.card.is-expanded');
-    if (expanded){
-      const id1 = String(expanded.getAttribute('data-id') || '').trim();
-      if (id1){
-        const r = expanded.getBoundingClientRect();
-        return { id: id1, offset: (r.top - marginTop) };
-      }
-    }
-    // 2) Last active
-    const id2 = String(__lastActiveCardId || '').trim();
-    if (id2){
-      const c2 = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(id2)}"]`);
-      if (c2){
-        const r2 = c2.getBoundingClientRect();
-        return { id: id2, offset: (r2.top - marginTop) };
-      }
-    }
-    // 3) Viewport anchor
-    return _getViewportAnchor();
-  }catch(_){
-    return null;
+  // 1) Wenn eine Karte explizit geöffnet ist: die nehmen (stabilster Kontext)
+  const expandedId = __expandedId;
+  if(expandedId){
+    const el = _getCardEl(expandedId);
+    if(el) return { id: expandedId, offset: el.getBoundingClientRect().top - _getTopMargin(), expandedId };
   }
+
+  // 2) Wenn zuletzt aktiv angeklickt: die nehmen
+  const activeId = __lastActiveCardId;
+  if(activeId){
+    const el = _getCardEl(activeId);
+    if(el) return { id: activeId, offset: el.getBoundingClientRect().top - _getTopMargin(), expandedId };
+  }
+
+  // 3) Sonst: "Point of View" aus dem sichtbaren Bereich (ID-basiert)
+  const viewport = _getViewportAnchor();
+  if(viewport && viewport.id){
+    __lastViewportId = viewport.id;
+    __lastViewportOffset = viewport.offset || 0;
+    return { id: viewport.id, offset: viewport.offset || 0, expandedId };
+  }
+
+  // 4) Letzter bekannter Viewport-Fokus als Fallback
+  if(__lastViewportId) return { id: __lastViewportId, offset: __lastViewportOffset || 0, expandedId };
+  return null;
 }
+
 
 function _scheduleRestore(anchor, opts){
   const a = anchor && typeof anchor === 'object' ? anchor : null;
@@ -3956,6 +3982,7 @@ function renderTrophyDetails(row){
   });
 
   window.addEventListener("scroll", () => {
+    _scheduleRememberViewportAnchor();
     const modalOpen = document.documentElement.classList.contains("modalOpen");
     if (modalOpen) return;
     if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();

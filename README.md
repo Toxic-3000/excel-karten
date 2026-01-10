@@ -1,13 +1,13 @@
-# Spieleliste – Build V7_1j63j
+# Spieleliste – Build V7_1j63k
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63j (gegenüber V7_1j63i)
+## Änderungen in V7_1j63k (gegenüber V7_1j63j)
 
-- **Mini nutzt die verfügbare Breite korrekt (Phone-Landscape):** Im Mini-Modus bleibt die rechte Grid-Spalte nicht mehr „leer“ – dadurch haben Titel & Badges links die volle Breite und **Digital/Verfügbarkeit** brechen nicht unnötig um.
-- **„Detail öffnen“ jetzt auch in Kompakt:** Der Button ist nun nicht nur in aufgeklapptem Mini sichtbar, sondern auch in der **Kompaktkarte** (als eigene Zeile unter dem Info-Block).
-- **Button-Layout sauber über beide Spalten:** Die Action-Zeile spannt im 2-Spalten-Topgrid immer über die volle Kartenbreite (kein „links festkleben“).
+- **Anchor-System jetzt ID-basiert & POV-orientiert:** Der Viewport-Anker ist nicht mehr nur „oberste sichtbare Karte“, sondern die Karte, die dem **Fokuspunkt im Viewport** am nächsten ist (stabiler in 2‑Spalten‑Layouts auf Desktop/Tablet).
+- **Merkt die Fokus‑ID auch ohne Klick:** Beim **Scrollen** und **Resize** wird die aktuell „im Blick“ liegende Karten‑ID gespeichert – der Wechsel Mini/Kompakt/Detail funktioniert damit zuverlässiger, selbst wenn du vorher nichts angeklickt hast.
+- **Wechsel von Mini/Kompakt/Detail & Textgröße refokussiert stabil:** Restore nutzt jetzt **mode: focus** (statt offset), damit die gemerkte ID sicher wieder in den sichtbaren Bereich geholt wird – besonders auf Desktop/Windows‑Tablet.
 
 ## Änderungen in V7_1j63h (gegenüber V7_1j63g)
 
