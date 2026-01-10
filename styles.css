@@ -64,6 +64,8 @@
   --fabSize: 36px;
   --fabGap: 8px;
   --fabFont: 11px;
+  /* Space on the right to keep in-card controls clear of the FAB column (phones). */
+  --fabSafeRight: 0px;
 
   /* Softer, less “office-grey” base palette */
   --bg: #f6f8ff;
@@ -96,6 +98,9 @@
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
   --filterGlow: color-mix(in oklab, var(--filterAccent) 22%, transparent);
 }
+
+/* Phones: keep small in-card controls clear of the right-side FAB column */
+html.isPhone{ --fabSafeRight: calc((var(--fabEdge) + var(--fabSize) + 10px) * var(--uiScale)); }
 
 /* Tablet + Desktop: gleichermaßen (touchfreundlich, aber etwas kompakter als zuvor) */
 @media (min-width: 701px){
@@ -821,6 +826,7 @@ body[data-cardview="compact"] .card:not(.is-expanded) .info{ display: none; }
   line-height:1;
   cursor:pointer;
   user-select:none;
+  margin-right: var(--fabSafeRight);
 }
 .cardToggle:active{ transform: translateY(1px); }
 
@@ -846,11 +852,22 @@ body[data-cardview="mini"] .card.is-detail .badgeRow-trophy{ display:flex; }
 body[data-cardview="mini"] .card.is-expanded .miniActions{ display:flex; }
 body[data-cardview="compact"] .card.is-expanded .miniActions{display:flex;}
 
-/* Detail-Toggle in der Action-Zeile */
-.miniActions .detailToggle{ display:inline-flex; align-items:center; gap: calc(6px * var(--uiScale)); }
-.miniActions .detailToggle .chev{ font-size: calc(18px * var(--uiScale)); line-height:1; }
-/* In Kompakt: Text weglassen, damit die Liste ruhig bleibt (Chevron bleibt). */
-body[data-cardview="compact"] .miniActions .detailToggle .txt{ display:none; }
+/* Detail-Toggle in der Action-Zeile (Chevron-only, wie im Kartenkopf) */
+.miniActions .detailToggleChevron{
+  width: calc(36px * var(--uiScale));
+  height: calc(36px * var(--uiScale));
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(150,160,175,0.22);
+  color: var(--ink);
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  margin-right: var(--fabSafeRight);
+}
 
 /* Kompakt: Header + Info-Block, keine Akkordeons. */
 body[data-cardview="compact"] .miniGenre{ display:none; }

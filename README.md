@@ -1,9 +1,13 @@
-# Spieleliste – Build V7_1j63q
+# Spieleliste – Build V7_1j63r
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
 
-## Änderungen in V7_1j63q (gegenüber V7_1j63j)
+## Änderungen in V7_1j63r (gegenüber V7_1j63q)
+
+- **Mini → Detail**: Der bisherige „Details“-Button wurde durch einen **kleinen Chevron-Button** ersetzt (ruhiger, kompakter Look).
+- **FAB-Kollision**: Chevron-Buttons (oben rechts und unten bei „Details“) bekommen auf Phones automatisch **Abstand nach rechts** (Safe-Area gegen die FAB-Spalte).
+- **Fokusverhalten**: Beim Tippen auf den Detail-Chevron wird **kein Fokus/Scroll neu gesetzt**. Der flüssige Fokus-Flow von **Mini → Kompakt** bleibt unverändert.
 
 - **Neuer Flow: Mini → Kompakt → Detail (lokal pro Karte):** In der aufgeklappten Karte gibt es jetzt ein **Details‑Chevron**. Damit werden die **Akkordeons nur für diese eine Karte** eingeblendet – ohne Wechsel in eine globale Detail‑Listenansicht.
 - **Tap auf nächste Karte schließt vorherige (inkl. Details):** Der bestehende „Single‑Open“-Flow bleibt unverändert; Details werden beim Wechsel sauber geschlossen.

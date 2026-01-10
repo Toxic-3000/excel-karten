@@ -2,7 +2,7 @@ window.__APP_LOADED = true;
 if (window.__BOOT && typeof window.__BOOT.noticeTop === 'function') window.__BOOT.noticeTop('');
 if (window.__BOOT && typeof window.__BOOT.noticeLoad === 'function') window.__BOOT.noticeLoad('');
 console.log("Build loader ready");
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63q
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1j63r
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Kompaktansicht only
@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63q").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j63r").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
 
@@ -3308,9 +3308,8 @@ function classifyAvailability(av){
             ${info}
 
             <div class="miniActions">
-              <button class="chip detailToggle" type="button" aria-label="Details anzeigen" aria-expanded="false">
+              <button class="detailToggleChevron" type="button" aria-label="Details anzeigen" aria-expanded="false" title="Details">
                 <span class="chev" aria-hidden="true">▾</span>
-                <span class="txt">Details</span>
               </button>
             </div>
           </div>
@@ -3391,13 +3390,10 @@ function classifyAvailability(av){
 
   function syncDetailToggle(card){
     if (!card) return;
-    const btn = card.querySelector('.detailToggle');
+    const btn = card.querySelector('.detailToggleChevron');
     if (!btn) return;
     const open = card.classList.contains('is-detail');
-    const chev = btn.querySelector('.chev');
-    const txt  = btn.querySelector('.txt');
-    if (chev) chev.textContent = open ? '▴' : '▾';
-    if (txt) txt.textContent = open ? 'Details' : 'Details';
+    btn.textContent = open ? '▴' : '▾';
     try{ btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }catch(_){/* ignore */}
     try{ btn.setAttribute('aria-label', open ? 'Details verbergen' : 'Details anzeigen'); }catch(_){/* ignore */}
   }
@@ -3575,7 +3571,7 @@ function _scheduleRestore(anchor, opts){
       _setLastActiveCard(card);
 
       // Local Detail (within Mini/Kompakt): toggle accordions for this one card.
-      const detailBtn = target?.closest?.('.detailToggle');
+      const detailBtn = target?.closest?.('.detailToggleChevron');
       if (detailBtn){
         ev.preventDefault();
         ev.stopPropagation();
@@ -3607,14 +3603,6 @@ function _scheduleRestore(anchor, opts){
         card.classList.toggle('is-detail', willShow);
         syncDetailToggle(card);
 
-        // Bring the card into focus after the layout grows/shrinks.
-        const topbarH = (document.querySelector('.topbar, .hdr')?.offsetHeight ?? 0);
-        const marginTop = topbarH + 12;
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            scrollCardFullyIntoView(card, { marginTop, marginBottom: 12, force: true, behavior: 'smooth' });
-          });
-        });
         return;
       }
 
