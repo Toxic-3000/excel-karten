@@ -836,8 +836,10 @@ body[data-cardview="mini"] .detailsWrap{ display:none; }
 body[data-cardview="mini"] .card.is-expanded .info{ display:block; }
 
 /* Mini: Action-Zeile erscheint nur bei aufgeklappten Karten (z.B. "Detail öffnen"). */
-.miniActions{ display:none; justify-content:flex-end; gap: calc(8px * var(--uiScale)); padding-top: calc(8px * var(--uiScale)); }
+.miniActions{ display:none; justify-content:flex-end;
+  grid-column: 1 / -1; gap: calc(8px * var(--uiScale)); padding-top: calc(8px * var(--uiScale)); }
 body[data-cardview="mini"] .card.is-expanded .miniActions{ display:flex; }
+body[data-cardview="compact"] .card.is-expanded .miniActions{display:flex;}
 
 /* Kompakt: Header + Info-Block, keine Akkordeons. */
 body[data-cardview="compact"] .miniGenre{ display:none; }
@@ -2274,11 +2276,31 @@ html.modalOpen body{touch-action:none;}
 @media (min-width: 520px) and (orientation: landscape){
   .topGrid{
     display:grid;
-    grid-template-columns: 0.80fr 1.20fr;
+    grid-template-columns: 1fr;
     gap:calc(12px * var(--uiScale));
     align-items:start;
   }
   .topGrid .info{margin-top:0}
+
+  /* Mini: wenn nicht aufgeklappt, volle Breite nutzen (rechte Spalte wäre sonst leer) */
+  body[data-cardview="mini"] .card:not(.is-expanded) .topGrid{grid-template-columns:1fr;}
+
+  /* Kompakt/Detail & aufgeklapptes Mini: Info-Block rechts neben Inhalt */
+  body[data-cardview="compact"] .topGrid,
+  body[data-cardview="detail"] .topGrid,
+  body[data-cardview="mini"] .card.is-expanded .topGrid{grid-template-columns:0.80fr 1.20fr;}
+
+  /* Mini: in geschlossenem Zustand volle Breite nutzen (sonst bleibt die rechte Spalte leer). */
+  body[data-cardview="mini"] .card:not(.is-expanded) .topGrid{
+    grid-template-columns: 1fr;
+  }
+
+  /* Kompakt/Detail + aufgeklapptes Mini: Info-Block rechts neben den Hauptinfos. */
+  body[data-cardview="compact"] .topGrid,
+  body[data-cardview="detail"] .topGrid,
+  body[data-cardview="mini"] .card.is-expanded .topGrid{
+    grid-template-columns: 0.80fr 1.20fr;
+  }
 
   .detailsWrap{
     display:grid;
@@ -2298,7 +2320,7 @@ html.modalOpen body{touch-action:none;}
      (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
 }
 
-/* V7_1j63i: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
+/* V7_1j63j: Mini/Kompakt sollen den verfügbaren Platz besser ausnutzen.
    In breiteren Viewports war der rechte Info-Block zu dominant, dadurch sind Badges
    links unnötig umgebrochen. Wir kappen die rechte Spalte und geben dem linken Bereich
    zuverlässig mehr Luft – Detail bleibt unangetastet. */
