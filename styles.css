@@ -5,14 +5,14 @@
 
 /* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
 /*
-  CSS Cleanup Phase J/K (V7_1k63b):
+  CSS Cleanup Phase J/K (V7_1k63c):
   - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
   - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
 */
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63b
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63c
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -2948,19 +2948,29 @@ html.modalOpen body{touch-action:none;}
 .cardChevron{
   pointer-events: none;
   user-select: none;
-  display: inline-flex;
+  /* Block-level so centering via auto-margins works reliably */
+  display: flex;
   align-items: center;
   justify-content: center;
   width: calc(28px * var(--uiScale));
   height: calc(18px * var(--uiScale));
   font-size: calc(15px * var(--uiScale));
   line-height: 1;
-  opacity: .55;
+  border-radius: 999px;
+  /* Subtle "inset" well: present but not buttony */
+  background: color-mix(in oklab, var(--card) 90%, var(--fg) 10%);
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent 90%);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.10),
+    inset 0 -1px 0 rgba(255,255,255,.55);
+  color: color-mix(in oklab, var(--fg) 58%, transparent 42%);
+  opacity: .85;
 }
 
 /* Chevron 1: bottom of the mini area (head), centered */
 .chev1{
-  margin-top: calc(10px * var(--uiScale));
+  margin-top: calc(12px * var(--uiScale));
+  margin-bottom: calc(4px * var(--uiScale));
   margin-left: auto;
   margin-right: auto;
 }
@@ -2970,7 +2980,12 @@ html.modalOpen body{touch-action:none;}
 :root[data-cardview="compact"] .chev1{ display: none; }
 
 /* Chevron 2: below compact block, centered */
-.chev2Wrap{ display: none; justify-content: center; margin-top: calc(10px * var(--uiScale)); }
+.chev2Wrap{
+  display: none;
+  justify-content: center;
+  margin-top: calc(14px * var(--uiScale));
+  margin-bottom: calc(4px * var(--uiScale));
+}
 
 /* Show compact marker when the compact zone is visible but details aren't */
 :root[data-cardview="mini"] .card[data-compact-open="1"]:not([data-detail-open]) .chev2Wrap{ display: flex; }
