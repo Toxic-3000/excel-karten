@@ -5,14 +5,14 @@
 
 /* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
 /*
-  CSS Cleanup Phase J/K (V7_1k63f):
+  CSS Cleanup Phase J/K (V7_1k63g):
   - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
   - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
 */
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63f
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63g
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)

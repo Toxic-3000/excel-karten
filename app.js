@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63f").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63g").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -753,8 +753,41 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     }catch(_){ return true }
   }
 
-  function focusCardTop(card){
-    try{ card.scrollIntoView({block:'start', behavior:'smooth'}); }catch(_){/* ignore */}
+  function _prefersReducedMotion(){
+    try{ return !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){ return false }
+  }
+
+  function _stickyHeaderHeight(){
+    try{
+      const hdr = document.querySelector('.hdr');
+      if (!hdr) return 0;
+      const r = hdr.getBoundingClientRect();
+      return Math.max(0, Math.round(r.height || 0));
+    }catch(_){ return 0 }
+  }
+
+  function focusCardToReadingPosition(card){
+    // Deterministic focus scroll (Desktop/Tablet friendly):
+    // keep the card anchored at a consistent position below the sticky header.
+    try{
+      const r = card.getBoundingClientRect();
+      const hdrH = _stickyHeaderHeight();
+      const extra = 12; // small breathing room below sticky header
+      const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - hdrH - extra));
+      const behavior = _prefersReducedMotion() ? 'auto' : 'smooth';
+      window.scrollTo({ top: target, behavior });
+    }catch(_){/* ignore */}
+  }
+
+  function scheduleFocusScrollById(id){
+    // Wait for DOM + layout (after expanding/syncing) before scrolling.
+    const sid = String(id);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(sid)}"]`);
+        if (card) focusCardToReadingPosition(card);
+      });
+    });
   }
 
   function onCardTapById(id){
@@ -766,16 +799,15 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     // Final rules:
     // - Tap zone is the whole card.
     // - No "back" via tapping the same card.
-    // - Focus scroll ONLY when entering a card from Mini → Kompakt (as in 63a).
-    // - Kompakt → Detail never scrolls (preserve reading flow).
+    // - Focus scroll when a card becomes active via FIRST tap in global Mini OR global Kompakt.
+    // - No focus scroll when deepening the active card (Kompakt → Detail) or opening accordions.
     if (m === 'mini'){
       if (cur !== sid){
         // Enter card: Mini → Kompakt (+ focus scroll)
         state.activeCardId = sid;
         state.detailOpenId = null;
         syncCardStates();
-        const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(sid)}"]`);
-        if (card) focusCardTop(card);
+        scheduleFocusScrollById(sid);
         return;
       }
       // Same card tapped again: Kompakt → Detail (no scroll)
@@ -788,13 +820,17 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
     if (m === 'compact'){
       // In global Kompakt mode all cards show the compact zone.
-      // Tap promotes the tapped card to Detail (no scroll).
-      state.activeCardId = sid;
+      // FIRST tap on a non-active card focuses it (+ focus scroll). SECOND tap on the active card deepens to Detail.
+      if (cur !== sid){
+        state.activeCardId = sid;
+        state.detailOpenId = null;
+        syncCardStates();
+        scheduleFocusScrollById(sid);
+        return;
+      }
+      // Active card tapped again: Kompakt → Detail (no scroll)
       if (state.detailOpenId !== sid){
         state.detailOpenId = sid;
-        syncCardStates();
-      }else{
-        // already detail-open → do nothing (no back)
         syncCardStates();
       }
       return;

@@ -1,8 +1,13 @@
-# Spieleliste – Build V7_1k63f
+# Spieleliste – Build V7_1k63g
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1k63f (gegenüber V7_1k63e)
+## Änderungen in V7_1k63g (gegenüber V7_1k63f)
+
+### Phase 2 – Fokus-Scroll (deterministisch)
+- Fokus-Scroll wird jetzt bei **Erstaktivierung** einer Karte ausgelöst (First-Tap) in **Kartenmodus Mini und Kompakt**.
+- Kein Fokus-Scroll beim Vertiefen der aktiven Karte (Kompakt → Detail) und **nie** beim Öffnen/Schließen von Akkordeons.
+- Scroll ist jetzt deterministisch unter Berücksichtigung der Sticky-Header-Höhe (Desktop/Tablet stabiler).
 
 ### Phase 1 – Kartenmodus-State stabilisiert
 
