@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63a").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63b").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -761,33 +761,42 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     const m = String(state.cardView || 'detail');
     if (m === 'detail') return;
     const cur = String(state.activeCardId || '');
+    const sid = String(id);
+
+    // Final rules:
+    // - Tap zone is the whole card.
+    // - No "back" via tapping the same card.
+    // - Focus scroll ONLY when entering a card from Mini → Kompakt (as in 63a).
+    // - Kompakt → Detail never scrolls (preserve reading flow).
     if (m === 'mini'){
-      if (cur === String(id)){
-        // toggle close back to Mini
-        state.activeCardId = null;
+      if (cur !== sid){
+        // Enter card: Mini → Kompakt (+ focus scroll)
+        state.activeCardId = sid;
         state.detailOpenId = null;
         syncCardStates();
+        const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(sid)}"]`);
+        if (card) focusCardTop(card);
         return;
       }
-      state.activeCardId = String(id);
-      state.detailOpenId = null;
-      syncCardStates();
-      const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(String(id))}"]`);
-      if (card) focusCardTop(card);
+      // Same card tapped again: Kompakt → Detail (no scroll)
+      if (state.detailOpenId !== sid){
+        state.detailOpenId = sid;
+        syncCardStates();
+      }
       return;
     }
+
     if (m === 'compact'){
-      if (cur === String(id) && state.detailOpenId === String(id)){
-        // toggle close Detail back to Kompakt
-        state.detailOpenId = null;
+      // In global Kompakt mode all cards show the compact zone.
+      // Tap promotes the tapped card to Detail (no scroll).
+      state.activeCardId = sid;
+      if (state.detailOpenId !== sid){
+        state.detailOpenId = sid;
         syncCardStates();
-        return;
+      }else{
+        // already detail-open → do nothing (no back)
+        syncCardStates();
       }
-      state.activeCardId = String(id);
-      state.detailOpenId = String(id);
-      syncCardStates();
-      const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(String(id))}"]`);
-      if (card && !_isCardInView(card)) focusCardTop(card);
       return;
     }
   }
@@ -796,9 +805,9 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     const m = String(state.cardView || 'detail');
     if (m === 'detail') return;
     if (String(state.activeCardId || '') !== String(id)) return;
-    if (state.detailOpenId === String(id)) state.detailOpenId = null;
-    else state.detailOpenId = String(id);
-    syncCardStates();
+    // No explicit "toggle" in the final interaction model.
+    // Depth is advanced by card taps only; details stay open once entered.
+    return;
   }
 
   function syncCardStates(){
@@ -837,15 +846,14 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (!card) return;
       const id = card.getAttribute('data-id');
       if (!id) return;
-      const chev = t.closest?.('[data-chev]');
-      if (chev){
-        const which = chev.getAttribute('data-chev');
-        if (which === '1'){ onCardTapById(id); }
-        if (which === '2'){ toggleDetailById(id); }
-        return;
-      }
-      const head = t.closest?.('.head');
-      if (head && card.contains(head)){ onCardTapById(id); }
+
+      // Ignore clicks on interactive elements inside open details (summaries/links/etc.)
+      // to preserve normal reading interactions.
+      if (t.closest?.('summary, a, button, input, textarea, select')) return;
+      if (t.closest?.('.detailsWrap')) return;
+
+      // Whole card is the tap-zone in Mini/Kompakt.
+      onCardTapById(id);
     });
     // Keyboard support: Enter/Space on header
     el.cards.addEventListener('keydown', (e) => {
@@ -3376,6 +3384,8 @@ function classifyAvailability(av){
 
               <div class="title">${esc(title)}</div>
 
+              <div class="miniGenre" title="${esc(genre)}">${esc(genre)}</div>
+
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
               </div>
@@ -3392,15 +3402,13 @@ function classifyAvailability(av){
                 ${trophyBadge}
               </div>
 
-              <div class="miniGenre" title="${esc(genre)}">${esc(genre)}</div>
-
-              <button class="cardChevron chev1" type="button" data-chev="1" aria-label="Karte öffnen" title="Öffnen">▾</button>
+              <div class="cardChevron chev1" aria-hidden="true">▾</div>
             </div>
 
             <div class="compactWrap">
               ${info}
               <div class="chev2Wrap">
-                <button class="cardChevron chev2" type="button" data-chev="2" aria-label="Details ein-/ausklappen" title="Details">▾</button>
+                <div class="cardChevron chev2" aria-hidden="true">▾</div>
               </div>
             </div>
           </div>
