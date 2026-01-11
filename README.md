@@ -1,8 +1,16 @@
-# Spieleliste – Build V7_1k63c
+# Spieleliste – Build V7_1k63d
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1k63c (gegenüber V7_1k63b)
+## Änderungen in V7_1k63d (gegenüber V7_1k63c)
+
+### Spacing-Fix: Akkordeons im Detailbereich (Kartenfeature)
+
+- Zwischen den Akkordeons im aufgeklappten Detailbereich ist jetzt wieder klarer Abstand – wie im normalen Detailansicht‑Modus.
+
+### Phone Landscape: Mini-Karten nutzen volle Breite
+
+- Mini bleibt auf Phones im Landscape **1‑spaltig** (keine „zu schmale“ 2‑Spalten‑Kachelung mehr) → weniger unschöne Umbrüche, mehr Ruhe.
 
 ### Chevron-Feinschliff (Mini & Kompakt)
 
