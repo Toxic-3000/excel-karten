@@ -1,8 +1,13 @@
-# Spieleliste – Build V7_1k63e
+# Spieleliste – Build V7_1k63f
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1k63e (gegenüber V7_1k63c)
+## Änderungen in V7_1k63f (gegenüber V7_1k63e)
+
+### Phase 1 – Kartenmodus-State stabilisiert
+
+- **Kartenmodus-Wechsel ist jetzt deterministisch**: Ein Wechsel über das Schnellmenü (z. B. Kompakt → Mini) löst immer eine echte Re-Render-Invalidierung aus, auch wenn Filter/Sortierung unverändert sind.
+  Dadurch verschwindet das „UI zeigt Mini, aber Kompakt bleibt sichtbar“-Problem nach Karteninteraktionen.
 
 ### Chevron-Feinschliff (Mini & Kompakt)
 

@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63e").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63f").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -2637,13 +2637,17 @@ const f = state.filters;
   }
 
   function applySignature(){
-    // Keep this cheap: only include values that affect the filtered/sorted result.
+    // Keep this cheap: include values that affect the filtered/sorted result *and*
+    // values that require a DOM re-render even if the result set is unchanged.
     // NOTE: UI scale / viewport are CSS-only && don't require re-rendering.
     return [
       String(state.q ?? ""),
       filterSignature(),
       String(state.sortField || ""),
       String(state.sortDir || ""),
+      // Card view mode changes the DOM structure / visibility rules, so it must
+      // invalidate the render cache even if filters/sort are unchanged.
+      String(state.cardView || ""),
     ].join("\n");
   }
 
