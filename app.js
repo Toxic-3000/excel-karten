@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63g").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63h").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -772,10 +772,30 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     try{
       const r = card.getBoundingClientRect();
       const hdrH = _stickyHeaderHeight();
-      const extra = 12; // small breathing room below sticky header
-      const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - hdrH - extra));
+      // On smaller viewports, the sticky header height tends to be visually "taller" than
+      // what we want to reserve for the focus scroll. We allow a tiny controlled overlap
+      // so the active card sits a bit higher in the viewport.
+      const vw = window.innerWidth || 800;
+      const overlap = vw < 520 ? 18 : (vw < 900 ? 12 : 10); // px
+      const effectiveHdr = Math.max(0, hdrH - overlap);
+      const extra = 8; // small breathing room below header (after overlap)
+      const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
       const behavior = _prefersReducedMotion() ? 'auto' : 'smooth';
       window.scrollTo({ top: target, behavior });
+
+      // Some browsers (esp. mobile) finish smooth scrolling slightly off due to
+      // address-bar/viewport dynamics. Do a light correction pass.
+      if (behavior === 'smooth'){
+        setTimeout(() => {
+          try{
+            const r2 = card.getBoundingClientRect();
+            const target2 = Math.max(0, Math.round((window.scrollY || 0) + r2.top - effectiveHdr - extra));
+            if (Math.abs(target2 - (window.scrollY || 0)) > 2){
+              window.scrollTo({ top: target2, behavior: 'auto' });
+            }
+          }catch(_){/* ignore */}
+        }, 260);
+      }
     }catch(_){/* ignore */}
   }
 

@@ -1,6 +1,11 @@
-# Spieleliste – Build V7_1k63g
+# Spieleliste – Build V7_1k63h
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1k63h (gegenüber V7_1k63g)
+
+- Fokus-Scroll: aktive Karte wird in Mini & Kompakt höher im Viewport positioniert (gerade auf Phones weniger „tief“).
+- Fokus-Scroll: zusätzlicher Korrekturlauf nach Smooth-Scroll, um leichte Abweichungen durch mobile Viewport-Dynamik zu glätten.
 
 ## Änderungen in V7_1k63g (gegenüber V7_1k63f)
 
