@@ -1,22 +1,24 @@
-# Spieleliste – Build V7_1k63d
+# Spieleliste – Build V7_1k63e
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1k63d (gegenüber V7_1k63c)
-
-### Spacing-Fix: Akkordeons im Detailbereich (Kartenfeature)
-
-- Zwischen den Akkordeons im aufgeklappten Detailbereich ist jetzt wieder klarer Abstand – wie im normalen Detailansicht‑Modus.
-
-### Phone Landscape: Mini-Karten nutzen volle Breite
-
-- Mini bleibt auf Phones im Landscape **1‑spaltig** (keine „zu schmale“ 2‑Spalten‑Kachelung mehr) → weniger unschöne Umbrüche, mehr Ruhe.
+## Änderungen in V7_1k63e (gegenüber V7_1k63c)
 
 ### Chevron-Feinschliff (Mini & Kompakt)
 
 - Chevron 1 (Mini) ist jetzt sauber mittig ausgerichtet.
 - Beide Chevron-Marker wirken „eingelassen“ (subtiler Well-/Inset-Look), ohne Button-Anmutung.
 - Mehr Luft um die Marker (oben + unten), damit sie im Portrait & Landscape ruhiger wirken.
+
+### Layout-Fixes: Mini-Kacheln in Landscape/Tablet/Desktop
+
+- **Zweispaltige Minikacheln** ab Tablet/Desktop-Breite (>= 900px) – auch in Portrait, wenn genug Platz vorhanden ist.
+- **Mini (geschlossen) nutzt die volle Kachelbreite**: keine „unsichtbare“ zweite Spalte mehr im Landscape-Desktop/Tablet.
+  Dadurch bricht der Titel/Content in Mini nicht unnötig früh um.
+
+### Detailbereich: Akkordeons wie in Detailansicht
+
+- Detail-Akkordeons haben wieder **sichtbare Abstände** zueinander (wie im Detailansichts-Modus).
 
 ## Nicht geändert
 - Detailansicht-Design (Layout/Spacing/Reihenfolge der Akkordeons).

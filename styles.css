@@ -5,14 +5,14 @@
 
 /* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
 /*
-  CSS Cleanup Phase J/K (V7_1k63d):
+  CSS Cleanup Phase J/K (V7_1k63e):
   - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
   - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
 */
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63d
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63e
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -1004,8 +1004,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   margin-top:calc(10px * var(--uiScale));
   display:flex;
   flex-direction:column;
-  /* Mehr Luft zwischen den Akkordeons (wie im Detailansicht‑Modus) */
-  gap: calc(14px * var(--uiScale));
+  gap: var(--sp-4);
 }
 .detailsWrap details{margin:0}
 .kvTable{
@@ -1090,8 +1089,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: var(--sp-4);
-    row-gap: calc(14px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
   .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
@@ -2213,8 +2211,7 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: var(--sp-4);
-    row-gap: calc(14px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc,
   .detailsWrap .d-trophy,
@@ -2748,8 +2745,7 @@ html.modalOpen body{touch-action:none;}
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: var(--sp-4);
-    row-gap: calc(14px * var(--uiScale));
+    gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
   .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
@@ -2888,20 +2884,20 @@ html.modalOpen body{touch-action:none;}
   margin: 0 !important;
 }
 
-/* Mini: Phone Landscape bleibt 1‑spaltig (volle Breite, keine harten Umbrüche). */
+/* Mini: in phone landscape we allow 2 columns */
 @media (orientation: landscape){
-  /* Phone Landscape: ein bisschen weniger Außenpadding, damit die Karte maximal atmen kann */
+  html.isPhone:root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Phone Landscape: give mini-tiles a bit more usable width (closer to Portrait feel) */
   html.isPhone:root[data-cardview="mini"] .wrap{ padding-left: calc(8px * var(--uiScale)); padding-right: calc(8px * var(--uiScale)); }
   html.isPhone:root[data-cardview="mini"] .cards{ padding-left: 0; padding-right: 0; }
 }
 
-/* Mini: 2 Spalten erst auf größeren Viewports (Tablet/Desktop) */
-@media (min-width: 900px){
-  :root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 /* Kompakt: 2 columns only on non-phone widths; phones stay single-column even in landscape. */
 @media (min-width: 900px){
+  /* Mini: ab Tablet/Desktop ebenfalls zweispaltig (auch in Portrait, wenn genug Breite da ist) */
+  :root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
   :root[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -2925,11 +2921,26 @@ html.modalOpen body{touch-action:none;}
 :root[data-cardview="mini"] .card:not([data-compact-open]) .headDivider{ display: none; }
 
 :root[data-cardview="mini"] .card[data-compact-open="1"] .compactWrap{ display: block; }
-:root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap{ display: block; }
+:root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap{
+  /* wenn Detail im Kartenmodus geöffnet wird, brauchen wir die gleiche "Luft" wie im Detailmodus */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
 
 /* Kompakt: show compact for all, hide details unless active detail-open */
 :root[data-cardview="compact"] .detailsWrap{ display: none; }
-:root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{ display: block; }
+:root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Mini-Closed: auf großen Screens kann .topGrid per Media-Query zweispaltig werden.
+   Wenn aber .compactWrap verborgen ist, darf diese "leere" zweite Spalte nicht den Head verkleinern. */
+:root[data-cardview="mini"] .card:not([data-compact-open="1"]) .topGrid{
+  display: block !important;
+}
 
 /* Mini-Genre: only relevant in Mini mode AND only in the closed mini-tile */
 .miniGenre{ display: none; }
