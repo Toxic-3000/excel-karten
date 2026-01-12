@@ -1,8 +1,8 @@
-# Spieleliste – Build V7_1k63m
+# Spieleliste – Build V7_1k63n
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
 
-## Änderungen in V7_1k63m (gegenüber V7_1k63l)
+## Änderungen in V7_1k63n (gegenüber V7_1k63l)
 
 - Fokus-Scroll: **konstanter Abstand** zum oberen Viewport-Rand (unabhängig davon, wo die Karte vorher lag). Dafür: Scroll-Anchoring deaktiviert + mehrstufige Nachkorrektur nach Smooth-Scroll.
 

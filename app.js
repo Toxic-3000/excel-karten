@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63m").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63n").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -784,7 +784,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       // Reducing overlap means we reserve a bit more header space, so the card lands lower.
       const overlap = vw < 520 ? 200 : (vw < 900 ? 160 : 120); // px
       const effectiveHdr = Math.max(0, hdrH - overlap);
-      const extra = 2; // minimal breathing room below header (after overlap)
+      const extra = 32; // +30px tieferer Fokus-Abstand (Phase 2.5)
       const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
       const behavior = _prefersReducedMotion() ? 'auto' : 'smooth';
       window.scrollTo({ top: target, behavior });
