@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63l").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63j").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -780,9 +780,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       // We allow a large controlled "overlap" of the header reserve so the active
       // card ends up close to the top edge, especially on phones.
       // This remains deterministic and applies equally to Mini & Kompakt.
-      // Phase 2.5: User wants ~30px deeper than 2.4; nudge target down a bit.
-      // Reducing overlap means we reserve a bit more header space, so the card lands lower.
-      const overlap = vw < 520 ? 200 : (vw < 900 ? 160 : 120); // px
+      const overlap = vw < 520 ? 260 : (vw < 900 ? 220 : 180); // px
       const effectiveHdr = Math.max(0, hdrH - overlap);
       const extra = 2; // minimal breathing room below header (after overlap)
       const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
