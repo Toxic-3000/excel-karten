@@ -1,6 +1,10 @@
-# Spieleliste – Build V7_1k63j
+# Spieleliste – Build V7_1k63k
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1k63k (gegenüber V7_1k63j)
+
+- Phase 2.4: Fokus-Scroll-Position **leicht tiefer** gesetzt (Feintuning nach 2.3; Mini & Kompakt, alle Geräte).
 
 ## Änderungen in V7_1k63j (gegenüber V7_1k63i)
 
