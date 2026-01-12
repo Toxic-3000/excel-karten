@@ -12,7 +12,7 @@
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63n
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63o
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
