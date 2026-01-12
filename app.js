@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63i").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63j").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -776,10 +776,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       // what we want to reserve for the focus scroll. We allow a tiny controlled overlap
       // so the active card sits a bit higher in the viewport.
       const vw = window.innerWidth || 800;
-      // Phase 2.2: Make the focused card land noticeably higher.
-      // We do this by reducing the reserved header space more aggressively.
+      // Phase 2.3: Make the focused card land *much* higher (user feedback).
+      // We allow a large controlled "overlap" of the header reserve so the active
+      // card ends up close to the top edge, especially on phones.
       // This remains deterministic and applies equally to Mini & Kompakt.
-      const overlap = vw < 520 ? 90 : (vw < 900 ? 60 : 50); // px
+      const overlap = vw < 520 ? 260 : (vw < 900 ? 220 : 180); // px
       const effectiveHdr = Math.max(0, hdrH - overlap);
       const extra = 2; // minimal breathing room below header (after overlap)
       const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
