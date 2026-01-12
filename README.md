@@ -1,6 +1,13 @@
-# Spieleliste – Build V7_1k63p
+# Spieleliste – Build V7_1k63q
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1k63q (gegenüber V7_1k63p)
+
+- **Kartenmodus Kompakt ist jetzt immer einspaltig** (Desktop/Tablet/Portrait/Landscape), damit der Modus konsistent wirkt.
+- **Fluchtlinien/Lesebreite vereinheitlicht**: auf Tablet/Desktop bekommen **Kopfbereich (TopGrid) und Akkordeon-Detailbereich** die gleiche zentrierte Maxbreite.
+  Dadurch passt die Breite der Akkordeons wieder sauber zum oberen Info-Block (keine „auseinandergerissene“ Flucht mehr).
+- Phones bleiben unverändert.
 
 ## Änderungen in V7_1k63p (gegenüber V7_1k63o)
 

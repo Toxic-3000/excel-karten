@@ -12,7 +12,7 @@
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63p
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63q
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -2870,9 +2870,12 @@ html.modalOpen body{touch-action:none;}
 /* --- Kartenmodi (Mini/Kompakt/Detail) --- */
 :root{ --cardGap: calc(12px * var(--uiScale)); --detailsReadMax: 92ch; }
 
-/* On Tablet/Desktop we keep accordion contents in a comfortable reading width.
+/* On Tablet/Desktop we keep card content in a comfortable reading width.
+   IMPORTANT: Apply the same width to BOTH the header grid and the accordion area,
+   otherwise their left/right "Flucht" breaks on wide screens.
    Phones remain full-width to preserve the tight mobile layout. */
-html:not(.isPhone) .detailsWrap{
+html:not(.isPhone) .card > .topGrid,
+html:not(.isPhone) .card > .detailsWrap{
   max-width: var(--detailsReadMax);
   margin-left: auto;
   margin-right: auto;
@@ -2909,10 +2912,8 @@ html:not(.isPhone) .detailsWrap{
   :root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Kompakt: 2 columns only on larger, non-phone widths; phones stay single-column. */
-@media (min-width: 900px){
-  :root[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+/* Kompakt: immer einspaltig (bewusst konsistent auf allen Geräten). */
+:root[data-cardview="compact"] .cards{ grid-template-columns: 1fr; }
 
 /* Expanded cards should span both columns in 2-col layouts */
 :root[data-cardview="mini"] .card[data-compact-open="1"],
