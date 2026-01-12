@@ -1,6 +1,17 @@
-# Spieleliste – Build V7_1k63o
+# Spieleliste – Build V7_1k63p
 
 CSS-Entschlackung Phase J+K (Optik weiterhin wie V7_1j62e).
+
+## Änderungen in V7_1k63p (gegenüber V7_1k63o)
+
+### Phase 3 – Desktop/Tablet Layout + Detail-Konsistenz
+- **Fortschritts-/Trophäen-Headerbadges** werden nur noch im globalen **Detailmodus** gerendert.
+  In Kartenmodus **Mini** und **Kompakt** sind sie damit zuverlässig **immer aus** (auch auf Desktop/Tablet).
+- **Store + Humorstatistik** folgen jetzt auch im Kartenmodus (wenn eine Karte bis „Detail“ geöffnet ist) wieder den gleichen Grid-Regeln wie im Detailmodus
+  → auf Landscape/Tablet‑Portrait wieder nebeneinander, statt untereinander.
+- **Mini** wird ab ca. **760px Breite** zweispaltig (Tablet‑Portrait 800×1280). Phones bleiben unverändert.
+- **Mini‑Genre** unter dem Titel: Schriftgröße leicht erhöht.
+- **Akkordeon-Lesebreite**: auf Tablet/Desktop wird der Detailbereich auf eine angenehmere Maxbreite zentriert, sodass Beschreibung/Store/Humor/Trophäen/Eastereggs optisch sauberer fluchten.
 
 ## Änderungen in V7_1k63o (gegenüber V7_1k63n)
 

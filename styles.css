@@ -12,7 +12,7 @@
 
   html.isPhone .fabPanelQuick .quickGrid,
   html.isPhone .fabPanelText .chipRow{ gap: 8px; }
-/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63o
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63p
    - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
    - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
    - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
@@ -2868,7 +2868,18 @@ html.modalOpen body{touch-action:none;}
 
 
 /* --- Kartenmodi (Mini/Kompakt/Detail) --- */
-:root{ --cardGap: calc(12px * var(--uiScale)); }
+:root{ --cardGap: calc(12px * var(--uiScale)); --detailsReadMax: 92ch; }
+
+/* On Tablet/Desktop we keep accordion contents in a comfortable reading width.
+   Phones remain full-width to preserve the tight mobile layout. */
+html:not(.isPhone) .detailsWrap{
+  max-width: var(--detailsReadMax);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Inner wrapper for detail bodies (keeps future layout tweaks simple) */
+.detailsInner{ min-width: 0; }
 
 /* Grid only for Mini/Kompakt; Detail stays as the classic vertical reading mode. */
 :root[data-cardview="mini"] .cards,
@@ -2893,11 +2904,13 @@ html.modalOpen body{touch-action:none;}
   html.isPhone:root[data-cardview="mini"] .cards{ padding-left: 0; padding-right: 0; }
 }
 
-/* Kompakt: 2 columns only on non-phone widths; phones stay single-column even in landscape. */
-@media (min-width: 900px){
-  /* Mini: ab Tablet/Desktop ebenfalls zweispaltig (auch in Portrait, wenn genug Breite da ist) */
+/* Mini: ab Tablet-Breite ebenfalls zweispaltig (auch in Portrait, wenn genug Breite da ist) */
+@media (min-width: 760px){
   :root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
+/* Kompakt: 2 columns only on larger, non-phone widths; phones stay single-column. */
+@media (min-width: 900px){
   :root[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -2922,7 +2935,8 @@ html.modalOpen body{touch-action:none;}
 
 :root[data-cardview="mini"] .card[data-compact-open="1"] .compactWrap{ display: block; }
 :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap{
-  /* wenn Detail im Kartenmodus geöffnet wird, brauchen wir die gleiche "Luft" wie im Detailmodus */
+  /* Wenn Detail im Kartenmodus geöffnet wird: gleiche Abstände wie im Detailmodus.
+     Layout (Flex/Grid) wird per Breakpoints geregelt – siehe Overrides weiter unten. */
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
@@ -2936,6 +2950,26 @@ html.modalOpen body{touch-action:none;}
   gap: var(--sp-4);
 }
 
+/* When details are opened inside Kartenmodi, use the SAME layout rules as the global Detail view.
+   We re-apply the grid breakpoints with identical selector specificity so Store/Humor align again. */
+@media (min-width: 520px) and (orientation: landscape){
+  :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap,
+  :root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
+  :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap,
+  :root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+}
+
 /* Mini-Closed: auf großen Screens kann .topGrid per Media-Query zweispaltig werden.
    Wenn aber .compactWrap verborgen ist, darf diese "leere" zweite Spalte nicht den Head verkleinern. */
 :root[data-cardview="mini"] .card:not([data-compact-open="1"]) .topGrid{
@@ -2947,7 +2981,7 @@ html.modalOpen body{touch-action:none;}
 :root[data-cardview="mini"] .card:not([data-compact-open]) .miniGenre{
   display: block;
   margin-top: calc(6px * var(--uiScale));
-  font-size: calc(12.5px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
   opacity: .78;
   font-weight: 650;
   white-space: nowrap;

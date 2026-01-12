@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63o").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63p").trim();
   const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
   const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
@@ -3358,6 +3358,9 @@ function classifyAvailability(av){
 
   function render(rows){
     const __rt0 = PERF_DETAIL ? performance.now() : 0;
+    const viewMode = String(state.cardView || 'detail');
+    const showHeaderTrophy = (viewMode === 'detail');
+
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -3378,9 +3381,18 @@ function classifyAvailability(av){
 
       const reminder = state.reminderCol ? String(row[state.reminderCol] ?? "").trim() : "";
 
-      // Trophy short
-      const tBadges = trophyHeaderBadges(row);
+      // Trophy header badges (Progress/Status) are only shown in the global Detail view.
+      // In Kartenmodus Mini/Kompakt they are intentionally hidden (shown nowhere in header).
+      const tBadges = showHeaderTrophy ? trophyHeaderBadges(row) : [];
       const trophyBadge = tBadges.map(ts => badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`)).join("");
+      const trophyHeaderHtml = (showHeaderTrophy && trophyBadge)
+        ? `
+              <div class="headDivider" aria-hidden="true"></div>
+
+              <div class="badgeRow badgeRow-trophy">
+                ${trophyBadge}
+              </div>`
+        : ``;
 // badge rows
       const platBadges = sys.map(p => badge("platform", p));
       const srcLabel = (src === "Unbekannt" ? "🏷️ Unbekannt" : src);
@@ -3468,11 +3480,7 @@ function classifyAvailability(av){
                 ${reminder ? remBadge : ""}
               </div>
 
-              <div class="headDivider" aria-hidden="true"></div>
-
-              <div class="badgeRow badgeRow-trophy">
-                ${trophyBadge}
-              </div>
+              ${trophyHeaderHtml}
 
               <div class="cardChevron chev1" aria-hidden="true">▾</div>
             </div>
@@ -3664,7 +3672,7 @@ function classifyAvailability(av){
           <span data-label="${safeLabel}">${safeLabel} anzeigen</span>
           <span class="chev">▾</span>
         </summary>
-        <div class="detailsBody">${bodyHtml}</div>
+        <div class="detailsBody"><div class="detailsInner">${bodyHtml}</div></div>
       </details>`;
   }
 
