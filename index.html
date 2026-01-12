@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Spieleliste</title>
+  <meta name="app-build" content="V7_1k63n" />
+  <link rel="stylesheet" href="styles.css?v=V7_1k63n" />
+  <meta name="color-scheme" content="light dark" />
+</head>
+<body>
+  <!-- Static background layer (no parallax / no scroll drift) -->
+  <div class="appBg" aria-hidden="true"></div>
+  <header class="hdr">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brandName">Spieleliste</span>
+        <span id="buildLabel" class="build">Build —</span>
+      </div>
+    </div>
+
+    <div class="hdrRule" aria-hidden="true"></div>
+
+    <div class="subbar">
+      <!-- Suche (unverändert, Stand j59) -->
+      <div class="searchRow">
+        <input id="search" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler, Beschreibung, Eastereggs …" />
+        <div id="searchHelp" class="searchHelp" aria-label="Suchhilfe">
+          <button id="searchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
+        </div>
+      </div>
+      <div id="searchHelpBody" class="searchHelpBody popover" hidden>
+        <strong>Kombinierte Suche</strong><br>
+        Mehrere Suchbegriffe können frei kombiniert werden.<br><br>
+        <strong>Suchfelder:</strong><br>
+        ID · Titel · Entwickler · Genre · Subgenre · Plattform · Quelle · Verfügbarkeit · Beschreibung · Eastereggs<br><br>
+        <strong>Beispiel:</strong><br>
+        Entwickler: Naughty Dog · Genre: Action<br>
+        <span class="muted">Ausschließen:</span> -Genre: Sport
+      </div>
+
+      <!-- Werkzeugzeile (adaptiv): Filtern/Sortieren + Treffer + XLSX + Details (⋯) -->
+      <div id="toolbarRow" class="toolbarRow" aria-label="Filter, Sortierung und Status">
+        <button id="btnMenu" class="btn btn-compact btn-primary">Filtern &amp; Sortieren</button>
+        <span id="pillRows" class="pill pill-sm" aria-label="Treffer">
+          <span class="pillLabel">Treffer:</span>
+          <span id="hitCount" class="pillCount">—</span>
+        </span>
+        <div id="fileMore" class="metaMore" aria-label="Excel Details">
+          <button id="fileMoreBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Excel-Details">⋯</button>
+        </div>
+      </div>
+
+      <!-- Excel/Import Details (wie Suchhilfe: klappt inline darunter auf) -->
+      <div id="fileMoreBody" class="fileMoreBody popover" role="dialog" aria-label="Excel &amp; Import" hidden>
+        <div class="fileMoreTop">
+          <button id="btnLoad" class="btn btn-compact" type="button">Excel laden</button>
+          <span id="pillXlsxPanel" class="pill pill-sm pill-ok">XLSX: —</span>
+        </div>
+        <div id="pillFile" class="fileName">—</div>
+        <div id="pillImport" class="fileMeta">Importiert: —</div>
+      </div>
+    </div>
+
+    <!-- Systemhinweis: bleibt im Normalfall unsichtbar, erscheint nur bei echten Fehlern -->
+    <div id="sysNoticeTop" class="sysNotice" hidden></div>
+  </header>
+
+  <main class="wrap">
+    <div id="empty" class="empty">
+      <div class="emptyCard">
+        <div class="emptyTitle">Excel laden</div>
+        <div class="emptyText">
+          Wähle deine <b>Spieleliste.xlsx</b> aus.
+          Danach erscheinen die Karten in der Kompaktansicht.
+        </div>
+        <div class="emptyActions">
+          <button id="btnLoad2" class="btn btn-primary">Excel auswählen</button>
+        </div>
+
+        <!-- Hinweis nur im Fehlerfall (z.B. XLSX fehlt / JS nicht initialisiert) -->
+        <div id="sysNoticeLoad" class="sysNotice" hidden></div>
+        <div class="emptyHint">
+          Tipp: Auf GitHub Pages müssen <b>index.html</b>, <b>styles.css</b>, <b>app.js</b> und <b>xlsx.full.min.js</b> im selben Ordner liegen.
+        </div>
+      </div>
+    </div>
+
+    <!-- Hinweis in der Kartenansicht bei aktiven Filtern (verschwindet nach Interaktion: Scroll/Tip) -->
+    <div id="viewToast" class="viewToast" hidden></div>
+
+    <section id="cards" class="cards"></section>
+  </main>
+
+  <button id="btnTop" class="toTop" title="Nach oben">↑</button>
+
+  <!-- Floating quick access: zwei kleine Menüs (Textgröße / Schnellzugriff) -->
+
+  <!-- 1) Textgröße -->
+  <button id="fabText" class="fab fabText" title="Textgröße" aria-label="Textgröße öffnen" aria-haspopup="dialog" aria-controls="fabTextPanel" aria-expanded="false">Aa</button>
+  <div id="fabTextPanel" class="fabPanel fabPanelText" role="dialog" aria-label="Textgröße" hidden>
+    <div class="fabHead">
+      <div class="fabTitle">Textgröße</div>
+      <button id="fabTextClose" class="fabClose" aria-label="Schließen">✕</button>
+    </div>
+
+    <div class="fabSect">
+      <div class="fabLabel">Wählen</div>
+      <div id="fabScaleRow" class="chipRow fabChips" aria-label="Textgröße wählen"></div>
+    </div>
+
+    <!-- Platzhalter: spätere Dichte-Option (rein Layout/Dichte, keine Schriftgrößenänderung) -->
+    <div class="fabSect">
+      <div class="fabLabel">Textdarstellung</div>
+      <div id="fabTextDensityRow" class="chipRow fabChips" aria-label="Textdarstellung wählen">
+        <button class="chip" type="button" disabled aria-disabled="true">Normal</button>
+        <button class="chip" type="button" disabled aria-disabled="true">Kompakt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü) -->
+  <button id="fabQuick" class="fab fabQuick" title="Schnellmenü" aria-label="Schnellmenü öffnen" aria-haspopup="dialog" aria-controls="fabQuickPanel" aria-expanded="false">≡</button>
+  <div id="fabQuickPanel" class="fabPanel fabPanelQuick" role="dialog" aria-label="Schnellmenü" hidden>
+    <div class="fabHead">
+      <div class="fabTitle">Schnellmenü</div>
+      <button id="fabQuickClose" class="fabClose" aria-label="Schließen">✕</button>
+    </div>
+
+    <!-- Kontext-Info: nur sichtbar, wenn Filter aktiv sind (und nur im geöffneten Schnellmenü) -->
+    <div id="fabQuickInfo" class="quickInfo" hidden>
+      <div class="quickInfoText">
+        <div id="fabQuickInfoA" class="quickInfoA"></div>
+        <div id="fabQuickInfoB" class="quickInfoB"></div>
+      </div>
+      <button id="fabQuickReset" class="quickReset" type="button" title="Filter zurücksetzen" aria-label="Filter zurücksetzen">🧹</button>
+    </div>
+    <div class="fabSect fabQuickDir">
+      <div class="fabLabel">Sortierung</div>
+      <div id="fabSortDirRow" class="quickGrid" aria-label="Sortierrichtung"></div>
+    </div>
+
+    <div class="fabSect fabQuickMarks">
+      <div class="fabLabel">Markierungen</div>
+      <div id="fabMarkRow" class="quickGrid" aria-label="Markierungen"></div>
+    </div>
+
+    <!-- Platzhalter (später): Karten / Detailtiefe (Kompakt/Detail)
+         Standard: verborgen, damit Phone-Layouts nicht unnötig belastet werden.
+         Aktivieren: hidden entfernen und Logik in app.js ergänzen (gemäß Build-Plan: erst nach Toolbar).
+    -->
+    <div class="fabSect fabQuickDepth">
+      <div class="fabLabel">Karten</div>
+      <div id="fabDepthRow" class="quickGrid" aria-label="Karten-Darstellung">
+        <button class="chip" type="button" data-group="cardView" data-key="mini" aria-pressed="false">Mini</button>
+        <button class="chip" type="button" data-group="cardView" data-key="compact" aria-pressed="false">Kompakt</button>
+        <button class="chip" type="button" data-group="cardView" data-key="detail" aria-pressed="false">Detail</button>
+      </div>
+    </div>
+
+    <div class="fabActions">
+      <button id="fabOpenMenu" class="btn btn-primary">Suchen, Filtern &amp; Sortieren</button>
+    </div>
+  </div>
+
+  <input id="file" type="file" accept=".xlsx" hidden />
+
+  <dialog id="dlg" class="dlg">
+    <div class="sheet" role="dialog" aria-label="Suchen, Filtern und Sortieren">
+      <div class="sheetHead">
+        <div class="sheetTitle">Suchen, Filtern &amp; Sortieren</div>
+        <button id="btnClose" class="btn btn-icon" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="sheetBody">
+        <div class="sheetSearchRow">
+          <input id="menuSearch" class="search" type="search" placeholder="Suchen: ID, Titel, Genre, Subgenre, Entwickler, Beschreibung, Eastereggs …" aria-label="Suche" />
+          <div id="menuSearchHelp" class="searchHelp" aria-label="Suchhilfe">
+            <button id="menuSearchHelpBtn" class="searchHelpIcon" type="button" aria-expanded="false" aria-label="Suchhilfe">ⓘ</button>
+          </div>
+        </div>
+        <div id="menuSearchHelpBody" class="searchHelpBody" hidden>
+          <strong>Kombinierte Suche</strong><br>
+          Du kannst mehrere Suchbegriffe frei kombinieren, z.&nbsp;B. nach Entwickler und Genre gleichzeitig.<br><br>
+          <strong>Suchfelder:</strong><br>
+          ID · Titel · Entwickler · Genre · Subgenre · Plattform · Quelle · Verfügbarkeit · Beschreibung · Eastereggs<br><br>
+          <strong>Beispiel:</strong><br>
+          Entwickler: Naughty Dog · Genre: Action<br>
+          <span class="muted">Ausschließen:</span> -Genre: Sport
+        </div>
+<div class="sect">
+          <div class="sectTitle">Sortieren</div>
+          <div class="sortBar">
+            <div id="sortFieldRow" class="sortField"></div>
+            <div id="sortDirRow" class="sortDir"></div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="sectTitle">Filter</div>
+
+          <!-- Aktive Filter auf einen Blick (antippen = entfernen) -->
+          <div id="activeFilters" class="activeFilters" aria-label="Aktive Filter"></div>
+
+          <!-- Schnellfilter: häufige Fälle ohne Scrollen -->
+          <div class="subsect" id="quickSect">
+            <div class="subTitle">Schnellfilter</div>
+            <div class="chipRow" id="quickRow"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Weitere Filter</div>
+
+            <details class="acc" id="platAcc">
+              <summary>
+                <span class="accTitle">Plattform</span>
+                <span id="platSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="platRow"></div>
+              </div>
+            </details>
+
+            <details class="acc" id="srcAcc">
+              <summary>
+                <span class="accTitle">Quelle</span>
+                <span id="srcSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="srcRow"></div>
+              </div>
+            </details>
+
+            <details class="acc" id="availAcc">
+              <summary>
+                <span class="accTitle">Verfügbarkeit</span>
+                <span id="availSummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="chipRow" id="availRow"></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="subsect" id="genreSect">
+            <div class="subTitle">Genre</div>
+            <select id="genreSelect" class="filterDropdown" aria-label="Genre auswählen">
+            </select>
+            <div id="genreRowDesktop" class="chipRow genreDesktop" aria-label="Genre auswählen (Desktop)"></div>
+          </div>
+
+          <div class="subsect">
+            <div class="subTitle">Trophäen</div>
+
+            <details class="acc" id="trophyAcc">
+              <summary>
+                <span class="accTitle">Status &amp; Fortschritt</span>
+                <span id="trophySummary" class="accSummary">Alle</span>
+              </summary>
+              <div class="accBody">
+                <div class="accSubTitle">Status</div>
+                <div class="chipRow" id="trophyAllRow"></div>
+                <div class="accSubTitle">Fortschritt</div>
+                <div class="chipRow" id="trophyPresetRow"></div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="sheetFoot" aria-hidden="true"></div>
+
+        <div class="sheetActions">
+          <button id="btnClear" class="btn">Zurücksetzen</button>
+          <button id="btnApply" class="btn btn-primary">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    (function(){
+      function setNotice(id, msg){
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (!msg) { el.hidden = true; el.textContent = ''; return; }
+        el.textContent = msg;
+        el.hidden = false;
+      }
+
+      function setBuild(){
+        var m = document.querySelector('meta[name="app-build"]');
+        var b = (m && m.getAttribute('content')) ? m.getAttribute('content').trim() : '';
+        var bl = document.getElementById('buildLabel');
+        if (bl && b) bl.textContent = 'Build ' + b;
+      }
+
+      function disableLoadButtons(disabled){
+        var b1 = document.getElementById('btnLoad');
+        var b2 = document.getElementById('btnLoad2');
+        if (b1) b1.disabled = !!disabled;
+        if (b2) b2.disabled = !!disabled;
+      }
+
+      window.__BOOT = {
+        noticeTop: function(msg){ setNotice('sysNoticeTop', msg); },
+        noticeLoad: function(msg){ setNotice('sysNoticeLoad', msg); },
+        disableLoad: disableLoadButtons,
+        setBuild: setBuild,
+      };
+
+      window.addEventListener('error', function(e){
+        var f = e && e.filename ? e.filename.split('/').pop() : '';
+        var loc = (f ? ' (' + f + ':' + (e.lineno||0) + ')' : '');
+        setNotice('sysNoticeTop', 'JS-Fehler: ' + (e.message||'unbekannt') + loc);
+      });
+      window.addEventListener('unhandledrejection', function(e){
+        var r = e && e.reason;
+        var msg = (r && r.message) ? r.message : String(r);
+        setNotice('sysNoticeTop', 'Promise-Fehler: ' + msg);
+      });
+
+      document.addEventListener('DOMContentLoaded', function(){
+        setBuild();
+
+        // Kurzer Selbsttest: nur sichtbar, wenn wirklich etwas fehlt.
+        setTimeout(function(){
+          if (!window.XLSX) {
+            disableLoadButtons(true);
+            setNotice('sysNoticeLoad', 'Excel-Import nicht verfügbar: XLSX-Bibliothek fehlt (xlsx.full.min.js).');
+            setNotice('sysNoticeTop', 'Hinweis: XLSX wurde nicht geladen – prüfe, ob xlsx.full.min.js im selben Ordner liegt.');
+            return;
+          }
+          if (!window.__APP_LOADED) {
+            disableLoadButtons(true);
+            setNotice('sysNoticeLoad', 'Excel-Import nicht verfügbar: app.js wurde nicht geladen oder ist abgebrochen.');
+            setNotice('sysNoticeTop', 'Hinweis: app.js wurde nicht korrekt initialisiert (404 oder Scriptfehler).');
+          }
+        }, 600);
+      });
+    })();
+  </script>
+
+  <script src="xlsx.full.min.js?v=V7_1k63n" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=V7_1k63n" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+</body>
+</html>

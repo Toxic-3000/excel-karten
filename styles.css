@@ -1,0 +1,3017 @@
+/* CSS-Layout (optikfix: V7_1j62e)
+   Struktur: Tokens → Base → Components → Layout → Panels/Menüs → Media
+   Hinweis: Unbenutzte Legacy-Regeln entfernt (Phase J/K), Kaskade unverändert.
+*/
+
+/* CSS Cleanup: Phasen J+K – dead selectors removed, structure stabilized (Optik unverändert). */
+/*
+  CSS Cleanup Phase J/K (V7_1k63g):
+  - Entfernt: unbenutzte Selektoren (tote Regeln), um Override-Flickenteppich zu reduzieren
+  - Optik/Layouts unverändert beabsichtigt (Referenz: V7_1j62e)
+*/
+
+  html.isPhone .fabPanelQuick .quickGrid,
+  html.isPhone .fabPanelText .chipRow{ gap: 8px; }
+/* Spieleliste Webansicht – Clean Rebuild – Build V7_1k63n
+   - Schnellmenü: Kontext-Info (nur bei aktiven Filtern, nur im geöffneten Schnellmenü)
+   - Schnellmenü-FAB: ruhiger Status-Ring bei aktiven Filtern + kurze Ring-Pulse-Sequenz beim Rücksprung in die Kartenansicht
+   - Android Phone (Portrait/Landscape) bleibt unverändert (Layout-Regeln beachtet)
+*/
+:root{
+  --uiScaleRaw: 1;
+  --uiScale: var(--uiScaleRaw);
+  /* Spacing scale (uiScale-aware) – single source of truth */
+  --sp-1: calc(4px * var(--uiScale));
+  --sp-2: calc(6px * var(--uiScale));
+  --sp-3: calc(8px * var(--uiScale));
+  --sp-4: calc(10px * var(--uiScale));
+  --sp-5: calc(12px * var(--uiScale));
+  --sp-6: calc(14px * var(--uiScale));
+  --sp-7: calc(16px * var(--uiScale));
+  --sp-8: calc(20px * var(--uiScale));
+
+  /* Common control metrics */
+  --ctl-font-sm: calc(13px * var(--uiScale));
+  --ctl-font-md: calc(14px * var(--uiScale));
+  --ctl-h-sm: calc(34px * var(--uiScale));
+  --ctl-h-md: calc(38px * var(--uiScale));
+  --ctl-pad-x: calc(12px * var(--uiScale));
+
+  /* Component tokens (Phase E): reduce overrides by letting components read tokens.
+     Defaults are set to the current look to avoid any visual drift. */
+  --btn-pad-y: calc(12px * var(--uiScale));
+  --btn-pad-x: calc(14px * var(--uiScale));
+  --btn-font: inherit;
+  --btn-weight: 650;
+  --btn-shadow: var(--shadow);
+
+  --badge-pad-y: calc(5px * var(--uiScale));
+  --badge-pad-x: calc(9px * var(--uiScale));
+  --badge-font: var(--ctl-font-sm);
+  --badge-weight: 600;
+  --badge-gap: calc(6px * var(--uiScale));
+  --badge-h: calc(28px * var(--uiScale));
+
+
+  /* Visible viewport height helper (set by JS via VisualViewport when available).
+     Fallback stays at 1vh. Used to keep overlays stable when the mobile browser bar is shown. */
+  --vvh: 1vh;
+
+  /* Floating buttons */
+  --fabEdge: 12px;
+  --fabBottom: 12px;
+  /* Phone: slightly larger for easier thumb reach */
+  --fabSize: 36px;
+  --fabGap: 8px;
+  --fabFont: 11px;
+
+  /* Softer, less “office-grey” base palette */
+  --bg: #f6f8ff;
+  --fg: #0f172a; /* slate-ish text for better desktop rendering */
+  --muted: color-mix(in oklab, var(--fg) 62%, var(--bg) 38%);
+
+  /* Surfaces */
+  --card: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
+  --border: color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+
+  /* Shadows (slightly clearer separation from background) */
+  --shadow: 0 10px 26px rgba(0,0,0,.12), 0 26px 68px rgba(0,0,0,.14);
+
+  --r1: 16px;
+  --r2: 22px;
+
+  /* Accents (kept tasteful) */
+  --blue: #2a6fdb;
+  --blue2:#1f57b5;
+  /* "OK" Status-Farbe: an Filter-Aktiv-Grünton angeglichen */
+  --ok: var(--filterAccent);
+  --warn:#c59a00;
+  --bad:#cc3b3b;
+
+  /* Filter indicator accent (avoid competing with the main blue UI) */
+  --filterAccent: #0f766e;   /* teal-ish */
+  --filterAccent2:#0b5f59;
+
+  /* New: subtle highlight */
+  --glow: color-mix(in oklab, var(--blue) 22%, transparent);
+  --filterGlow: color-mix(in oklab, var(--filterAccent) 22%, transparent);
+}
+
+/* Tablet + Desktop: gleichermaßen (touchfreundlich, aber etwas kompakter als zuvor) */
+@media (min-width: 701px){
+  :root{
+    --fabEdge: 16px;
+    --fabBottom: 16px;
+    --fabSize: 46px;
+    --fabGap: 9px;
+    --fabFont: 12px;
+  }
+}
+
+/* Phone Landscape: erzwinge Phone-FAB-Größe (verhindert, dass breite Phones in die Tablet-Regel rutschen) */
+@media (orientation: landscape) and (max-height: 520px){
+  :root{
+    --fabEdge: 12px;
+    --fabBottom: 12px;
+    --fabSize: 36px;
+    --fabGap: 8px;
+    --fabFont: 11px;
+  }
+
+
+
+  html.isPhone .fabPanelQuick{
+    /* Kritischer Fall (Phone Landscape):
+       Die Browserbar reduziert die sichtbare Höhe. Mit max-height allein kann das Panel
+       unnötig scrollen oder außerhalb des Viewports enden.
+       Lösung: Panel oben UND unten begrenzen (echte verfügbare Höhe), und nur dann scrollen,
+       wenn der Inhalt wirklich zu groß ist. */
+    top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+    /* IMPORTANT (Landscape): don't reserve the full FAB stack height.
+       Reserving (panelBottomQuick) makes the panel artificially short in mobile browsers
+       where the visible viewport is already reduced by the address bar.
+       In this mode it's better that the panel can overlap the FAB stack, so the content
+       fits without forced scrolling. */
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: none !important;
+
+    /* In Phone-Landscape soll das Schnellmenü die gleiche Breite/Andock-Logik wie das
+       Textgrößen-Menü haben: es setzt links neben dem FAB-Stack an (keine Überdeckung
+       durch die Buttons), und bleibt dadurch optisch konsistent. */
+    left: calc(14px * var(--uiScale)) !important;
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
+    width: auto !important;
+    padding: 10px !important;
+
+    /* Schnellmenü bleibt stabil: Skalierung wird über --uiScale (clamp) gedeckelt. */
+    line-height: 1.3 !important;
+
+    /* Verhindert, dass das Grid freie Höhe auf die Reihen verteilt und dadurch
+       der Footer-Button „unnötig groß“ gestreckt wird (v.a. wenn keine Info-Box da ist). */
+
+    /* Control-Grid: alle Blöcke gleichwertig (Sortierung / Markierungen) */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "head head"
+      "info info"
+      "dir marks"
+      "cards cards"
+      "action action";
+    column-gap: 12px;
+    row-gap: 10px;
+
+    align-content: start !important;
+    align-items: start !important;
+  }
+  html.isPhone .fabPanelQuick :is(.fabHead,.fabHeader){ grid-area: head; gap: 10px ; padding-bottom: 6px ; }
+  html.isPhone .fabPanelQuick :is(.fabTitle,.fabTitleText){ font-size: 17px ; }
+ html.isPhone .fabPanelQuick .fabClose{ padding: 6px 10px ; }
+
+  /* Info-Box: gleicher Look wie Portrait/Tablet/Desktop, aber in Landscape einzeilig und etwas kompakter */
+  html.isPhone .fabPanelQuick .quickInfo,
+ html.isPhone .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 8px ; padding: 9px 10px ; border-radius: 16px ; }
+  html.isPhone .fabPanelQuick .quickInfoText,
+ html.isPhone .fabPanelQuick .fabQuickCount{ min-width:0 ; }
+  html.isPhone .fabPanelQuick .quickInfoA,
+ html.isPhone .fabPanelQuick #fabQuickInfoA{ font-size: 13.5px ; white-space: nowrap ; overflow: hidden ; text-overflow: ellipsis ; }
+  html.isPhone .fabPanelQuick .quickReset,
+ html.isPhone .fabPanelQuick #fabQuickReset{ font-size: 16px ; padding: 5px ; }
+  html.isPhone .fabPanelQuick .quickInfoB,
+ html.isPhone .fabPanelQuick #fabQuickInfoB{ display:none ; }
+
+ html.isPhone .fabPanelQuick .fabQuickDepth{ grid-area: depth; margin-top: 0 ; }
+
+  /* Grid-Areas (Phone-Landscape): alle Control-Blöcke auf einer visuellen Ebene */
+  html.isPhone .fabPanelQuick .fabQuickField,
+  html.isPhone .fabPanelQuick .fabQuickDir,
+ html.isPhone .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0 ; }
+ html.isPhone .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0 ; }
+
+
+ html.isPhone .fabPanelQuick .fabSect{ margin-top: 8px ; }
+ html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: 6px ; font-size: 12.5px ; }
+ 
+   html.isPhone .fabPanelQuick .chip,
+  html.isPhone .fabPanelText .chip{
+  padding: 6px 9px;
+  font-size: 14px;
+  min-width: 0;
+  min-height: 34px;
+  }
+
+
+  /* Phone-Landscape: Textgrößen-Menü – gleiche Typo/Buttons/Abstände wie Schnellmenü */
+ html.isPhone .fabPanelText .fabSect{ margin-top: 8px ; }
+ html.isPhone .fabPanelText .fabLabel{ margin-bottom: 6px ; font-size: 12.5px ; }
+ 
+ 
+
+ html.isPhone .fabPanelQuick .fabActions{ grid-area: action; margin-top: 0 ; justify-content: stretch ; justify-self: stretch ; }
+ html.isPhone .fabPanelQuick #fabOpenMenu{ align-self: stretch ; width: 100% ; min-width: 0 ; }
+ html.isPhone .fabPanelQuick .btn{ --btn-font: 14.5px; --btn-pad-y: 10px; --btn-pad-x: 14px; }
+
+  /* Phone Landscape: Textgrößen-Menü – gleiche Außenränder wie Schnellmenü (links/rechts/unten) */
+  html.isPhone .fabPanelText{
+    /* Nicht full-width: soll so kompakt bleiben wie Tablet/Desktop-Landscape */
+    left: auto !important;
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale)) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-width: calc(520px * var(--uiScale)) !important;
+  }
+
+  /* Phone Landscape: Aktionsbereich NICHT sticky (wir wollen kein "klebriges" Footer-Verhalten). */
+  html.isPhone .fabPanelQuick .fabActions{
+    position: relative !important;
+    bottom: auto !important;
+  }
+
+
+
+  .sheet{
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    height: auto;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    border-radius: 22px;
+    display: block;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sheetHead{
+    position: static !important;
+    padding-top: calc(12px * var(--uiScale));
+  }
+
+  .sheetBody{
+    overflow: visible !important;
+    padding-bottom: calc(16px * var(--uiScale));
+  }
+
+  .sheetActions{
+    position: static !important;
+    backdrop-filter: none;
+  }
+
+
+
+  /* Topbar: Titel links, Aktionen rechts */
+  .topbar{justify-content:space-between;}
+  .brand{flex: 1 1 auto; min-width: 0;}
+  .topActions{margin-left:auto; justify-content:flex-end; flex-wrap:wrap;}
+
+  /* Subbar: immer gestapelt, damit die Suche nicht gequetscht wird */
+  .subbar{flex-direction:column; align-items:stretch; justify-content:flex-start;}
+  .searchRow{width:100%; max-width:none;}
+  .searchRow .search{width:100%;}
+
+  /* Info-Chips: ruhige, kontrollierte Verteilung */
+  .pills{
+    width:100%;
+    display:grid;
+    grid-template-columns: 1fr auto auto; /* Datei | Treffer | XLSX */
+    gap: var(--sp-4);
+    align-items:center;
+  }
+  #pillFile{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  #pillRows, #pillXlsx{white-space:nowrap;}
+}
+
+
+/* Tablet Portrait: wie Phone – FABs dürfen leicht über Content laufen (kein großer "Sicherheitsrand") */
+@media (min-width: 701px) and (orientation: portrait){
+  .wrap{
+    padding-bottom: calc(90px * var(--uiScale));
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+
+/* Android/Chrome: prevent pull-to-refresh / page reload on overscroll.
+   (We target Android only for now; iOS behavior is intentionally ignored.) */
+html, body{ overscroll-behavior-y: none; overflow-anchor: none; }
+
+/* Ensure form controls inherit our scaled typography.
+   Some mobile browsers keep default UI font sizes on buttons/inputs unless forced. */
+button, input, select, textarea{ font: inherit; }
+
+body{
+  margin:0;
+  /* Slightly calmer reading rhythm + less aggressive default weight */
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif;
+  font-weight: 450;
+  /* Base readability: slightly larger than default to help long sessions */
+  font-size: calc(17px * var(--uiScale));
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
+  /* Background is handled by .appBg to avoid "scroll drift" / parallax-like effects. */
+  background: var(--bg);
+  color:var(--fg);
+}
+
+/* Desktop: prefer the variable Segoe face when available (often calmer on Windows). */
+@media (min-width: 980px){
+  body{ font-family: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif; }
+
+
+
+  body{
+    font-size: calc(17.5px * var(--uiScale));
+    line-height: 1.5;
+  }
+
+  .wrap{
+    max-width: 1120px;
+    padding-left: calc(18px * var(--uiScale));
+    padding-right: calc(18px * var(--uiScale));
+  }
+
+  .cards{ padding: 8px 6px; }
+
+  .card{
+    padding: calc(18px * var(--uiScale));
+    margin: 72px 0;
+  }
+
+  .title{
+    font-size: calc(26px * var(--uiScale));
+    margin: 12px 0 10px;
+  }
+
+  .badgeRow{ gap: calc(7px * var(--uiScale)); }
+  .badge{ --badge-font: calc(13.5px * var(--uiScale)); }
+
+  .info{
+    padding: calc(14px * var(--uiScale));
+    /* Keep scaling consistent with A/A+/A++/A+++ (body uses --uiScale). */
+    font-size: 1.05em;
+  }
+
+  .k{
+    font-size: calc(14px * var(--uiScale));
+    letter-spacing: 0.03em;
+  }
+  .v{
+    font-size: calc(15px * var(--uiScale));
+    line-height: 1.3;
+  }
+
+  summary{ padding: calc(13px * var(--uiScale)) calc(14px * var(--uiScale)); }
+  .detailsBody{
+    padding: calc(14px * var(--uiScale)) calc(14px * var(--uiScale)) calc(16px * var(--uiScale));
+    line-height: 1.65;
+    /* Use em so the preset scale applies on Desktop/Tablet, too. */
+    font-size: 1.02em;
+  }
+
+  /* Prosa nicht über die ganze Kartenbreite laufen lassen */
+  .detailsBody .pre{
+    max-width: 82ch;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* Subgenre/Entwickler-Text etwas luftiger */
+  .infoItem .vText{ line-height: 1.45; }
+
+  /* Desktop: kleine Hover-Hilfe ohne "neue" Effekte */
+  summary:hover{
+    background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  }
+}
+
+
+/* Static background layer (fixed to viewport, never scrolls) */
+.appBg{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(1200px 760px at 12% -12%, color-mix(in oklab, var(--blue) 18%, var(--bg) 82%), transparent 62%),
+    radial-gradient(1080px 740px at 88% -8%, color-mix(in oklab, var(--warn) 14%, var(--bg) 86%), transparent 62%),
+    radial-gradient(900px 620px at 50% 110%, color-mix(in oklab, var(--blue2) 10%, var(--bg) 90%), transparent 60%),
+    linear-gradient(180deg, color-mix(in oklab, #ffffff 20%, var(--bg) 80%), var(--bg));
+}
+
+/* Ensure UI stays above the fixed background layer */
+.hdr, .wrap, .toTop, .dlg{position:relative; z-index:1;}
+
+a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
+
+.hdr{
+  position:sticky; top:0; z-index:50;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.topbar{
+  display:flex; gap: var(--sp-5); align-items:center; justify-content:flex-start;
+  padding: var(--sp-6) var(--sp-5) var(--sp-4);
+}
+.brand{
+  font-weight:800;
+  font-size: calc(30px * var(--uiScale));
+  letter-spacing:.2px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap: var(--sp-4);
+}
+.brandName{display:block; min-width:0;}
+.build{
+  font-size: var(--ctl-font-sm);
+  font-weight:600;
+  opacity:.65;
+  margin-left: auto;
+  border:1px solid var(--border);
+  padding: calc(4px * var(--uiScale)) calc(10px * var(--uiScale));
+  border-radius:999px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+
+/* Dünne Trennlinie zwischen Zone A (Titel) und Zone B (Kontrollen) */
+.hdrRule{
+  height:1px;
+  background: color-mix(in oklab, var(--border) 82%, transparent);
+  margin: 0 var(--sp-5);
+}
+
+.subbar{
+  /* A bit more air below the thin divider so the search field doesn't feel glued to it */
+  padding: var(--sp-2) var(--sp-5) var(--sp-5);
+  display:flex;
+  flex-direction:column;
+  gap: var(--sp-4);
+}
+
+/* Kompakte Button-Variante (Chip-Look) */
+.btn.btn-compact{
+  --btn-pad-y: calc(9px * var(--uiScale));
+  --btn-pad-x: calc(12px * var(--uiScale));
+  --btn-shadow: none;
+}
+
+/* Toolbar row (adaptive): button + results + xlsx + details */
+.toolbarRow{
+  width:min(820px, 100%);
+  display:flex;
+  align-items:center;
+  gap: var(--sp-4);
+}
+.toolbarRow #btnMenu{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Smaller pill variant for compact toolbars */
+.pill.pill-sm{
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--ctl-font-sm);
+}
+.pill .pillLabel{opacity:.75; margin-right: calc(6px * var(--uiScale));}
+.pill .pillCount{font-variant-numeric: tabular-nums;}
+
+/* Meta details trigger (⋯) uses the same neutral icon style as the search help */
+.metaMore{display:flex; align-items:center;}
+.metaMore.open .searchHelpIcon{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
+}
+
+/* Panel for Excel/Import details (shown as popover via JS) */
+.fileMoreBody{
+  width: min(820px, 100%);
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+  border-radius: calc(14px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+}
+.fileMoreTop{
+  display:flex;
+  align-items:center;
+  gap: var(--sp-4);
+  flex-wrap:wrap;
+  margin-bottom: calc(8px * var(--uiScale));
+}
+
+/* Make the Excel button feel like a chip so it pairs nicely with the XLSX status pill */
+.fileMoreTop .btn.btn-compact{
+  --btn-pad-y: var(--sp-3);
+  --btn-pad-x: var(--sp-4);
+  --btn-font: var(--ctl-font-sm);
+}
+
+/* Adaptive compaction: when space is tight (e.g. A+++), we hide secondary bits instead of wrapping */
+.toolbarRow.compact2 .pillLabel{display:none; margin-right:0;}
+.toolbarRow.compact2 #btnMenu{padding-left: calc(10px * var(--uiScale)); padding-right: calc(10px * var(--uiScale));}
+
+.fileMoreBody .fileName{display:block; margin-top: calc(2px * var(--uiScale));}
+.fileMoreBody .fileMeta{display:block; margin-top: calc(4px * var(--uiScale));}
+.fileName{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:650;
+  opacity:.86;
+}
+.fileMeta{
+  white-space:nowrap;
+  font-size: var(--ctl-font-sm);
+  opacity:.7;
+}
+
+/* Adaptive tightening: hide XLSX in the toolbar first, then shorten the Treffer label */
+.toolbarRow.compact1 #pillXlsxTop{display:none;}
+.toolbarRow.compact2 .pillLabel{display:none; margin-right:0;}
+.toolbarRow.compact2 #btnMenu{padding-left: calc(10px * var(--uiScale)); padding-right: calc(10px * var(--uiScale));}
+
+/* Search row + help icon (collapsed by default; reveals on tap) */
+.searchRow{
+  width:min(820px, 100%);
+  display:flex;
+  align-items:center;
+  gap:calc(8px * var(--uiScale));
+}
+.searchRow .search{flex:1; min-width:0; width:100%;}
+.searchHelp{display:flex; align-items:center;}
+
+/* Search row inside bottom-sheet (mirrors the global search). */
+.sheetSearchRow{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:calc(8px * var(--uiScale));
+  margin-bottom: calc(10px * var(--uiScale));
+}
+.sheetSearchRow .search{
+  flex:1;
+  width:100%;
+  min-width:0;
+}
+.searchHelpIcon{
+  font: inherit;
+  border:0;
+  background: transparent;
+  color: color-mix(in oklab, var(--fg) 52%, var(--bg) 48%);
+  width: calc(34px * var(--uiScale));
+  height: calc(34px * var(--uiScale));
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  line-height:1;
+  user-select:none;
+}
+.searchHelpIcon:active{transform: translateY(1px);}
+.searchHelp.open .searchHelpIcon{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  color: color-mix(in oklab, var(--fg) 70%, var(--bg) 30%);
+}
+.searchHelpBody{
+  width: min(820px, 100%);
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+  color: color-mix(in oklab, var(--fg) 72%, var(--bg) 28%);
+  border-radius: calc(14px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(12.5px * var(--uiScale));
+  line-height: 1.35;
+}
+
+/* Popovers (schwebend, ohne Layout-Shift)
+   - Wird für die Suchhilfe im Header und den Excel/Import-Bereich (⋯) genutzt.
+   - Menü-Suchhilfe bleibt inline (ohne .popover-Klasse). */
+.popover{
+  position: fixed;
+  z-index: 60;
+  /* left/top werden per JS am Anker ausgerichtet */
+  left: 12px;
+  top: 72px;
+  box-shadow: 0 16px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.searchHelpBody.popover,
+.fileMoreBody.popover{
+  width: auto; /* override "min(820px, 100%)" panels */
+  max-width: min(560px, calc(100vw - 24px));
+  min-width: min(300px, calc(100vw - 24px));
+}
+.searchHelpBody.popover{ pointer-events:auto; }
+.fileMoreBody.popover{ pointer-events:auto; }
+
+
+/* Systemhinweise: bleiben im Normalbetrieb unsichtbar, erscheinen nur bei echten Fehlern */
+.sysNotice{
+  width: min(820px, calc(100% - 24px));
+  margin: 10px 12px 0;
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+  color: color-mix(in oklab, var(--fg) 86%, var(--bg) 14%);
+  border-radius: calc(16px * var(--uiScale));
+  box-shadow: 0 10px 30px rgba(0,0,0,.10);
+  font-weight:600;
+  font-size: calc(12.5px * var(--uiScale));
+  line-height: 1.35;
+ }
+
+#sysNoticeLoad{
+  margin: 12px 0 0;
+  width: 100%;
+ }
+.search{
+  width:min(820px, 100%);
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  color:var(--fg);
+  border-radius:999px;
+  padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
+  font-weight:500;
+  outline:none;
+}
+/* Gemeinsame „Pill“-Oberfläche (Buttons, Pills, Badges)
+   -> reduziert Duplikate, Optik bleibt identisch */
+:is(.pill, .btn, .badge){
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius:999px;
+  color:var(--fg);
+}
+
+.pill{
+padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
+}
+.pill-ok{border-color: color-mix(in oklab, var(--ok) 55%, var(--border) 45%)}
+.pill-warn{border-color: color-mix(in oklab, var(--warn) 55%, var(--border) 45%)}
+.pill-bad{border-color: color-mix(in oklab, var(--bad) 55%, var(--border) 45%)}
+
+.btn{
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
+  cursor:pointer;
+  box-shadow: var(--btn-shadow);
+  user-select:none;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{
+  background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+}
+.btn-icon{
+  width: calc(44px * var(--uiScale));
+  height: calc(44px * var(--uiScale));
+  padding:0;
+  display:grid;place-items:center;
+}
+
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  /* Keep last card clear of the 3-button FAB stack (varies by device size) */
+  padding:
+    calc(12px * var(--uiScale))
+    calc(12px * var(--uiScale))
+    max(
+      calc(90px * var(--uiScale)),
+      calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3 + 24px) * var(--uiScale))
+    );
+  position:relative;
+  z-index:1;
+}
+.cards{padding:6px 4px}
+
+/* Inline, temporary hint shown after closing the filter menu.
+   Not fixed/sticky (avoids Phone-Landscape quirks). */
+.viewToast{
+  margin: 0 4px calc(10px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  font-weight: 600;
+  opacity: .92;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--r2);
+  box-shadow: var(--shadow);
+  padding: calc(14px * var(--uiScale));
+  margin: 64px 0;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.card{position:relative; overflow:hidden}
+.card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; right:0;
+  height:2px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--blue) 55%, transparent), color-mix(in oklab, var(--warn) 45%, transparent));
+  opacity:.25;
+}
+
+.rowMeta{
+  display:flex; justify-content:flex-start; align-items:center; gap: var(--sp-4);
+}
+.idBadge{
+  background: color-mix(in oklab, var(--blue) 24%, var(--bg) 76%);
+  border:1px solid color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+  border-radius:999px;
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  font-weight:650;
+  font-variant-numeric: tabular-nums;
+  min-width: calc(92px * var(--uiScale));
+  text-align:center;
+}
+.favIcon{
+  font-size: calc(18px * var(--uiScale));
+  width: calc(34px * var(--uiScale));
+  height: calc(28px * var(--uiScale));
+  border-radius:999px;
+  display:grid;place-items:center;
+  margin-left:auto; /* rechtsbündig im Header-Bereich */
+  margin-right: 0;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+
+/* Platzhalter, damit die Ausrichtung auch ohne Favorit stabil bleibt */
+.favSpacer{
+  width: calc(34px * var(--uiScale));
+  height: calc(28px * var(--uiScale));
+  margin-left:auto;
+  margin-right: calc(14px * var(--uiScale));
+}
+
+.title{
+  font-weight:750;
+  font-size: calc(24px * var(--uiScale));
+  margin:10px 0 8px;
+  word-break:break-word;
+}
+
+.badgeRow{display:flex; flex-wrap:wrap; gap: calc(6px * var(--uiScale)); margin:8px 0}
+
+/* Zarte Trennlinie zwischen "Meta" (Plattform/Quelle) und "Inhalt" (Genre/Trophäen) */
+.headDivider{
+  height:1px;
+  width:100%;
+  background:rgba(0,0,0,0.10);
+  border-radius:999px;
+  margin: calc(10px * var(--uiScale)) 0 calc(8px * var(--uiScale));
+}
+.badge{
+  padding: var(--badge-pad-y) var(--badge-pad-x);
+  font-weight: var(--badge-weight);
+  font-size: var(--badge-font);
+  display:inline-flex;
+  gap: var(--badge-gap);
+  align-items:center;
+  height: var(--badge-h);
+  font-variant-numeric: tabular-nums;
+}
+/* Fixed-ish lengths per type (for visual calm) */
+.badge.platform{min-width: calc(54px * var(--uiScale)); justify-content:center}
+.badge.source{min-width: calc(108px * var(--uiScale)); justify-content:center}
+.badge.avail{min-width: calc(128px * var(--uiScale)); justify-content:center}
+.badge.genre{min-width: calc(140px * var(--uiScale)); justify-content:center}
+.badge.trophy{min-width: calc(128px * var(--uiScale)); justify-content:center}
+.badge.note{min-width: calc(150px * var(--uiScale)); justify-content:center}
+
+.badge.ok{background: color-mix(in oklab, var(--ok) 18%, var(--bg) 82%)}
+.badge.warn{background: color-mix(in oklab, var(--warn) 18%, var(--bg) 82%)}
+.badge.bad{background: color-mix(in oklab, var(--bad) 18%, var(--bg) 82%)}
+
+.info{
+  margin-top: calc(10px * var(--uiScale));
+  border:1px solid var(--border);
+  border-radius: var(--r1);
+  padding: calc(12px * var(--uiScale));
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  /* Infoblock ist der "Leseblock" – leicht größer, ohne die restliche UI aufzublasen */
+  font-size: 1.03em;
+  min-width:0;
+  overflow:hidden;
+}
+
+/* Desktop + Windows-Tablet (e.g., 1280×800): ensure font scaling follows --uiScale.
+   We intentionally gate by viewport size (not pointer/hover) to keep Android phones untouched. */
+@media (min-width: 701px) and (min-height: 521px){
+  .infoRow,
+  .kvRow{
+    grid-template-columns: minmax(calc(128px * var(--uiScale)), calc(160px * var(--uiScale))) 1fr;
+    gap: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  }
+  .infoRow .v,
+  .kvRow .v{
+    text-align:left;
+    justify-self:start;
+  }
+
+
+
+  .sheet{
+    top: 4vh;
+    bottom: 4vh;
+    max-height: calc(100dvh - 8vh);
+    border-radius: 22px;
+  }
+
+
+
+  /* Ruhigeres Lesen auf größeren Screens */
+  body{ line-height: 1.48; }
+
+  /* Titel: skalierend, aber kontrolliert */
+  .title{
+    font-size: calc(clamp(22px, 2.0vw, 28px) * var(--uiScale));
+    line-height: 1.14;
+    margin: calc(10px * var(--uiScale)) 0 calc(6px * var(--uiScale));
+  }
+
+  /* Badge-Zeilen: minimal kompakter */
+  .badgeRow{ margin: calc(7px * var(--uiScale)) 0; }
+
+  /* Badges: leicht ruhiger (kleiner, gleiche Höhe) */
+  .badge{
+    --badge-font: calc(12.5px * var(--uiScale));
+    --badge-h: calc(27px * var(--uiScale));
+    --badge-pad-y: calc(5px * var(--uiScale));
+    --badge-pad-x: calc(9px * var(--uiScale));
+  }
+  .badge.genre{
+    --badge-pad-x: calc(10px * var(--uiScale));
+  }
+
+  /* Infoblock: etwas weniger „aufgeblasen“ auf Desktop/Tablet */
+  .info{ font-size: 1.02em; }
+  .infoItem .vText{ line-height: 1.38; }
+
+  /* Akkordeon-Header: klarer als „Kapitel“, weniger Button-Vibe */
+  .acc > summary{
+    padding: calc(11px * var(--uiScale)) calc(14px * var(--uiScale));
+    gap: var(--sp-5);
+  }
+  .accTitle{ font-weight: 700; }
+  .accSummary{
+    opacity: .68;
+    flex: 0 0 calc(130px * var(--uiScale));
+  }
+  .accBody{
+    padding: calc(10px * var(--uiScale)) calc(14px * var(--uiScale)) calc(14px * var(--uiScale));
+  }
+
+
+
+  body{
+    font-size: calc(16.5px * var(--uiScale));
+    line-height: 1.55;
+  }
+
+  .wrap{
+    max-width: 1120px;
+    padding-left: calc(18px * var(--uiScale));
+    padding-right: calc(18px * var(--uiScale));
+  }
+
+  .card{
+    padding: calc(18px * var(--uiScale));
+    margin: 64px 0;
+  }
+
+  .title{
+    font-size: calc(24px * var(--uiScale));
+    line-height: 1.18;
+    margin: 12px 0 10px;
+  }
+
+  .badge{
+    --badge-font: var(--ctl-font-sm);
+    --badge-h: calc(27px * var(--uiScale));
+  }
+
+  .info{
+    padding: calc(14px * var(--uiScale));
+    font-size: 1.02em;
+  }
+
+  .k{
+    font-size: calc(13.2px * var(--uiScale));
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+  }
+  .v{
+    font-size: calc(15.6px * var(--uiScale));
+    line-height: 1.35;
+  }
+
+  summary{
+    font-size: calc(15px * var(--uiScale));
+    padding: calc(13px * var(--uiScale)) calc(14px * var(--uiScale));
+  }
+
+  .detailsBody{
+    font-size: 1em;
+    line-height: 1.72;
+    padding: calc(14px * var(--uiScale)) calc(16px * var(--uiScale)) calc(16px * var(--uiScale));
+  }
+
+  .detailsBody .pre{
+    max-width: 78ch;
+    margin-right: auto;
+  }
+
+  .small{ font-size: calc(12.5px * var(--uiScale)); }
+}
+
+
+/* --- Info-Block: Hybrid-Layout (ohne Akkordeon) ---
+   - Genre/Subgenre/Entwickler: untereinander, volle Breite
+   - darunter kompakte Tabelle (Spielzeit, Lebenszeit, Meta, User)
+*/
+.infoStack{
+  display:flex;
+  flex-direction:column;
+  gap: var(--sp-4);
+}
+.infoItem{min-width:0}
+.infoItem .k{margin-bottom: calc(4px * var(--uiScale));}
+.infoItem .vText{
+  font-weight:500;
+  line-height:1.4;
+  /* Keine aggressive Silbentrennung im Subgenre/Genre-Text */
+  hyphens:none;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.softSep{
+  height:1px;
+  background: color-mix(in oklab, var(--fg) 10%, var(--bg) 90%);
+  opacity:.7;
+  margin: calc(2px * var(--uiScale)) 0;
+}
+.infoTable{
+  margin-top: calc(12px * var(--uiScale));
+  padding-top: calc(12px * var(--uiScale));
+  /* Deutlicher Schnitt: Entwickler → Kennzahlen */
+  border-top: calc(2px * 1) solid color-mix(in oklab, var(--fg) 14%, var(--bg) 86%);
+}
+
+.infoRow{
+  display:grid;
+  /* Phone Portrait: wie bei A/A+/A++ sollen Werte bis an den rechten Rand laufen.
+     Dafür braucht die Value-Spalte die volle Restbreite (1fr) und die Value selbst
+     wird am Zellenende verankert. */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
+  gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  align-items:baseline;
+  padding: calc(8px * var(--uiScale)) 0;
+  min-width:0;
+}
+.infoRow .v{ text-align:right; justify-self:end; }
+
+.infoRowPrimary{
+  padding-bottom: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+}
+.infoRowScore{
+  padding: calc(6px * var(--uiScale)) 0;
+}
+
+/* --- Card layout (mobile-first) --- */
+.topGrid{display:block}
+.detailsWrap{
+  margin-top:calc(10px * var(--uiScale));
+  display:flex;
+  flex-direction:column;
+  gap: var(--sp-4);
+}
+.detailsWrap details{margin:0}
+.kvTable{
+  display:flex;
+  flex-direction:column;
+  gap: 0;
+  min-width:0;
+}
+.kvRow{
+  display:grid;
+  /* Phone Portrait: gleiche Logik wie im Infoblock.
+     Wichtig für A+++: "Store Link" bleibt einzeilig, Werte bleiben rechtsbündig
+     UND bis an den rechten Rand ausgerichtet. */
+  grid-template-columns: minmax(calc(110px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
+  gap: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  align-items:baseline;
+  padding: calc(8px * var(--uiScale)) 0;
+  min-width:0;
+}
+.kvRow .v{ text-align:right; justify-self:end; }
+
+/* ------------------------------
+   Build 7.1i – Layout-Dichte & Ausrichtung Desktop/Tablet
+   - Android Phones bleiben unangetastet (Gate über min-width + min-height)
+   Ziele:
+   1) Label ↔ Wert näher zusammen (Info + Store + Humor)
+   2) Rechter Infoblock wirkt wie Sidebar, nicht wie halbe Karte
+   3) Windows-Tablet Portrait etwas kompakter
+------------------------------ */
+
+/* 1) Label/Wert-Abstände reduzieren (Info + KV-Tabellen)
+   Trick: Label-Spalte bekommt eine sinnvolle Fixbreite, Wert beginnt direkt daneben.
+   Dadurch „kleben“ Zahlen/Values optisch am Label statt am rechten Kartenrand. */
+
+
+/* 2) Infoblock schmaler auf Desktop/Tablet-Landscape
+   - Head darf wachsen (Titel/Badges), Info bleibt in einer kontrollierten Breite. */
+@media (min-width: 860px) and (min-height: 521px) and (orientation: landscape){
+  /* Desktop/Windows-Tablet (Landscape): Infoblock so breit wie die rechte Detail-Kachel (Store/Humor)
+     → gleiche 2-Spalten-Logik wie unten, dadurch ruhige Kanten/Fluchten. */
+  .topGrid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    /* gleiche Spalten-/Gap-Logik wie bei den unteren 2er-Kacheln */
+    gap: var(--sp-4);
+    align-items:start;
+  }
+  .info{
+    margin-top:0;
+    width:auto;
+    max-width:none;
+    justify-self:stretch;
+  }
+}
+
+/* 3) Windows-Tablet Portrait (typisch: ~800px Breite, viel Höhe) kompakter
+   - Weniger Padding/Margins, damit Karten nicht „zu luftig“ wirken. */
+/* Windows-Tablet Portrait: Range bewusst breiter, da Browser-UI/Zoom
+   die effektive CSS-Breite variieren lässt. Ziel: Tablet-Portrait, nicht Desktop. */
+@media (min-width: 720px) and (max-width: 1100px) and (min-height: 900px) and (orientation: portrait){
+  .wrap{
+    /* etwas mehr Rand links/rechts → Karte wirkt kleiner */
+    /* deutlich mehr Hintergrund sichtbar, aber ohne uiScale-Übertreibung */
+    padding: calc(12px * var(--uiScale)) clamp(28px, 6vw, 72px) calc(90px * var(--uiScale)) clamp(28px, 6vw, 72px);
+  }
+  .card{
+    padding: calc(16px * var(--uiScale));
+    margin: 52px 0;
+  }
+
+  /* 1) Mehr Luft zwischen Badge-Header und Infoblock
+     (Abstand muss zwischen .head und .info entstehen – nicht innerhalb der Badges). */
+  .head{ margin-bottom: calc(16px * var(--uiScale)); }
+  .info{
+    padding: calc(12px * var(--uiScale));
+    margin-top: 0; /* Abstand kommt über .head -> margin-bottom */
+  }
+
+  /* 3) Store + Humorstatistik nebeneinander (wie Desktop/Landscape)
+     DOM-Reihenfolge bleibt: Beschreibung → Store → Trophäen → Humor → Easter
+     → wir platzieren per Grid, damit Store/Humor trotzdem in einer Zeile stehen. */
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
+}
+
+.kvRow + .kvRow{
+  border-top: 1px solid color-mix(in oklab, var(--fg) 8%, var(--bg) 92%);
+}
+
+.kvRowPrimary{
+  padding-bottom: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%);
+}
+.kvHumor .kvRow + .kvRow{ border-top:none; } /* Humor: keine Linie zwischen Sekundärwerten */
+.kvHumor .kvRow{ padding: calc(6px * var(--uiScale)) 0; }
+.kvHumor .kvRowPrimary{ padding-bottom: calc(10px * var(--uiScale)); margin-bottom: calc(8px * var(--uiScale)); border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, var(--bg) 88%); }
+.kvStore .kvRow + .kvRow{ border-top:none; }
+.kvStore .kvRow{
+  padding: calc(6px * var(--uiScale)) 0;
+}
+
+/* Linktext in KV-Tabellen nicht umbrechen (insb. A+++ im Phone-Portrait) */
+.kvStore a{ white-space:nowrap; word-break:normal; }
+
+
+.vNum{ font-variant-numeric: tabular-nums; font-weight: 620; }
+.num{ font-variant-numeric: tabular-nums; font-weight: 620; }
+/* Trennzeichen & Einheiten bewusst leiser */
+.slash{ opacity:.62; font-weight: 450; font-size: .95em; padding: 0 calc(2px * var(--uiScale)); }
+.k{
+  /* Labels: gleich groß genug zum Lesen, aber "technischer" und leiser */
+  opacity:.78;
+  font-weight:520;
+  font-size: calc(13.5px * var(--uiScale));
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+.v{
+  /* Values: slightly stronger than labels (without turning everything bold) */
+  font-weight:520;
+  font-size: calc(15.5px * var(--uiScale));
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  min-width:0;
+  /* "anywhere" erzeugt teils extrem harte Silbentrennung (Graphi- / Adven- / ...)
+     -> angenehmer: normaler Umbruch + ggf. Wortbruch als Fallback */
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  text-align:left;
+}
+
+/* Scores (z.B. 80 / 100) dürfen nicht umbrechen */
+.ratio{ white-space:nowrap; }
+
+details{
+  margin:calc(10px * var(--uiScale)) 0 0;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  overflow:hidden;
+}
+summary{
+  list-style:none;
+  cursor:pointer;
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
+  font-weight:650;
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+}
+summary::-webkit-details-marker{display:none}
+.chev{opacity:.7}
+.detailsBody{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(14px * var(--uiScale)); line-height:1.55}
+.pre{white-space:pre-wrap}
+.hl{
+  background: color-mix(in oklab, var(--filterAccent) 22%, transparent);
+  border-radius: 8px;
+  padding: 0 .12em;
+}
+.small{font-size: var(--ctl-font-sm); opacity:.8; font-weight:500}
+
+.platBlock{margin: calc(12px * var(--uiScale)) 0}
+.bar{
+  height: calc(10px * var(--uiScale));
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  overflow:hidden;
+  margin-top: calc(8px * var(--uiScale));
+}
+.bar > div{height:100%; background: color-mix(in oklab, var(--fg) 42%, var(--bg) 58%)}
+
+.empty{padding: calc(18px * var(--uiScale)) calc(4px * var(--uiScale))}
+.emptyCard{
+  border:1px solid var(--border);
+  border-radius:22px;
+  background:var(--card);
+  box-shadow: var(--shadow);
+  padding: calc(18px * var(--uiScale));
+}
+.emptyTitle{font-weight:750; font-size: calc(22px * var(--uiScale))}
+.emptyText{margin-top: calc(8px * var(--uiScale)); opacity:.9; font-weight:450; line-height:1.5}
+.emptyActions{margin-top: calc(14px * var(--uiScale))}
+.emptyHint{margin-top: calc(14px * var(--uiScale)); font-size: var(--ctl-font-sm); opacity:.8; font-weight:450}
+
+.toTop{
+  position:fixed;
+  right: calc(var(--fabEdge) * var(--uiScale));
+  /* Stack-Order: TOP (oben), Aa (mitte), Schnellmenü (unten) */
+  bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale));
+  z-index:60;
+  width: calc(var(--fabSize) * var(--uiScale));
+  height: calc(var(--fabSize) * var(--uiScale));
+  display:grid;
+  place-items:center;
+  border:1px solid var(--border);
+  background:var(--card);
+  border-radius:999px;
+  padding: 0;
+  box-shadow: var(--shadow);
+  font-weight:750;
+  font-size: calc(15px * var(--uiScale));
+  cursor:pointer;
+}
+
+/* Floating buttons (Textgröße + Schnellmenü) */
+.fab{
+  position:fixed;
+  right: calc(var(--fabEdge) * var(--uiScale));
+  z-index:65;
+  width: calc(var(--fabSize) * var(--uiScale));
+  height: calc(var(--fabSize) * var(--uiScale));
+  display:grid;
+  place-items:center;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius: 999px;
+  padding: 0;
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  font-size: calc(var(--fabFont) * var(--uiScale));
+  opacity: .82;
+  cursor:pointer;
+}
+.fab:active{ transform: translateY(1px); }
+
+/* Indicator: show when any (Schnell-)Filter is active.
+   Intentionally subtle, but more visible than a purely text-based hint. */
+.fab.fabHasFilters{
+  background: color-mix(in oklab, var(--filterAccent) 16%, var(--bg) 84%);
+  border-color: color-mix(in oklab, var(--filterAccent) 38%, var(--border) 62%);
+  box-shadow: var(--shadow);
+  opacity: .9;
+}
+
+/* Schnellmenü-FAB: dezenter Dauer-Ring + kurze Puls-Sequenz (nur Ring) */
+.fabQuick::after,
+.fabQuick::before{
+  content:"";
+  position:absolute;
+  /* Scale-aware inset keeps the ring visually consistent across UI scales */
+  inset: calc(-4px * var(--uiScale));
+  border-radius: 999px;
+  pointer-events:none;
+}
+
+/* Dauer-Ring (nur wenn Filter aktiv sind) */
+.fabQuick::after{
+  border: 2px solid var(--filterGlow);
+  opacity: 0;
+}
+.fabQuick.fabHasFilters::after{ opacity: 1; }
+
+/* Puls-Ring (separate layer, damit der Dauer-Ring stabil bleibt) */
+.fabQuick::before{
+  border: 2px solid var(--filterGlow);
+  opacity: 0;
+  transform: scale(1);
+  box-shadow: 0 0 0 0 transparent;
+}
+.fabQuick{ will-change: transform, filter; }
+.fabQuick.fabPulse::before{
+  opacity: 1;
+  /* länger + auffälliger (Trigger bleibt identisch) */
+  animation: fabRingPulse 1120ms cubic-bezier(.18,.85,.22,1) 0.35s 3;
+}
+
+/* Puls wirkt zusätzlich auf den Button selbst (kurz größer + etwas heller) */
+.fabQuick.fabPulse{
+  animation: fabBtnPulse 1120ms cubic-bezier(.18,.85,.22,1) 0.35s 3;
+}
+
+/* A11y: Reduced Motion – keine Puls-Animation, Status-Ring bleibt sichtbar */
+@media (prefers-reduced-motion: reduce){
+  .fabQuick.fabPulse::before{
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .fabQuick.fabPulse{
+    animation: none !important;
+  }
+}
+
+@keyframes fabRingPulse{
+  /* Ruhiger: deutlich kleinere Ausdehnung + weniger Halo (Trigger/Dauer unverändert) */
+  0%{ transform: scale(1); opacity: 0; box-shadow: 0 0 0 0 transparent, 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 18%, transparent); }
+  18%{ transform: scale(1.08); opacity: 1; box-shadow: 0 0 0 0 transparent, 0 0 12px 3px color-mix(in oklab, var(--filterAccent) 22%, transparent); }
+  52%{ transform: scale(1.42); opacity: .55; box-shadow: 0 0 0 4px color-mix(in oklab, var(--filterAccent) 20%, transparent), 0 0 10px 2px color-mix(in oklab, var(--filterAccent) 18%, transparent); }
+  80%{ transform: scale(1.65); opacity: .22; box-shadow: 0 0 0 8px color-mix(in oklab, var(--filterAccent) 18%, transparent), 0 0 8px 2px color-mix(in oklab, var(--filterAccent) 16%, transparent); }
+  100%{ transform: scale(1.65); opacity: 0; box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
+}
+
+@keyframes fabBtnPulse{
+  0%{ transform: scale(1); filter: brightness(1) saturate(1); }
+  18%{ transform: scale(1.045); filter: brightness(1.14) saturate(1.08); }
+  52%{ transform: scale(1.03); filter: brightness(1.10) saturate(1.05); }
+  80%{ transform: scale(1.02); filter: brightness(1.06) saturate(1.03); }
+  100%{ transform: scale(1); filter: brightness(1) saturate(1); }
+}
+
+/* Reihenfolge (von unten nach oben): Schnellmenü → Aa → Top */
+.fabQuick{ bottom: calc(var(--fabBottom) * var(--uiScale)); }
+.fabText{ bottom: calc((var(--fabBottom) + var(--fabSize) + var(--fabGap)) * var(--uiScale)); }
+
+.fabPanel{
+  position:fixed;
+  right: calc(var(--fabEdge) * var(--uiScale));
+  z-index:66;
+  width: min(320px, calc(100vw - 28px));
+  /* Fallback: dynamic viewport units */
+  max-height: calc(100dvh - 120px);
+  /* Prefer: VisualViewport-driven height (more reliable when browser bar is visible) */
+  max-height: calc(var(--vvh) * 100 - 120px);
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+  border:1px solid var(--border);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: var(--shadow);
+  padding: calc(12px * var(--uiScale));
+}
+
+/* Robust: hidden Panels wirklich unsichtbar (verhindert CSS-Overrides in seltenen Browserfällen) */
+.fabPanel[hidden]{display:none !important;}
+
+/* Panels immer oberhalb des Button-Stacks starten (überdeckt die FABs nicht) */
+.fabPanelText{
+  /* Textgrößen-Menü soll sich wie das Schnellmenü anfühlen:
+     gleiche (gedeckelte) UI-Skalierung, gleiche Spacing-Statik. */
+  --uiScaleCapped: clamp(1, var(--uiScaleRaw), 1.06);
+  --uiScale: var(--uiScaleCapped);
+
+  bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
+}
+/* Quick-Panel: Bottom-Offset als Custom Property, damit wir in kritischen Fällen
+   (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
+.fabPanelQuick{
+  /* Schnellmenü: eigene Skalierung (reagiert auf Aa/A+, aber mit hartem Maximalwert).
+     Dadurch bleiben die Menüs stabil, während Karten weiter voll skalieren dürfen. */
+  --uiScaleCapped: clamp(1, var(--uiScaleRaw), 1.06);
+  --uiScale: var(--uiScaleCapped);
+
+  /* Quick-Panel: Bottom-Offset als Custom Property, damit wir in kritischen Fällen
+     (Phone Landscape + Browserbar sichtbar) die verfügbare Höhe exakt berechnen können. */
+  --panelBottomQuick: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 3) * var(--uiScale));
+  bottom: var(--panelBottomQuick);
+}
+
+/* Phone Portrait + sichtbare Browserbar (oder generell niedrige sichtbare Höhe):
+   Dock das Schnellmenü wie in Phone-Landscape neben den FAB-Stack und begrenze es oben/unten.
+   Damit wird nichts abgeschnitten, auch wenn die VisualViewport-Höhe plötzlich schrumpft. */
+html.vhTight .fabPanelQuick{
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: none;
+  /* In allen Ansichten dieselbe "Panel-Logik": rechts am FAB-Stack anliegen,
+     aber eine feste, ruhige Maximalbreite haben (damit Landscape nicht eskaliert). */
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  left: auto;
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
+}
+
+/* Phone (Portrait + Landscape): Schnellmenü als gedocktes Panel neben dem FAB-Stack.
+   Hintergrund: Mobile Browser-Chrome (Adressleiste) kann die sichtbare Höhe dynamisch ändern.
+   Phones werden daher als *eine* UI-Klasse behandelt (orientation-agnostic).
+*/
+html.isPhone .fabPanelQuick{
+  /* Phone default: wrap content, dock to bottom, and only scroll if needed */
+  top: auto;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  height: auto;
+  max-height: calc(var(--vh, 100vh) - 18px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  overflow: auto;
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  left: auto;
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
+  /* Fix: In Phone-Ansichten hat das Panel effektiv eine feste Höhe.
+     Mit Flex können wir die Action-Zeile (Button) sauber an den unteren Rand drücken,
+     statt dass darunter „Leerraum“ entsteht. */
+  display: flex;
+  flex-direction: column;
+}
+/* Phone: Schnellmenü-Header bleibt beim Scrollen sichtbar (Close immer erreichbar). */
+html.isPhone .fabPanelQuick .fabHead{
+  position: sticky;
+  /* Panel hat Padding – mit negativem Offset „kleben“ wir am inneren Rand */
+  top: calc(-12px * var(--uiScale));
+  margin-top: calc(-12px * var(--uiScale));
+  /* kein abgesetztes Kopfband auf Phone */
+  background: inherit;
+  z-index: 2;
+}
+
+html.isPhone .fabPanelQuick .fabActions{
+  /* Phone: Action-Bar ist standardmäßig NICHT sticky.
+     Sticky wird nur aktiviert, wenn die sichtbare Höhe wirklich knapp ist (vhTight). */
+  position: relative;
+  padding-top: calc(10px * var(--uiScale));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  /* kein abgesetztes Fußband auf Phone */
+  background: inherit;
+  border-top: 0;
+  /* Fix: Action-Zeile ans Panel-Ende schieben, nicht unterhalb des Contents „stehen lassen“. */
+  margin-top: auto;
+}
+
+/* Phone: Textgrößen-Menü ebenfalls gedockt und stabil (gleiches Verhalten wie Schnellmenü). */
+html.isPhone .fabPanelText{
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(var(--vvh) * 100 - 24px);
+  left: auto;
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  width: auto;
+}
+
+/* Non-Phone: Panels sollen in Portrait genauso "angedockt" sein wie in Landscape
+   (unten neben der FAB-Leiste, nicht darüber). */
+html.isNonPhone .fabPanelQuick,
+html.isNonPhone .fabPanelText{
+  left: auto;
+  top: auto;
+  right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(var(--vvh) * 100 - 24px);
+}
+
+html.isNonPhone .fabPanelQuick{
+  /* gleiche Panel-Breite wie Phone-Portrait (relativ zur Anzeige), nur skaliert */
+  width: min(
+    calc(420px * var(--uiScale)),
+    calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+  );
+  overflow: auto;
+}
+
+/* ------------------------------------------------------------
+   Schnellmenü: visuell einheitlich über Phone/Tablet/Desktop
+   ------------------------------------------------------------
+   Problem-Cluster aus den Tests:
+   - Phone: graue Kopf-/Fußbänder (Header/Actions weichen farblich vom Panel ab)
+   - Desktop/Tablet: zusätzliche Trennlinie oben, die auf Phone nicht auftaucht
+   - Desktop/Tablet: unten kleben Button-Reihen „unscharf“ aneinander
+
+   Lösung:
+   - Header + Actions bekommen die Panel-Hintergrundfarbe (per `background: inherit`)
+   - Trennlinie im Header wird für das Schnellmenü deaktiviert
+   - Actions bekommt eine definierte Top-Luft
+   - Buttons im Schnellmenü leicht kompakter + einheitliche Höhe
+*/
+
+.fabPanelQuick .fabHead{
+  background: inherit;        /* kein separater grauer Balken */
+  border-bottom: 0;           /* keine Geräte-spezifische Trennlinie */
+}
+
+.fabPanelQuick .fabActions{
+  background: inherit;        /* kein separater grauer Balken */
+  box-shadow: none;           /* keine dunkle Kante am Fuß */
+  margin-top: calc(12px * var(--uiScale));
+  padding-top: calc(10px * var(--uiScale));
+}
+
+/* Quick-Buttons: minimal kleiner + gleiche Höhe */
+.fabPanelQuick .chip{
+  min-height: calc(34px * var(--uiScale));
+  padding: calc(7px * var(--uiScale)) calc(12px * var(--uiScale));
+}
+
+/* Der große Action-Button soll sich wie ein normaler Chip anfühlen */
+.fabPanelQuick .chip.action{
+  min-height: calc(32px * var(--uiScale));
+}
+
+/* In Tight-Mode soll der große Aktionsbutton immer erreichbar bleiben (auch wenn gescrollt wird). */
+html.vhTight .fabPanelQuick .fabActions{
+  position: sticky;
+  bottom: 0;
+  padding-top: calc(10px * var(--uiScale));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  /* Kein abgesetztes „Fußband“ – gleiche Fläche wie Panel */
+  background: inherit;
+  border-top: 0;
+  /* Wenn der Inhalt kürzer als das Panel ist: Actionbar nach unten drücken */
+  margin-top: auto;
+}
+
+/* Auch ohne vhTight (z.B. wenn der Browser gerade großzügig ist) gilt:
+   In Phone-Ansichten soll der große Aktionsbutton am Panel-Bottom hängen. */
+html.isPhone .fabPanelQuick .fabActions{
+  margin-top: auto;
+}
+
+/* Phone-Landscape: Sticky-Actionbar wirkt schnell "klebrig" und verdeckt Layout.
+   Wir lassen sie hier bewusst NICHT sticky – der Phone-Landscape-Layoutblock unten
+   komprimiert stattdessen die Inhalte, damit alles ohne Überlagerung passt. */
+html.isPhone.vhTight .fabPanelQuick .fabActions{
+  position: relative;
+  bottom: auto;
+}
+
+/* Textgrößen-Menü ebenfalls stabil halten, wenn die sichtbare Höhe knapp ist. */
+html.vhTight .fabPanelText{
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(var(--vvh) * 100 - 24px);
+}
+
+/* Phone Landscape (kritischer Fall: Browserbar sichtbar + großer globaler Schriftgrad)
+   Ziel: Schnellmenü soll ohne Scrollen vollständig in den verfügbaren Viewport passen.
+   Daher wird die Typografie + Spacing **nur innerhalb des Schnellmenüs** stärker gedeckelt
+   und die max-height an svh (small viewport height) gekoppelt.
+*/
+
+
+
+/* Tablet/Desktop Portrait:
+   Panels wie in Landscape an den FAB-Stack andocken (rechts Platz für Buttons lassen),
+   damit Schnellmenü + Textgröße in Portrait nicht über den Button-Stack gelegt werden. */
+@media (orientation: portrait) and (min-width: 701px){
+  .fabPanelText,
+  .fabPanelQuick{
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    bottom: calc(12px * var(--uiScale) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fabPanelText{
+    max-width: calc(420px * var(--uiScale));
+    width: auto;
+  }
+
+  /* Schnellmenü in Portrait bewusst kompakt halten (keine Mindestbreite erzwingen). */
+  .fabPanelQuick{
+    max-width: calc(420px * var(--uiScale));
+    width: auto;
+  }
+}
+
+/* Tablet/Desktop Landscape (nicht Phone-Landscape):
+   - Panels links an den FAB-Stack andocken (rechts Platz für Buttons lassen)
+   - Schnellmenü-Optik wie Phone-Landscape (Statusbox einzeilig, Footer-Button nicht strecken)
+   - ABER: keine Höhen-/Font-Deckelung (A/A+/A++/A+++ bleibt voll wirksam)
+*/
+@media (orientation: landscape) and (min-width: 701px) and (min-height: 521px){
+  /* Panels: wie Phone-Landscape an den FAB-Stack andocken – aber unten am Viewport */
+  .fabPanelText,
+  .fabPanelQuick{
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    bottom: calc(12px * var(--uiScale) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Textgröße-Menü: kompakt lassen (nicht full-width), nur andocken */
+  .fabPanelText{
+    max-width: calc(420px * var(--uiScale));
+    width: auto;
+  }
+
+  /* Schnellmenü: zweispaltiger Aufbau wie Phone-Landscape – ohne harte Höhen-/Font-Deckelung */
+  .fabPanelQuick{
+    /* Breite: wie Phone-Portrait, damit Landscape nicht unnötig breit wird */
+    max-width: calc(420px * var(--uiScale));
+    width: min(
+      calc(420px * var(--uiScale)),
+      calc(100vw - ((var(--fabEdge) + var(--fabSize) + 28px) * var(--uiScale)))
+    );
+    display: grid;
+    /* rechte Spalte etwas großzügiger (damit Auf/Ab nicht umbrechen) */
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "head head"
+      "info info"
+      "dir marks"
+      "cards cards"
+      "action action";
+    column-gap: calc(16px * var(--uiScale));
+    row-gap: var(--sp-4);
+    align-items: start;
+    align-content: start;
+    /* viel Luft, aber nie über den Viewport hinaus */
+    max-height: calc(100vh - (24px * var(--uiScale)) - env(safe-area-inset-bottom, 0px));
+    overflow: auto;
+  }
+  .fabPanelQuick .fabHead,
+  .fabPanelQuick .fabHeader{ grid-area: head; }
+  .fabPanelQuick .quickInfo,
+  .fabPanelQuick .fabQuickInfo{ grid-area: info; margin-top: 0; }
+  /* Karten-Sektion (Kompakt/Detail) */
+  .fabPanelQuick .fabQuickDepth{ grid-area: cards; margin-top: 0; }
+  .fabPanelQuick .fabQuickField,
+  .fabPanelQuick .fabQuickDir,
+  .fabPanelQuick .fabQuickSortDir{ grid-area: dir; margin-top: 0; }
+  .fabPanelQuick .fabQuickMarks{ grid-area: marks; margin-top: 0; }
+  /* Action-Zeile: immer unten, volle Breite */
+  .fabPanelQuick .fabActions{ grid-area: action; justify-self: stretch; margin-top: 0; justify-content: stretch; }
+
+  .fabPanelQuick #fabOpenMenu{ width: 100%; min-width: 0; }
+  /* Sortieren-nach: Dropdown statt Chip-Cloud (überall) */
+  #fabSortFieldRow{ display:block; }
+  #fabSortDirRow{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-4);
+    /* volle Breite: keine künstliche Kappe */
+    max-width: none;
+  }
+  #fabSortDirRow .chip{
+    /* kompakter & einheitlicher wie Markierungen/Karten */
+    --chip-pad-y: calc(6px * var(--uiScale));
+    --chip-pad-x: calc(9px * var(--uiScale));
+    --chip-min-h: calc(34px * var(--uiScale));
+    --chip-font: calc(14px * var(--uiScale));
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+  }
+  #fabSortDirRow .chip svg{ width: calc(18px * var(--uiScale)); height: calc(18px * var(--uiScale)); }
+}
+
+.fabHead{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap: var(--sp-4);
+  /* Einheitliche Header-Paddings für Schnellmenü + Textgrößenmenü */
+  padding: calc(14px * var(--uiScale)) calc(16px * var(--uiScale)) calc(10px * var(--uiScale));
+}
+.fabTitle{font-weight: 750; letter-spacing: .2px; font-size: calc(17px * var(--uiScale));}
+
+/* Einheitliche Trennlinie in Panel-Headern (Schnellmenü, Textgröße, …)
+   Ziel: gleiche Breite/Dicke/Abstände auf allen Geräteklassen */
+.fabPanel .fabHead{
+  border-bottom: 1px solid color-mix(in oklab, var(--filterAccent) 26%, var(--border) 74%);
+  box-sizing: border-box;
+}
+.fabClose{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius:999px;
+  padding: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-weight: 650;
+}
+.fabSect{margin-top: calc(12px * var(--uiScale));}
+.fabLabel{margin-bottom: calc(8px * var(--uiScale)); opacity: .78; font-weight: 520; letter-spacing: 0.03em; font-size: calc(12.5px * var(--uiScale));}
+.fabChips{gap: var(--sp-4);}
+/* FAB panels use the same chip component but with compact sizing tokens */
+.fabPanel{
+  --chip-pad-y: var(--sp-3);
+  --chip-pad-x: var(--ctl-pad-x);
+  --chip-min-h: var(--ctl-h-sm);
+  --chip-font: var(--ctl-font-md);
+}
+
+
+/* Schnellmenü: Control-Grid (2 Buttons pro Block) */
+#fabSortDirRow,
+#fabMarkRow{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+#fabSortDirRow .chip,
+#fabMarkRow .chip{
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.fabActions{margin-top: calc(12px * var(--uiScale)); display:flex; justify-content:flex-end;}
+
+/* Schnellmenü: Kontext-Info (nur bei aktiven Filtern sichtbar)
+   Beide Markup-Varianten teilen sich 1:1 die Optik. */
+:is(.quickInfo, .fabQuickInfo){
+  margin-top: calc(12px * var(--uiScale));
+  padding: calc(10px * var(--uiScale));
+  border:1px solid color-mix(in oklab, var(--filterAccent) 28%, var(--border) 72%);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--filterAccent) 8%, var(--bg) 92%);
+  box-shadow: none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: var(--sp-4);
+}
+#fabQuickReset{
+  border:0;
+  background:transparent;
+  padding: calc(6px * var(--uiScale));
+  border-radius: 999px;
+  line-height: 1;
+  font-size: calc(18px * var(--uiScale));
+  opacity: .78;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#fabQuickReset:hover{ opacity: 1; background: color-mix(in oklab, var(--filterAccent) 10%, transparent); }
+#fabQuickReset:active{ transform: translateY(1px); }
+
+/* Schnellmenü-Abschnitte im aktuellen DOM */
+.fabPanelQuick .fabQuickDepth,
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick .fabQuickSortDir,
+.fabPanelQuick .fabQuickMarks{
+  padding: 0 12px;
+  margin-top: 12px;
+}
+
+.fabPanelQuick .fabQuickDepth{ grid-area: depth; }
+.fabPanelQuick .fabQuickSortDir{ grid-area: dir; }
+.fabPanelQuick .fabQuickMarks{ grid-area: marks; }
+
+/* Schnellmenü: einheitliche 2‑Spalten‑Grid-Reihen – gleiche Breite/Höhe für alle Buttons */
+.fabPanelQuick .quickGrid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+  align-items: stretch;
+}
+
+/* Schnellmenü-Buttons: kompakter als das große Filter-Dialog-UI */
+.fabPanelQuick .chip{
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  min-height: calc(32px * var(--uiScale));
+  line-height: 1.2;
+}
+
+/* Schnellmenü: Hauptbutton bewusst etwas kleiner als im großen Dialog (wirkt sonst "zu hoch"). */
+.fabPanelQuick #fabOpenMenu{
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  min-height: calc(38px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+  line-height: 1.15;
+}
+
+/* Buttons in den Schnellmenü-Reihen sollen immer exakt gleich breit sein */
+.fabPanelQuick .quickGrid .chip{
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+}
+
+/* Phase 1: Action-Button auf Phones vollbreit (bessere Tap-Fläche, kein "rechts schwebend") */
+@media (max-width: 700px){
+  .fabPanelQuick .fabActions{
+    justify-content: stretch;
+  }
+  .fabPanelQuick #fabOpenMenu{
+    width: 100%;
+    min-width: 0;
+  }
+
+
+
+  .sheet{
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    left: 10px;
+    right: 10px;
+    height: auto;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+    border-radius: 22px;
+  }
+  .sheetHead{
+    padding-top: calc(12px * var(--uiScale));
+  }
+}
+
+
+
+/* Schnellmenü: Statusbox mit Reset-Aktion */
+.quickInfoText{
+  display:flex;
+  flex-direction:column;
+  min-width: 0;
+  flex: 1;
+}
+.quickReset{
+  border:0;
+  background:transparent;
+  padding: calc(6px * var(--uiScale));
+  border-radius: 999px;
+  line-height: 1;
+  font-size: calc(18px * var(--uiScale));
+  opacity: .78;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.quickReset:hover{ opacity: 1; background: color-mix(in oklab, var(--filterAccent) 10%, transparent); }
+.quickReset:active{ transform: translateY(1px); }
+.quickReset:focus-visible{ outline: 2px solid color-mix(in oklab, var(--filterAccent) 55%, var(--border) 45%); outline-offset: 2px; }
+.quickInfoA{ font-weight: 650; }
+.quickInfoB{ margin-top: calc(4px * var(--uiScale)); opacity: .78; }
+
+/* Ensure the HTML [hidden] attribute always wins.
+   Some components set an explicit display value (e.g. .quickInfo{display:flex}),
+   which can otherwise override the UA stylesheet and keep hidden elements visible.
+   Fixes Schnellmenü regressions where the status box stayed visible after reset. */
+[hidden]{ display:none !important; }
+
+/* Bottom sheet */
+.dlg{border:0;padding:0;background:transparent}
+.dlg::backdrop{background: rgba(0,0,0,.35)}
+.dlg{
+  overscroll-behavior: contain;
+  /* Fullscreen fixed modal surface.
+     Using 100dvh prevents Android/Chrome address-bar quirks where the dialog
+     can render with a persistent top gap (especially after the page was
+     previously scrolled). */
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+}
+
+/* Prevent background scroll while modal is open (mobile overscroll / select-picker quirks).
+   The actual freeze is handled in JS via body{position:fixed}, so keep this minimal. */
+html.modalOpen, html.modalOpen body{overflow:hidden;}
+html.modalOpen body{touch-action:none;}
+
+.sheet{
+  position:fixed;
+  left:12px; right:12px; bottom:0;
+  margin:0 auto;
+  max-width:920px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  /* Clip sticky header/body to the rounded frame on Desktop/Tablet */
+  overflow: hidden;
+  /* Size against the dynamic viewport, not visualViewport vars.
+     This keeps the sheet height stable and avoids "starts short" gaps. */
+  max-height: calc(100dvh * 0.90);
+  display:flex;
+  flex-direction:column;
+  overscroll-behavior: contain;
+}
+
+/* Desktop: give the sheet a cleaner "framed" look.
+   Anchoring only to the bottom can feel like it's "cut off".
+   This keeps Android/mobile behavior intact (mobile has its own queries above). */
+
+
+/* Tablet-ish: give the sheet a bit more height (e.g. 1280×800). */
+@media (min-width: 701px) and (max-width: 1100px) and (min-height: 521px){
+  .sheet{
+    top: 2vh;
+    bottom: 2vh;
+    max-height: calc(100dvh - 4vh);
+  }
+}
+
+/* Mobile: framed sheet (mehr Hintergrund sichtbar), aber weiterhin stabil gegen 100dvh-Quirks. */
+
+
+/* Phone Landscape: keine Sticky-Elemente (alles scrollt) + trotzdem „framed“ (kein Vollbild).
+   Höhe ist knapp → Sticky Header/Actions würden zu viel verdecken.
+   Stattdessen wird die gesamte .sheet zum Scroll-Container.
+*/
+
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape){
+  .sheet{
+    top: 4vh;
+    bottom: 4vh;
+    max-height: calc(100dvh - 8vh);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .sheetHead{ position: static; }
+  .sheetBody{ overflow: visible; }
+  .sheetActions{ position: static; }
+}
+
+
+
+
+
+.sheetHead{
+  position:sticky; top:0;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: var(--sp-5);
+}
+.sheetTitle{font-weight:650; flex: 1 1 auto; min-width: 0;}
+.sheetBody{
+  /* Bottom padding removed so the sticky action bar can sit flush to the sheet's rounded frame.
+     (Otherwise a thin "dead" strip remains below the buttons on non-landscape-phone.) */
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) 0;
+  overflow:auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* Floating layer inside the sheet.
+   Used to render desktop dropdown panels above the scroll container
+   while still being clipped to the sheet's rounded frame. */
+.sheetFloats{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index: 90;
+}
+.sheetFloats .ddPanel{ pointer-events:auto; }
+.sectTitle{
+  font-size: calc(12px * var(--uiScale));
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  opacity:.65;
+  font-weight:650;
+  margin: calc(16px * var(--uiScale)) 0 calc(12px * var(--uiScale));
+}
+.subTitle{
+  font-size: calc(12px * var(--uiScale));
+  opacity:.75;
+  font-weight:650;
+  margin: calc(12px * var(--uiScale)) 0 calc(10px * var(--uiScale));
+}
+.sect{margin-bottom: calc(18px * var(--uiScale))}
+.subsect{margin-top: calc(16px * var(--uiScale))}
+
+/* --- Dialog: Aktive Filter Bar (kompakt & antippbar) --- */
+.activeFilters{
+  display:flex;
+  flex-wrap:wrap;
+  gap: var(--sp-4);
+  margin-top: calc(10px * var(--uiScale));
+  padding: calc(10px * var(--uiScale)) calc(10px * var(--uiScale));
+  border:1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--bg) 95%, var(--fg) 5%);
+}
+.afEmpty{opacity:.70; font-size: calc(12px * var(--uiScale));}
+.afChip{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  border-radius: 999px;
+  padding: var(--sp-3) var(--sp-4);
+  font-weight:650;
+  cursor:pointer;
+  user-select:none;
+}
+.afChip:active{
+  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+}
+.afX{opacity:.70; margin-left: calc(6px * var(--uiScale));}
+
+/* --- Dialog: Akkordeons (progressive Offenlegung) --- */
+.acc{
+  border:1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+  overflow:hidden;
+  margin-top: calc(12px * var(--uiScale));
+}
+.acc > summary{
+  list-style:none;
+  cursor:pointer;
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale));
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap: var(--sp-4);
+}
+.acc > summary::-webkit-details-marker{display:none}
+.accTitle{font-weight:650}
+.accSummary{opacity:.70; font-size: calc(12px * var(--uiScale));
+  margin-left:auto;
+  /* Keep summaries (e.g. "Alle") perfectly aligned across sections */
+  flex: 0 0 calc(120px * var(--uiScale));
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.acc > summary::after{
+  content:"▾";
+  opacity:.55;
+  font-size: calc(14px * var(--uiScale));
+}
+.acc[open] > summary::after{content:"▴"}
+.accBody{
+  border-top:1px solid var(--border);
+  padding: calc(10px * var(--uiScale)) calc(12px * var(--uiScale)) calc(12px * var(--uiScale));
+  background: color-mix(in oklab, var(--bg) 97%, var(--fg) 3%);
+}
+
+.chipRow{
+  display:flex;
+  flex-wrap:wrap;
+  /* Gleichmäßige Abstände auch bei Wrap (Portrait/Querformat) */
+  gap: var(--sp-5);
+}
+.chipRow > .chip{margin:0}
+
+/* FAB-Panels: etwas kompaktere Chip-Abstände (Schnellmenü = Referenz) */
+.fabPanel .chipRow{ gap: var(--sp-4); }
+
+/* Sortier-Richtung soll den gleichen Abstand haben wie Chip-Wrap-Zeilen */
+#sortDirRow{margin-top: calc(12px * var(--uiScale));}
+
+/* Sort block: dropdown + direction toggle side-by-side */
+.sortBar{
+  display:flex;
+  gap: var(--sp-5);
+  align-items:center;
+}
+.sortBar .sortField{ flex: 1 1 auto; }
+.sortBar .sortDir{ flex: 0 0 auto; }
+
+.dirToggle{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius: 999px;
+  width: calc(52px * var(--uiScale));
+  height: calc(44px * var(--uiScale));
+  font-size: calc(18px * var(--uiScale));
+  font-weight: 750;
+  cursor:pointer;
+  user-select:none;
+}
+.dirToggle:active{
+  background: color-mix(in oklab, var(--blue) 12%, var(--bg) 88%);
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+}
+
+.chip{
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  border-radius:999px;
+  /* Chip sizing is token-based to avoid a cascade of one-off overrides.
+     Defaults preserve the original look; panels can override via CSS variables. */
+  padding: var(--chip-pad-y, calc(9px * var(--uiScale))) var(--chip-pad-x, calc(12px * var(--uiScale)));
+  font-weight:650;
+  font-size: var(--chip-font, inherit);
+  min-height: var(--chip-min-h, auto);
+  cursor:pointer;
+  user-select:none;
+}
+.chip[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 55%, var(--border) 45%);
+  background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
+}
+
+/* Chip variants: category vs status/primary (no loud colors, just contrast) */
+.chip.category{
+  background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+  border-color: color-mix(in oklab, var(--border) 78%, var(--bg) 22%);
+  font-weight:600;
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+}
+.chip.category[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 72%, var(--border) 28%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--blue2) 72%, transparent 28%);
+  font-weight:650;
+}
+
+/* "Rule" chips (Fortschritt-Quickfilter) should also clearly show selection */
+.chip.rule[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 72%, var(--border) 28%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--blue2) 72%, transparent 28%);
+}
+.chip.status{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  border-color: color-mix(in oklab, var(--border) 62%, var(--fg) 38%);
+  /* Keep status chips (esp. Trophäen) visually consistent in size.
+     Highlight should come from contrast, not larger padding. */
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+  font-weight:600;
+}
+.chip.status[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 62%, var(--border) 38%);
+  background: color-mix(in oklab, var(--blue) 16%, var(--bg) 84%);
+  font-weight:650;
+}
+.chip.primary{
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+  border-color: color-mix(in oklab, var(--blue2) 25%, var(--border) 75%);
+  padding: calc(8px * var(--uiScale)) calc(11px * var(--uiScale));
+  font-weight:600;
+}
+
+.chip.primary[aria-pressed="true"]{
+  border-color: color-mix(in oklab, var(--blue2) 70%, var(--border) 30%);
+  background: color-mix(in oklab, var(--blue) 20%, var(--bg) 80%);
+  font-weight:650;
+}
+
+/* Icon-only chips (Schnellfilter): kompakt, gut tappbar */
+.chip.iconOnly{
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  min-width: calc(44px * var(--uiScale));
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size: calc(18px * var(--uiScale));
+}
+.sheetActions{
+  position: sticky;
+  bottom: 0;
+  display:flex;
+  gap: var(--sp-4);
+  justify-content: space-between;
+  align-items: center;
+  margin-top: calc(16px * var(--uiScale));
+  padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(6px * var(--uiScale));
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 92%, var(--bg) 8%);
+  backdrop-filter: blur(10px);
+  flex-wrap:wrap;
+}
+.sheetFoot{margin-top: calc(12px * var(--uiScale)); min-height: calc(10px * var(--uiScale))}
+.muted{opacity:.75}
+
+/* Availability dot system (Build 7.0f) */
+/* Availability badges: neutral background, status via small dot on the left. */
+.badge.avail{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+.badge.avail::before{
+  content:"";
+  width: calc(8px * var(--uiScale));
+  height: calc(8px * var(--uiScale));
+  border-radius:999px;
+  display:inline-block;
+  margin-right: calc(8px * var(--uiScale));
+  background: color-mix(in oklab, var(--fg) 35%, var(--bg) 65%); /* default (Unbekannt/neutral) */
+}
+.badge.avail.ok::before{ background: var(--ok); }
+.badge.avail.warn::before{ background: var(--warn); }
+.badge.avail.bad::before{ background: var(--bad); }
+
+/* Source badges slightly darker than platform */
+.badge.source{
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+}
+.badge.platform{
+  background: color-mix(in oklab, var(--bg) 94%, var(--fg) 6%);
+}
+
+/* Calm alignment */
+.badge{ justify-content:center; text-align:center; }
+.badge.avail{ justify-content:flex-start; text-align:left; }
+
+/* Override: availability background stays neutral even if global status classes define backgrounds */
+.badge.avail.ok, .badge.avail.warn, .badge.avail.bad{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%) !important;
+}
+
+/* --- Responsive: search + pills side-by-side (tablet/desktop) --- */
+@media (min-width: 720px){
+  .subbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:flex-start;
+    gap:calc(12px * var(--uiScale));
+  }
+  .search{flex:1; max-width:none}
+  .pills{justify-content:flex-end}
+}
+
+
+
+
+/* --- Responsive: Landscape header refinement (phones, small height) --- */
+/* Ziel: Suche bekommt volle Breite, Actions rechtsbündig, Info-Chips geordnet. */
+/* Portrait bleibt unberührt. */
+
+
+/* --- Responsive: Landscape cards (mobile landscape & small tablets) --- */
+@media (min-width: 520px) and (orientation: landscape){
+  .topGrid{
+    display:grid;
+    grid-template-columns: 0.80fr 1.20fr;
+    gap:calc(12px * var(--uiScale));
+    align-items:start;
+  }
+  .topGrid .info{margin-top:0}
+
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  .detailsWrap .d-desc,
+  .detailsWrap .d-trophy,
+  .detailsWrap .d-easter{grid-column: 1 / -1}  /* feste Reihenfolge im Querformat: Beschreibung → Store/Humor nebeneinander → Eastereggs full-width → Trophäen */
+  .detailsWrap .d-desc{grid-column: 1 / -1; grid-row: 1;}
+  .detailsWrap .d-store{grid-column: 1; grid-row: 2;}
+  .detailsWrap .d-humor{grid-column: 2; grid-row: 2;}
+  .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 3;}
+  .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
+
+  /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
+     (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
+}
+
+
+/* --- Build 7.1j12 – Mobile-Landscape Feinschliff (Phone Landscape)
+   Ziele:
+   - Infoblock wieder leicht breiter (bessere Balance, ohne "halbe Karte")
+   - Label/Wert näher zusammen wie Desktop/Tablet
+   Portrait bleibt unberührt. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 520px){
+  /* --- Build 7.1j12 – Phone Landscape: stabile Infoblock-Position (kein vw/clamp Drift) ---
+     Ziel: Der Infoblock soll nicht „mitwandern“, wenn Mobile-Browser-UI (Adressleiste/Safe-Area) die Viewport-Breite verändert.
+     Lösung: Feste (skalierte) Spaltenbreite + kleiner rechter Innenabstand, damit die Kante optisch bei „Humorstatistik“ sitzt.
+     Portrait bleibt unberührt. */
+
+  .topGrid{
+    display:grid;
+    /* Phone Landscape: Infoblock exakt so breit wie die rechte Kachel unten (Humorstatistik) */
+    grid-template-columns: 1fr 1fr;
+    /* Gap identisch zu .detailsWrap (Store/Humor) → Kanten fluchten sauber */
+    gap: var(--sp-4);
+    align-items:start;
+  }
+
+  .info{
+    width:auto;
+    max-width:none;
+    justify-self:stretch;
+    margin-right: 0;
+  }
+
+  /* Label/Wert näher zusammen wie Desktop/Tablet */
+  .infoRow,
+  .kvRow{
+    grid-template-columns: minmax(calc(120px * var(--uiScale)), calc(150px * var(--uiScale))) 1fr;
+    gap: calc(6px * var(--uiScale)) calc(10px * var(--uiScale));
+  }
+  .infoRow .v,
+  .kvRow .v{
+    text-align:left;
+    justify-self:start;
+  }
+
+/* --- Phone Landscape: als Dock unten links ---
+     Idee: In Phone-Landscape ist Höhe knapp, Breite da.
+     Deshalb: Panel breiter + Sektionen (Sortierfeld / Richtung) nebeneinander.
+     Wichtig: Das darf NICHT auf kleine Tablets greifen (z.B. 800×480). */
+  html.isPhone .fabPanelQuick{
+    /* Der FAB (≡) ist nur Trigger – das Schnellmenü lebt als stabiles Dock.
+       Damit gibt es keine Kollision mehr mit Header/Browserbar, auch wenn
+       Mobile-UI den Viewport in Landscape minimal verschiebt. */
+    left: calc(14px * var(--uiScale));
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+
+    /* In Phone-Landscape + großer Schrift kann die Browser-UI (Adressleiste) die effektive Höhe drücken.
+       Darum: bottom nicht zusätzlich mit uiScale aufblasen (sonst wird es bei großen Schriftgraden enger),
+       und safe-area unten berücksichtigen. */
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    width: auto;
+    /* Fallback: dynamic viewport height */
+    max-height: calc(100dvh - 28px);
+    /* Prefer: small viewport height (verhindert "Abschneiden" bei eingeblendeter Browserbar) */
+    max-height: calc(100svh - 28px);
+
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "head head"
+      "depth depth"
+      "dir marks"
+      "act act";
+    gap: var(--sp-4);
+
+    /* Schriftgröße wird im allgemeinen Phone-Landscape-Block (.fabPanelQuick) fest gelegt.
+       Hier keine zusätzliche Skalierung, damit es konsistent bleibt. */
+  }
+  html.isPhone .fabPanelQuick > .fabHead,
+  html.isPhone .fabPanelQuick > .fabHeader{ grid-area: head; }
+  html.isPhone .fabPanelQuick > .fabSect{ margin-top: 0; }
+  html.isPhone .fabPanelQuick > .fabQuickDepth{ grid-area: depth; }
+  html.isPhone .fabPanelQuick > .fabQuickDir,
+  html.isPhone .fabPanelQuick > .fabQuickSortDir{ grid-area: dir; }
+  html.isPhone .fabPanelQuick > .fabQuickMarks{ grid-area: marks; }
+  html.isPhone .fabPanelQuick > .fabActions{
+    grid-area: act;
+    margin-top: 0;
+    justify-content: stretch;
+  }
+  html.isPhone .fabPanelQuick #fabOpenMenu{ width: 100%; }
+
+  /* Optional info row: only reserve a row when the info is actually visible */
+  html.isPhone .fabPanelQuick.hasQuickInfo{
+    grid-template-areas:
+      "head head"
+      "info info"
+      "depth depth"
+      "dir marks"
+      "act act";
+  }
+  html.isPhone .fabPanelQuick.hasQuickInfo > .quickInfo,
+  html.isPhone .fabPanelQuick.hasQuickInfo > .fabQuickInfo{ grid-area: info; }
+
+  /* Phone Landscape: gleiche Info-Box wie in Portrait/Tablet/Desktop,
+     aber einzeilig (spart Höhe, verhindert Abschneiden). */
+  html.isPhone .fabPanelQuick.hasQuickInfo > .quickInfo,
+  html.isPhone .fabPanelQuick.hasQuickInfo > .fabQuickInfo{ margin-top: 0; }
+  html.isPhone .fabPanelQuick .quickInfoB,
+ html.isPhone .fabPanelQuick #fabQuickInfoB{ display: none ; }
+
+
+
+  /* --- Build 7.1j12 – Schriftgrößen-Menü (Phone Landscape): ebenfalls als Dock unten links ---
+     Motivation: durch größere FABs wäre das an den Button gekoppelte Panel zu nahe am oberen Rand.
+     Lösung: wie Schnellmenü entkoppeln, gleiche Safe-Zone, keine Header/Browserbar-Kollision. */
+  html.isPhone .fabPanelText{
+    left: calc(14px * var(--uiScale));
+    right: calc((var(--fabEdge) + var(--fabSize) + 14px) * var(--uiScale));
+    bottom: calc(14px * var(--uiScale));
+    width: auto;
+    max-height: calc(100dvh - 28px);
+  }
+  /* Chip-Reihen im Schnellmenü: als Grid, damit weniger Wrap-Höhe entsteht */
+  html.isPhone #fabSortFieldRow{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-4);
+  }
+  html.isPhone #fabSortDirRow{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-4);
+  }
+  html.isPhone #fabSortFieldRow .chip,
+  html.isPhone #fabSortDirRow .chip{
+    width: 100%;
+    justify-content: center;
+  }
+  html.isPhone .fabPanelQuick .fabLabel{ margin-bottom: calc(6px * var(--uiScale)); }
+}
+
+/* --- Responsive: Desktop readability --- */
+@media (min-width: 1100px){
+  /* Desktop/Windows-Tablet: kompakteres Layout (weniger "Luft" in Kopf/Accordion) */
+  .wrap{max-width:1040px}
+  .card{padding: calc(14px * var(--uiScale)); margin: 48px 0}
+  .title{font-size: calc(24px * var(--uiScale))}
+
+
+
+  .title{ font-size: calc(clamp(24px, 1.8vw, 30px) * var(--uiScale)); }
+}
+
+
+
+/* --- Build 7.1j12 – Typografie-Feinschliff (Desktop/Tablet)
+   Ziel: ruhigere Hierarchie, sauberer Rhythmus, ohne Phone anzutasten.
+   Gated by viewport size (nicht hover/pointer), damit Android-Phones stabil bleiben. */
+
+
+/* Desktop extra: Titel darf etwas mehr atmen */
+
+
+/* Dezente Top-Kantenlinie: global, nicht nur Desktop */
+.card{position:relative; overflow:hidden}
+.card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; right:0;
+  height:2px;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--blue) 55%, transparent),
+    color-mix(in oklab, var(--warn) 45%, transparent)
+  );
+  opacity:.25;
+}
+
+
+@media (hover:hover){
+  .card:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,0,0,.20), 0 34px 90px rgba(0,0,0,.22);
+  }
+}
+
+/* --- Build 7.0i-A: Header badge stacking + calmer trophies --- */
+
+/* Genre: kleiner, dunkler – Kontextbadge */
+.badge.genre{
+  background: color-mix(in oklab, var(--bg) 84%, var(--fg) 16%);
+  --badge-font: var(--ctl-font-sm);
+  --badge-weight: 600;
+  --badge-h: calc(28px * var(--uiScale));
+  --badge-pad-y: calc(5px * var(--uiScale));
+  --badge-pad-x: calc(10px * var(--uiScale));
+}
+
+/* Trophäenstatus im Header: neutral, Status nur über kleinen Punkt */
+.badge.trophyHeader{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%);
+  min-width: calc(150px * var(--uiScale));
+  justify-content:flex-start;
+  text-align:left;
+}
+.badge.trophyHeader::before{
+  content:"";
+  width: calc(8px * var(--uiScale));
+  height: calc(8px * var(--uiScale));
+  border-radius:999px;
+  display:inline-block;
+  margin-right: calc(8px * var(--uiScale));
+  background: color-mix(in oklab, var(--fg) 35%, var(--bg) 65%);
+}
+.badge.trophyHeader.ok::before{ background: color-mix(in oklab, var(--ok) 45%, var(--fg) 55%); }
+.badge.trophyHeader.warn::before{ background: color-mix(in oklab, var(--warn) 45%, var(--fg) 55%); }
+.badge.trophyHeader.bad::before{ background: color-mix(in oklab, var(--bad) 45%, var(--fg) 55%); }
+/* sicherstellen, dass ok/warn/bad NICHT den Hintergrund einfärben */
+.badge.trophyHeader.ok,
+.badge.trophyHeader.warn,
+.badge.trophyHeader.bad{
+  background: color-mix(in oklab, var(--bg) 90%, var(--fg) 10%) !important;
+}
+
+/* Trophäen-Details: pro Plattform eine ruhige Zeile mit 3 Badges */
+.tRow{
+  display:grid;
+  grid-template-columns: calc(62px * var(--uiScale)) minmax(0,1fr) minmax(0,1fr);
+  gap: calc(8px * var(--uiScale));
+  align-items:center;
+}
+.tRow .badge{
+  width:100%;
+  min-width:0;
+  justify-content:center;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.badge.tSlot{
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+}
+
+
+/* Trophy-Status-Text (Badge):
+   - Default: kurze Labels (portrait + kleines landscape)
+   - Ab breitem Landscape oder Desktop: ausführliche Labels */
+.tShort{display:inline}
+.tLong{display:none}
+
+@media (min-width: 900px){
+  /* Desktop/Windows-Tablet: Karten etwas kompakter, Proportionen bleiben gleich */
+  .wrap{max-width:920px}
+  .cards{padding:4px 2px}
+  .card{
+    padding: calc(12px * var(--uiScale));
+    margin: calc(44px * var(--uiScale)) 0;
+  }
+  .rowMeta{gap: calc(8px * var(--uiScale));}
+  .title{
+    font-size: calc(22px * var(--uiScale));
+    margin: calc(8px * var(--uiScale)) 0 calc(6px * var(--uiScale));
+  }
+  .badgeRow{gap: calc(5px * var(--uiScale)); margin: calc(6px * var(--uiScale)) 0;}
+  .headDivider{margin: calc(8px * var(--uiScale)) 0 calc(6px * var(--uiScale));}
+  .badge{
+    --badge-pad-y: calc(4px * var(--uiScale));
+    --badge-pad-x: calc(8px * var(--uiScale));
+    --badge-font: calc(12.5px * var(--uiScale));
+    --badge-h: calc(26px * var(--uiScale));
+  }
+  .info{
+    margin-top: calc(8px * var(--uiScale));
+    padding: calc(10px * var(--uiScale));
+    font-size: 1em;
+  }
+}
+
+/* Breites Landscape oder Desktop: ausführliche Labels */
+@media (min-width: 900px),
+       (orientation: landscape) and (min-width: 700px){
+  .tShort{display:none}
+  .tLong{display:inline}
+}
+
+.badgeRow-trophy{margin-top:10px}
+
+/* Filter: Genre-Dropdown (Select) */
+.filterDropdown{
+  width: 100%;
+  max-width: 520px;
+  padding: calc(12px * var(--uiScale)) calc(16px * var(--uiScale));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, #ffffff 70%, transparent 30%);
+  font-size: calc(15px * var(--uiScale));
+  outline: none;
+}
+
+.filterDropdown:focus{
+  border-color: color-mix(in oklab, var(--blue2) 45%, var(--border) 55%);
+  background: color-mix(in oklab, var(--bg) 88%, var(--fg) 12%);
+}
+
+/* Genre-Dropdown: Mehrfachauswahl, aber kompakt wie ein normales Dropdown */
+.filterDropdown[multiple][size="1"]{
+  -webkit-appearance: menulist;
+  appearance: menulist;
+  height: calc(44px * var(--uiScale));
+  padding-right: calc(38px * var(--uiScale)); /* Platz für den Dropdown-Pfeil */
+  overflow: hidden;
+}
+
+/* Subtle “less flat” interactions */
+.btn:hover{
+  border-color: color-mix(in oklab, var(--blue) 18%, var(--border) 82%);
+  background: color-mix(in oklab, var(--bg) 86%, #ffffff 14%);
+}
+.btn-primary:hover{
+  background: color-mix(in oklab, var(--blue) 34%, var(--bg) 66%);
+  border-color: color-mix(in oklab, var(--blue2) 65%, var(--border) 35%);
+}
+
+/* Badges/pills a touch less grey */
+.pill{
+  background: color-mix(in oklab, #ffffff 78%, var(--bg) 22%);
+}
+.pill-ok{ background: color-mix(in oklab, var(--ok) 10%, #ffffff 90%); }
+.pill-warn{ background: color-mix(in oklab, var(--warn) 10%, #ffffff 90%); }
+.pill-bad{ background: color-mix(in oklab, var(--bad) 10%, #ffffff 90%); }
+
+/* XLSX-Status: Grünton an Filter-Aktiv (Schnellmenü-FAB) angleichen */
+#pillXlsx.pill-ok{
+  background: color-mix(in oklab, var(--filterAccent) 10%, #ffffff 90%);
+  border-color: color-mix(in oklab, var(--filterAccent) 55%, var(--border) 45%);
+}
+.fabPanel{
+  background: color-mix(in oklab, #ffffff 92%, var(--bg) 8%);
+}
+
+
+/* Schnellfilter: gebündelt (Highlights/Fortschritt) + zweite Zeile Presets */
+#quickRow{display:flex; flex-direction:column; gap: var(--sp-5);}
+#quickRow .quickGroups{display:flex; flex-wrap:wrap; gap: var(--sp-5); align-items:center;}
+#quickRow .quickGroup{display:flex; flex-wrap:wrap; gap: var(--sp-5);}
+#quickRow .quickGroup.progress{padding-left: calc(10px * var(--uiScale)); margin-left: calc(2px * var(--uiScale)); border-left: 1px solid color-mix(in oklab, var(--fg) 10%, transparent 90%);}
+#quickRow .quickLine{flex-wrap:wrap;}
+
+.accSubTitle{
+  margin-top: calc(10px * var(--uiScale));
+  margin-bottom: calc(8px * var(--uiScale));
+  font-size: calc(12px * var(--uiScale));
+  opacity: .7;
+  font-weight: 650;
+}
+
+/* Regel-Presets (Fortschritt) etwas kompakter und "regeliger" als Status-Chips */
+.chip.rule{
+  border-radius: 14px;
+  padding: calc(8px * var(--uiScale)) calc(10px * var(--uiScale));
+  font-weight: 700;
+}
+
+
+/* --- Responsive: Header layout in Landscape (keep search usable) --- */
+@media (orientation: landscape) and (max-width: 1100px){
+  /* Even on wide landscape phones/tablets, prefer stacked header rows */
+  .subbar{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .searchRow,
+  .searchHelpBody{
+    width: 100%;
+    max-width: none;
+  }
+  .pills{justify-content:flex-start}
+}
+
+/* --- Desktop readability pass (Build 7.0v-D) ---
+   Ziel: ruhigere Typografie, bessere Scanbarkeit, angenehmere Zeilenlängen
+   ohne neue UI-Elemente und ohne Layout-Änderungen in Portrait/Mobile.
+*/
+
+
+
+/* Genre-Auswahl: wir verwenden überall die Custom-Dropdown-Variante (keine native <select> Picker)
+   → verhindert Chrome "Zurück/Weiter"-Leiste und hält das Verhalten konsistent. */
+#genreSelect{ display:none !important; }
+.genreDesktop{ display:flex; flex-wrap:wrap; gap:10px; }
+
+/* --- Desktop custom dropdowns (Build 7.0v-D1d) --- */
+.dd{
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: var(--dd-max-w, 560px);
+  /* Tokens (Defaults = bisherige Optik) */
+  --dd-btn-pad-y: 10px;
+  --dd-btn-pad-x: 12px;
+  --dd-btn-radius: 18px;
+  --dd-btn-shadow: 0 8px 24px rgba(0,0,0,.08);
+  --dd-panel-w: min(560px, calc(100vw - 64px));
+}
+.ddBtn{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--dd-btn-pad-y) var(--dd-btn-pad-x);
+  border-radius: var(--dd-btn-radius);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  box-shadow: var(--dd-btn-shadow);
+  font-weight: 650;
+}
+.ddBtn:focus-visible{
+  outline: 2px solid color-mix(in oklab, var(--blue) 70%, white 30%);
+  outline-offset: 2px;
+}
+.ddBtn:active{ transform: translateY(1px); }
+.ddCaret{ opacity: .65; }
+.ddPanel{
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: var(--dd-panel-w);
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 88%, var(--bg) 12%);
+  box-shadow: 0 18px 40px rgba(0,0,0,.14);
+  z-index: 120;
+  backdrop-filter: blur(10px);
+}
+.ddItem{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.ddItem:focus-visible{
+  outline: 2px solid color-mix(in oklab, var(--blue) 70%, white 30%);
+  outline-offset: 2px;
+}
+.ddItem:hover{ background: rgba(0,0,0,.05); }
+.ddItem:active{ background: rgba(0,0,0,.07); }
+.ddMark{ width: 18px; opacity: 0; flex: 0 0 18px; }
+.ddItem.is-active .ddMark{ opacity: 1; }
+.ddText{ flex: 1; }
+.ddDivider{ height: 1px; width: 100%; background: color-mix(in oklab, var(--fg) 16%, transparent 84%); opacity: .55; margin: 8px 4px; }
+.ddFooter{ display: flex; justify-content: flex-end; padding-top: 8px; }
+.ddDone{
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ------------------------------
+   Build 7.1h – Desktop/Tablet Feintuning
+   - Ziel: ruhigere Hierarchie + kompaktere Karten auf großen Viewports
+   - Wichtig: Android Phone bleibt unberührt (Gate über Viewport-Höhe)
+------------------------------ */
+
+
+/* Desktop / Windows-Tablet: Karten etwas kompakter, ohne Android-Phone-Layouts anzutasten */
+@media (min-width: 1100px) and (min-height: 521px){
+  /* Gesamtbreite etwas reduzieren, damit Header/Infoblock kompakter wirken */
+  .wrap{ max-width: 1040px; }
+
+  /* Weniger “Luft” in der Karte */
+  .card{ padding: calc(14px * var(--uiScale)); }
+  .badgeRow{ margin-top: calc(6px * var(--uiScale)); }
+  .head{ gap: calc(6px * var(--uiScale)); }
+
+  /* Zwei-Spalten-Kopf: Infoblock so breit wie die rechte Detail-Kachel (Humorstatistik)
+     → gleiche 2-Spalten-Logik wie unten (Store/Humor) für ruhige Kanten/Fluchten.
+     Wichtig: kein clamp/vw hier, sonst driftet die Kante je nach Browser-UI. */
+  .topGrid{ grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+
+  /* Infoblock minimal dichter */
+  .info{ padding: calc(10px * var(--uiScale)); margin-top: calc(6px * var(--uiScale)); }
+}
+
+/* --- Windows-Tablet Portrait: Override gegen Desktop-Regeln ---
+   Einige Windows-Tablets melden im Portrait überraschend hohe CSS-Breiten (>=1100px),
+   wodurch Desktop-Regeln greifen. Diese Klammer erzwingt das Portrait-Tablet-Layout
+   (mehr Außenrand, gestapfter Header, Store/Humor nebeneinander).
+   Phone-Ansichten bleiben unberührt (min-width ist absichtlich hoch). */
+@media (min-height: 900px) and (orientation: portrait) and (min-width: 900px) and (max-width: 1400px){
+  .wrap{
+    /* deutlich mehr Hintergrund sichtbar, aber ohne uiScale-Übertreibung */
+    padding: calc(12px * var(--uiScale)) clamp(28px, 6vw, 72px) calc(90px * var(--uiScale)) clamp(28px, 6vw, 72px);
+    max-width: 980px;
+  }
+  .card{
+    padding: calc(16px * var(--uiScale));
+    margin: 52px 0;
+  }
+
+  /* Header + Infoblock wieder untereinander, mit klarer Trennung */
+  .topGrid{ display:block; }
+  .head{ margin-bottom: calc(16px * var(--uiScale)); }
+  .info{ margin-top: 0; padding: calc(12px * var(--uiScale)); }
+
+  /* Store + Humor nebeneinander wie Desktop/Landscape */
+  .detailsWrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
+}
+
+
+
+/* Search help body inside the bottom-sheet: add a touch of spacing before the next section. */
+.sheetBody #menuSearchHelpBody{ margin-bottom: calc(10px * var(--uiScale)); }
+
+/* Ensure the search help block in the menu always sits BELOW the search row (even in flex contexts). */
+#menuSearchHelpBody{ width:100%; display:block; flex: 0 0 100%; }
+
+
+
+/* ===========================================================
+   Schnellmenü – Konsolidierung (Phase G)
+   Ziel: gleiche Optik, weniger Überschreibungen.
+   - Keine Grid-Area-Umsortierung; DOM-Reihenfolge zählt.
+   - Rows (Auf/Ab, An/Aus, Karten) sind 2er-Segmente mit identischer Breite.
+   - Sortierfeld bleibt ausgeblendet (Dropdown-Phase erst später, falls reaktiviert).
+   =========================================================== */
+
+.fabPanelQuick{
+  display:flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(14px * var(--uiScale));
+}
+
+/* Sektionen folgen strikt der DOM-Reihenfolge */
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick .fabQuickSortDir,
+.fabPanelQuick .fabQuickMarks,
+.fabPanelQuick .fabQuickDepth,
+.fabPanelQuick .fabActions{
+  width: 100%;
+}
+
+/* Actions immer unten */
+.fabPanelQuick .fabActions{
+  margin-top: auto;
+  justify-content: stretch;
+}
+
+/* Sortierfeld-UI: aktuell nicht Teil des Schnellmenüs */
+.fabPanelQuick .fabQuickField,
+.fabPanelQuick .fabQuickSortFields,
+.fabPanelQuick #fabSortFieldRow{
+  display:none;
+}
+
+/* Dropdown (falls irgendwo noch vorhanden): wirkt wie ein Control, ohne Desktop-Popover-Optik */
+.fabPanelQuick .dd{
+  max-width: none;
+  --dd-btn-pad-y: calc(9px * var(--uiScale));
+  --dd-btn-pad-x: calc(12px * var(--uiScale));
+  --dd-btn-radius: 18px;
+  --dd-btn-shadow: none;
+  --dd-panel-w: min(520px, calc(100vw - 64px));
+}
+
+/* 2er-Segmente: Auf/Ab, An/Aus, Karten */
+.fabPanelQuick #fabSortDirRow,
+.fabPanelQuick #fabMarkRow,
+.fabPanelQuick #fabDepthRow{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  padding: 0;
+  width: 100%;
+}
+
+.fabPanelQuick #fabSortDirRow .chip,
+.fabPanelQuick #fabMarkRow .chip,
+.fabPanelQuick #fabDepthRow .chip{
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+
+  /* Optik/Größe (wie bisher) */
+  min-height: calc(32px * var(--uiScale));
+  padding: calc(5px * var(--uiScale)) calc(9px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+  line-height: 1.2;
+}
+
+/* Chip-Label kompakter */
+.fabPanelQuick .chipLabel{ gap: calc(6px * var(--uiScale)); }
+.fabPanelQuick #fabSortDirRow .chip svg{
+  width: calc(16px * var(--uiScale));
+  height: calc(16px * var(--uiScale));
+}
+
+/* Sektionen: keine versehentliche Einrückung */
+.fabPanelQuick .fabSect{
+  margin-left: 0;
+  padding: 0 calc(12px * var(--uiScale));
+}
+
+/* Primäre Aktion: volle Breite, aber kompakt wie der Rest */
+.fabPanelQuick #fabOpenMenu{
+  width: 100%;
+  min-width: 0;
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+}
+
+/* Legacy-ID (falls in älteren Markups noch vorhanden) */
+.fabPanelQuick #fabOpenFiltersBtn{
+  width: 100%;
+  min-width: 0;
+  padding: calc(8px * var(--uiScale)) calc(12px * var(--uiScale));
+  font-size: calc(14px * var(--uiScale));
+}
+
+
+/* --- Kartenmodi (Mini/Kompakt/Detail) --- */
+:root{ --cardGap: calc(12px * var(--uiScale)); }
+
+/* Grid only for Mini/Kompakt; Detail stays as the classic vertical reading mode. */
+:root[data-cardview="mini"] .cards,
+:root[data-cardview="compact"] .cards{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--cardGap);
+}
+
+/* Remove big vertical margins when grid is active */
+:root[data-cardview="mini"] .card,
+:root[data-cardview="compact"] .card{
+  margin: 0 !important;
+}
+
+/* Mini: in phone landscape we allow 2 columns */
+@media (orientation: landscape){
+  html.isPhone:root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Phone Landscape: give mini-tiles a bit more usable width (closer to Portrait feel) */
+  html.isPhone:root[data-cardview="mini"] .wrap{ padding-left: calc(8px * var(--uiScale)); padding-right: calc(8px * var(--uiScale)); }
+  html.isPhone:root[data-cardview="mini"] .cards{ padding-left: 0; padding-right: 0; }
+}
+
+/* Kompakt: 2 columns only on non-phone widths; phones stay single-column even in landscape. */
+@media (min-width: 900px){
+  /* Mini: ab Tablet/Desktop ebenfalls zweispaltig (auch in Portrait, wenn genug Breite da ist) */
+  :root[data-cardview="mini"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  :root[data-cardview="compact"] .cards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Expanded cards should span both columns in 2-col layouts */
+:root[data-cardview="mini"] .card[data-compact-open="1"],
+:root[data-cardview="mini"] .card[data-detail-open="1"],
+:root[data-cardview="compact"] .card[data-detail-open="1"]{
+  grid-column: 1 / -1;
+}
+
+/* --- Visibility rules --- */
+
+/* Defaults (Detail): everything as-is */
+
+/* Mini: hide compact + detail until card is opened */
+:root[data-cardview="mini"] .compactWrap{ display: none; }
+:root[data-cardview="mini"] .detailsWrap{ display: none; }
+
+/* In Mini: remove progress/trophy row ONLY in the real mini-tile (closed state) */
+:root[data-cardview="mini"] .card:not([data-compact-open]) .badgeRow-trophy{ display: none; }
+:root[data-cardview="mini"] .card:not([data-compact-open]) .headDivider{ display: none; }
+
+:root[data-cardview="mini"] .card[data-compact-open="1"] .compactWrap{ display: block; }
+:root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap{
+  /* wenn Detail im Kartenmodus geöffnet wird, brauchen wir die gleiche "Luft" wie im Detailmodus */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Kompakt: show compact for all, hide details unless active detail-open */
+:root[data-cardview="compact"] .detailsWrap{ display: none; }
+:root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Mini-Closed: auf großen Screens kann .topGrid per Media-Query zweispaltig werden.
+   Wenn aber .compactWrap verborgen ist, darf diese "leere" zweite Spalte nicht den Head verkleinern. */
+:root[data-cardview="mini"] .card:not([data-compact-open="1"]) .topGrid{
+  display: block !important;
+}
+
+/* Mini-Genre: only relevant in Mini mode AND only in the closed mini-tile */
+.miniGenre{ display: none; }
+:root[data-cardview="mini"] .card:not([data-compact-open]) .miniGenre{
+  display: block;
+  margin-top: calc(6px * var(--uiScale));
+  font-size: calc(12.5px * var(--uiScale));
+  opacity: .78;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make the head feel tappable in Mini/Kompakt */
+:root[data-cardview="mini"] .head,
+:root[data-cardview="compact"] .head{
+  cursor: pointer;
+}
+
+/* --- Chevrons --- */
+/* Chevron markers (purely indicative, not a button) */
+.cardChevron{
+  pointer-events: none;
+  user-select: none;
+  /* Block-level so centering via auto-margins works reliably */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(28px * var(--uiScale));
+  height: calc(18px * var(--uiScale));
+  font-size: calc(15px * var(--uiScale));
+  line-height: 1;
+  border-radius: 999px;
+  /* Subtle "inset" well: present but not buttony */
+  background: color-mix(in oklab, var(--card) 90%, var(--fg) 10%);
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent 90%);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.10),
+    inset 0 -1px 0 rgba(255,255,255,.55);
+  color: color-mix(in oklab, var(--fg) 58%, transparent 42%);
+  opacity: .85;
+}
+
+/* Chevron 1: bottom of the mini area (head), centered */
+.chev1{
+  margin-top: calc(12px * var(--uiScale));
+  margin-bottom: calc(4px * var(--uiScale));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Mini marker only in the closed mini-tile */
+:root[data-cardview="mini"] .card[data-compact-open] .chev1{ display: none; }
+:root[data-cardview="compact"] .chev1{ display: none; }
+
+/* Chevron 2: below compact block, centered */
+.chev2Wrap{
+  display: none;
+  justify-content: center;
+  margin-top: calc(14px * var(--uiScale));
+  margin-bottom: calc(4px * var(--uiScale));
+}
+
+/* Show compact marker when the compact zone is visible but details aren't */
+:root[data-cardview="mini"] .card[data-compact-open="1"]:not([data-detail-open]) .chev2Wrap{ display: flex; }
+:root[data-cardview="compact"] .card:not([data-detail-open]) .chev2Wrap{ display: flex; }
+
+/* In Detail mode hide chevrons + mini genre */
+:root[data-cardview="detail"] .cardChevron{ display: none; }
+:root[data-cardview="detail"] .miniGenre{ display: none; }
+
+/* No rotation: chevrons are markers, not toggles */
+
