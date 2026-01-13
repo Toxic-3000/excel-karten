@@ -375,7 +375,7 @@ body{
 
   /* Prosa nicht über die ganze Kartenbreite laufen lassen */
   .detailsBody .pre{
-    max-width: 82ch;
+    max-width: 100%;
     margin: 0 auto;
     line-height: 1.7;
   }
@@ -936,7 +936,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   }
 
   .detailsBody .pre{
-    max-width: 78ch;
+    max-width: 100%;
     margin-right: auto;
   }
 
@@ -2210,7 +2210,7 @@ html.modalOpen body{touch-action:none;}
 
   .detailsWrap{
     display:grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.80fr 1.20fr;
     gap: var(--sp-4);
   }
   .detailsWrap .d-desc,
@@ -2225,6 +2225,22 @@ html.modalOpen body{touch-action:none;}
   /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
      (Ausführliche Labels werden weiter unten breakpoint-basiert aktiviert.) */
 }
+
+@media (orientation: landscape) and (max-width: 1200px){
+  :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap,
+  :root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+@media (orientation: landscape) and (max-width: 1200px){
+  :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap,
+  :root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
+    grid-template-columns: 0.80fr 1.20fr;
+  }
+}
+
 
 
 /* --- Build 7.1j12 – Mobile-Landscape Feinschliff (Phone Landscape)
@@ -2915,8 +2931,7 @@ html:not(.isPhone) .card > .detailsWrap{
 /* Kompakt: immer einspaltig (bewusst konsistent auf allen Geräten). */
 :root[data-cardview="compact"] .cards{ grid-template-columns: 1fr; }
 
-/* Expanded cards should span both columns in 2-col layouts */
-:root[data-cardview="mini"] .card[data-compact-open="1"],
+/* Expanded cards: in Mini nur Detail (für ruhigeres Grid), in Kompakt Detail */
 :root[data-cardview="mini"] .card[data-detail-open="1"],
 :root[data-cardview="compact"] .card[data-detail-open="1"]{
   grid-column: 1 / -1;
@@ -2957,7 +2972,7 @@ html:not(.isPhone) .card > .detailsWrap{
   :root[data-cardview="mini"] .card[data-detail-open="1"] .detailsWrap,
   :root[data-cardview="compact"] .card[data-detail-open="1"] .detailsWrap{
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.80fr 1.20fr;
     gap: var(--sp-4);
   }
 }
@@ -2976,6 +2991,9 @@ html:not(.isPhone) .card > .detailsWrap{
 :root[data-cardview="mini"] .card:not([data-compact-open="1"]) .topGrid{
   display: block !important;
 }
+
+:root[data-cardview="mini"] .card[data-compact-open="1"]:not([data-detail-open="1"]) .topGrid{ grid-template-columns: 1fr; }
+:root[data-cardview="mini"] .card[data-compact-open="1"]:not([data-detail-open="1"]) .compactWrap{ max-width: none; }
 
 /* Mini-Genre: only relevant in Mini mode AND only in the closed mini-tile */
 .miniGenre{ display: none; }
