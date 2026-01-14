@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63q").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63x").trim();
 
   // Header behavior: only visible when we're essentially at the very top.
   // Request: hide earlier (~6px) and do it with a soft transition (fade/slide), on all devices.
@@ -25,6 +25,26 @@ console.log("Build loader ready");
   const hdrEl = document.querySelector(".hdr");
   let hdrHidden = false;
   let hdrRAF = 0;
+
+  // Auto-scroll lock: prevents the header visibility controller from fighting
+  // with programmatic focus scrolling (which would otherwise cause flicker).
+  // While locked, we keep the header hidden and ignore scroll-driven updates.
+  let _autoScrollLockUntil = 0;
+  let _autoScrollUnlockTimer = 0;
+
+  function beginAutoScrollLock(durationMs){
+    const ms = Math.max(200, Number(durationMs || 0) || 0);
+    _autoScrollLockUntil = Date.now() + ms;
+    // Ensure the header stays hidden during programmatic scroll.
+    hdrHidden = true;
+    try{ hideHeaderAnimated(); }catch(_){/* ignore */}
+    if (_autoScrollUnlockTimer) { try{ clearTimeout(_autoScrollUnlockTimer); }catch(_){/* ignore */} }
+    _autoScrollUnlockTimer = setTimeout(() => {
+      _autoScrollLockUntil = 0;
+      _autoScrollUnlockTimer = 0;
+      try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+    }, ms + 120);
+  }
   
   // Recalculate header collapse threshold based on the real header height.
   function updateHeaderMetrics(){
@@ -64,6 +84,8 @@ console.log("Build loader ready");
 
   function syncHeaderVisibility(){
     if(!hdrEl) return;
+    // Ignore scroll-driven header changes during programmatic focus scrolling.
+    if (Date.now() < _autoScrollLockUntil) return;
     const y = _getScrollY();
 
     // Hysteresis: keep behavior stable around the threshold.
@@ -875,6 +897,11 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       const extra = 17; // Phase 2.5+: Fokusposition um 15px nach oben nachkorrigiert
       const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
       const behavior = _prefersReducedMotion() ? 'auto' : 'smooth';
+
+      // Prevent the Topbar from flickering while the focus scroll is running.
+      // We lock header visibility updates for a short time and keep it hidden.
+      // This avoids a fight between smooth scrolling + scroll listeners.
+      try{ beginAutoScrollLock(HEADER_ANIM_MS + 520); }catch(_){/* ignore */}
       window.scrollTo({ top: target, behavior });
 
       // Some browsers (esp. mobile) finish smooth scrolling slightly off due to
