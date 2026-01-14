@@ -16,7 +16,7 @@ console.log("Build loader ready");
   // Header behavior: visible only when the page is (almost) at the very top.
   // Earlier builds hid it right after the user started scrolling; we keep a tiny buffer
   // to avoid jitter from touchpads / elastic scrolling.
-  const HEADER_HIDE_AFTER_PX = 12;
+  const HEADER_HIDE_AFTER_PX = 2;
   const hdrEl = document.querySelector(".hdr");
   let hdrHidden = false;
   let hdrRAF = 0;
@@ -30,7 +30,19 @@ console.log("Build loader ready");
     hdrEl.classList.toggle("isHidden", hdrHidden);
   }
 
-  function onScrollHeader(){
+  
+// rAF/throttle wrapper: keeps header visibility updates cheap even on noisy scroll/resize.
+let _headerVisQueued = false;
+function queueHeaderVisibilityUpdate() {
+  if (_headerVisQueued) return;
+  _headerVisQueued = true;
+  requestAnimationFrame(() => {
+    _headerVisQueued = false;
+    syncHeaderVisibility();
+  });
+}
+
+function onScrollHeader(){
     if(hdrRAF) return;
     hdrRAF = requestAnimationFrame(()=>{
       hdrRAF = 0;

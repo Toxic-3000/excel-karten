@@ -1,8 +1,8 @@
-# Spieleliste – Build V7_1k63t
+# Spieleliste – Build V7_1k63u
 
 Phase 4.1: Topbar-Verhalten (früher ausblenden).
 
-## Änderungen in V7_1k63t (gegenüber V7_1k63s)
+## Änderungen in V7_1k63u (gegenüber V7_1k63s)
 
 - **Topbar blendet früher aus**: sobald man nach unten scrollt (ab ~12px), verschwindet sie und erscheint nur nahe der Scroll-Position 0 wieder.
 
