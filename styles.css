@@ -615,9 +615,19 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 /* Popovers (schwebend, ohne Layout-Shift)
    - Wird für die Suchhilfe im Header und den Excel/Import-Bereich (⋯) genutzt.
    - Menü-Suchhilfe bleibt inline (ohne .popover-Klasse). */
+#overlayRoot{
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+#overlayRoot .popover{
+  pointer-events: auto;
+}
+
 .popover{
   position: fixed;
-  z-index: 60;
+  z-index: 81;
   /* left/top werden per JS am Anker ausgerichtet */
   left: 12px;
   top: 72px;
@@ -1228,7 +1238,7 @@ summary::-webkit-details-marker{display:none}
   right: calc(var(--fabEdge) * var(--uiScale));
   /* Stack-Order: TOP (oben), Aa (mitte), Schnellmenü (unten) */
   bottom: calc((var(--fabBottom) + (var(--fabSize) + var(--fabGap)) * 2) * var(--uiScale));
-  z-index:60;
+  z-index: 81;
   width: calc(var(--fabSize) * var(--uiScale));
   height: calc(var(--fabSize) * var(--uiScale));
   display:grid;

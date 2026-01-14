@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64a").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64b").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -32,6 +32,15 @@ console.log("Build loader ready");
   // header fully collapsed (progress=1).
   let _autoScrollLockUntil = 0;
   let _autoScrollUnlockTimer = 0;
+
+  const HEADER_ANIM_MS = (() => {
+    try{
+      const v = getComputedStyle(document.documentElement).getPropertyValue("--hdrAnimMs") || "380ms";
+      const n = parseFloat(String(v).trim());
+      return Number.isFinite(n) ? n : 380;
+    }catch(_){ return 380; }
+  })();
+
 
   function beginAutoScrollLock(durationMs){
     const ms = Math.max(200, Number(durationMs || 0) || 0);
@@ -3942,6 +3951,45 @@ function renderTrophyDetails(row){
     try{ setFileMoreOpen(false); }catch(_){/* ignore */}
   }
 
+  const overlayRoot = (() => {
+    let r = document.getElementById("overlayRoot");
+    if (!r){
+      r = document.createElement("div");
+      r.id = "overlayRoot";
+      r.setAttribute("aria-hidden","true");
+      document.body.appendChild(r);
+    }
+    return r;
+  })();
+
+  const _popoverHome = new WeakMap();
+
+  function movePopoverToOverlay(pop){
+    if (!pop) return;
+    if (!_popoverHome.has(pop)){
+      _popoverHome.set(pop, { parent: pop.parentElement, next: pop.nextSibling });
+    }
+    if (pop.parentElement !== overlayRoot){
+      overlayRoot.appendChild(pop);
+    }
+  }
+
+  function restorePopoverFromOverlay(pop){
+    if (!pop) return;
+    const info = _popoverHome.get(pop);
+    if (!info || !info.parent) return;
+    if (pop.parentElement === info.parent) return;
+    try{
+      if (info.next && info.next.parentNode === info.parent){
+        info.parent.insertBefore(pop, info.next);
+      } else {
+        info.parent.appendChild(pop);
+      }
+    }catch(_){
+      try{ info.parent.appendChild(pop); }catch(__){}
+    }
+  }
+
   // Search help: header = popover, menu = inline
   function setSearchHelpOpen(isOpen){
     const modalOpen = document.documentElement.classList.contains("modalOpen");
@@ -3955,14 +4003,22 @@ function renderTrophyDetails(row){
       if (menuWrap) menuWrap.classList.toggle("open", isOpen);
 
       // Always hide header popover while the modal is open.
-      if (el.searchHelpBody) el.searchHelpBody.hidden = true;
+      if (el.searchHelpBody){ el.searchHelpBody.hidden = true; restorePopoverFromOverlay(el.searchHelpBody); }
       if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", "false");
       if (headerWrap) headerWrap.classList.remove("open");
       return;
     }
 
     // Header context: show popover.
-    if (el.searchHelpBody) el.searchHelpBody.hidden = !isOpen;
+    if (el.searchHelpBody){
+      if (isOpen){
+        movePopoverToOverlay(el.searchHelpBody);
+        el.searchHelpBody.hidden = false;
+      }else{
+        el.searchHelpBody.hidden = true;
+        restorePopoverFromOverlay(el.searchHelpBody);
+      }
+    }
     if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", String(isOpen));
     if (headerWrap) headerWrap.classList.toggle("open", isOpen);
 
@@ -3994,7 +4050,18 @@ function renderTrophyDetails(row){
   // Excel/Import details: popover anchored to ⋯
   function setFileMoreOpen(isOpen){
     const modalOpen = document.documentElement.classList.contains("modalOpen");
-    if (el.fileMoreBody) el.fileMoreBody.hidden = modalOpen ? true : !isOpen;
+    if (el.fileMoreBody){
+      if (modalOpen){
+        el.fileMoreBody.hidden = true;
+        restorePopoverFromOverlay(el.fileMoreBody);
+      } else if (isOpen){
+        movePopoverToOverlay(el.fileMoreBody);
+        el.fileMoreBody.hidden = false;
+      } else {
+        el.fileMoreBody.hidden = true;
+        restorePopoverFromOverlay(el.fileMoreBody);
+      }
+    }
     if (el.fileMoreBtn) el.fileMoreBtn.setAttribute("aria-expanded", String(!modalOpen && isOpen));
     if (el.fileMoreWrap) el.fileMoreWrap.classList.toggle("open", (!modalOpen && isOpen));
 
