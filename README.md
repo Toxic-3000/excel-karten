@@ -1,15 +1,14 @@
-# Spieleliste – Build V7_1k63y
+# Spieleliste – Build V7_1k64a
 
-Phase 4.2: Topbar-Verhalten (eleganter + ohne Layout-Sprung).
+Phase 4.2: Topbar-Verhalten (scroll-progressiv: gleitet mit dem Content aus dem Bild).
 
-## Änderungen in V7_1k63y (gegenüber V7_1k63x)
+## Änderungen in V7_1k64a (gegenüber V7_1k63y)
 
-- Topbar-Ausblendung: Schwelle wird aus der echten Topbar-Höhe abgeleitet (Topbar verschwindet erst, wenn die erste Karte nahezu den oberen Rand erreicht).
-- Topbar-Animation: weiches Ausfaden/Slide, danach verzögertes "Collapse" der Header-Höhe, damit die erste Karte nicht abrupt nach oben springt.
-
-- Fix: Topbar-Flackern beim ersten Tap auf eine Karte (Fokus-Scroll) behoben.
-  - Während des programmgesteuerten Fokus-Scrolls wird die Header-Visibility kurz gesperrt (Auto-Scroll-Lock).
-  - Header bleibt in dieser Phase verborgen; danach synchronisiert er sich einmal sauber.
+- **Scroll-progressive Topbar**: kein harter Schwellwert mehr. Die Topbar **gleitet proportional mit dem Scroll** nach oben aus dem Bild.
+  - Progress wird aus `scrollY / collapseDistance` berechnet.
+  - `collapseDistance` wird **aus der echten Topbar-Höhe** abgeleitet (≈ 1.6× Höhe), damit die Bewegung bewusst „langsamer“ wirkt.
+- **Kein Layout-Sprung**: Höhe und Translate werden synchron über CSS-Variablen gesteuert (Content rückt weich nach, statt zu „snappen“).
+- **Auto-Scroll-Lock bleibt aktiv**: während des Fokus-Scrolls wird die Topbar auf `progress=1` gehalten, damit es nicht flackert.
 
 ## Änderungen in V7_1k63w (gegenüber V7_1k63v)
 

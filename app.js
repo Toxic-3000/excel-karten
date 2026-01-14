@@ -11,31 +11,33 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63y").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64a").trim();
 
-  // Header behavior: only visible at the very top.
-  // Goal: hide the header around the moment the first card would "almost" touch
-  // the top edge. We compute the threshold dynamically from the *actual* header
-  // height (device-independent).
-  let HEADER_HIDE_AFTER_PX = 96;   // recalculated on init + resize
-  let HEADER_SHOW_BELOW_PX = 72;   // hysteresis to avoid flicker
-  const HEADER_ANIM_MS = 220;      // should match CSS transition timing
+  // Header behavior (scroll-progressive):
+  // The topbar should *glide out with the content* instead of switching at a hard threshold.
+  // We therefore map scrollY -> a progress value within the first N pixels.
+  // - progress 0   => header fully visible
+  // - progress 1   => header fully out (collapsed)
+  // The collapse distance is derived from the real header height so it feels consistent
+  // across devices. We intentionally make it a bit longer than the header itself so the
+  // movement feels "slow" and not snappy.
   const hdrEl = document.querySelector(".hdr");
-  let hdrHidden = false;
+  let hdrFullH = 0;
+  let hdrCollapseDist = 0;
   let hdrRAF = 0;
+  let hdrCollapsed = false;
 
-  // Auto-scroll lock: prevents the header visibility controller from fighting
-  // with programmatic focus scrolling (which would otherwise cause flicker).
-  // While locked, we keep the header hidden and ignore scroll-driven updates.
+  // Auto-scroll lock: prevents the header controller from fighting with programmatic
+  // focus scrolling (which would otherwise cause flicker). While locked, we keep the
+  // header fully collapsed (progress=1).
   let _autoScrollLockUntil = 0;
   let _autoScrollUnlockTimer = 0;
 
   function beginAutoScrollLock(durationMs){
     const ms = Math.max(200, Number(durationMs || 0) || 0);
     _autoScrollLockUntil = Date.now() + ms;
-    // Ensure the header stays hidden during programmatic scroll.
-    hdrHidden = true;
-    try{ hideHeaderAnimated(); }catch(_){/* ignore */}
+    // Ensure the header stays fully collapsed during programmatic scroll.
+    try{ applyHeaderProgress(1); }catch(_){/* ignore */}
     if (_autoScrollUnlockTimer) { try{ clearTimeout(_autoScrollUnlockTimer); }catch(_){/* ignore */} }
     _autoScrollUnlockTimer = setTimeout(() => {
       _autoScrollLockUntil = 0;
@@ -44,64 +46,73 @@ console.log("Build loader ready");
     }, ms + 120);
   }
   
-  // Recalculate header collapse threshold based on the real header height.
+  // Measure the real header height and derive a comfortable collapse distance.
   function updateHeaderMetrics(){
     if(!hdrEl) return;
 
     // Ensure we can measure the full height
-    const wasHidden = hdrEl.classList.contains("isHidden");
-    if(wasHidden) hdrEl.classList.remove("isHidden");
+    const wasCollapsed = hdrEl.classList.contains("isCollapsed");
+    if(wasCollapsed) hdrEl.classList.remove("isCollapsed");
 
-    // scrollHeight is stable even when clipped; we use it as "full" height
     const fullH = Math.max(hdrEl.scrollHeight, hdrEl.getBoundingClientRect().height);
-    hdrEl.style.setProperty("--hdrMaxH", `${Math.ceil(fullH)}px`);
+    hdrFullH = Math.max(1, Math.round(fullH));
+    hdrEl.style.setProperty("--hdrMaxH", `${hdrFullH}px`);
 
-    // Hide when content would be very close to the top edge:
-    // When you scroll ~headerHeight, the first card would reach the top.
-    // We hide a tiny bit before that (small buffer).
-    const hideAfter = Math.round(Math.min(240, Math.max(12, fullH - 12)));
-    HEADER_HIDE_AFTER_PX = hideAfter;
-    // Show again only at (essentially) the very top.
-    HEADER_SHOW_BELOW_PX = 0;
+    // Make the glide slower than the header height ("slow, with the content").
+    // 1.6x is a good starting point; feels natural on phones and tablets.
+    hdrCollapseDist = Math.max(hdrFullH + 1, Math.round(hdrFullH * 1.6));
+    hdrEl.style.setProperty("--hdrCollapseDist", `${hdrCollapseDist}px`);
 
-    if(wasHidden) hdrEl.classList.add("isHidden");
+    if(wasCollapsed) hdrEl.classList.add("isCollapsed");
   }
 
   function _getScrollY(){
     return window.scrollY || document.documentElement.scrollTop || 0;
   }
 
-  function hideHeaderAnimated(){
-    if(!hdrEl) return;
-    // Never hard-remove from layout (no display:none). We collapse via CSS transitions.
-    hdrEl.classList.add("isHidden");
+  function clamp01(n){
+    if(n <= 0) return 0;
+    if(n >= 1) return 1;
+    return n;
   }
 
-  function showHeaderAnimated(){
+  // Apply the header progress directly via CSS vars.
+  // We collapse height and translate up in sync so it feels like the bar is
+  // "pulled out" while the content moves into its place.
+  function applyHeaderProgress(progress){
     if(!hdrEl) return;
-    hdrEl.classList.remove("isHidden");
-    hdrEl.classList.remove("isGone");
+    if(!hdrFullH) updateHeaderMetrics();
+    const p = clamp01(Number(progress || 0));
+    const shift = Math.round(-p * hdrFullH);
+    const visH = Math.max(0, Math.round((1 - p) * hdrFullH));
+    const op = Math.max(0, Math.min(1, 1 - p));
+
+    hdrEl.style.setProperty("--hdrShift", `${shift}px`);
+    hdrEl.style.setProperty("--hdrVisH", `${visH}px`);
+    hdrEl.style.setProperty("--hdrOpacity", `${op}`);
+
+    const nowCollapsed = p >= 0.999;
+    if(nowCollapsed !== hdrCollapsed){
+      hdrCollapsed = nowCollapsed;
+      hdrEl.classList.toggle("isCollapsed", hdrCollapsed);
+    }
   }
 
   function syncHeaderVisibility(){
     if(!hdrEl) return;
-    // Ignore scroll-driven header changes during programmatic focus scrolling.
-    if (Date.now() < _autoScrollLockUntil) return;
     const y = _getScrollY();
 
-    // Hysteresis: keep behavior stable around the threshold.
-    // - when visible: hide only after HEADER_HIDE_AFTER_PX
-    // - when hidden: show again only below HEADER_SHOW_BELOW_PX
-    if(!hdrHidden && y >= HEADER_HIDE_AFTER_PX){
-      hdrHidden = true;
-      hideHeaderAnimated();
+    // During programmatic focus scroll we keep it fully collapsed.
+    if (Date.now() < _autoScrollLockUntil) {
+      applyHeaderProgress(1);
       return;
     }
-    if(hdrHidden && y <= HEADER_SHOW_BELOW_PX){
-      hdrHidden = false;
-      showHeaderAnimated();
-      return;
-    }
+
+    // Map scroll distance to progress (slow glide):
+    // progress reaches 1 only after hdrCollapseDist pixels.
+    if(!hdrCollapseDist) updateHeaderMetrics();
+    const p = clamp01(y / Math.max(1, hdrCollapseDist));
+    applyHeaderProgress(p);
   }
 
   
