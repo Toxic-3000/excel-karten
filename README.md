@@ -1,8 +1,11 @@
-# Spieleliste – Build V7_1k63x
+# Spieleliste – Build V7_1k63y
 
 Phase 4.2: Topbar-Verhalten (eleganter + ohne Layout-Sprung).
 
-## Änderungen in V7_1k63x (gegenüber V7_1k63w)
+## Änderungen in V7_1k63y (gegenüber V7_1k63x)
+
+- Topbar-Ausblendung: Schwelle wird aus der echten Topbar-Höhe abgeleitet (Topbar verschwindet erst, wenn die erste Karte nahezu den oberen Rand erreicht).
+- Topbar-Animation: weiches Ausfaden/Slide, danach verzögertes "Collapse" der Header-Höhe, damit die erste Karte nicht abrupt nach oben springt.
 
 - Fix: Topbar-Flackern beim ersten Tap auf eine Karte (Fokus-Scroll) behoben.
   - Während des programmgesteuerten Fokus-Scrolls wird die Header-Visibility kurz gesperrt (Auto-Scroll-Lock).

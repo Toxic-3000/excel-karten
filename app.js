@@ -11,14 +11,12 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63x").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63y").trim();
 
-  // Header behavior: only visible when we're essentially at the very top.
-  // Request: hide earlier (~6px) and do it with a soft transition (fade/slide), on all devices.
-  // Header hide/show should feel the same on all devices.
-  // We compute thresholds dynamically from the rendered header height so that
-  // the header disappears around the moment the first card would "almost" hit
-  // the top edge.
+  // Header behavior: only visible at the very top.
+  // Goal: hide the header around the moment the first card would "almost" touch
+  // the top edge. We compute the threshold dynamically from the *actual* header
+  // height (device-independent).
   let HEADER_HIDE_AFTER_PX = 96;   // recalculated on init + resize
   let HEADER_SHOW_BELOW_PX = 72;   // hysteresis to avoid flicker
   const HEADER_ANIM_MS = 220;      // should match CSS transition timing
@@ -58,10 +56,13 @@ console.log("Build loader ready");
     const fullH = Math.max(hdrEl.scrollHeight, hdrEl.getBoundingClientRect().height);
     hdrEl.style.setProperty("--hdrMaxH", `${Math.ceil(fullH)}px`);
 
-    // Hide after ~55% of the header height, but keep it within sensible bounds
-    const hideAfter = Math.round(Math.min(140, Math.max(64, fullH * 0.55)));
+    // Hide when content would be very close to the top edge:
+    // When you scroll ~headerHeight, the first card would reach the top.
+    // We hide a tiny bit before that (small buffer).
+    const hideAfter = Math.round(Math.min(240, Math.max(12, fullH - 12)));
     HEADER_HIDE_AFTER_PX = hideAfter;
-    HEADER_SHOW_BELOW_PX = Math.max(0, hideAfter - 24); // hysteresis (prevents flicker)
+    // Show again only at (essentially) the very top.
+    HEADER_SHOW_BELOW_PX = 0;
 
     if(wasHidden) hdrEl.classList.add("isHidden");
   }

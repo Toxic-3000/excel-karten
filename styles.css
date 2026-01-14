@@ -421,7 +421,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   */
   overflow: hidden;
   max-height: var(--hdrMaxH, 1000px);
-  transition: max-height 220ms ease, opacity 160ms ease, transform 180ms ease;
+  /* Slide/fade first, then collapse height to avoid the "content jumps up" feel */
+  transition: opacity 180ms ease, transform 200ms ease, max-height 260ms ease;
   will-change: max-height, opacity, transform;
 }
 
@@ -431,6 +432,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   transform: translateY(-10px);
   pointer-events: none;
   max-height: 0px;
+  /* Delay the height collapse slightly so the header visibly moves out first. */
+  transition-delay: 0ms, 0ms, 120ms;
 }
 /* Legacy: kept for compatibility with older builds, but no longer used. */
 .hdr.isGone{ display:none; }
