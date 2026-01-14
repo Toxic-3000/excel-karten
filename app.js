@@ -11,9 +11,34 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1j62y").trim();
-  const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches);
-  const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) and (min-height: 521px)").matches);
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63q").trim();
+
+  // Header behavior: visible only when the page is (almost) at the very top.
+  // Earlier builds hid it right after the user started scrolling; we keep a tiny buffer
+  // to avoid jitter from touchpads / elastic scrolling.
+  const HEADER_HIDE_AFTER_PX = 12;
+  const hdrEl = document.querySelector(".hdr");
+  let hdrHidden = false;
+  let hdrRAF = 0;
+
+  function syncHeaderVisibility(){
+    if(!hdrEl) return;
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    const shouldHide = y > HEADER_HIDE_AFTER_PX;
+    if(shouldHide === hdrHidden) return;
+    hdrHidden = shouldHide;
+    hdrEl.classList.toggle("isHidden", hdrHidden);
+  }
+
+  function onScrollHeader(){
+    if(hdrRAF) return;
+    hdrRAF = requestAnimationFrame(()=>{
+      hdrRAF = 0;
+      syncHeaderVisibility();
+    });
+  }
+  const IS_DESKTOP = !!(window.matchMedia && window.matchMedia("(hover:hover) && (pointer:fine)").matches);
+  const isSheetDesktop = () => !!(window.matchMedia && window.matchMedia("(min-width: 701px) && (min-height: 521px)").matches);
 
   // --- Mobile viewport robustness (Android address bar / browser UI) ---
   // Some mobile browsers keep `vh` / even `dvh` a bit optimistic when the address bar is visible.
@@ -37,7 +62,7 @@ console.log("Build loader ready");
   }
 
   // --- Device class: Phone vs Tablet/Desktop (orientation-agnostic) ---
-  // We treat *phones* as one coherent UI class (portrait and landscape behave the same),
+  // We treat *phones* as one coherent UI class (portrait && landscape behave the same),
   // because mobile browser chrome + limited height are the dominant constraints.
   // Detection is intentionally conservative:
   // - portrait phones: small width
@@ -66,33 +91,6 @@ console.log("Build loader ready");
     // Some browsers only update height on scroll of the viewport chrome.
     window.visualViewport.addEventListener("scroll", updateVisualViewportVars, {passive:true});
     window.visualViewport.addEventListener("scroll", updateDeviceClass, {passive:true});
-  }
-
-  /*
-   * Hide the top header bar as soon as the user scrolls down a little bit.  In
-   * earlier builds the topbar stayed visible until the page had been
-   * scrolled quite a long distance.  To improve the reading flow on
-   * desktop/tablet views we hide the header much sooner so the content
-   * occupies more of the vertical space.  The header reappears only when
-   * scrolled back to the very top.  The CSS for this lives in
-   * styles.css under the `.hdrHidden` rule.  We deliberately use
-   * `passive: true` because scroll events fire often and we are only
-   * toggling a class.
-   */
-  {
-    const HIDE_HEADER_AFTER = 10; // pixels scrolled before hiding the header
-    let lastScrollY = 0;
-    const onScrollToggleHeader = () => {
-      const y = window.scrollY || 0;
-      if (y > HIDE_HEADER_AFTER) {
-        document.documentElement.classList.add('hdrHidden');
-      } else {
-        document.documentElement.classList.remove('hdrHidden');
-      }
-    };
-    window.addEventListener('scroll', onScrollToggleHeader, {passive:true});
-    // run once on load in case the page is initially scrolled (e.g. anchor links)
-    onScrollToggleHeader();
   }
 
   // Performance instrumentation (disabled by default). Enable locally for profiling.
@@ -132,6 +130,7 @@ console.log("Build loader ready");
     fabSortFieldRow: $("fabSortFieldRow"),
     fabSortDirRow: $("fabSortDirRow"),
     fabMarkRow: $("fabMarkRow"),
+    fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
     menuSearch: $("menuSearch"),
@@ -330,12 +329,21 @@ console.log("Build loader ready");
     }
   }
 
+  function updateFabDepthUI(){
+    if (!el.fabDepthRow) return;
+    const cur = String(state.cardView || 'detail');
+    for (const b of el.fabDepthRow.querySelectorAll('.chip')){
+      const k = b.getAttribute('data-key');
+      b.setAttribute('aria-pressed', (k === cur) ? 'true' : 'false');
+    }
+  }
+
   // --- UI: Adaptive toolbar compaction (keeps one line even on A+++) ---
   function updateToolbarCompactness(){
     const bar = el.toolbarRow;
     if (!bar) return;
     bar.classList.remove("compact2");
-    // If things don't fit (e.g. A+++), show only the number and slightly reduce button padding.
+    // If things don't fit (e.g. A+++), show only the number && slightly reduce button padding.
     if (bar.scrollWidth > bar.clientWidth + 1) bar.classList.add("compact2");
   }
 
@@ -384,7 +392,7 @@ console.log("Build loader ready");
         if (!e) return false;
         if (e.disabled) return false;
         if (e.getAttribute && e.getAttribute("aria-hidden") === "true") return false;
-        // offsetParent==null filters display:none and some hidden states; keep focusable only when visible
+        // offsetParent==null filters display:none && some hidden states; keep focusable only when visible
         if (e.offsetParent === null) return false;
         return true;
       });
@@ -517,6 +525,17 @@ function closeFabText(){
         chipHtml("quickMarks", "off", "Aus", !on),
       ].join("");
     }
+
+    // Build card view mode chips (Mini/Kompakt/Detail)
+    if (el.fabDepthRow){
+      const cur = String(state.cardView || "detail");
+      el.fabDepthRow.innerHTML = [
+        chipHtml("cardView", "mini", "Mini", cur === "mini"),
+        chipHtml("cardView", "compact", "Kompakt", cur === "compact"),
+        chipHtml("cardView", "detail", "Detail", cur === "detail"),
+      ].join("");
+    }
+
     // Build quick sort field (dropdown)
     if (el.fabSortFieldRow){
       const enabled = [
@@ -628,6 +647,11 @@ function closeFabText(){
           applyAndRender();
           return;
         }
+        if (group === "cardView"){
+          const next = String(key || 'detail');
+          setCardView(next);
+          return;
+        }
         if (group === "quickMarks"){
           const next = (key === "on");
           if (!state.ui) state.ui = { lastCount: 0, lastFilterSig: "", highlights: false };
@@ -713,6 +737,232 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   const REMINDER_CANDIDATES = ["Erinnerung", "Reminder", "Notiz", "Hinweis", "Memo"];
 
+  // --- Kartenmodi (Mini/Kompakt/Detail) ---
+  const CARDVIEW_KEY = 'spieleliste.cardview';
+  const CARDVIEW_DEFAULT_BEFORE_IMPORT = 'detail';
+  const CARDVIEW_DEFAULT_AFTER_IMPORT = 'mini';
+
+  function loadCardView(){
+    try{
+      const v = String(localStorage.getItem(CARDVIEW_KEY) || '').trim().toLowerCase();
+      if (v === 'mini' || v === 'compact' || v === 'detail') return v;
+    }catch(_){/* ignore */}
+    return CARDVIEW_DEFAULT_BEFORE_IMPORT;
+  }
+
+  function saveCardView(v){
+    try{ localStorage.setItem(CARDVIEW_KEY, String(v)); }catch(_){/* ignore */}
+  }
+
+  function setCardView(mode){
+    const m = String(mode || '').trim().toLowerCase();
+    if (m !== 'mini' && m !== 'compact' && m !== 'detail') return;
+    if (state.cardView === m) return;
+    state.cardView = m;
+    // Reset per-card openness when switching global mode
+    state.activeCardId = null;
+    state.detailOpenId = null;
+    try{ document.documentElement.dataset.cardview = m; }catch(_){/* ignore */}
+    saveCardView(m);
+    try{ updateFabDepthUI(); }catch(_){/* ignore */}
+    // Card view is purely presentational; rerender is fine (keeps DOM deterministic)
+    try{ applyAndRender(); }catch(_){/* ignore */}
+  }
+
+  function _isCardInView(card){
+    try{
+      const r = card.getBoundingClientRect();
+      const vh = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 0);
+      // consider it in view if top is within 20%..90% of viewport
+      return (r.top >= vh*0.20) && (r.top <= vh*0.90);
+    }catch(_){ return true }
+  }
+
+  function _prefersReducedMotion(){
+    try{ return !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){ return false }
+  }
+
+  function _stickyHeaderHeight(){
+    try{
+      const hdr = document.querySelector('.hdr');
+      if (!hdr) return 0;
+      const r = hdr.getBoundingClientRect();
+      return Math.max(0, Math.round(r.height || 0));
+    }catch(_){ return 0 }
+  }
+
+  function focusCardToReadingPosition(card){
+    // Deterministic focus scroll (Desktop/Tablet friendly):
+    // keep the card anchored at a consistent position below the sticky header.
+    try{
+      const r = card.getBoundingClientRect();
+      const hdrH = _stickyHeaderHeight();
+      // On smaller viewports, the sticky header height tends to be visually "taller" than
+      // what we want to reserve for the focus scroll. We allow a tiny controlled overlap
+      // so the active card sits a bit higher in the viewport.
+      const vw = window.innerWidth || 800;
+      // Phase 2.3: Make the focused card land *much* higher (user feedback).
+      // We allow a large controlled "overlap" of the header reserve so the active
+      // card ends up close to the top edge, especially on phones.
+      // This remains deterministic and applies equally to Mini & Kompakt.
+      // Phase 2.5: User wants ~30px deeper than 2.4; nudge target down a bit.
+      // Reducing overlap means we reserve a bit more header space, so the card lands lower.
+      const overlap = vw < 520 ? 200 : (vw < 900 ? 160 : 120); // px
+      const effectiveHdr = Math.max(0, hdrH - overlap);
+      const extra = 17; // Phase 2.5+: Fokusposition um 15px nach oben nachkorrigiert
+      const target = Math.max(0, Math.round((window.scrollY || 0) + r.top - effectiveHdr - extra));
+      const behavior = _prefersReducedMotion() ? 'auto' : 'smooth';
+      window.scrollTo({ top: target, behavior });
+
+      // Some browsers (esp. mobile) finish smooth scrolling slightly off due to
+      // Multi-pass correction: counter scroll anchoring, layout shifts and mobile browser chrome
+      // (address bar) dynamics. Goal: constant visual top offset for the active card.
+      if (behavior === 'smooth'){
+        const desiredTop = Math.max(0, effectiveHdr + extra);
+        let tries = 0;
+        const adjust = () => {
+          tries++;
+          try{
+            const r2 = card.getBoundingClientRect();
+            const delta = r2.top - desiredTop;
+            if (Math.abs(delta) > 2){
+              window.scrollBy({ top: delta, behavior: 'auto' });
+            }
+          }catch(_){/* ignore */}
+          if (tries < 6) setTimeout(adjust, 120);
+        };
+        setTimeout(adjust, 120);
+      }
+}catch(_){/* ignore */}
+  }
+
+  function scheduleFocusScrollById(id){
+    // Wait for DOM + layout (after expanding/syncing) before scrolling.
+    const sid = String(id);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const card = el.cards?.querySelector?.(`.card[data-id="${CSS.escape(sid)}"]`);
+        if (card) focusCardToReadingPosition(card);
+      });
+    });
+  }
+
+  function onCardTapById(id){
+    const m = String(state.cardView || 'detail');
+    if (m === 'detail') return;
+    const cur = String(state.activeCardId || '');
+    const sid = String(id);
+
+    // Final rules:
+    // - Tap zone is the whole card.
+    // - No "back" via tapping the same card.
+    // - Focus scroll when a card becomes active via FIRST tap in global Mini OR global Kompakt.
+    // - No focus scroll when deepening the active card (Kompakt → Detail) or opening accordions.
+    if (m === 'mini'){
+      if (cur !== sid){
+        // Enter card: Mini → Kompakt (+ focus scroll)
+        state.activeCardId = sid;
+        state.detailOpenId = null;
+        syncCardStates();
+        scheduleFocusScrollById(sid);
+        return;
+      }
+      // Same card tapped again: Kompakt → Detail (no scroll)
+      if (state.detailOpenId !== sid){
+        state.detailOpenId = sid;
+        syncCardStates();
+      }
+      return;
+    }
+
+    if (m === 'compact'){
+      // In global Kompakt mode all cards show the compact zone.
+      // FIRST tap on a non-active card focuses it (+ focus scroll). SECOND tap on the active card deepens to Detail.
+      if (cur !== sid){
+        state.activeCardId = sid;
+        state.detailOpenId = null;
+        syncCardStates();
+        scheduleFocusScrollById(sid);
+        return;
+      }
+      // Active card tapped again: Kompakt → Detail (no scroll)
+      if (state.detailOpenId !== sid){
+        state.detailOpenId = sid;
+        syncCardStates();
+      }
+      return;
+    }
+  }
+
+  function toggleDetailById(id){
+    const m = String(state.cardView || 'detail');
+    if (m === 'detail') return;
+    if (String(state.activeCardId || '') !== String(id)) return;
+    // No explicit "toggle" in the final interaction model.
+    // Depth is advanced by card taps only; details stay open once entered.
+    return;
+  }
+
+  function syncCardStates(){
+    if (!el.cards) return;
+    const m = String(state.cardView || 'detail');
+    const active = String(state.activeCardId || '');
+    const detail = String(state.detailOpenId || '');
+    for (const card of el.cards.querySelectorAll('.card')){
+      const id = String(card.getAttribute('data-id') || '');
+      const isActive = (active && id === active);
+      card.toggleAttribute('data-active', isActive);
+      // compact-open
+      const compactOpen = (m === 'compact') || (m === 'detail') || (m === 'mini' && isActive);
+      if (compactOpen) card.setAttribute('data-compact-open','1');
+      else card.removeAttribute('data-compact-open');
+      const detailOpen = (m === 'detail') || (detail && id === detail);
+      if (detailOpen) card.setAttribute('data-detail-open','1');
+      else card.removeAttribute('data-detail-open');
+      // a11y: make header toggles focusable in mini/compact
+      const head = card.querySelector('.head');
+      if (head){
+        if (m === 'detail'){ head.removeAttribute('role'); head.removeAttribute('tabindex'); }
+        else { head.setAttribute('role','button'); head.setAttribute('tabindex','0'); }
+      }
+    }
+  }
+
+  function wireCardModeInteractions(){
+    if (!el.cards || el.cards.__cardModeWired) return;
+    el.cards.__cardModeWired = true;
+    el.cards.addEventListener('click', (e) => {
+      const m = String(state.cardView || 'detail');
+      if (m === 'detail') return;
+      const t = e.target;
+      const card = t.closest?.('.card');
+      if (!card) return;
+      const id = card.getAttribute('data-id');
+      if (!id) return;
+
+      // Ignore clicks on interactive elements inside open details (summaries/links/etc.)
+      // to preserve normal reading interactions.
+      if (t.closest?.('summary, a, button, input, textarea, select')) return;
+      if (t.closest?.('.detailsWrap')) return;
+
+      // Whole card is the tap-zone in Mini/Kompakt.
+      onCardTapById(id);
+    });
+    // Keyboard support: Enter/Space on header
+    el.cards.addEventListener('keydown', (e) => {
+      const m = String(state.cardView || 'detail');
+      if (m === 'detail') return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const head = e.target?.closest?.('.head');
+      if (!head) return;
+      const card = head.closest?.('.card');
+      const id = card?.getAttribute?.('data-id');
+      if (!id) return;
+      e.preventDefault();
+      onCardTapById(id);
+    });
+  }
+
   const state = {
     rows: [],
     q: "",
@@ -739,8 +989,15 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     reminderCol: null,
     fileName: null,
     importedAt: 0,
+    cardView: "detail",
+    activeCardId: null,
+    detailOpenId: null,
     ui: { lastCount: 0, lastFilterSig: "", highlights: false },
   };
+
+  // Initialize card view mode (persisted)
+  state.cardView = loadCardView();
+  try{ document.documentElement.dataset.cardview = state.cardView; }catch(_){/* ignore */}
 
   // Perf polish: avoid redundant apply+render when the effective query/filter/sort state hasn't changed.
   // (Data changes reset this automatically because `state.rows` reference changes.)
@@ -793,7 +1050,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     return String(s ?? "").toLowerCase().normalize("NFKD").trim();
   }
 
-  // Search-normalization: aims to make "Point-and-Click" ≈ "point and click"
+  // Search-normalization: aims to make "Point-and-Click" ≈ "point && click"
   // while staying deterministic (no fuzzy magic).
   function normSearch(s){
     return String(s ?? "")
@@ -1085,7 +1342,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
 
   function pill(text, kind){
     // XLSX status is shown in the toolbar when there is enough space,
-    // and always inside the Excel/Import details panel.
+    // && always inside the Excel/Import details panel.
     const targets = [el.pillXlsxPanel].filter(Boolean);
     for (const t of targets){
       t.textContent = "XLSX: " + text;
@@ -1148,7 +1405,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     state.distinct.trophies.clear();
 
     // Build rows as objects, while capturing Store hyperlink URLs
-    // We use sheet_to_json with header row 1, and also keep range info to map row index -> cell address.
+    // We use sheet_to_json with header row 1, && also keep range info to map row index -> cell address.
     const range = XLSX.utils.decode_range(ws["!ref"]);
     const headerRow = range.s.r; // 0
     // Get headers from first row
@@ -1188,7 +1445,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       }
 
       // Precomputed fields for fast filtering/search (Build 7.1b)
-      // Note: we only cache normalized values and derived aggregates; we do NOT change the user-visible data.
+      // Note: we only cache normalized values && derived aggregates; we do NOT change the user-visible data.
       const _id = String(row[COL.id] ?? '').trim();
       row.__id = _id;
       const _idNum = Number(_id);
@@ -1241,6 +1498,19 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     state.importedAt = Date.now();
     if (el.pillFile) el.pillFile.textContent = state.fileName;
     if (el.pillImport) el.pillImport.textContent = fmtImport(state.importedAt);
+
+    // After a successful import: default to Mini unless the user has an explicit saved preference.
+    try{
+      const persisted = String(localStorage.getItem(CARDVIEW_KEY) || '').trim();
+      if (!persisted){
+        state.cardView = CARDVIEW_DEFAULT_AFTER_IMPORT;
+        state.activeCardId = null;
+        state.detailOpenId = null;
+        try{ document.documentElement.dataset.cardview = state.cardView; }catch(_){/* ignore */}
+        try{ saveCardView(state.cardView); }catch(_){/* ignore */}
+        try{ updateFabDepthUI(); }catch(_){/* ignore */}
+      }
+    }catch(_){/* ignore */}
     el.empty.style.display = "none";
 
     buildFilterUI();
@@ -1271,7 +1541,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     panel.__portal = { parent: panel.parentNode, next: panel.nextSibling };
     floats.appendChild(panel);
     panel.classList.add("isPortal");
-    // make sure clicks inside the panel don't bubble up and auto-close it
+    // make sure clicks inside the panel don't bubble up && auto-close it
     panel.addEventListener("click", (e) => e.stopPropagation());
   }
 
@@ -1515,7 +1785,7 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         }
       } else {
         // Mobile/Tablet: custom dropdown so we can show real divider lines (native pickers
-        // render optgroups as headings and separators as selectable rows with radio circles).
+        // render optgroups as headings && separators as selectable rows with radio circles).
         const enabled = SORT_FIELDS.filter(sf => !sf.disabled);
         const cur = enabled.find(sf => sf.k === state.sortField) || enabled.find(sf => sf.k === "ID") || enabled[0];
 
@@ -2155,7 +2425,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
   }
 
   function clearAllFiltersOnly(){
-    // Clear filters and search without touching the current sort (Schnellmenü-Reset).
+    // Clear filters && search without touching the current sort (Schnellmenü-Reset).
     setSearchQuery("", "fabReset");
 const f = state.filters;
     f.fav = false;
@@ -2331,7 +2601,7 @@ const f = state.filters;
   function startReminderLoop(){
     if (_reminderTimerId){ try{ window.clearInterval(_reminderTimerId); }catch(_){/*ignore*/} _reminderTimerId = 0; }
     _reminderTimerId = window.setInterval(() => {
-      // Reminder: only when filters are active, the menu is closed, and there was no "user intent" recently.
+      // Reminder: only when filters are active, the menu is closed, && there was no "user intent" recently.
       if (!hasActiveFiltersOrSearch()) return;
       if (!inCardsView()) return;
       if (el?.dlg?.open) return;
@@ -2460,13 +2730,17 @@ const f = state.filters;
   }
 
   function applySignature(){
-    // Keep this cheap: only include values that affect the filtered/sorted result.
-    // NOTE: UI scale / viewport are CSS-only and don't require re-rendering.
+    // Keep this cheap: include values that affect the filtered/sorted result *and*
+    // values that require a DOM re-render even if the result set is unchanged.
+    // NOTE: UI scale / viewport are CSS-only && don't require re-rendering.
     return [
       String(state.q ?? ""),
       filterSignature(),
       String(state.sortField || ""),
       String(state.sortDir || ""),
+      // Card view mode changes the DOM structure / visibility rules, so it must
+      // invalidate the render cache even if filters/sort are unchanged.
+      String(state.cardView || ""),
     ].join("\n");
   }
 
@@ -3109,6 +3383,9 @@ function classifyAvailability(av){
 
   function render(rows){
     const __rt0 = PERF_DETAIL ? performance.now() : 0;
+    const viewMode = String(state.cardView || 'detail');
+    const showHeaderTrophy = (viewMode === 'detail');
+
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -3129,9 +3406,18 @@ function classifyAvailability(av){
 
       const reminder = state.reminderCol ? String(row[state.reminderCol] ?? "").trim() : "";
 
-      // Trophy short
-      const tBadges = trophyHeaderBadges(row);
+      // Trophy header badges (Progress/Status) are only shown in the global Detail view.
+      // In Kartenmodus Mini/Kompakt they are intentionally hidden (shown nowhere in header).
+      const tBadges = showHeaderTrophy ? trophyHeaderBadges(row) : [];
       const trophyBadge = tBadges.map(ts => badge("trophyHeader"+(ts.cls?(" "+ts.cls):""), `${ts.icon} ${ts.text}`)).join("");
+      const trophyHeaderHtml = (showHeaderTrophy && trophyBadge)
+        ? `
+              <div class="headDivider" aria-hidden="true"></div>
+
+              <div class="badgeRow badgeRow-trophy">
+                ${trophyBadge}
+              </div>`
+        : ``;
 // badge rows
       const platBadges = sys.map(p => badge("platform", p));
       const srcLabel = (src === "Unbekannt" ? "🏷️ Unbekannt" : src);
@@ -3197,7 +3483,7 @@ function classifyAvailability(av){
         : `<div class="small">Keine Eastereggs vorhanden.</div>`;
 
       return `
-        <article class="card">
+        <article class="card" data-id="${esc(id || "")}">
           <div class="topGrid">
             <div class="head">
               <div class="rowMeta">
@@ -3206,6 +3492,8 @@ function classifyAvailability(av){
               </div>
 
               <div class="title">${esc(title)}</div>
+
+              <div class="miniGenre" title="${esc(genre)}">${esc(genre)}</div>
 
               <div class="badgeRow badgeRow-platforms">
                 ${platBadges.join("")}
@@ -3217,14 +3505,17 @@ function classifyAvailability(av){
                 ${reminder ? remBadge : ""}
               </div>
 
-              <div class="headDivider" aria-hidden="true"></div>
+              ${trophyHeaderHtml}
 
-              <div class="badgeRow badgeRow-trophy">
-                ${trophyBadge}
-              </div>
+              <div class="cardChevron chev1" aria-hidden="true">▾</div>
             </div>
 
-            ${info}
+            <div class="compactWrap">
+              ${info}
+              <div class="chev2Wrap">
+                <div class="cardChevron chev2" aria-hidden="true">▾</div>
+              </div>
+            </div>
           </div>
 
           <div class="detailsWrap">
@@ -3248,6 +3539,9 @@ function classifyAvailability(av){
     syncDetailsSummaryLabels(el.cards);
 
 
+    // Apply card-mode openness to newly rendered cards
+    try{ syncCardStates(); }catch(_){/* ignore */}
+
     if (PERF_DETAIL) {
       const __rt2 = performance.now();
       const htmlMs = (__rt1 - __rt0);
@@ -3259,7 +3553,7 @@ function classifyAvailability(av){
   }
 
   // Perf polish: avoid attaching toggle listeners to every <details> on every render.
-  // We wire a single delegated listener once and just sync initial labels after each render.
+  // We wire a single delegated listener once && just sync initial labels after each render.
   let __detailsToggleWired = false;
   function wireDetailsToggle(){
     if (__detailsToggleWired) return;
@@ -3403,7 +3697,7 @@ function classifyAvailability(av){
           <span data-label="${safeLabel}">${safeLabel} anzeigen</span>
           <span class="chev">▾</span>
         </summary>
-        <div class="detailsBody">${bodyHtml}</div>
+        <div class="detailsBody"><div class="detailsInner">${bodyHtml}</div></div>
       </details>`;
   }
 
@@ -3644,6 +3938,11 @@ function renderTrophyDetails(row){
     if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();
   }, {passive:true});
 
+  // Hide the header as soon as we start scrolling down a little.
+  window.addEventListener("scroll", queueHeaderVisibilityUpdate, {passive:true});
+  window.addEventListener("resize", queueHeaderVisibilityUpdate, {passive:true});
+  queueHeaderVisibilityUpdate();
+
   const repositionIfOpen = () => {
     const modalOpen = document.documentElement.classList.contains("modalOpen");
     if (modalOpen) return;
@@ -3744,7 +4043,7 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
       document.body.style.width = "100%";
     }else{
       html.classList.remove("modalOpen");
-      // Unfreeze and restore
+      // Unfreeze && restore
       document.body.style.position = "";
       document.body.style.top = "";
       document.body.style.left = "";
@@ -3815,6 +4114,8 @@ el.btnTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smoo
   buildFab();
   // Wire delegated <details> toggle handling once (perf polish).
   wireDetailsToggle();
+  // Wire card-mode interactions (Mini/Kompakt/Detail) once.
+  wireCardModeInteractions();
 
   el.btnMenu.addEventListener("click", () => {
     openMenuDialog();

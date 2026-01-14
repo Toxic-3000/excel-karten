@@ -4,16 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-  <!--
-    Updated build identifier. This value is reflected throughout the UI and used
-    for cache busting on the stylesheet. When bumping the build number be sure
-    to update both the meta tag and the version query on the stylesheet.
-  -->
-  <!-- Updated build identifier for the latest layout refinements.  When
-       changing the build number, be sure to adjust both the meta tag and
-       the stylesheet query parameter below. -->
-  <meta name="app-build" content="V7_1k63u" />
-  <link rel="stylesheet" href="styles.css?v=V7_1k63u" />
+  <meta name="app-build" content="V7_1k63t" />
+  <link rel="stylesheet" href="styles.css?v=V7_1k63t" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -160,8 +152,9 @@
     <div class="fabSect fabQuickDepth">
       <div class="fabLabel">Karten</div>
       <div id="fabDepthRow" class="quickGrid" aria-label="Karten-Darstellung">
-        <button class="chip" type="button" disabled aria-disabled="true" aria-pressed="false">Kompakt</button>
-        <button class="chip" type="button" disabled aria-disabled="true" aria-pressed="true">Detail</button>
+        <button class="chip" type="button" data-group="cardView" data-key="mini" aria-pressed="false">Mini</button>
+        <button class="chip" type="button" data-group="cardView" data-key="compact" aria-pressed="false">Kompakt</button>
+        <button class="chip" type="button" data-group="cardView" data-key="detail" aria-pressed="false">Detail</button>
       </div>
     </div>
 
@@ -347,7 +340,7 @@
     })();
   </script>
 
-  <script src="xlsx.full.min.js?v=V7_1j62y" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=V7_1j62y" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=V7_1k63s" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=V7_1k63t" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>
