@@ -1,12 +1,13 @@
-# Spieleliste – Build V7_1k63v
+# Spieleliste – Build V7_1k63w
 
-Phase 4.1: Topbar-Verhalten (früher ausblenden).
+Phase 4.2: Topbar-Verhalten (eleganter + ohne Layout-Sprung).
 
-## Änderungen in V7_1k63v (gegenüber V7_1k63u)
+## Änderungen in V7_1k63w (gegenüber V7_1k63v)
 
-- **Topbar blendet früher aus** (alle Geräte): ab ca. **6px Scroll**.
-- **Sanfter Übergang statt abrupt**: beim Ausblenden **ausfaden + leicht nach oben schieben**, danach wird die Topbar aus dem Layout genommen (kein „leerer Streifen“).
-  Beim Zurückscrollen nach oben erscheint sie wieder weich.
+- **Topbar blendet später, aber gefühlt „richtig“ aus** (alle Geräte): Schwelle wird jetzt **aus der tatsächlichen Header-Höhe abgeleitet**.
+  Ziel: Die Topbar ist weg, sobald die erste Karte „fast“ am oberen Rand anliegt.
+- **Kein harter Layout-Sprung mehr**: statt `display:none` wird der Header **sanft zusammengeklappt** (Height/Max-Height + Fade/Slide).
+- **Hysterese gegen Flackern**: kleines Fenster zwischen Ausblenden und Wiedereinblenden, damit es am Schwellenwert stabil bleibt.
 
 ## Änderungen in V7_1k63q (gegenüber V7_1k63p)
 

@@ -15,12 +15,36 @@ console.log("Build loader ready");
 
   // Header behavior: only visible when we're essentially at the very top.
   // Request: hide earlier (~6px) and do it with a soft transition (fade/slide), on all devices.
-  const HEADER_HIDE_AFTER_PX = 6;
-  const HEADER_HIDE_ANIM_MS = 200;
+  // Header hide/show should feel the same on all devices.
+  // We compute thresholds dynamically from the rendered header height so that
+  // the header disappears around the moment the first card would "almost" hit
+  // the top edge.
+  let HEADER_HIDE_AFTER_PX = 96;   // recalculated on init + resize
+  let HEADER_SHOW_BELOW_PX = 72;   // hysteresis to avoid flicker
+  const HEADER_ANIM_MS = 220;      // should match CSS transition timing
   const hdrEl = document.querySelector(".hdr");
   let hdrHidden = false;
   let hdrRAF = 0;
-  let hdrHideTimer = 0;
+  
+  // Recalculate header collapse threshold based on the real header height.
+  function updateHeaderMetrics(){
+    if(!hdrEl) return;
+
+    // Ensure we can measure the full height
+    const wasHidden = hdrEl.classList.contains("isHidden");
+    if(wasHidden) hdrEl.classList.remove("isHidden");
+
+    // scrollHeight is stable even when clipped; we use it as "full" height
+    const fullH = Math.max(hdrEl.scrollHeight, hdrEl.getBoundingClientRect().height);
+    hdrEl.style.setProperty("--hdrMaxH", `${Math.ceil(fullH)}px`);
+
+    // Hide after ~55% of the header height, but keep it within sensible bounds
+    const hideAfter = Math.round(Math.min(140, Math.max(64, fullH * 0.55)));
+    HEADER_HIDE_AFTER_PX = hideAfter;
+    HEADER_SHOW_BELOW_PX = Math.max(0, hideAfter - 24); // hysteresis (prevents flicker)
+
+    if(wasHidden) hdrEl.classList.add("isHidden");
+  }
 
   function _getScrollY(){
     return window.scrollY || document.documentElement.scrollTop || 0;
@@ -28,45 +52,33 @@ console.log("Build loader ready");
 
   function hideHeaderAnimated(){
     if(!hdrEl) return;
-    if(hdrHideTimer) { clearTimeout(hdrHideTimer); hdrHideTimer = 0; }
-
-    // Start fade/slide out
+    // Never hard-remove from layout (no display:none). We collapse via CSS transitions.
     hdrEl.classList.add("isHidden");
-
-    // After the transition, remove from layout (previous behavior) so content snaps up.
-    hdrHideTimer = setTimeout(() => {
-      if(_getScrollY() > HEADER_HIDE_AFTER_PX){
-        hdrEl.classList.add("isGone");
-      }
-      hdrHideTimer = 0;
-    }, HEADER_HIDE_ANIM_MS);
   }
 
   function showHeaderAnimated(){
     if(!hdrEl) return;
-    if(hdrHideTimer) { clearTimeout(hdrHideTimer); hdrHideTimer = 0; }
-
-    // If it's currently removed from layout, bring it back in a hidden state first,
-    // then animate to visible.
-    const wasGone = hdrEl.classList.contains("isGone");
-    if(wasGone){
-      hdrEl.classList.remove("isGone");
-      hdrEl.classList.add("isHidden");
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => hdrEl.classList.remove("isHidden"));
-      });
-      return;
-    }
     hdrEl.classList.remove("isHidden");
+    hdrEl.classList.remove("isGone");
   }
 
   function syncHeaderVisibility(){
     if(!hdrEl) return;
-    const shouldHide = _getScrollY() > HEADER_HIDE_AFTER_PX;
-    if(shouldHide === hdrHidden) return;
-    hdrHidden = shouldHide;
-    if(hdrHidden) hideHeaderAnimated();
-    else showHeaderAnimated();
+    const y = _getScrollY();
+
+    // Hysteresis: keep behavior stable around the threshold.
+    // - when visible: hide only after HEADER_HIDE_AFTER_PX
+    // - when hidden: show again only below HEADER_SHOW_BELOW_PX
+    if(!hdrHidden && y >= HEADER_HIDE_AFTER_PX){
+      hdrHidden = true;
+      hideHeaderAnimated();
+      return;
+    }
+    if(hdrHidden && y <= HEADER_SHOW_BELOW_PX){
+      hdrHidden = false;
+      showHeaderAnimated();
+      return;
+    }
   }
 
   
@@ -3989,9 +4001,10 @@ function renderTrophyDetails(row){
     if (isShown(el.searchHelpBody) || isShown(el.fileMoreBody)) closeHeaderPopovers();
   }, {passive:true});
 
-  // Hide the header as soon as we start scrolling down a little.
+  // Header hide/show (all devices): thresholds depend on header height.
+  updateHeaderMetrics();
   window.addEventListener("scroll", queueHeaderVisibilityUpdate, {passive:true});
-  window.addEventListener("resize", queueHeaderVisibilityUpdate, {passive:true});
+  window.addEventListener("resize", () => { updateHeaderMetrics(); queueHeaderVisibilityUpdate(); }, {passive:true});
   queueHeaderVisibilityUpdate();
 
   const repositionIfOpen = () => {
