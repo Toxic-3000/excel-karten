@@ -413,10 +413,19 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom:1px solid var(--border);
+
+  /* Soft show/hide (fade + slight slide) */
+  transition: opacity 160ms ease, transform 180ms ease;
+  will-change: opacity, transform;
 }
 
 /* Header should only be visible when the page is scrolled to the very top. */
-.hdr.isHidden{ display:none; }
+.hdr.isHidden{
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+.hdr.isGone{ display:none; }
 .topbar{
   display:flex; gap: var(--sp-5); align-items:center; justify-content:flex-start;
   padding: var(--sp-6) var(--sp-5) var(--sp-4);

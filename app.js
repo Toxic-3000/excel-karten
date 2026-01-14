@@ -13,21 +13,60 @@ console.log("Build loader ready");
   "use strict";
   const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k63q").trim();
 
-  // Header behavior: visible only when the page is (almost) at the very top.
-  // Earlier builds hid it right after the user started scrolling; we keep a tiny buffer
-  // to avoid jitter from touchpads / elastic scrolling.
-  const HEADER_HIDE_AFTER_PX = 2;
+  // Header behavior: only visible when we're essentially at the very top.
+  // Request: hide earlier (~6px) and do it with a soft transition (fade/slide), on all devices.
+  const HEADER_HIDE_AFTER_PX = 6;
+  const HEADER_HIDE_ANIM_MS = 200;
   const hdrEl = document.querySelector(".hdr");
   let hdrHidden = false;
   let hdrRAF = 0;
+  let hdrHideTimer = 0;
+
+  function _getScrollY(){
+    return window.scrollY || document.documentElement.scrollTop || 0;
+  }
+
+  function hideHeaderAnimated(){
+    if(!hdrEl) return;
+    if(hdrHideTimer) { clearTimeout(hdrHideTimer); hdrHideTimer = 0; }
+
+    // Start fade/slide out
+    hdrEl.classList.add("isHidden");
+
+    // After the transition, remove from layout (previous behavior) so content snaps up.
+    hdrHideTimer = setTimeout(() => {
+      if(_getScrollY() > HEADER_HIDE_AFTER_PX){
+        hdrEl.classList.add("isGone");
+      }
+      hdrHideTimer = 0;
+    }, HEADER_HIDE_ANIM_MS);
+  }
+
+  function showHeaderAnimated(){
+    if(!hdrEl) return;
+    if(hdrHideTimer) { clearTimeout(hdrHideTimer); hdrHideTimer = 0; }
+
+    // If it's currently removed from layout, bring it back in a hidden state first,
+    // then animate to visible.
+    const wasGone = hdrEl.classList.contains("isGone");
+    if(wasGone){
+      hdrEl.classList.remove("isGone");
+      hdrEl.classList.add("isHidden");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => hdrEl.classList.remove("isHidden"));
+      });
+      return;
+    }
+    hdrEl.classList.remove("isHidden");
+  }
 
   function syncHeaderVisibility(){
     if(!hdrEl) return;
-    const y = window.scrollY || document.documentElement.scrollTop || 0;
-    const shouldHide = y > HEADER_HIDE_AFTER_PX;
+    const shouldHide = _getScrollY() > HEADER_HIDE_AFTER_PX;
     if(shouldHide === hdrHidden) return;
     hdrHidden = shouldHide;
-    hdrEl.classList.toggle("isHidden", hdrHidden);
+    if(hdrHidden) hideHeaderAnimated();
+    else showHeaderAnimated();
   }
 
   
