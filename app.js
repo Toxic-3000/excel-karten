@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64c").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -1597,11 +1597,21 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (av) state.distinct.availability.add(av);
 
       // Cached full-text search haystack (free text search)
-      // Keep it compact: only fields that are searched globally.
+      // "Ohne Feldnamen" soll wirklich ALLE Suchfelder abdecken (wie im Info-Popup):
+      // ID, Titel, Entwickler, Genre, Subgenre, Plattform, Quelle, Verfügbarkeit,
+      // Beschreibung, Eastereggs.
       row.__hay = [
-        row[COL.title], row[COL.genre], row[COL.sub], row[COL.dev],
-        row[COL.source], row[COL.avail]
-      ].map(normSearch).join(' ');
+        row.__id,
+        row[COL.title],
+        row[COL.dev],
+        row[COL.genre],
+        row[COL.sub],
+        row[COL.system],
+        row[COL.source],
+        row[COL.avail],
+        row[COL.desc],
+        row[COL.easter],
+      ].map(normSearch).filter(Boolean).join(' ');
     }
 
     state.rows = rows;
@@ -2428,8 +2438,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
           if (rn !== idQuery && rid !== idQuery) continue;
         } else if (qTokens.length){
           const hay = (r.__hay || [
-            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
+            r[COL.id], r[COL.title], r[COL.dev], r[COL.genre], r[COL.sub],
+            r[COL.system], r[COL.source], r[COL.avail], r[COL.desc], r[COL.easter]
           ].map(normSearch).join(" "));
           let ok = true;
           for (const t of qTokens){
