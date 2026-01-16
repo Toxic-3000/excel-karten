@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64h").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64i").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -239,7 +239,9 @@ function onScrollHeader(){
     fabDepthRow: $("fabDepthRow"),
     fabOpenMenu: $("fabOpenMenu"),
     search: $("search"),
+    searchClearBtn: $("searchClearBtn"),
     menuSearch: $("menuSearch"),
+    menuSearchClearBtn: $("menuSearchClearBtn"),
     searchHelpBtn: $("searchHelpBtn"),
     searchHelpBody: $("searchHelpBody"),
     menuSearchHelpBtn: $("menuSearchHelpBtn"),
@@ -4184,6 +4186,27 @@ function renderTrophyDetails(row){
       alert("Fehler beim Einlesen der Excel: " + (e?.message || e));
     }
   });
+
+  // Custom clear buttons for search inputs (avoid native cancel-button quirks)
+  function setupClearButton(inputEl, btnEl){
+    if(!inputEl || !btnEl) return;
+    const sync = () => {
+      const hasValue = (inputEl.value || "").length > 0;
+      btnEl.classList.toggle("isVisible", hasValue);
+    };
+    sync();
+    inputEl.addEventListener("input", sync);
+    inputEl.addEventListener("change", sync);
+    inputEl.addEventListener("focus", sync);
+    btnEl.addEventListener("click", (e) => {
+      e.preventDefault();
+      inputEl.value = "";
+      inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+      inputEl.focus();
+    });
+  }
+  setupClearButton(el.search, el.searchClearBtn);
+  setupClearButton(el.menuSearch, el.menuSearchClearBtn);
 
   el.search.addEventListener("input", () => {
     // Header search counts as "user intent".

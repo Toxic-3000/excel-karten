@@ -565,7 +565,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   align-items:center;
   gap:calc(8px * var(--uiScale));
 }
-.searchRow .search{flex:1; min-width:0; width:100%;}
+.searchRow .searchBox{flex:1; min-width:0;}
+.searchRow .search{width:100%;}
 .searchHelp{display:flex; align-items:center;}
 
 /* Search row inside bottom-sheet (mirrors the global search). */
@@ -576,10 +577,13 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   gap:calc(8px * var(--uiScale));
   margin-bottom: calc(10px * var(--uiScale));
 }
-.sheetSearchRow .search{
+.sheetSearchRow .searchBox{
   flex:1;
   width:100%;
   min-width:0;
+}
+.sheetSearchRow .search{
+  width:100%;
 }
 .searchHelpIcon{
   font: inherit;
@@ -675,12 +679,147 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   outline:none;
 }
 
-/*
-  UX: On some mobile browsers, the native clear-button (x) inside
-  <input type="search"> can visually "stick" to long text and is easy
-  to hit by accident when trying to place the caret at the end.
-  Give the text/caret a bit more breathing room on the right.
-*/
+
+/* Custom clear button for search inputs (consistent across browsers) */
+.searchBox{
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.searchBox .search{
+  width: 100%;
+  padding-right: calc(54px * var(--uiScale));
+  padding-inline-end: calc(54px * var(--uiScale));
+}
+
+.searchClearBtn{
+  position: absolute;
+  right: calc(10px * var(--uiScale));
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(30px * var(--uiScale));
+  height: calc(30px * var(--uiScale));
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in oklab, var(--fg) 65%, var(--bg) 35%);
+  font-size: calc(20px * var(--uiScale));
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, background 120ms ease, transform 120ms ease;
+}
+
+.searchClearBtn.isVisible{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.searchClearBtn:hover{
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+}
+
+.searchClearBtn:active{
+  transform: translateY(-50%) scale(0.96);
+}
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(30px * var(--uiScale));
+  height: calc(30px * var(--uiScale));
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  color: color-mix(in oklab, var(--fg) 65%, var(--bg) 35%);
+  font-size: calc(20px * var(--uiScale));
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, background 120ms ease, transform 120ms ease;
+}
+
+.searchClearBtn.isVisible{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.searchClearBtn:hover{
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+}
+
+.searchClearBtn:active{
+  transform: translateY(-50%) scale(0.96);
+}
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(30px * var(--uiScale));
+  height: calc(30px * var(--uiScale));
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in oklab, var(--fg) 65%, var(--bg) 35%);
+  font-size: calc(20px * var(--uiScale));
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.searchClearBtn.isVisible{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.searchClearBtn:hover{
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+}
+
+.searchClearBtn:active{
+  transform: translateY(-50%) scale(0.96);
+}
+
+  width: calc(30px * var(--uiScale));
+  height: calc(30px * var(--uiScale));
+  border:0;
+  background: transparent;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: color-mix(in oklab, var(--fg) 65%, var(--bg) 35%);
+  font-size: calc(20px * var(--uiScale));
+  line-height:1;
+  padding:0;
+  cursor:pointer;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 120ms ease, background 120ms ease, transform 120ms ease;
+}
+.searchClearBtn.isVisible{
+  opacity:1;
+  pointer-events:auto;
+}
+.searchClearBtn:hover{
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+}
+.searchClearBtn:active{
+  transform: translateY(-50%) scale(0.96);
+}
 .search[type="search"]{
   /* Reserve *a little* space for the native clear (x) button.
      Too much padding wastes input width on mobile. */
