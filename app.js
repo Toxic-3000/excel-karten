@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64e").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64f").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -3822,7 +3822,8 @@ function classifyAvailability(av){
     if (!detailsEl) return;
     unwrapHighlights(detailsEl);
     if (!state.ui.highlights) return;
-    const terms = getHighlightTermsFromQuery(state.searchQuery);
+    // Use the canonical search query state (state.q). "state.searchQuery" is not used elsewhere.
+    const terms = getHighlightTermsFromQuery(state.q);
     if (!terms.length) return;
     applyHighlights(detailsEl, terms);
   }
@@ -3838,7 +3839,8 @@ function classifyAvailability(av){
   function syncAllCardHighlights() {
     if (!el.cards) return;
     const cards = el.cards.querySelectorAll('.card');
-    const terms = state.ui.highlights ? getHighlightTermsFromQuery(state.searchQuery) : [];
+    // Use the canonical search query state (state.q). "state.searchQuery" is not used elsewhere.
+    const terms = state.ui.highlights ? getHighlightTermsFromQuery(state.q) : [];
 
     for (const card of cards) {
       unwrapHighlights(card);

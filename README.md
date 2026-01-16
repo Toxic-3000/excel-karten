@@ -1,6 +1,10 @@
-# Spieleliste – Build V7_1k64e
+# Spieleliste – Build V7_1k64f
 
 Patch: Markierungen (Highlighting) – Bugfix.
+
+## Änderungen in V7_1k64f (gegenüber V7_1k64e)
+
+- **Fix: Markierungen greifen wieder** – Highlighting nutzt jetzt die echte Suchabfrage `state.q` (statt einer nie gesetzten Variable). Dadurch werden Treffer in allen sichtbaren Bereichen korrekt hervorgehoben, inkl. Akkordeons beim Öffnen.
 
 ## Änderungen in V7_1k64e (gegenüber V7_1k64d)
 
