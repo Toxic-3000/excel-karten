@@ -1,6 +1,11 @@
-# Spieleliste – Build V7_1k64a
+# Spieleliste – Build V7_1k64e
 
-Phase 4.2: Topbar-Verhalten (scroll-progressiv: gleitet mit dem Content aus dem Bild).
+Patch: Markierungen (Highlighting) – Bugfix.
+
+## Änderungen in V7_1k64e (gegenüber V7_1k64d)
+
+- **Fix: Markierungen funktionieren jetzt** – fehlende Funktion `syncOpenTextHighlights()` ergänzt und Highlighting wird nach jedem Render-DOM-Swap einmal angewendet, wenn Markierungen **An** sind.
+- **Keine Änderung an Suche/Filter/Topbar** – rein visueller Layer.
 
 ## Änderungen in V7_1k64a (gegenüber V7_1k63y)
 

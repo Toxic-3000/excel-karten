@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64d").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64e").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -3668,6 +3668,10 @@ function classifyAvailability(av){
     // Apply card-mode openness to newly rendered cards
     try{ syncCardStates(); }catch(_){/* ignore */}
 
+    // If highlights are enabled, apply them once after the DOM swap.
+    // (Subsequent accordion opens are handled by the delegated toggle listener.)
+    try{ if (state?.ui?.highlights) syncAllCardHighlights(); }catch(_){/* ignore */}
+
     if (PERF_DETAIL) {
       const __rt2 = performance.now();
       const htmlMs = (__rt1 - __rt0);
@@ -3821,6 +3825,14 @@ function classifyAvailability(av){
     const terms = getHighlightTermsFromQuery(state.searchQuery);
     if (!terms.length) return;
     applyHighlights(detailsEl, terms);
+  }
+
+  // Apply/remove highlights in the currently rendered card DOM.
+  // We keep this intentionally simple: highlight markup can exist in closed
+  // <details> blocks (they are not visible anyway). When the user opens an
+  // accordion, the highlights are already there.
+  function syncOpenTextHighlights(){
+    try{ syncAllCardHighlights(); }catch(_){/* ignore */}
   }
 
   function syncAllCardHighlights() {
