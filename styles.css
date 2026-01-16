@@ -674,6 +674,21 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   font-weight:500;
   outline:none;
 }
+
+/*
+  UX: On some mobile browsers, the native clear-button (x) inside
+  <input type="search"> can visually "stick" to long text and is easy
+  to hit by accident when trying to place the caret at the end.
+  Give the text/caret a bit more breathing room on the right.
+*/
+.search[type="search"]{
+  padding-right: calc(48px * var(--uiScale));
+}
+
+/* Slightly separate the cancel icon from the text when the UA allows it */
+.search[type="search"]::-webkit-search-cancel-button{
+  margin-left: calc(10px * var(--uiScale));
+}
 /* Gemeinsame „Pill“-Oberfläche (Buttons, Pills, Badges)
    -> reduziert Duplikate, Optik bleibt identisch */
 :is(.pill, .btn, .badge){

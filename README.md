@@ -1,6 +1,12 @@
-# Spieleliste – Build V7_1k64f
+# Spieleliste – Build V7_1k64g
 
 Patch: Markierungen (Highlighting) – Bugfix.
+
+## Änderungen in V7_1k64g (gegenüber V7_1k64f)
+
+- Suchfelder (Topbar + Filter/Sortieren): mehr rechter Innenabstand, damit der native Clear-Button (x) nicht direkt am Text „klebt“ und man am Ende der Eingabe leichter tippen kann.
+
+---
 
 ## Änderungen in V7_1k64f (gegenüber V7_1k64e)
 
