@@ -1,6 +1,22 @@
-# Spieleliste – Build V7_1k64f
+# Spieleliste – Build V7_1k64j
 
-Patch: Markierungen (Highlighting) – Bugfix.
+Patch: Suchzeile – Styling/Spacing Fix.
+
+## Änderungen in V7_1k64j (gegenüber V7_1k64i)
+
+- Suchzeile wieder im "Pill"-Look wie zuvor (statt eckigem Default-Input).
+- Clear-Button (x) bleibt sicher bedienbar: weniger Abstand zum rechten Rand, mehr Abstand zum Text/Cursor.
+- CSS-Duplikat-/Bruchstellen im Suchleisten-Block bereinigt (verhindert Style-Fallbacks).
+
+- Suchfelder (Topbar + Filter/Sortieren): rechter Innenabstand **reduziert**, damit wieder mehr nutzbare Eingabebreite bleibt, aber der native Clear-Button (x) trotzdem nicht am Text „klebt“.
+
+---
+
+## Änderungen in V7_1k64g (gegenüber V7_1k64f)
+
+- Suchfelder (Topbar + Filter/Sortieren): mehr rechter Innenabstand, damit der native Clear-Button (x) nicht direkt am Text „klebt“ und man am Ende der Eingabe leichter tippen kann.
+
+---
 
 ## Änderungen in V7_1k64f (gegenüber V7_1k64e)
 
