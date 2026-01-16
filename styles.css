@@ -677,6 +677,8 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   padding: calc(12px * var(--uiScale)) calc(14px * var(--uiScale));
   font-weight:500;
   outline:none;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 
@@ -689,13 +691,14 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .searchBox .search{
   width: 100%;
-  padding-right: calc(58px * var(--uiScale));
-  padding-inline-end: calc(58px * var(--uiScale));
+  /* Platz für X-Button (knapp, damit die Suchzeile maximal nutzbar bleibt) */
+  padding-right: calc(46px * var(--uiScale));
+  padding-inline-end: calc(46px * var(--uiScale));
 }
 
 .searchClearBtn{
   position: absolute;
-  right: calc(8px * var(--uiScale));
+  right: calc(6px * var(--uiScale));
   top: 50%;
   transform: translateY(-50%);
   width: calc(30px * var(--uiScale));

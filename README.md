@@ -1,6 +1,11 @@
-# Spieleliste – Build V7_1k64j
+# Spieleliste – Build V7_1k64k
 
 Patch: Suchzeile – Styling/Spacing Fix.
+
+## Änderungen in V7_1k64k (gegenüber V7_1k64j)
+
+- Suchzeile: Abstand zwischen Suchtext und (x) wieder etwas reduziert (mehr nutzbare Breite)
+- Suchzeile: Textauswahl/Cursor-Setzen auf Mobile wieder zuverlässig möglich (user-select explizit auf Text gesetzt)
 
 ## Änderungen in V7_1k64j (gegenüber V7_1k64i)
 
