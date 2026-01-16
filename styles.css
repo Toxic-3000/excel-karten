@@ -682,7 +682,10 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   Give the text/caret a bit more breathing room on the right.
 */
 .search[type="search"]{
-  padding-right: calc(48px * var(--uiScale));
+  /* Reserve *a little* space for the native clear (x) button.
+     Too much padding wastes input width on mobile. */
+  padding-right: calc(24px * var(--uiScale));
+  padding-inline-end: calc(24px * var(--uiScale));
 }
 
 /* Slightly separate the cancel icon from the text when the UA allows it */
