@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64d").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -974,14 +974,16 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
         // Enter card: Mini → Kompakt (+ focus scroll)
         state.activeCardId = sid;
         state.detailOpenId = null;
-        syncCardStates();
+         syncCardStates();
+    try{ syncAllCardHighlights(); }catch(_){/* ignore */}
         scheduleFocusScrollById(sid);
         return;
       }
       // Same card tapped again: Kompakt → Detail (no scroll)
       if (state.detailOpenId !== sid){
         state.detailOpenId = sid;
-        syncCardStates();
+         syncCardStates();
+    try{ syncAllCardHighlights(); }catch(_){/* ignore */}
       }
       return;
     }
@@ -992,14 +994,16 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       if (cur !== sid){
         state.activeCardId = sid;
         state.detailOpenId = null;
-        syncCardStates();
+         syncCardStates();
+    try{ syncAllCardHighlights(); }catch(_){/* ignore */}
         scheduleFocusScrollById(sid);
         return;
       }
       // Active card tapped again: Kompakt → Detail (no scroll)
       if (state.detailOpenId !== sid){
         state.detailOpenId = sid;
-        syncCardStates();
+         syncCardStates();
+    try{ syncAllCardHighlights(); }catch(_){/* ignore */}
       }
       return;
     }
@@ -1324,7 +1328,8 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
       freeParts.push(s.slice(tStart, i));
     }
 
-    return { terms, free: freeParts.join(" ").trim() };
+    // freeParts keeps quoted phrases intact and is useful for Markierungen.
+    return { terms, free: freeParts.join(" ").trim(), freeParts };
   }
 
   function rowMatchesTerm(r, term){
@@ -3705,108 +3710,128 @@ function classifyAvailability(av){
     }catch(_){/* ignore */}
   }
 
-  // --- Markierungen: highlight search terms inside large text blocks (Beschreibung / Eastereggs) ---
-  function _escapeRegExp(s){
-    return String(s ?? "").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // --- Markierungen (Highlighting)
+  // Zielbild:
+  // - Markierungen sind rein visuell (kein Auto-Oeffnen) und folgen der aktuellen Suche.
+  // - Begriffe aus globaler Suche UND Feldsuche werden gesammelt und auf alle sichtbaren Texte angewendet.
+  // - In eingeklappten Akkordeons ist nichts sichtbar; beim Aufklappen sind Markierungen bereits vorhanden.
+
+  function escapeRegExp(str){
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\$&");
   }
 
-  function getActiveHighlightTokens(){
-    const qRaw = String(state.q ?? "");
-    if (!qRaw.trim()) return [];
-    const sq = parseStructuredQuery(qRaw);
-    const toks = [];
-    // structured terms (ignore exclusions)
-    for (const t of (sq.terms || [])){
-      if (t && !t.neg && t.value) toks.push(String(t.value));
-    }
-    // free-text tokens (AND semantics)
-    const free = String(sq.free ?? "").trim();
-    if (free){
-      for (const part of free.split(/\s+/).filter(Boolean)) toks.push(part);
-    }
+  function getHighlightTermsFromQuery(rawQuery) {
+    const q = (rawQuery || "").trim();
+    if (!q) return [];
 
-    // Normalize: unique (case-insensitive), skip ultra-short + pure numbers.
-    const seen = new Set();
+    const parsed = parseStructuredQuery(q);
     const out = [];
-    for (const raw of toks){
-      const t = String(raw ?? "").trim();
-      if (!t) continue;
-      if (t.length < 2) continue;
-      if (/^\d+$/.test(t)) continue;
-      const k = t.toLowerCase();
-      if (seen.has(k)) continue;
-      seen.add(k);
-      out.push(t);
-      if (out.length >= 30) break; // hard cap (perf + sanity)
+
+    // Feld-Paare (z. B. Entwickler: Naughty Dog)
+    for (const t of parsed.terms || []) {
+      if (t && !t.neg && t.value) out.push(String(t.value).trim());
     }
-    // Prefer longer tokens first to reduce nested/partial highlights.
-    out.sort((a,b) => b.length - a.length);
-    return out;
+
+    // Freie Begriffe (inkl. quoted phrases) - parseStructuredQuery liefert freeParts
+    const freeParts = parsed.freeParts && parsed.freeParts.length ? parsed.freeParts : (parsed.free ? parsed.free.split(/\s+/) : []);
+    for (const p of freeParts) {
+      const v = String(p || "").trim();
+      if (v) out.push(v);
+    }
+
+    // Normalisieren: Duplikate (case-insensitive) entfernen, sehr kurze Tokens raus
+    const uniq = new Map();
+    for (const t of out) {
+      const cleaned = t.replace(/^[-+]+/, "").trim();
+      if (!cleaned) continue;
+      if (cleaned.length < 2) continue;
+      const key = cleaned.toLowerCase();
+      if (!uniq.has(key)) uniq.set(key, cleaned);
+    }
+
+    // Laengere Begriffe zuerst, damit Alternations-RegExp stabiler ist
+    return Array.from(uniq.values()).sort((a, b) => b.length - a.length);
   }
 
-  function highlightTextToHtml(rawText, tokens){
-    const raw = String(rawText ?? "");
-    const list = (tokens || []).filter(Boolean);
-    if (!raw || !list.length) return esc(raw);
-    const re = new RegExp('(' + list.map(_escapeRegExp).join('|') + ')', 'gi');
-    let out = '';
-    let last = 0;
-    for (const m of raw.matchAll(re)){
-      const i = m.index ?? -1;
-      if (i < 0) continue;
-      out += esc(raw.slice(last, i));
-      out += `<span class="hl">${esc(m[0])}</span>`;
-      last = i + String(m[0]).length;
-    }
-    out += esc(raw.slice(last));
-    return out;
+  function unwrapHighlights(root) {
+    if (!root) return;
+    root.querySelectorAll('span.hl').forEach((span) => {
+      span.replaceWith(document.createTextNode(span.textContent || ""));
+    });
   }
 
-  function syncHighlightsForPre(pre){
-    if (!pre) return;
-    if (!pre.dataset) return;
-    // Cache raw text once (so we can safely toggle on/off without losing formatting)
-    if (pre.dataset.raw == null){
-      pre.dataset.raw = pre.textContent || '';
+  function applyHighlights(root, terms) {
+    if (!root || !terms || !terms.length) return;
+
+    const pattern = terms.map(escapeRegExp).join("|");
+    if (!pattern) return;
+    const re = new RegExp(pattern, "gi");
+
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          if (!node || !node.nodeValue) return NodeFilter.FILTER_REJECT;
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          if (parent.closest('script,style,textarea,input')) return NodeFilter.FILTER_REJECT;
+          if (parent.closest('span.hl')) return NodeFilter.FILTER_REJECT;
+          // Nur echte Inhalte markieren (nicht in leeren/whitespace-only Nodes)
+          if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      },
+      false
+    );
+
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (const node of nodes) {
+      const txt = node.nodeValue;
+      if (!re.test(txt)) continue;
+      re.lastIndex = 0;
+
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      let m;
+      while ((m = re.exec(txt))) {
+        const idx = m.index;
+        const match = m[0];
+        if (idx > last) frag.appendChild(document.createTextNode(txt.slice(last, idx)));
+
+        const span = document.createElement('span');
+        span.className = 'hl';
+        span.textContent = match;
+        frag.appendChild(span);
+
+        last = idx + match.length;
+      }
+      if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+
+      node.parentNode.replaceChild(frag, node);
     }
-    const raw = pre.dataset.raw || '';
-    const on = !!state.ui?.highlights;
-    if (!on){
-      // Restore plain text (no markup)
-      pre.textContent = raw;
-      return;
-    }
-    const tokens = getActiveHighlightTokens();
-    if (!tokens.length){
-      pre.textContent = raw;
-      return;
-    }
-    pre.innerHTML = highlightTextToHtml(raw, tokens);
   }
 
-  function syncHighlightsForDetails(det){
-    if (!det) return;
-    // Only for our big text sections
-    const isDesc = det.classList?.contains('d-desc');
-    const isEaster = det.classList?.contains('d-easter');
-    if (!isDesc && !isEaster) return;
-    // Only apply when open; on close we can restore to keep DOM clean.
-    const pre = det.querySelector('.detailsBody .pre');
-    if (!pre) return;
-    if (det.open){
-      syncHighlightsForPre(pre);
-    } else {
-      // Closing: always restore plain text.
-      try{ if (pre.dataset && pre.dataset.raw != null) pre.textContent = pre.dataset.raw; }catch(_){/* ignore */}
-    }
+  function syncHighlightsForDetails(detailsEl) {
+    if (!detailsEl) return;
+    unwrapHighlights(detailsEl);
+    if (!state.ui.highlights) return;
+    const terms = getHighlightTermsFromQuery(state.searchQuery);
+    if (!terms.length) return;
+    applyHighlights(detailsEl, terms);
   }
 
-  function syncOpenTextHighlights(){
-    try{
-      const open = el.cards?.querySelectorAll?.('details.d-desc[open] .detailsBody .pre, details.d-easter[open] .detailsBody .pre');
-      if (!open || !open.length) return;
-      for (const pre of open) syncHighlightsForPre(pre);
-    }catch(_){/* ignore */}
+  function syncAllCardHighlights() {
+    if (!el.cards) return;
+    const cards = el.cards.querySelectorAll('.card');
+    const terms = state.ui.highlights ? getHighlightTermsFromQuery(state.searchQuery) : [];
+
+    for (const card of cards) {
+      unwrapHighlights(card);
+      if (terms.length) applyHighlights(card, terms);
+    }
   }
 
   function detailsBlock(key, label, bodyHtml){
