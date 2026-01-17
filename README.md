@@ -6,9 +6,8 @@ Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
 ## Änderungen in V7_1k64t (gegenüber V7_1k64s)
 
-- Fix: Topbar-Höhe bleibt stabil nach Excel-Import auch wenn Buttons/Pills auf zwei Zeilen umbrechen (ResizeObserver -> re-measure Header).
-
-- Fix: Topbar/Sticky-Header wird beim Neuladen mit großer Textgröße sofort korrekt vermessen (kein Abschneiden bis zum ersten Scroll).
+- Fix: Topbar/Sticky-Header wird automatisch neu vermessen, wenn sich die Toolbar ohne Scroll/Resize ändert (z. B. nach Excel-Import, Trefferzahl-Update, Zeilenumbruch).
+  → Kein „einmal kurz scrollen“ mehr nötig, um Abschneiden zu beheben.
 
 ## Änderungen in V7_1k64r (gegenüber V7_1k64q)
 

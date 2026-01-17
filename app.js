@@ -75,28 +75,6 @@ console.log("Build loader ready");
     if(wasCollapsed) hdrEl.classList.add("isCollapsed");
   }
 
-  // Keep header metrics in sync when the header's intrinsic height changes
-  // (e.g. after loading Excel when pills/buttons wrap onto two lines).
-  // Debounced via rAF and guarded against self-triggered observer loops.
-  (function observeHeaderSize(){
-    if (!hdrEl) return;
-    if (typeof ResizeObserver === 'undefined') return;
-    let raf = 0;
-    let busy = false;
-    const ro = new ResizeObserver(() => {
-      if (busy) return;
-      if (raf) { try{ cancelAnimationFrame(raf); }catch(_){/* ignore */} }
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        busy = true;
-        try{ updateHeaderMetrics(); }catch(_){/* ignore */}
-        try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
-        busy = false;
-      });
-    });
-    try{ ro.observe(hdrEl); }catch(_){/* ignore */}
-  })();
-
   function _getScrollY(){
     return window.scrollY || document.documentElement.scrollTop || 0;
   }
@@ -157,6 +135,39 @@ function queueHeaderVisibilityUpdate() {
     syncHeaderVisibility();
   });
 }
+
+// Queue a full header re-measurement (height + visibility) after layout-changing events.
+// Needed for cases where toolbar content changes without a real resize/scroll (e.g. after Excel import).
+let _headerMeasureT = 0;
+let _headerMeasuring = false;
+function queueHeaderRemeasure(){
+  try{ window.clearTimeout(_headerMeasureT); }catch(_){/* ignore */}
+  _headerMeasureT = window.setTimeout(() => {
+    if (_headerMeasuring) return;
+    _headerMeasuring = true;
+    try{
+      // Two rAF hops: gives the browser time to apply text reflow (wrap/no-wrap) before measuring.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          try{ updateHeaderMetrics(); }catch(_){/* ignore */}
+          try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+          _headerMeasuring = false;
+        });
+      });
+    }catch(_){ _headerMeasuring = false; }
+  }, 0);
+}
+
+// Auto-remeasure when the header's box size changes (e.g. pills wrap after content updates).
+try{
+  if (window.ResizeObserver && hdrEl){
+    const ro = new ResizeObserver(() => {
+      if (_headerMeasuring) return;
+      queueHeaderRemeasure();
+    });
+    ro.observe(hdrEl);
+  }
+}catch(_){/* ignore */}
 
 function onScrollHeader(){
     if(hdrRAF) return;
@@ -510,6 +521,7 @@ function onScrollHeader(){
     bar.classList.remove("compact2");
     // If things don't fit (e.g. A+++), show only the number && slightly reduce button padding.
     if (bar.scrollWidth > bar.clientWidth + 1) bar.classList.add("compact2");
+    try{ queueHeaderRemeasure(); }catch(_){/* ignore */}
   }
 
   function queueToolbarCompactness(){
@@ -3509,7 +3521,8 @@ function scheduleApplyAndRender(delayMs){
     state.ui.lastCount = out.length;
     if (el.hitCount) el.hitCount.textContent = String(out.length);
     else if (el.pillRows) el.pillRows.textContent = `Treffer: ${out.length}`;
-    updateToolbarCompactness();
+    queueToolbarCompactness();
+    try{ queueHeaderRemeasure(); }catch(_){/* ignore */}
 
     // Compute once: used for hint-reset + Schnellmenü attention pulse.
     let sigNow = "";
