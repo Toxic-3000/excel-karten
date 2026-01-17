@@ -1,8 +1,15 @@
-# Spieleliste – Build V7_1k64m
+# Spieleliste – Build V7_1k64n
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64n (gegenüber V7_1k64m)
+
+- Suchsprache: OR-Suche per `|` (ohne Klammern). Beispiel: `Strand | Detektiv`.
+- Logik: Innerhalb eines Segments gilt weiterhin AND + Negation. Beispiel: `Strand -Zombie | Detektiv -="Sherlock"`.
+- Markierungen: Pro Karte wird nur das **erste** passende OR-Segment markiert (damit Markieren exakt zur Trefferlogik passt).
+- Suchhilfe: Topbar und Menü um die `|`-Funktion ergänzt.
 
 ## Änderungen in V7_1k64m (gegenüber V7_1k64k)
 

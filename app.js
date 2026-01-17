@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64m").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64n").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -1418,6 +1418,98 @@ function parseStructuredQuery(raw){
   };
 }
 
+
+// --- Search OR (|) ---
+// Minimal, deterministic OR support without parentheses:
+// - Split by | outside of *closed* quotes
+// - Each segment is evaluated like the existing search (implicit AND + negation)
+
+function splitOrSegments(raw){
+  const s = String(raw ?? "");
+  const parts = [];
+  let buf = "";
+
+  function findClosingQuote(start){
+    let i = start + 1;
+    while (i < s.length){
+      const ch = s[i];
+      if (ch === "\\" && i + 1 < s.length){
+        i += 2;
+        continue;
+      }
+      if (ch === '"') return i;
+      i++;
+    }
+    return -1;
+  }
+
+  for (let i=0; i<s.length; i++){
+    const ch = s[i];
+    if (ch === '"'){
+      const j = findClosingQuote(i);
+      if (j >= 0){
+        buf += s.slice(i, j+1);
+        i = j;
+        continue;
+      }
+      // unclosed quote → treat as normal char
+      buf += ch;
+      continue;
+    }
+    if (ch === '|'){
+      const part = buf.trim();
+      if (part) parts.push(part);
+      buf = "";
+      continue;
+    }
+    buf += ch;
+  }
+
+  const tail = buf.trim();
+  if (tail) parts.push(tail);
+  return parts;
+}
+
+function parseQueryOr(raw){
+  const q = String(raw ?? "");
+  const parts = splitOrSegments(q);
+  const segs = [];
+
+  // Only pipes/spaces → treat as empty search (no filtering)
+  if (!parts.length){
+    const parsed = parseStructuredQuery("");
+    const compiledFree = compileFreeTerms(parsed.freeTerms || []);
+    const freeRaw = String(parsed.free ?? "");
+    const idQuery = parseIdQuery(freeRaw || "");
+    const hlTerms = getHighlightTermsFromParsed(parsed);
+    segs.push({ raw: "", parsed, compiledFree, idQuery, hlTerms });
+    return { hasOr: false, segments: segs };
+  }
+
+  const hasOr = parts.length > 1;
+
+  if (!hasOr){
+    const parsed = parseStructuredQuery(q);
+    const compiledFree = compileFreeTerms(parsed.freeTerms || []);
+    const freeRaw = String(parsed.free ?? "");
+    const idQuery = parseIdQuery(freeRaw || q);
+    const hlTerms = getHighlightTermsFromParsed(parsed);
+    segs.push({ raw: q, parsed, compiledFree, idQuery, hlTerms });
+    return { hasOr: false, segments: segs };
+  }
+
+  for (const part of parts){
+    const parsed = parseStructuredQuery(part);
+    const compiledFree = compileFreeTerms(parsed.freeTerms || []);
+    const freeRaw = String(parsed.free ?? "");
+    const idQuery = parseIdQuery(freeRaw || part);
+    const hlTerms = getHighlightTermsFromParsed(parsed);
+    segs.push({ raw: part, parsed, compiledFree, idQuery, hlTerms });
+  }
+
+  return { hasOr: true, segments: segs };
+}
+
 function buildWordBoundaryRe(word){
   const w = String(word ?? "").trim();
   if (!w) return null;
@@ -1531,6 +1623,46 @@ function rowMatchesTerm(r, term){
     default:
       return false;
   }
+}
+
+
+function rowMatchesSearchSegment(r, seg){
+  const sq = seg?.parsed;
+
+  // field terms
+  if (sq && sq.terms && sq.terms.length){
+    for (const term of sq.terms){
+      const hit = rowMatchesTerm(r, term);
+      if (term.neg){
+        if (hit) return false;
+      } else {
+        if (!hit) return false;
+      }
+    }
+  }
+
+  // free terms
+  const compiledFree = seg?.compiledFree || [];
+  if (compiledFree.length){
+    const idQuery = seg?.idQuery || null;
+    if (idQuery){
+      const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
+      const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
+      if (rn != idQuery && rid != idQuery) return false;
+    }
+    if (!rowMatchesFreeTerms(r, compiledFree)) return false;
+  }
+
+  return true;
+}
+
+function rowMatchesQueryOr(r, queryOr){
+  const segs = queryOr?.segments || [];
+  if (!segs.length) return { ok: true, segIdx: 0 };
+  for (let i=0; i<segs.length; i++){
+    if (rowMatchesSearchSegment(r, segs[i])) return { ok: true, segIdx: i };
+  }
+  return { ok: false, segIdx: -1 };
 }
 
 function splitPipe(s){
@@ -2565,10 +2697,8 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     if (!state.rows || !state.rows.length) return 0;
 
     const qRaw = String(state.q ?? "");
-    const sq = parseStructuredQuery(qRaw);
-    const freeRaw = String(sq.free ?? "");
-    const compiledFree = compileFreeTerms(sq.freeTerms || []);
-    const idQuery = parseIdQuery(freeRaw || qRaw);
+    const qTrim = qRaw.trim();
+    const queryOr = parseQueryOr(qRaw);
 
     const favOnly = state.filters.fav;
     const platF = state.filters.platforms;
@@ -2584,26 +2714,11 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
 
     let n = 0;
     for (const r of state.rows){
-      // structured terms
-      if (sq.terms.length){
-        let ok = true;
-        for (const term of sq.terms){
-          const hit = rowMatchesTerm(r, term);
-          if (term.neg){ if (hit) { ok = false; break; } }
-          else { if (!hit) { ok = false; break; } }
-        }
-        if (!ok) continue;
+      // search (supports OR via |)
+      if (qTrim){
+        const m = rowMatchesQueryOr(r, queryOr);
+        if (!m.ok) continue;
       }
-
-// free text
-if (compiledFree.length){
-  if (idQuery){
-    const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
-    const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
-    if (rn !== idQuery && rid !== idQuery) continue;
-  }
-  if (!rowMatchesFreeTerms(r, compiledFree)) continue;
-}
 
 // fav
       if (favOnly){
@@ -3178,11 +3293,8 @@ function scheduleApplyAndRender(delayMs){
 
     const __t0 = PERF ? performance.now() : 0;
     const qRaw = String(state.q ?? "");
-    const sq = parseStructuredQuery(qRaw);
-    const freeRaw = String(sq.free ?? "");
-    const compiledFree = compileFreeTerms(sq.freeTerms || []);
-    // ID shortcuts should work even with additional terms (e.g. "genre:adventure 643")
-    const idQuery = parseIdQuery(freeRaw || qRaw);
+    const qTrim = qRaw.trim();
+    const queryOr = parseQueryOr(qRaw);
     const favOnly = state.filters.fav;
     const platF = state.filters.platforms;
     const srcF = state.filters.sources;
@@ -3192,26 +3304,16 @@ function scheduleApplyAndRender(delayMs){
 
     const wantGenresN = (state.filters.genres && state.filters.genres.size) ? new Set(Array.from(state.filters.genres).map(norm)) : null;
 
-    let out = state.rows.filter(r => {
-      // search
-      if (sq.terms.length){
-        for (const term of sq.terms){
-          const hit = rowMatchesTerm(r, term);
-          if (term.neg){
-            if (hit) return false;
-          } else {
-            if (!hit) return false;
-          }
-        }
-      }
-      if (compiledFree.length){
-        // Smarter search: if the free-text looks like an ID (1–4 digits), match by ID.
-        if (idQuery){
-          const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
-          const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
-          if (rn !== idQuery && rid !== idQuery) return false;
-        }
-        if (!rowMatchesFreeTerms(r, compiledFree)) return false;
+    let out = state.rows.filter(r => {      // search
+      if (qTrim){
+        const m = rowMatchesQueryOr(r, queryOr);
+        if (!m.ok) return false;
+        // Store per-row highlight terms (used by Markierungen)
+        r.__qSeg = m.segIdx;
+        r.__hlTerms = (queryOr.segments && queryOr.segments[m.segIdx] && queryOr.segments[m.segIdx].hlTerms) ? queryOr.segments[m.segIdx].hlTerms : [];
+      } else {
+        r.__qSeg = -1;
+        r.__hlTerms = [];
       }
       // fav
       if (favOnly){
@@ -3655,6 +3757,18 @@ function classifyAvailability(av){
     const viewMode = String(state.cardView || 'detail');
     const showHeaderTrophy = (viewMode === 'detail');
 
+    // Map rendered rows for per-card highlighting (OR: only first matching segment is marked)
+    try{
+      const __m = new Map();
+      for (const r of (rows || [])){
+        const id = String(r?.[COL.id] ?? "").trim();
+        if (id) __m.set(id, r);
+      }
+      state.ui._rowById = __m;
+    }catch(_){
+      state.ui._rowById = null;
+    }
+
     const html = rows.map(row => {
       const id = String(row[COL.id] ?? "").trim();
       const title = String(row[COL.title] ?? "").trim() || "—";
@@ -3868,11 +3982,8 @@ function classifyAvailability(av){
   }
 
 
-function getHighlightTermsFromQuery(rawQuery) {
-  const q = (rawQuery || "").trim();
-  if (!q) return [];
-
-  const parsed = parseStructuredQuery(q);
+function getHighlightTermsFromParsed(parsed) {
+  if (!parsed) return [];
   const out = [];
 
   function add(kind, value, explicit=false){
@@ -3921,6 +4032,35 @@ function getHighlightTermsFromQuery(rawQuery) {
 
   // Laengere zuerst (besseres Overlap-Verhalten)
   return Array.from(uniq.values()).sort((a, b) => b.value.length - a.value.length);
+}
+
+function getHighlightTermsFromQuery(rawQuery) {
+  const q = (rawQuery || "").trim();
+  if (!q) return [];
+
+  // For OR queries, we return the union. (Per-card highlighting is handled separately.)
+  const qo = parseQueryOr(q);
+  const uniq = new Map();
+  for (const seg of (qo.segments || [])){
+    for (const t of (seg.hlTerms || [])){
+      const cleaned = String(t.value || "").replace(/^[-+]+/, "").trim();
+      if (!cleaned) continue;
+      const key = (t.kind || "contains") + "::" + cleaned.toLowerCase();
+      if (!uniq.has(key)) uniq.set(key, { kind: (t.kind || "contains"), value: cleaned, explicit: !!t.explicit });
+    }
+  }
+  return Array.from(uniq.values()).sort((a, b) => b.value.length - a.value.length);
+}
+
+function getHighlightTermsForCard(cardEl){
+  try{
+    const id = String(cardEl?.getAttribute?.('data-id') || '').trim();
+    const row = (id && state?.ui?._rowById) ? state.ui._rowById.get(id) : null;
+    const terms = row && Array.isArray(row.__hlTerms) ? row.__hlTerms : [];
+    return (terms && terms.length) ? terms : getHighlightTermsFromQuery(state.q);
+  }catch(_){
+    return getHighlightTermsFromQuery(state.q);
+  }
 }
 
 function unwrapHighlights(root) {
@@ -4038,8 +4178,8 @@ function applyHighlights(root, terms) {
     if (!detailsEl) return;
     unwrapHighlights(detailsEl);
     if (!state.ui.highlights) return;
-    // Use the canonical search query state (state.q). "state.searchQuery" is not used elsewhere.
-    const terms = getHighlightTermsFromQuery(state.q);
+    const card = detailsEl.closest?.('.card');
+    const terms = getHighlightTermsForCard(card);
     if (!terms.length) return;
     applyHighlights(detailsEl, terms);
   }
@@ -4055,12 +4195,13 @@ function applyHighlights(root, terms) {
   function syncAllCardHighlights() {
     if (!el.cards) return;
     const cards = el.cards.querySelectorAll('.card');
-    // Use the canonical search query state (state.q). "state.searchQuery" is not used elsewhere.
-    const terms = state.ui.highlights ? getHighlightTermsFromQuery(state.q) : [];
 
     for (const card of cards) {
       unwrapHighlights(card);
-      if (terms.length) applyHighlights(card, terms);
+      if (!state.ui.highlights) continue;
+      const terms = getHighlightTermsForCard(card);
+      if (!terms.length) continue;
+      applyHighlights(card, terms);
     }
   }
 
