@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64o").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64p").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -374,6 +374,10 @@ function onScrollHeader(){
       requestAnimationFrame(() => {
         try{ updateHeaderMetrics(); }catch(_){/* ignore */}
         try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+        // Mobile browsers sometimes apply final viewport metrics (address bar/safe-area)
+        // only after a resize pass. Trigger a synthetic resize so the topbar recomputes
+        // immediately (no manual scroll nudge required).
+        try{ window.dispatchEvent(new Event('resize')); }catch(_){/* ignore */}
       });
     }catch(_){/* ignore */}
   }

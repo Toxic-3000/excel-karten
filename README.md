@@ -1,8 +1,12 @@
-# Spieleliste – Build V7_1k64o
+# Spieleliste – Build V7_1k64p
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64p (gegenüber V7_1k64o)
+
+- Fix (Mobile): Nach Textgrößen-Wechsel wird ein synthetisches `resize` ausgelöst, damit die Topbar sofort neu vermessen wird (kein kurzes Scroll-Anstupsen mehr nötig).
 
 ## Änderungen in V7_1k64o (gegenüber V7_1k64n)
 
