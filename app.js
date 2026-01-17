@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64s").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64t").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -74,6 +74,28 @@ console.log("Build loader ready");
 
     if(wasCollapsed) hdrEl.classList.add("isCollapsed");
   }
+
+  // Keep header metrics in sync when the header's intrinsic height changes
+  // (e.g. after loading Excel when pills/buttons wrap onto two lines).
+  // Debounced via rAF and guarded against self-triggered observer loops.
+  (function observeHeaderSize(){
+    if (!hdrEl) return;
+    if (typeof ResizeObserver === 'undefined') return;
+    let raf = 0;
+    let busy = false;
+    const ro = new ResizeObserver(() => {
+      if (busy) return;
+      if (raf) { try{ cancelAnimationFrame(raf); }catch(_){/* ignore */} }
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        busy = true;
+        try{ updateHeaderMetrics(); }catch(_){/* ignore */}
+        try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+        busy = false;
+      });
+    });
+    try{ ro.observe(hdrEl); }catch(_){/* ignore */}
+  })();
 
   function _getScrollY(){
     return window.scrollY || document.documentElement.scrollTop || 0;
