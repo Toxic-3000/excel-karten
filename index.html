@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Spieleliste</title>
-  <meta name="app-build" content="V7_1k64l" />
-  <link rel="stylesheet" href="styles.css?v=V7_1k64l" />
+  <meta name="app-build" content="V7_1k64m" />
+  <link rel="stylesheet" href="styles.css?v=V7_1k64m" />
   <meta name="color-scheme" content="light dark" />
 </head>
 <body>
@@ -33,11 +33,28 @@
         </div>
       </div>
       <div id="searchHelpBody" class="searchHelpBody popover" hidden>
-        <strong>Suchsprache</strong><br>
-        <code>hof</code> Teilstring · <code>=hof</code> Wort · <code>=&quot;red dead&quot;</code> Phrase<br><br>
-        <strong>Feldsuche:</strong> <code>Titel:=hof</code> · <code>Beschreibung:=&quot;red dead&quot;</code><br>
-        <strong>Negation:</strong> <code>-hof</code> · <code>-Genre:=horror</code> · <code>-=&quot;red dead&quot;</code><br>
-        <span class="muted">Hinweis:</span> <code>&quot;...&quot;</code> gruppiert Wörter (AND). Unclosed Quotes → normaler Text.
+        <span class="muted">//</span><br>
+        <strong>Kombinierte Suche</strong><br>
+        Mehrere Suchbegriffe können frei kombiniert werden.<br>
+        Alle Begriffe müssen zutreffen (UND-Verknüpfung).<br>
+        Beispiel:<br>
+        <code>Entwickler:Naughty Dog</code> <code>Genre:Action</code><br><br>
+        <strong>Suchfelder</strong><br>
+        ID • Titel • Entwickler • Genre • Subgenre • Plattform • Quelle • Verfügbarkeit • Beschreibung • Eastereggs<br><br>
+        <strong>Teilwort</strong><br>
+        <code>Hof</code> findet z. B. Friedhof oder Hoffnung<br><br>
+        <strong>Exaktes Wort</strong><br>
+        <code>=Hof</code> findet nur Hof (nicht Friedhof)<br>
+        <code>=Haus</code> findet nur Haus<br><br>
+        <strong>Exakte Wortgruppen</strong><br>
+        <code>=&quot;Resident Evil&quot;</code> findet genau Resident Evil (als zusammenhängende Phrase)<br><br>
+        <strong>Ausschließen</strong><br>
+        Ein vorangestelltes <code>-</code> schließt Begriffe oder Wortgruppen aus.<br>
+        Auch kombiniert möglich:<br>
+        <code>-Zombie</code><br>
+        <code>-=Zombie</code><br>
+        <code>-=&quot;Resident Evil&quot;</code><br>
+        <span class="muted">//</span>
       </div>
 
       <!-- Werkzeugzeile (adaptiv): Filtern/Sortieren + Treffer + XLSX + Details (⋯) -->
@@ -184,9 +201,28 @@
           </div>
         </div>
         <div id="menuSearchHelpBody" class="searchHelpBody" hidden>
-          <strong>Suchsprache</strong><br>
-          <code>hof</code> · <code>=hof</code> · <code>=&quot;red dead&quot;</code><br>
-          <code>Titel:=hof</code> · <code>-Genre:=horror</code>
+        <span class="muted">//</span><br>
+        <strong>Kombinierte Suche</strong><br>
+        Mehrere Suchbegriffe können frei kombiniert werden.<br>
+        Alle Begriffe müssen zutreffen (UND-Verknüpfung).<br>
+        Beispiel:<br>
+        <code>Entwickler:Naughty Dog</code> <code>Genre:Action</code><br><br>
+        <strong>Suchfelder</strong><br>
+        ID • Titel • Entwickler • Genre • Subgenre • Plattform • Quelle • Verfügbarkeit • Beschreibung • Eastereggs<br><br>
+        <strong>Teilwort</strong><br>
+        <code>Hof</code> findet z. B. Friedhof oder Hoffnung<br><br>
+        <strong>Exaktes Wort</strong><br>
+        <code>=Hof</code> findet nur Hof (nicht Friedhof)<br>
+        <code>=Haus</code> findet nur Haus<br><br>
+        <strong>Exakte Wortgruppen</strong><br>
+        <code>=&quot;Resident Evil&quot;</code> findet genau Resident Evil (als zusammenhängende Phrase)<br><br>
+        <strong>Ausschließen</strong><br>
+        Ein vorangestelltes <code>-</code> schließt Begriffe oder Wortgruppen aus.<br>
+        Auch kombiniert möglich:<br>
+        <code>-Zombie</code><br>
+        <code>-=Zombie</code><br>
+        <code>-=&quot;Resident Evil&quot;</code><br>
+        <span class="muted">//</span>
         </div>
 <div class="sect">
           <div class="sectTitle">Sortieren</div>
@@ -343,7 +379,7 @@
 
   <div id="overlayRoot" aria-hidden="true"></div>
 
-  <script src="xlsx.full.min.js?v=V7_1k64l" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
-  <script src="app.js?v=V7_1k64l" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="xlsx.full.min.js?v=V7_1k64m" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: xlsx.full.min.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: xlsx.full.min.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
+  <script src="app.js?v=V7_1k64m" onerror="window.__BOOT && window.__BOOT.noticeLoad('Excel-Import nicht verfügbar: app.js konnte nicht geladen werden (404?).'); window.__BOOT && window.__BOOT.noticeTop('Hinweis: app.js konnte nicht geladen werden – prüfe Dateiname/Ordner.'); window.__BOOT && window.__BOOT.disableLoad(true);"></script>
 </body>
 </html>

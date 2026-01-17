@@ -1,10 +1,10 @@
-# Spieleliste – Build V7_1k64l
+# Spieleliste – Build V7_1k64m
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k64l (gegenüber V7_1k64k)
+## Änderungen in V7_1k64m (gegenüber V7_1k64k)
 
 ### Patch A – Suchsprache erweitern (Filter)
 - Neue Term-Typen in der freien Suche:
