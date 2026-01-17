@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64r").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64s").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -394,6 +394,27 @@ function onScrollHeader(){
 
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
+
+  // Startup safety net:
+  // On some mobile browsers, the sticky header's final size (fonts + visual viewport)
+  // can settle a beat after initial JS runs. If we only measure once, the cached header
+  // height can be slightly too small, causing subtle clipping until the first scroll.
+  // We re-measure a few times during startup (cheap) without changing any visuals.
+  (function ensureHeaderMetricsOnLoad(){
+    const remeasure = () => {
+      try{ updateHeaderMetrics(); }catch(_){/* ignore */}
+      try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+    };
+    try{
+      requestAnimationFrame(() => {
+        remeasure();
+        requestAnimationFrame(remeasure);
+      });
+    }catch(_){/* ignore */}
+    try{ window.addEventListener('load', () => { try{ requestAnimationFrame(remeasure); }catch(_){ remeasure(); } }, {once:true, passive:true}); }catch(_){/* ignore */}
+    try{ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try{ requestAnimationFrame(remeasure); }catch(_){ remeasure(); } }); }catch(_){/* ignore */}
+    try{ setTimeout(remeasure, 220); }catch(_){/* ignore */}
+  })();
 
   // No more header button: quick access lives in the FAB panel.
 

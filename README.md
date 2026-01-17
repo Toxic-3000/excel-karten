@@ -1,8 +1,12 @@
-# Spieleliste – Build V7_1k64r
+# Spieleliste – Build V7_1k64s
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64s (gegenüber V7_1k64r)
+
+- Fix: Topbar/Sticky-Header wird beim Neuladen mit großer Textgröße sofort korrekt vermessen (kein Abschneiden bis zum ersten Scroll).
 
 ## Änderungen in V7_1k64r (gegenüber V7_1k64q)
 
