@@ -1,10 +1,12 @@
-# Spieleliste – Build V7_1k64p
+# Spieleliste – Build V7_1k64q
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k64p (gegenüber V7_1k64o)
+## Änderungen in V7_1k64q (gegenüber V7_1k64p)
+
+- Fix: Suchhilfe-Popover in der Topbar ist bei sehr großer Textgröße (A++/A+++) nun innerhalb des Popovers scrollbar (max-height + overflow), damit der Hintergrund nicht scrollt und der Infotext nicht „verschwindet“.
 
 - Fix (Mobile): Nach Textgrößen-Wechsel wird ein synthetisches `resize` ausgelöst, damit die Topbar sofort neu vermessen wird (kein kurzes Scroll-Anstupsen mehr nötig).
 

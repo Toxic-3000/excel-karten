@@ -644,6 +644,12 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   width: auto; /* override "min(820px, 100%)" panels */
   max-width: min(560px, calc(100vw - 24px));
   min-width: min(300px, calc(100vw - 24px));
+  /* Large text sizes: allow the popover content to scroll instead of
+     forcing the page to scroll (which would close the popover). */
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .searchHelpBody.popover{ pointer-events:auto; }
 .fileMoreBody.popover{ pointer-events:auto; }
