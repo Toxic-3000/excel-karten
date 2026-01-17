@@ -1,6 +1,30 @@
-# Spieleliste – Build V7_1k64k
+# Spieleliste – Build V7_1k64l
 
-Patch: Suchzeile – Styling/Spacing Fix.
+Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
+
+Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64l (gegenüber V7_1k64k)
+
+### Patch A – Suchsprache erweitern (Filter)
+- Neue Term-Typen in der freien Suche:
+  - `=wort` → ganzes Wort
+  - `="phrase"` → exakte Phrase
+  - Negation funktioniert auch frei: `-wort`, `-="phrase"`
+- Feldsuche erweitert:
+  - `Feld:=wort` → ganzes Wort im Feld
+  - `Feld:="phrase"` → exakte Phrase im Feld
+  - Bestehendes bleibt: `Feld:wert` (enthält), `Feld=wert` (exakt)
+
+### Patch B – Markierungen an Term-Typen gekoppelt
+- Highlights spiegeln jetzt die Suchbedeutung wider:
+  - `hof` markiert Teilstrings
+  - `=hof` markiert nur ganze Wörter
+  - `="red dead"` markiert nur die Phrase am Stück
+
+### Patch C – Suchhilfe + Edgecases
+- Suchhilfe (Topbar + Menü) aktualisiert.
+- Unclosed Quotes werden wie normaler Text behandelt (keine „Suche tot“).
 
 ## Änderungen in V7_1k64k (gegenüber V7_1k64j)
 

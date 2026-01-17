@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64k").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64l").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -1243,139 +1243,297 @@ window.addEventListener("orientationchange", () => closeFabs(), { passive: true 
     p: "platform",
   };
 
-  function parseStructuredQuery(raw){
-    const s = String(raw ?? "");
-    const terms = [];
-    const freeParts = [];
 
-    const isKeyChar = (ch) => /[A-Za-zÄÖÜäöüß]/.test(ch);
+function parseStructuredQuery(raw){
+  const s = String(raw ?? "");
+  const terms = [];
+  const freeTerms = [];
+  const freeParts = [];
 
-    function readQuoted(startIdx){
-      // reads "..." with basic escape support (\")
-      let i = startIdx + 1;
-      let out = "";
-      while (i < s.length){
-        const ch = s[i];
-        if (ch === "\\" && i + 1 < s.length){
-          const nxt = s[i + 1];
-          if (nxt === '"' || nxt === "\\"){
-            out += nxt;
-            i += 2;
-            continue;
-          }
-        }
-        if (ch === '"') return { value: out, next: i + 1 };
-        out += ch;
-        i++;
-      }
-      // no closing quote → treat as raw remainder
-      return { value: s.slice(startIdx), next: s.length };
-    }
+  const isKeyChar = (ch) => /[A-Za-zÄÖÜäöüß]/.test(ch);
 
-    let i = 0;
+  const isWs = (ch) => /\s/.test(ch);
+  const skipWs = (i) => {
+    while (i < s.length && isWs(s[i])) i++;
+    return i;
+  };
+
+  function readQuoted(startIdx){
+    // reads "..." with basic escape support (\")
+    let i = startIdx + 1;
+    let out = "";
     while (i < s.length){
-      // skip whitespace
-      while (i < s.length && /\s/.test(s[i])) i++;
-      if (i >= s.length) break;
+      const ch = s[i];
+      if (ch === "\\" && i + 1 < s.length){
+        const nxt = s[i + 1];
+        if (nxt === '"' || nxt === "\\"){
+          out += nxt;
+          i += 2;
+          continue;
+        }
+      }
+      if (ch === '"') return { value: out, next: i + 1, closed: true };
+      out += ch;
+      i++;
+    }
+    // no closing quote → treat as normal text (do not brick the query)
+    return { value: out, next: s.length, closed: false };
+  }
 
-      // quoted free-text token
-      if (s[i] === '"'){
-        const q = readQuoted(i);
-        freeParts.push(q.value);
-        i = q.next;
-        continue;
+  function addFree(kind, value, neg){
+    const v = String(value ?? "").trim();
+    if (!v) return;
+    freeTerms.push({ kind, value: v, neg: !!neg });
+    if (!neg) freeParts.push(v);
+  }
+
+  let i = 0;
+  while (i < s.length){
+    i = skipWs(i);
+    if (i >= s.length) break;
+
+    // negation prefix (works for free terms and field terms)
+    let neg = false;
+    if (s[i] === '-'){
+      neg = true;
+      i++;
+    }
+    i = skipWs(i);
+    if (i >= s.length) break;
+
+    const tokenStart = i;
+
+    // Try field syntax: key:val | key:=val | key=val
+    let j = i;
+    while (j < s.length && isKeyChar(s[j])) j++;
+    const keyRaw = s.slice(i, j);
+    if (keyRaw){
+      let opType = null;
+      let opLen = 0;
+      if (s[j] === ':'){
+        if (s[j + 1] === '='){ opType = 'exact'; opLen = 2; }
+        else { opType = 'contains'; opLen = 1; }
+      } else if (s[j] === '='){
+        opType = 'eq';
+        opLen = 1;
       }
 
-      // attempt to parse: [-]key[:=]value
-      let j = i;
-      let neg = false;
-      if (s[j] === '-') { neg = true; j++; }
-
-      const keyStart = j;
-      while (j < s.length && isKeyChar(s[j])) j++;
-      const keyRaw = s.slice(keyStart, j);
-      const opChar = s[j];
-      const hasOp = (opChar === ':' || opChar === '=');
-
-      if (keyRaw && hasOp){
+      if (opType){
         const key = norm(keyRaw);
         const field = FIELD_MAP[key];
         if (field){
-          j++; // consume op
-          while (j < s.length && /\s/.test(s[j])) j++;
+          let k = j + opLen;
+          k = skipWs(k);
 
+          let quoted = false;
+          let qclosed = true;
           let val = "";
-          if (j < s.length && s[j] === '"'){
-            const q = readQuoted(j);
+
+          if (k < s.length && s[k] === '"'){
+            const q = readQuoted(k);
             val = q.value;
-            j = q.next;
+            quoted = true;
+            qclosed = q.closed;
+            k = q.next;
           } else {
-            const vStart = j;
-            while (j < s.length && !/\s/.test(s[j])) j++;
-            val = s.slice(vStart, j);
+            const vStart = k;
+            while (k < s.length && !isWs(s[k])) k++;
+            val = s.slice(vStart, k);
           }
 
           val = String(val ?? "").trim();
           if (val){
-            terms.push({ field, value: val, neg, op: (opChar === '=' ? 'eq' : 'contains') });
-            i = j;
+            let op = 'contains';
+            if (opType === 'eq') op = 'eq';
+            else if (opType === 'contains') op = 'contains';
+            else if (opType === 'exact'){
+              const nv = normSearch(val);
+              op = (quoted || nv.includes(' ')) ? 'phrase' : 'word';
+            }
+            terms.push({ field, value: val, neg: !!neg, op });
+            i = k;
             continue;
           }
         }
       }
-
-      // fallback: read as free token
-      const tStart = i;
-      while (i < s.length && !/\s/.test(s[i])) i++;
-      freeParts.push(s.slice(tStart, i));
     }
 
-    // freeParts keeps quoted phrases intact and is useful for Markierungen.
-    return { terms, free: freeParts.join(" ").trim(), freeParts };
-  }
+    // Free term syntax:
+    //  - foo          → contains
+    //  - =foo         → whole word
+    //  - ="foo bar"   → exact phrase
+    //  - "foo bar"    → group words (AND; legacy quotes)
+    //  - -...         → negation
+    i = tokenStart;
 
-  function rowMatchesTerm(r, term){
-    const v = normSearch(term.value);
-    if (!v) return true;
-    const mode = term.op || "contains";
-    switch (term.field){
-      case "id": {
-        const rid = String(r[COL.id] ?? "").trim();
-        const ridNum = String(Number(rid));
-        const want = String(term.value ?? "").replace(/^#/, "").trim();
-        if (!want) return true;
-        if (mode === "eq"){
-          const wn = String(Number(want));
-          if (wn && wn !== "NaN") return ridNum === wn || rid === wn;
-          return rid === want;
+    if (s[i] === '='){
+      // exact-ish free token
+      i++;
+      i = skipWs(i);
+      if (i >= s.length) break;
+
+      if (s[i] === '"'){
+        const q = readQuoted(i);
+        if (q.closed){
+          addFree('phrase', q.value, neg);
+        } else {
+          // unclosed quotes: treat as normal text (split to tokens)
+          for (const w of String(q.value).split(/\s+/).filter(Boolean)) addFree('contains', w, neg);
         }
-        return rid.includes(want) || ridNum.includes(want);
+        i = q.next;
+        continue;
       }
-      case "title":
-        return mode === "eq" ? (normSearch(r[COL.title]) === v) : normSearch(r[COL.title]).includes(v);
-      case "genre":
-        return mode === "eq" ? (normSearch(r[COL.genre]) === v) : normSearch(r[COL.genre]).includes(v);
-      case "sub":
-        return mode === "eq" ? (normSearch(r[COL.sub]) === v) : normSearch(r[COL.sub]).includes(v);
-      case "dev":
-        return mode === "eq" ? (normSearch(r[COL.dev]) === v) : normSearch(r[COL.dev]).includes(v);
-      case "desc":
-        return mode === "eq" ? (normSearch(r[COL.desc]) === v) : normSearch(r[COL.desc]).includes(v);
-      case "easter":
-        return mode === "eq" ? (normSearch(r[COL.easter]) === v) : normSearch(r[COL.easter]).includes(v);
-      case "source":
-        return mode === "eq" ? (normSearch(r[COL.source]) === v) : normSearch(r[COL.source]).includes(v);
-      case "avail":
-        return mode === "eq" ? (normSearch(r[COL.avail]) === v) : normSearch(r[COL.avail]).includes(v);
-      case "platform": {
-        const sys = splitPipe(r[COL.system]).map(normSearch);
-        return mode === "eq" ? sys.some(s => s === v) : sys.some(s => s.includes(v));
+
+      const vStart = i;
+      while (i < s.length && !isWs(s[i])) i++;
+      const v = s.slice(vStart, i);
+      addFree('word', v, neg);
+      continue;
+    }
+
+    if (s[i] === '"'){
+      const q = readQuoted(i);
+      if (q.closed){
+        addFree('group', q.value, neg);
+      } else {
+        for (const w of String(q.value).split(/\s+/).filter(Boolean)) addFree('contains', w, neg);
       }
-      default:
-        return false;
+      i = q.next;
+      continue;
+    }
+
+    // bare token
+    const vStart = i;
+    while (i < s.length && !isWs(s[i])) i++;
+    const v = s.slice(vStart, i);
+    addFree('contains', v, neg);
+  }
+
+  // freeParts keeps quoted phrases/groups intact for UI helpers.
+  return {
+    terms,
+    free: freeParts.join(" ").trim(),
+    freeParts,
+    freeTerms,
+  };
+}
+
+function buildWordBoundaryRe(word){
+  const w = String(word ?? "").trim();
+  if (!w) return null;
+  const escW = escapeRegExp(w);
+  return new RegExp(`(^|\\s)${escW}(\\s|$)`);
+}
+
+function compileFreeTerms(freeTerms){
+  const out = [];
+  for (const t of (freeTerms || [])){
+    if (!t || !t.value) continue;
+    let nv = normSearch(t.value);
+    if (!nv) continue;
+
+    // If a "word" normalizes into multiple tokens (e.g. point-and-click), treat as phrase.
+    let kind = t.kind || 'contains';
+    if (kind === 'word' && nv.includes(' ')) kind = 'phrase';
+
+    if (kind === 'group'){
+      const toks = nv.split(/\s+/).filter(Boolean);
+      if (!toks.length) continue;
+      out.push({ kind: 'group', toks, neg: !!t.neg });
+    }
+    else if (kind === 'word'){
+      const re = buildWordBoundaryRe(nv);
+      if (!re) continue;
+      out.push({ kind: 'word', v: nv, re, neg: !!t.neg });
+    }
+    else if (kind === 'phrase'){
+      out.push({ kind: 'phrase', v: nv, neg: !!t.neg });
+    }
+    else {
+      out.push({ kind: 'contains', v: nv, neg: !!t.neg });
     }
   }
-  function splitPipe(s){
+  return out;
+}
+
+function matchesCompiledFree(hay, t){
+  const h = String(hay ?? "");
+  if (!t) return false;
+  if (t.kind === 'group'){
+    for (const w of (t.toks || [])){
+      if (!w) continue;
+      if (!h.includes(w)) return false;
+    }
+    return true;
+  }
+  if (t.kind === 'word'){
+    try{ return !!(t.re && t.re.test(h)); }catch(_){ return false; }
+  }
+  // phrase + contains are both substring matches on the normalized haystack
+  return !!(t.v && h.includes(t.v));
+}
+
+function rowMatchesFreeTerms(row, compiledFree){
+  if (!compiledFree || !compiledFree.length) return true;
+  const hay = row.__hay || "";
+  for (const t of compiledFree){
+    const hit = matchesCompiledFree(hay, t);
+    if (t.neg){ if (hit) return false; }
+    else { if (!hit) return false; }
+  }
+  return true;
+}
+
+function rowMatchesTerm(r, term){
+  const v = normSearch(term.value);
+  if (!v) return true;
+  const mode = term.op || "contains";
+
+  function matchField(raw){
+    const h = normSearch(raw);
+    if (mode === "eq") return h === v;
+    if (mode === "word"){
+      const re = buildWordBoundaryRe(v);
+      return re ? re.test(h) : true;
+    }
+    // phrase + contains
+    return h.includes(v);
+  }
+
+  switch (term.field){
+    case "id": {
+      const rid = String(r[COL.id] ?? "").trim();
+      const ridNum = String(Number(rid));
+      const want = String(term.value ?? "").replace(/^#/, "").trim();
+      if (!want) return true;
+      if (mode === "eq" || mode === "word" || mode === "phrase"){
+        const wn = String(Number(want));
+        if (wn && wn !== "NaN") return ridNum === wn || rid === wn;
+        return rid === want;
+      }
+      return rid.includes(want) || ridNum.includes(want);
+    }
+    case "title":  return matchField(r[COL.title]);
+    case "genre":  return matchField(r[COL.genre]);
+    case "sub":    return matchField(r[COL.sub]);
+    case "dev":    return matchField(r[COL.dev]);
+    case "desc":   return matchField(r[COL.desc]);
+    case "easter": return matchField(r[COL.easter]);
+    case "source": return matchField(r[COL.source]);
+    case "avail":  return matchField(r[COL.avail]);
+    case "platform": {
+      const sys = splitPipe(r[COL.system]).map(normSearch);
+      if (mode === "eq" || mode === "word" || mode === "phrase"){
+        return sys.some(s => s === v);
+      }
+      return sys.some(s => s.includes(v));
+    }
+    default:
+      return false;
+  }
+}
+
+function splitPipe(s){
     return String(s ?? "").split("|").map(x => x.trim()).filter(Boolean);
   }
 
@@ -2409,7 +2567,7 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
     const qRaw = String(state.q ?? "");
     const sq = parseStructuredQuery(qRaw);
     const freeRaw = String(sq.free ?? "");
-    const qTokens = normSearch(freeRaw).split(/\s+/).filter(Boolean);
+    const compiledFree = compileFreeTerms(sq.freeTerms || []);
     const idQuery = parseIdQuery(freeRaw || qRaw);
 
     const favOnly = state.filters.fav;
@@ -2437,26 +2595,17 @@ function summarizeMulti(set, maxItems=2, mapFn=null){
         if (!ok) continue;
       }
 
-      // free text
-      if (freeRaw.trim()){
-        if (idQuery){
-          const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
-          const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
-          if (rn !== idQuery && rid !== idQuery) continue;
-        } else if (qTokens.length){
-          const hay = (r.__hay || [
-            r[COL.id], r[COL.title], r[COL.dev], r[COL.genre], r[COL.sub],
-            r[COL.system], r[COL.source], r[COL.avail], r[COL.desc], r[COL.easter]
-          ].map(normSearch).join(" "));
-          let ok = true;
-          for (const t of qTokens){
-            if (!hay.includes(t)) { ok = false; break; }
-          }
-          if (!ok) continue;
-        }
-      }
+// free text
+if (compiledFree.length){
+  if (idQuery){
+    const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
+    const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
+    if (rn !== idQuery && rid !== idQuery) continue;
+  }
+  if (!rowMatchesFreeTerms(r, compiledFree)) continue;
+}
 
-      // fav
+// fav
       if (favOnly){
         const f = String(r[COL.fav] ?? "").trim().toLowerCase();
         if (f != "x" && f != "1" && f != "true") continue;
@@ -3031,7 +3180,7 @@ function scheduleApplyAndRender(delayMs){
     const qRaw = String(state.q ?? "");
     const sq = parseStructuredQuery(qRaw);
     const freeRaw = String(sq.free ?? "");
-    const qTokens = normSearch(freeRaw).split(/\s+/).filter(Boolean);
+    const compiledFree = compileFreeTerms(sq.freeTerms || []);
     // ID shortcuts should work even with additional terms (e.g. "genre:adventure 643")
     const idQuery = parseIdQuery(freeRaw || qRaw);
     const favOnly = state.filters.fav;
@@ -3055,22 +3204,14 @@ function scheduleApplyAndRender(delayMs){
           }
         }
       }
-      if (freeRaw.trim()){
+      if (compiledFree.length){
         // Smarter search: if the free-text looks like an ID (1–4 digits), match by ID.
         if (idQuery){
           const rid = (r.__id != null) ? r.__id : String(r[COL.id] ?? "").trim();
           const rn = (r.__idNum != null) ? String(r.__idNum) : String(Number(rid));
           if (rn !== idQuery && rid !== idQuery) return false;
-        } else if (qTokens.length){
-          const hay = (r.__hay || [
-            r[COL.title], r[COL.genre], r[COL.sub], r[COL.dev],
-            r[COL.source], r[COL.avail]
-          ].map(normSearch).join(" "));
-          // AND-semantics for tokens: every token must appear somewhere.
-          for (const t of qTokens){
-            if (!hay.includes(t)) return false;
-          }
         }
+        if (!rowMatchesFreeTerms(r, compiledFree)) return false;
       }
       // fav
       if (favOnly){
@@ -3726,100 +3867,173 @@ function classifyAvailability(av){
     return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\$&");
   }
 
-  function getHighlightTermsFromQuery(rawQuery) {
-    const q = (rawQuery || "").trim();
-    if (!q) return [];
 
-    const parsed = parseStructuredQuery(q);
-    const out = [];
+function getHighlightTermsFromQuery(rawQuery) {
+  const q = (rawQuery || "").trim();
+  if (!q) return [];
 
-    // Feld-Paare (z. B. Entwickler: Naughty Dog)
-    for (const t of parsed.terms || []) {
-      if (t && !t.neg && t.value) out.push(String(t.value).trim());
-    }
+  const parsed = parseStructuredQuery(q);
+  const out = [];
 
-    // Freie Begriffe (inkl. quoted phrases) - parseStructuredQuery liefert freeParts
-    const freeParts = parsed.freeParts && parsed.freeParts.length ? parsed.freeParts : (parsed.free ? parsed.free.split(/\s+/) : []);
-    for (const p of freeParts) {
-      const v = String(p || "").trim();
-      if (v) out.push(v);
-    }
-
-    // Normalisieren: Duplikate (case-insensitive) entfernen, sehr kurze Tokens raus
-    const uniq = new Map();
-    for (const t of out) {
-      const cleaned = t.replace(/^[-+]+/, "").trim();
-      if (!cleaned) continue;
-      if (cleaned.length < 2) continue;
-      const key = cleaned.toLowerCase();
-      if (!uniq.has(key)) uniq.set(key, cleaned);
-    }
-
-    // Laengere Begriffe zuerst, damit Alternations-RegExp stabiler ist
-    return Array.from(uniq.values()).sort((a, b) => b.length - a.length);
+  function add(kind, value, explicit=false){
+    const v = String(value || "").trim();
+    if (!v) return;
+    // Default noise guard: contains-tokens under 2 chars are typically useless.
+    if (!explicit && kind === "contains" && v.length < 2) return;
+    out.push({ kind, value: v, explicit: !!explicit });
   }
 
-  function unwrapHighlights(root) {
-    if (!root) return;
-    root.querySelectorAll('span.hl').forEach((span) => {
-      span.replaceWith(document.createTextNode(span.textContent || ""));
-    });
+  // Feld-Paare (z. B. Entwickler: Naughty Dog)
+  for (const t of (parsed.terms || [])) {
+    if (!t || t.neg || !t.value) continue;
+    const op = t.op || "contains";
+    if (op === "word") add("word", t.value, true);
+    else if (op === "phrase") add("phrase", t.value, true);
+    else if (op === "eq") {
+      const nv = normSearch(t.value);
+      add(nv.includes(" ") ? "phrase" : "word", t.value, true);
+    }
+    else add("contains", t.value, false);
   }
 
-  function applyHighlights(root, terms) {
-    if (!root || !terms || !terms.length) return;
+  // Freie Begriffe
+  for (const t of (parsed.freeTerms || [])) {
+    if (!t || t.neg || !t.value) continue;
+    const k = t.kind || "contains";
+    if (k === "phrase") add("phrase", t.value, true);
+    else if (k === "word") add("word", t.value, true);
+    else if (k === "group") {
+      // legacy quotes mean AND over tokens – highlight those tokens, not the whole phrase
+      const toks = normSearch(t.value).split(/\s+/).filter(Boolean);
+      for (const w of toks) add("contains", w, false);
+    }
+    else add("contains", t.value, false);
+  }
 
-    const pattern = terms.map(escapeRegExp).join("|");
-    if (!pattern) return;
-    const re = new RegExp(pattern, "gi");
+  // Normalisieren: Duplikate (case-insensitive + kind) entfernen.
+  const uniq = new Map();
+  for (const t of out) {
+    const cleaned = String(t.value).replace(/^[-+]+/, "").trim();
+    if (!cleaned) continue;
+    const key = t.kind + "::" + cleaned.toLowerCase();
+    if (!uniq.has(key)) uniq.set(key, { kind: t.kind, value: cleaned, explicit: t.explicit });
+  }
 
-    const walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode(node) {
-          if (!node || !node.nodeValue) return NodeFilter.FILTER_REJECT;
-          const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          if (parent.closest('script,style,textarea,input')) return NodeFilter.FILTER_REJECT;
-          if (parent.closest('span.hl')) return NodeFilter.FILTER_REJECT;
-          // Nur echte Inhalte markieren (nicht in leeren/whitespace-only Nodes)
-          if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-          return NodeFilter.FILTER_ACCEPT;
-        },
-      },
-      false
-    );
+  // Laengere zuerst (besseres Overlap-Verhalten)
+  return Array.from(uniq.values()).sort((a, b) => b.value.length - a.value.length);
+}
 
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
+function unwrapHighlights(root) {
+  if (!root) return;
+  root.querySelectorAll('span.hl').forEach((span) => {
+    span.replaceWith(document.createTextNode(span.textContent || ""));
+  });
+}
 
-    for (const node of nodes) {
-      const txt = node.nodeValue;
-      if (!re.test(txt)) continue;
-      re.lastIndex = 0;
+function applyHighlights(root, terms) {
+  if (!root || !terms || !terms.length) return;
 
-      const frag = document.createDocumentFragment();
-      let last = 0;
-      let m;
-      while ((m = re.exec(txt))) {
-        const idx = m.index;
-        const match = m[0];
-        if (idx > last) frag.appendChild(document.createTextNode(txt.slice(last, idx)));
-
-        const span = document.createElement('span');
-        span.className = 'hl';
-        span.textContent = match;
-        frag.appendChild(span);
-
-        last = idx + match.length;
+  const compiled = [];
+  for (const t of terms){
+    const val = String(t?.value || "").trim();
+    if (!val) continue;
+    const escV = escapeRegExp(val);
+    if (!escV) continue;
+    if (t.kind === "word"){
+      // Highlight only whole words/tokens in the ORIGINAL text (best-effort):
+      // Boundaries = non letter/number using Unicode property escapes.
+      // We keep the boundary char in group 1 and highlight group 2.
+      try{
+        compiled.push({
+          kind: "word",
+          re: new RegExp(`(^|[^\\p{L}\\p{N}])(${escV})(?=$|[^\\p{L}\\p{N}])`, "giu")
+        });
+      }catch(_){
+        // Fallback: whitespace boundaries
+        compiled.push({
+          kind: "word",
+          re: new RegExp(`(^|\\s)(${escV})(?=$|\\s)`, "gi")
+        });
       }
-      if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
-
-      node.parentNode.replaceChild(frag, node);
+    } else {
+      compiled.push({ kind: t.kind || "contains", re: new RegExp(escV, "giu") });
     }
   }
+  if (!compiled.length) return;
 
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        if (!node || !node.nodeValue) return NodeFilter.FILTER_REJECT;
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        if (parent.closest('script,style,textarea,input')) return NodeFilter.FILTER_REJECT;
+        if (parent.closest('span.hl')) return NodeFilter.FILTER_REJECT;
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    },
+    false
+  );
+
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  for (const node of nodes) {
+    const txt = node.nodeValue;
+    if (!txt) continue;
+
+    const ranges = [];
+    for (const c of compiled){
+      const re = c.re;
+      if (!re) continue;
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(txt))){
+        let a, b;
+        if (c.kind === "word"){
+          const pre = m[1] || "";
+          const body = m[2] || "";
+          a = m.index + pre.length;
+          b = a + body.length;
+        } else {
+          a = m.index;
+          b = a + String(m[0] || "").length;
+        }
+        if (b > a) ranges.push([a, b]);
+        if (m[0] === "") re.lastIndex++; // safety
+      }
+    }
+    if (!ranges.length) continue;
+
+    ranges.sort((x, y) => (x[0] - y[0]) || (x[1] - y[1]));
+    const merged = [];
+    for (const r of ranges){
+      if (!merged.length) merged.push(r);
+      else {
+        const last = merged[merged.length - 1];
+        if (r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+        else merged.push(r);
+      }
+    }
+
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    for (const [a, b] of merged){
+      if (a > last) frag.appendChild(document.createTextNode(txt.slice(last, a)));
+      const span = document.createElement('span');
+      span.className = 'hl';
+      span.textContent = txt.slice(a, b);
+      frag.appendChild(span);
+      last = b;
+    }
+    if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+
+    node.parentNode.replaceChild(frag, node);
+  }
+}
   function syncHighlightsForDetails(detailsEl) {
     if (!detailsEl) return;
     unwrapHighlights(detailsEl);
