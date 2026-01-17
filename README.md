@@ -1,8 +1,12 @@
-# Spieleliste – Build V7_1k64n
+# Spieleliste – Build V7_1k64o
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64o (gegenüber V7_1k64n)
+
+- Fix: Topbar/Header wird nach Textgrößen-Wechsel (A++/A+++) neu vermessen, damit auf Desktop/Tablet nichts mehr unten abgeschnitten wird.
 
 ## Änderungen in V7_1k64n (gegenüber V7_1k64m)
 

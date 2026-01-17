@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64n").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64o").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -366,6 +366,16 @@ function onScrollHeader(){
     updateFabScaleUI();
     // Layout-dependent (toolbar compaction)
     queueToolbarCompactness();
+
+    // The scroll-progressive header caches its measured height.
+    // When UI scale changes, re-measure so the topbar doesn't get clipped
+    // on desktop/tablet (overflow:hidden + stale max-height).
+    try{
+      requestAnimationFrame(() => {
+        try{ updateHeaderMetrics(); }catch(_){/* ignore */}
+        try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+      });
+    }catch(_){/* ignore */}
   }
 
   function cycleScale(currentId){
