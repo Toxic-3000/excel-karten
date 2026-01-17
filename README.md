@@ -1,8 +1,14 @@
-# Spieleliste – Build V7_1k64q
+# Spieleliste – Build V7_1k64r
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64r (gegenüber V7_1k64q)
+
+- Fix (Mobile, große Textgröße): Header-Popovers (Suchhilfe/⋯) nutzen nun die **sichtbare** Viewport-Höhe (visualViewport → CSS-Var `--vvh`). Dadurch lässt sich der Infotext auch bei Browserleisten/Adressleiste zuverlässig bis zum Ende scrollen.
+- UX: Header-Popovers haben jetzt einen **Schließen-Button (✕)**, falls der Popover den ganzen Screen belegt (kein „Gefangen“-Zustand mehr).
+- UX: Floating Buttons (↑ / Aa / Menü) werden während eines Header-Popovers ausgeblendet, damit nichts über dem Popover „schwebt“.
 
 ## Änderungen in V7_1k64q (gegenüber V7_1k64p)
 

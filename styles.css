@@ -646,13 +646,44 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   min-width: min(300px, calc(100vw - 24px));
   /* Large text sizes: allow the popover content to scroll instead of
      forcing the page to scroll (which would close the popover). */
-  max-height: calc(100vh - 24px);
+  /* Use visible viewport height (CSS var set via JS using visualViewport)
+     to avoid "can't reach the end" on mobile due to dynamic browser bars. */
+  max-height: calc(var(--vvh, 100vh) - 24px);
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  /* Ensure the last lines are reachable above browser bars / safe-area. */
+  padding-bottom: calc(10px * var(--uiScale) + env(safe-area-inset-bottom));
 }
 .searchHelpBody.popover{ pointer-events:auto; }
 .fileMoreBody.popover{ pointer-events:auto; }
+
+/* Close button inside popovers (needed when the popover fills the screen). */
+.popoverCloseBtn{
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: calc(-6px * var(--uiScale)) calc(-6px * var(--uiScale)) calc(6px * var(--uiScale)) auto;
+  width: calc(32px * var(--uiScale));
+  height: calc(32px * var(--uiScale));
+  border-radius: 999px;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+  color: color-mix(in oklab, var(--fg) 75%, var(--bg) 25%);
+  box-shadow: 0 10px 30px rgba(0,0,0,.10);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  z-index: 2;
+}
+.popoverCloseBtn:active{ transform: translateY(1px); }
+
+/* When a header popover is open, keep floating buttons from sitting above it. */
+.headerPopoverOpen .toTop,
+.headerPopoverOpen .fab{
+  opacity: 0;
+  pointer-events: none;
+}
 
 
 /* Systemhinweise: bleiben im Normalbetrieb unsichtbar, erscheinen nur bei echten Fehlern */

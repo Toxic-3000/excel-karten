@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64q").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64r").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -4342,6 +4342,23 @@ function renderTrophyDetails(row){
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const isShown = (node) => !!(node && !node.hidden);
 
+  // Mobile browsers can report a layout viewport (100vh) that differs from the
+  // actually visible viewport due to dynamic browser bars. Expose the visible
+  // height as a CSS var for robust popover sizing.
+  function updateVisibleVh(){
+    try{
+      const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 0;
+      if (h) document.documentElement.style.setProperty('--vvh', `${Math.round(h)}px`);
+    }catch(_){/* ignore */}
+  }
+  updateVisibleVh();
+  try{
+    if (window.visualViewport){
+      window.visualViewport.addEventListener('resize', updateVisibleVh);
+      window.visualViewport.addEventListener('scroll', updateVisibleVh);
+    }
+  }catch(_){/* ignore */}
+
   function positionPopover(pop, anchor){
     if (!pop || !anchor) return;
     const pad = 12;
@@ -4371,6 +4388,23 @@ function renderTrophyDetails(row){
     try{ setFileMoreOpen(false); }catch(_){/* ignore */}
   }
 
+  function ensurePopoverCloseBtn(pop){
+    try{
+      if (!pop || pop.querySelector('.popoverCloseBtn')) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'popoverCloseBtn';
+      btn.setAttribute('aria-label','Schließen');
+      btn.innerHTML = '✕';
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        closeHeaderPopovers();
+      });
+      pop.insertBefore(btn, pop.firstChild);
+    }catch(_){/* ignore */}
+  }
+
   const overlayRoot = (() => {
     let r = document.getElementById("overlayRoot");
     if (!r){
@@ -4383,6 +4417,13 @@ function renderTrophyDetails(row){
   })();
 
   const _popoverHome = new WeakMap();
+
+  function syncHeaderPopoverState(){
+    try{
+      const open = isShown(el.searchHelpBody) || isShown(el.fileMoreBody);
+      document.documentElement.classList.toggle('headerPopoverOpen', !!open);
+    }catch(_){/* ignore */}
+  }
 
   function movePopoverToOverlay(pop){
     if (!pop) return;
@@ -4426,6 +4467,7 @@ function renderTrophyDetails(row){
       if (el.searchHelpBody){ el.searchHelpBody.hidden = true; restorePopoverFromOverlay(el.searchHelpBody); }
       if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", "false");
       if (headerWrap) headerWrap.classList.remove("open");
+      syncHeaderPopoverState();
       return;
     }
 
@@ -4433,6 +4475,7 @@ function renderTrophyDetails(row){
     if (el.searchHelpBody){
       if (isOpen){
         movePopoverToOverlay(el.searchHelpBody);
+        ensurePopoverCloseBtn(el.searchHelpBody);
         el.searchHelpBody.hidden = false;
       }else{
         el.searchHelpBody.hidden = true;
@@ -4442,6 +4485,9 @@ function renderTrophyDetails(row){
     if (el.searchHelpBtn) el.searchHelpBtn.setAttribute("aria-expanded", String(isOpen));
     if (headerWrap) headerWrap.classList.toggle("open", isOpen);
 
+    // While any header popover is open, keep floating buttons out of the way.
+    syncHeaderPopoverState();
+
     // Ensure the dialog help is closed when not in modal context.
     if (el.menuSearchHelpBody) el.menuSearchHelpBody.hidden = true;
     if (el.menuSearchHelpBtn) el.menuSearchHelpBtn.setAttribute("aria-expanded", "false");
@@ -4450,6 +4496,7 @@ function renderTrophyDetails(row){
     if (isOpen){
       // Only one popover at a time.
       setFileMoreOpen(false);
+      updateVisibleVh();
       window.requestAnimationFrame(() => positionPopover(el.searchHelpBody, el.searchHelpBtn));
     }
   }
@@ -4476,6 +4523,7 @@ function renderTrophyDetails(row){
         restorePopoverFromOverlay(el.fileMoreBody);
       } else if (isOpen){
         movePopoverToOverlay(el.fileMoreBody);
+        ensurePopoverCloseBtn(el.fileMoreBody);
         el.fileMoreBody.hidden = false;
       } else {
         el.fileMoreBody.hidden = true;
@@ -4485,9 +4533,13 @@ function renderTrophyDetails(row){
     if (el.fileMoreBtn) el.fileMoreBtn.setAttribute("aria-expanded", String(!modalOpen && isOpen));
     if (el.fileMoreWrap) el.fileMoreWrap.classList.toggle("open", (!modalOpen && isOpen));
 
+    // While any header popover is open, keep floating buttons out of the way.
+    syncHeaderPopoverState();
+
     if (!modalOpen && isOpen){
       // Only one popover at a time.
       setSearchHelpOpen(false);
+      updateVisibleVh();
       window.requestAnimationFrame(() => positionPopover(el.fileMoreBody, el.fileMoreBtn));
     }
   }
