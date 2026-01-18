@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64y").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64z").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -26,6 +26,17 @@ console.log("Build loader ready");
   let hdrCollapseDist = 0;
   let hdrRAF = 0;
   let hdrCollapsed = false;
+
+  // Header easing:
+  // Begin the collapse a bit earlier (useful for focus-scroll to card 2), while
+  // keeping the overall collapse distance unchanged. We do this by applying a
+  // gentle ease-out curve to the raw scroll progress.
+  const HDR_EASE_GAMMA = 1.7;
+
+  // Start the collapse a tiny bit earlier (without changing the total collapse distance
+  // and without any hard snap). This helps "focus scroll" to card 2 match the visual
+  // alignment of deeper cards.
+  const HDR_START_EARLY_PX = 10;
 
   // Auto-scroll lock: prevents the header controller from fighting with programmatic
   // focus scrolling (which would otherwise cause flicker). While locked, we keep the
@@ -119,14 +130,12 @@ console.log("Build loader ready");
 
     // Map scroll distance to progress (slow glide):
     // progress reaches 1 only after hdrCollapseDist pixels.
+    // Apply a gentle ease-out so the bar starts collapsing a bit earlier,
+    // which avoids the "card 2" focus-scroll state looking different than
+    // deeper cards.
     if(!hdrCollapseDist) updateHeaderMetrics();
-    let p = clamp01(y / Math.max(1, hdrCollapseDist));
-    // Snap-to-collapsed: once we scrolled about one header height, ensure the bar is fully gone.
-    // This prevents half-collapsed states after deterministic focus scrolls to early cards (e.g. card 2).
-    // Slightly earlier snap so focus-scroll to early cards (e.g. card 2) lands with the header fully hidden.
-    // (-18px instead of -6px is a subtle but noticeable improvement without making the header feel "jumpy".)
-    const snapY = Math.max(0, (hdrFullH || 0) - 18);
-    if (y >= snapY) p = 1;
+    const raw = clamp01((y + HDR_START_EARLY_PX) / Math.max(1, hdrCollapseDist));
+    const p = 1 - Math.pow(1 - raw, HDR_EASE_GAMMA);
     applyHeaderProgress(p);
   }
 

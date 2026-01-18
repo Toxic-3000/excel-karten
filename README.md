@@ -1,16 +1,20 @@
-# Spieleliste – Build V7_1k64y
+# Spieleliste – Build V7_1k64z
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k64y (gegenüber V7_1k64x)
+## Änderungen in V7_1k64z (gegenüber V7_1k64x)
 
-- Tuning (Header-Hide): Snap-to-collapsed startet etwas früher (kleinerer Schwellenwert), damit nach Fokus-Scroll auf frühe Karten (v. a. Karte 2) die Topbar bereits vollständig ausgeblendet ist.
+- Topbar-Ausblendung beginnt minimal früher, ohne Hard-Snap: kleiner Early-Start-Offset in der Progress-Kurve (besseres Alignment nach Fokus-Scroll auf Karte 2, Glide bleibt vollständig erhalten).
 
-## Änderungen in V7_1k64x (gegenüber V7_1k64u)
+## Änderungen in V7_1k64x (gegenüber V7_1k64w)
 
-- Fix (Header-Hide): Beim Ausblenden der Topbar werden die Inhalte nicht mehr „durchscheinend“ über die Karten gelegt. Die Header-Oberfläche bleibt voll deckend.
+- Tuning (Header-Hide): Die Ausblend-Progression startet nun etwas früher (ease-out auf dem Scroll-Progress). Dadurch ist die Topbar beim Fokus-Scroll auf Karte 2 bereits stärker eingeklappt und richtet sich konsistent zu tieferen Karten aus.
+
+## Änderungen in V7_1k64w (gegenüber V7_1k64u)
+
+- Fix (Header-Hide): Beim Ausblenden der Topbar werden die Inhalte nicht mehr „durchscheinend“ über die Karten gelegt. Die Header-Oberfläche bleibt voll deckend, und nur der Header-Inhalt blendet erst kurz vor dem vollständigen Einklappen aus.
   → Kein mehrstufiges „Layer-Schieben“/Ghosting beim Scrollen.
 
 ## Änderungen in V7_1k64u (gegenüber V7_1k64s)
