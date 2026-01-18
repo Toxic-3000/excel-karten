@@ -430,9 +430,16 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom:1px solid var(--border);
-  transform: translateY(var(--hdrShift, 0px));
+  /* Keep the surface fully opaque; fade only the inner content.
+     This avoids the "double text" ghosting effect while the header overlaps cards. */
+  will-change: transform;
+  contain: paint;
+  transform: translateY(var(--hdrShift, 0px)) translateZ(0);
+}
+
+.hdrInner{
   opacity: var(--hdrOpacity, 1);
-  will-change: transform, opacity;
+  will-change: opacity;
 }
 
 /* When fully collapsed, make sure it can't be interacted with */

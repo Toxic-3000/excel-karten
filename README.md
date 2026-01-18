@@ -1,8 +1,13 @@
-# Spieleliste – Build V7_1k64u
+# Spieleliste – Build V7_1k64v
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64v (gegenüber V7_1k64u)
+
+- Fix (Header-Hide): Beim Ausblenden der Topbar werden die Inhalte nicht mehr „durchscheinend“ über die Karten gelegt. Die Header-Oberfläche bleibt voll deckend, und nur der Header-Inhalt blendet erst kurz vor dem vollständigen Einklappen aus.
+  → Kein mehrstufiges „Layer-Schieben“/Ghosting beim Scrollen.
 
 ## Änderungen in V7_1k64u (gegenüber V7_1k64s)
 
