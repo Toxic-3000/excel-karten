@@ -1,15 +1,10 @@
-# Spieleliste – Build V7_1k64v
+# Spieleliste – Build V7_1k64t
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k64v (gegenüber V7_1k64u)
-
-- Fix (Header-Hide): Beim Ausblenden der Topbar werden die Inhalte nicht mehr „durchscheinend“ über die Karten gelegt. Die Header-Oberfläche bleibt voll deckend, und nur der Header-Inhalt blendet erst kurz vor dem vollständigen Einklappen aus.
-  → Kein mehrstufiges „Layer-Schieben“/Ghosting beim Scrollen.
-
-## Änderungen in V7_1k64u (gegenüber V7_1k64s)
+## Änderungen in V7_1k64t (gegenüber V7_1k64s)
 
 - Fix: Topbar/Sticky-Header wird automatisch neu vermessen, wenn sich die Toolbar ohne Scroll/Resize ändert (z. B. nach Excel-Import, Trefferzahl-Update, Zeilenumbruch).
   → Kein „einmal kurz scrollen“ mehr nötig, um Abschneiden zu beheben.
