@@ -1,14 +1,19 @@
-# Spieleliste – Build V7_1k65a
+# Spieleliste – Build V7_1k65b
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k65a (gegenüber V7_1k64z)
+## Änderungen in V7_1k65b (gegenüber V7_1k64z)
 
 - Textdarstellung (Normal/Kompakt) umgesetzt (rein Layout/Dichte, keine Schriftgrößenänderung):
   - Zeilenhöhen, Abstände, Lesebreite (ch) und Badge-/Karten-Gaps werden über Tokens gesteuert.
   - Umschaltung im Schriftgrößen-Menü (FAB) unter „Textdarstellung“.
+  - Feintuning Lesebreite: Normal/Kompakt sind auf breiteren Viewports stärker gebändigt (mehr Luft links/rechts).
+    - Default: Normal 64ch, Kompakt 74ch
+    - Ab 800px: Normal 58ch, Kompakt 68ch
+    - Ab 1200px: Normal 54ch, Kompakt 64ch
+
 
 ## Änderungen in V7_1k64z (gegenüber V7_1k64x)
 

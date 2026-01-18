@@ -56,7 +56,7 @@
      (keine Schriftgrößenänderung, keine Inhalte ein-/ausblenden). */
   --td-lh-body: 1.58;
   --td-lh-meta: 1.35;
-  --td-content-max: 70ch;
+  --td-content-max: 64ch;
   --td-p-gap: 0.65em;
   --card-pad-x: calc(14px * var(--uiScale));
   --card-pad-y: calc(14px * var(--uiScale));
