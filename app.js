@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64t").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64v").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -94,7 +94,12 @@ console.log("Build loader ready");
     const p = clamp01(Number(progress || 0));
     const shift = Math.round(-p * hdrFullH);
     const visH = Math.max(0, Math.round((1 - p) * hdrFullH));
-    const op = Math.max(0, Math.min(1, 1 - p));
+    // Fade only near the end of the collapse to avoid "ghosting" (double text)
+    // while the header overlaps content.
+    const fadeStart = 0.72;
+    const op = (p <= fadeStart)
+      ? 1
+      : Math.max(0, Math.min(1, (1 - p) / Math.max(0.0001, (1 - fadeStart))));
 
     hdrEl.style.setProperty("--hdrShift", `${shift}px`);
     hdrEl.style.setProperty("--hdrVisH", `${visH}px`);

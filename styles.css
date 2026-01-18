@@ -410,24 +410,36 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 
 .hdr{
   position:sticky; top:0; z-index:50;
+
+  /*
+    Scroll-progressive header (single-layer glide):
+    - The OUTER header only controls layout space via max-height (no transform).
+    - The INNER .hdrShell carries the visual surface and glides out via transform/opacity.
+    This avoids multi-layer "stacking" artifacts when content height changes while the
+    header is collapsing.
+  */
+  overflow:hidden;
+  max-height: var(--hdrVisH, var(--hdrMaxH, 1000px));
+  transition:none; /* progress is scroll-driven; avoid laggy transitions */
+  will-change:max-height;
+}
+
+.hdrShell{
+  display:block;
+  width:100%;
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom:1px solid var(--border);
+  /* Keep the surface fully opaque; fade only the inner content.
+     This avoids the "double text" ghosting effect while the header overlaps cards. */
+  will-change: transform;
+  contain: paint;
+  transform: translateY(var(--hdrShift, 0px)) translateZ(0);
+}
 
-  /*
-    Scroll-progressive topbar:
-    The header glides out *with* the content by mapping scrollY -> progress.
-    JS drives these vars every rAF tick:
-      --hdrShift  : translateY(px)
-      --hdrVisH   : max-height(px)
-      --hdrOpacity: 0..1
-  */
-  overflow: hidden;
-  max-height: var(--hdrVisH, var(--hdrMaxH, 1000px));
-  transform: translateY(var(--hdrShift, 0px));
+.hdrInner{
   opacity: var(--hdrOpacity, 1);
-  transition: none; /* progress is scroll-driven; avoid laggy transitions */
-  will-change: max-height, opacity, transform;
+  will-change: opacity;
 }
 
 /* When fully collapsed, make sure it can't be interacted with */
