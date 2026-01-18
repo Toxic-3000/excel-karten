@@ -1126,7 +1126,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.infoRow .v{ text-align:right; justify-self:end; }
+.infoRow .v{ text-align:left; justify-self:start; }
 
 .infoRowPrimary{
   padding-bottom: calc(10px * var(--uiScale));
@@ -1146,6 +1146,22 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   gap: var(--sp-4);
 }
 .detailsWrap details{margin:0}
+
+/* --- Portrait ab Tablet-Breite: Store + Humor nebeneinander ---
+   Regel: Einspaltig NUR im Phone-Portrait. Alles andere (inkl. Tablet-Portrait)
+   zeigt Store/Humor zweispaltig, bei identischer Akkordeon-Reihenfolge. */
+@media (orientation: portrait) and (min-width: 720px){
+  .detailsWrap{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 2; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 3; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 3; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 4; }
+}
 .kvTable{
   display:flex;
   flex-direction:column;
@@ -1163,7 +1179,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   padding: calc(8px * var(--uiScale)) 0;
   min-width:0;
 }
-.kvRow .v{ text-align:right; justify-self:end; }
+.kvRow .v{ text-align:left; justify-self:start; }
 
 /* ------------------------------
    Build 7.1i – Layout-Dichte & Ausrichtung Desktop/Tablet
@@ -1223,18 +1239,19 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   }
 
   /* 3) Store + Humorstatistik nebeneinander (wie Desktop/Landscape)
-     DOM-Reihenfolge bleibt: Beschreibung → Store → Trophäen → Humor → Easter
-     → wir platzieren per Grid, damit Store/Humor trotzdem in einer Zeile stehen. */
+     Ziel-Reihenfolge (global): Beschreibung → Eastereggs → Store/Humor (nebeneinander) → Trophäen
+     → wir platzieren per Grid, damit Store/Humor in einer Zeile stehen und die Reihenfolge
+       in allen Ansichten identisch bleibt. */
   .detailsWrap{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
-  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
-  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
-  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
-  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 2; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 3; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 3; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 4; }
 }
 
 .kvRow + .kvRow{
@@ -1318,7 +1335,13 @@ summary::-webkit-details-marker{display:none}
 
 /* Grund-Rhythmus */
 html[data-reading="1"] details.d.is-reading.rm-prose .detailsBody{ line-height: 1.62; }
-html[data-reading="1"] details.d.is-reading.rm-kv    .detailsBody{ line-height: 1.58; }
+/* Key/Value (Store/Humor/Trophäen): in Readmode immer etwas mehr Innenrand,
+   damit der Block nicht „an der Kante klebt“ – ohne das Tabellenlayout zu ändern. */
+html[data-reading="1"] details.d.is-reading.rm-kv    .detailsBody{
+  line-height: 1.58;
+  padding-left: calc(14px * var(--uiScale));
+  padding-right: calc(14px * var(--uiScale));
+}
 
 /* Fliesstext: Silbentrennung immer, Lesesaeule erst ab "breiter genug" */
 html[data-reading="1"] details.d.is-reading.rm-prose .detailsInner{
@@ -2403,12 +2426,12 @@ html.modalOpen body{touch-action:none;}
     gap: var(--sp-4);
   }
   .detailsWrap .d-desc,
-  .detailsWrap .d-trophy,
-  .detailsWrap .d-easter{grid-column: 1 / -1}  /* feste Reihenfolge im Querformat: Beschreibung → Store/Humor nebeneinander → Eastereggs full-width → Trophäen */
+  .detailsWrap .d-easter,
+  .detailsWrap .d-trophy{grid-column: 1 / -1}  /* feste Reihenfolge: Beschreibung → Eastereggs → Store/Humor nebeneinander → Trophäen */
   .detailsWrap .d-desc{grid-column: 1 / -1; grid-row: 1;}
-  .detailsWrap .d-store{grid-column: 1; grid-row: 2;}
-  .detailsWrap .d-humor{grid-column: 2; grid-row: 2;}
-  .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 3;}
+  .detailsWrap .d-easter{grid-column: 1 / -1; grid-row: 2;}
+  .detailsWrap .d-store{grid-column: 1; grid-row: 3;}
+  .detailsWrap .d-humor{grid-column: 2; grid-row: 3;}
   .detailsWrap .d-trophy{grid-column: 1 / -1; grid-row: 4;}
 
   /* Trophy-Labels bleiben auch im Phone-Landscape stabil sichtbar.
@@ -2948,10 +2971,10 @@ html.modalOpen body{touch-action:none;}
     gap: var(--sp-4);
   }
   .detailsWrap .d-desc{ grid-column: 1 / -1; grid-row: 1; }
-  .detailsWrap .d-store{ grid-column: 1; grid-row: 2; }
-  .detailsWrap .d-humor{ grid-column: 2; grid-row: 2; }
-  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 3; }
-  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 4; }
+  .detailsWrap .d-easter{ grid-column: 1 / -1; grid-row: 2; }
+  .detailsWrap .d-store{ grid-column: 1; grid-row: 3; }
+  .detailsWrap .d-humor{ grid-column: 2; grid-row: 3; }
+  .detailsWrap .d-trophy{ grid-column: 1 / -1; grid-row: 4; }
 }
 
 

@@ -1,8 +1,18 @@
-# Spieleliste – Build V7_1k65e
+# Spieleliste – Build V7_1k65f
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k65f (gegenüber V7_1k65e)
+
+- **Akkordeon-Reihenfolge überall identisch** (Phone/Tablet/Desktop, Portrait/Landscape):
+  - **Beschreibung → Eastereggs → Store → Humorstatistik → Trophäen**
+  - Eastereggs stehen jetzt direkt unter Beschreibung (kein Breakpoint-Drift mehr).
+- **Store + Humorstatistik Layout-Regel vereinfacht:**
+  - **Zweispaltig überall**, **nur Phone Portrait** bleibt **einspaltig**.
+- **Key/Value-Ausrichtung beruhigt:** Werte sind nicht mehr rechtsbündig an die Karten-kante gezogen (wirkt kompakter, besonders in Desktop/Tablet).
+- **Lesemodus:** Key/Value-Boxen bekommen nun auch auf kleineren Viewports einen kleinen, stabilen Innenrand-Boost (ohne Layout-Änderungen).
 
 ## Änderungen in V7_1k65e (gegenüber V7_1k65d)
 
