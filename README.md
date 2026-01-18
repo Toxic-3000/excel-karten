@@ -1,10 +1,10 @@
-# Spieleliste – Build V7_1k64t
+# Spieleliste – Build V7_1k64u
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k64t (gegenüber V7_1k64s)
+## Änderungen in V7_1k64u (gegenüber V7_1k64s)
 
 - Fix: Topbar/Sticky-Header wird automatisch neu vermessen, wenn sich die Toolbar ohne Scroll/Resize ändert (z. B. nach Excel-Import, Trefferzahl-Update, Zeilenumbruch).
   → Kein „einmal kurz scrollen“ mehr nötig, um Abschneiden zu beheben.
