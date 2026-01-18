@@ -427,7 +427,7 @@ a{color: color-mix(in oklab, var(--blue) 78%, var(--fg) 22%)}
 .hdrShell{
   display:block;
   width:100%;
-  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  background: color-mix(in oklab, var(--bg) 97%, transparent);
   backdrop-filter: blur(10px);
   border-bottom:1px solid var(--border);
   /* Keep the surface fully opaque; fade only the inner content.
