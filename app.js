@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64z").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65a").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -272,6 +272,7 @@ function onScrollHeader(){
     fabTextPanel: $("fabTextPanel"),
     fabTextClose: $("fabTextClose"),
     fabScaleRow: $("fabScaleRow"),
+    fabTextDensityRow: $("fabTextDensityRow"),
 
     // 2) Schnellzugriff (Sortierung + Sprung ins Hauptmenü)
     fabQuick: $("fabQuick"),
@@ -435,6 +436,37 @@ function onScrollHeader(){
     return UI_SCALES[(idx + 1) % UI_SCALES.length].id;
   }
 
+  // --- UI: Textdarstellung (Normal / Kompakt) ---
+  // Reine Dichte-/Lesefluss-Option: keine Schriftgrößenänderung, keine Inhalte ein-/ausblenden.
+  const TEXT_DENSITY_KEY = "spieleliste_textDensity";
+  const TEXT_DENSITIES = [
+    { id: "normal",  label: "Normal" },
+    { id: "compact", label: "Kompakt" },
+  ];
+
+  function getTextDensity(){
+    const saved = String(localStorage.getItem(TEXT_DENSITY_KEY) || "").trim().toLowerCase();
+    if (TEXT_DENSITIES.some(x => x.id === saved)) return saved;
+    return "normal";
+  }
+
+  function applyTextDensity(mode){
+    const m = TEXT_DENSITIES.some(x => x.id === mode) ? mode : "normal";
+    try{ document.documentElement.dataset.density = m; }catch(_){/* ignore */}
+    try{ localStorage.setItem(TEXT_DENSITY_KEY, m); }catch(_){/* ignore */}
+    currentTextDensity = m;
+    try{ updateFabTextDensityUI(); }catch(_){/* ignore */}
+    // Density affects wrapping/spacing -> remeasure header + toolbar compactness.
+    try{ queueToolbarCompactness(); }catch(_){/* ignore */}
+    try{
+      requestAnimationFrame(() => {
+        try{ updateHeaderMetrics(); }catch(_){/* ignore */}
+        try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
+        try{ window.dispatchEvent(new Event('resize')); }catch(_){/* ignore */}
+      });
+    }catch(_){/* ignore */}
+  }
+
   // --- UI: Adaptive toolbar compaction timer ---
   // NOTE: Must be initialized BEFORE applyScale() runs during startup.
   // applyScale() calls queueToolbarCompactness(), which touches this timer.
@@ -442,6 +474,9 @@ function onScrollHeader(){
 
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
+
+  let currentTextDensity = getTextDensity();
+  applyTextDensity(currentTextDensity);
 
   // Startup safety net:
   // On some mobile browsers, the sticky header's final size (fonts + visual viewport)
@@ -470,6 +505,13 @@ function onScrollHeader(){
     if (!el.fabScaleRow) return;
     for (const b of el.fabScaleRow.querySelectorAll(".chip")){
       b.setAttribute("aria-pressed", b.getAttribute("data-key") === currentScalePreset ? "true" : "false");
+    }
+  }
+
+  function updateFabTextDensityUI(){
+    if (!el.fabTextDensityRow) return;
+    for (const b of el.fabTextDensityRow.querySelectorAll('.chip')){
+      b.setAttribute('aria-pressed', b.getAttribute('data-key') === currentTextDensity ? 'true' : 'false');
     }
   }
 
@@ -701,6 +743,11 @@ function closeFabText(){
       el.fabScaleRow.innerHTML = UI_SCALES.map(s => chipHtml("uiScale", s.id, s.label, s.id === currentScalePreset)).join("");
     }
 
+    // Build text density chips (Normal/Kompakt)
+    if (el.fabTextDensityRow){
+      el.fabTextDensityRow.innerHTML = TEXT_DENSITIES.map(d => chipHtml("textDensity", d.id, d.label, d.id === currentTextDensity)).join("");
+    }
+
     // Build quick sort direction chips
     if (el.fabSortDirRow){
       el.fabSortDirRow.innerHTML = [
@@ -823,6 +870,10 @@ function closeFabText(){
         if (group === "uiScale"){
           currentScalePreset = key;
           applyScale(currentScalePreset);
+          return;
+        }
+        if (group === "textDensity"){
+          applyTextDensity(String(key || 'normal'));
           return;
         }
         if (group === "quickSortField"){

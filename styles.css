@@ -52,6 +52,15 @@
   --badge-gap: calc(6px * var(--uiScale));
   --badge-h: calc(28px * var(--uiScale));
 
+  /* Textdarstellung (Normal/Kompakt): reine Dichte-/Lesefluss-Option
+     (keine Schriftgrößenänderung, keine Inhalte ein-/ausblenden). */
+  --td-lh-body: 1.58;
+  --td-lh-meta: 1.35;
+  --td-content-max: 70ch;
+  --td-p-gap: 0.65em;
+  --card-pad-x: calc(14px * var(--uiScale));
+  --card-pad-y: calc(14px * var(--uiScale));
+
 
   /* Visible viewport height helper (set by JS via VisualViewport when available).
      Fallback stays at 1vh. Used to keep overlays stable when the mobile browser bar is shown. */
@@ -95,6 +104,16 @@
   /* New: subtle highlight */
   --glow: color-mix(in oklab, var(--blue) 22%, transparent);
   --filterGlow: color-mix(in oklab, var(--filterAccent) 22%, transparent);
+}
+
+/* Textdarstellung: Kompakt (Dichte erhöhen ohne Schriftgrößenänderung) */
+:root[data-density="compact"]{
+  --td-lh-body: 1.40;
+  --td-lh-meta: 1.25;
+  --td-content-max: 82ch;
+  --td-p-gap: 0.45em;
+  --card-pad-y: calc(11px * var(--uiScale));
+  --badge-gap: calc(5px * var(--uiScale));
 }
 
 /* Tablet + Desktop: gleichermaßen (touchfreundlich, aber etwas kompakter als zuvor) */
@@ -320,6 +339,14 @@ body{
 
 /* Desktop: prefer the variable Segoe face when available (often calmer on Windows). */
 @media (min-width: 980px){
+  /* Desktop tokens: keep the established, roomier card padding as the default. */
+  :root{
+    --card-pad-x: calc(18px * var(--uiScale));
+    --card-pad-y: calc(18px * var(--uiScale));
+  }
+  :root[data-density="compact"]{
+    --card-pad-y: calc(16px * var(--uiScale));
+  }
   body{ font-family: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif; }
 
 
@@ -338,7 +365,8 @@ body{
   .cards{ padding: 8px 6px; }
 
   .card{
-    padding: calc(18px * var(--uiScale));
+    /* Use tokens so Textdarstellung can adjust vertical density without changing font sizes. */
+    padding: var(--card-pad-y) var(--card-pad-x);
     margin: 72px 0;
   }
 
@@ -852,7 +880,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   border:1px solid var(--border);
   border-radius: var(--r2);
   box-shadow: var(--shadow);
-  padding: calc(14px * var(--uiScale));
+  padding: var(--card-pad-y) var(--card-pad-x);
   margin: 64px 0;
   transition: box-shadow .18s ease, transform .18s ease;
 }
@@ -906,7 +934,7 @@ padding: calc(9px * var(--uiScale)) calc(12px * var(--uiScale));
   word-break:break-word;
 }
 
-.badgeRow{display:flex; flex-wrap:wrap; gap: calc(6px * var(--uiScale)); margin:8px 0}
+.badgeRow{display:flex; flex-wrap:wrap; gap: var(--badge-gap); margin:8px 0}
 
 /* Zarte Trennlinie zwischen "Meta" (Plattform/Quelle) und "Inhalt" (Genre/Trophäen) */
 .headDivider{
@@ -2639,7 +2667,7 @@ html.modalOpen body{touch-action:none;}
     font-size: calc(22px * var(--uiScale));
     margin: calc(8px * var(--uiScale)) 0 calc(6px * var(--uiScale));
   }
-  .badgeRow{gap: calc(5px * var(--uiScale)); margin: calc(6px * var(--uiScale)) 0;}
+  .badgeRow{gap: var(--badge-gap); margin: calc(6px * var(--uiScale)) 0;}
   .headDivider{margin: calc(8px * var(--uiScale)) 0 calc(6px * var(--uiScale));}
   .badge{
     --badge-pad-y: calc(4px * var(--uiScale));
@@ -3213,3 +3241,20 @@ html:not(.isPhone) .card > .detailsWrap{
 
 /* No rotation: chevrons are markers, not toggles */
 
+
+/* --- Textdarstellung (Normal/Kompakt) ---
+   Ziel: mehr/weniger Informationsdichte ohne Schriftgroessen-Aenderung.
+   Gilt global und geraeteuebergreifend; das ch-Breitenlimit wirkt v. a. auf Desktop/Tablet/Landscape. */
+.detailsBody{ line-height: var(--td-lh-body); }
+.detailsBody .pre{
+  /* Prosa nicht ueber die ganze Kartenbreite laufen lassen (Normal), in Kompakt etwas breiter. */
+  max-width: min(100%, var(--td-content-max));
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--td-lh-body);
+}
+/* Falls einzelne Textbereiche doch echte Absatzelemente nutzen: Abstand dichte-abhängig. */
+.detailsBody :is(p, li) + :is(p, li){ margin-top: var(--td-p-gap); }
+
+/* Meta-Zeilen im Info-Block etwas dichter/luftiger, ohne Schriftgroesse zu aendern. */
+.infoItem .vText{ line-height: var(--td-lh-meta); }

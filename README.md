@@ -1,8 +1,14 @@
-# Spieleliste – Build V7_1k64z
+# Spieleliste – Build V7_1k65a
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k65a (gegenüber V7_1k64z)
+
+- Textdarstellung (Normal/Kompakt) umgesetzt (rein Layout/Dichte, keine Schriftgrößenänderung):
+  - Zeilenhöhen, Abstände, Lesebreite (ch) und Badge-/Karten-Gaps werden über Tokens gesteuert.
+  - Umschaltung im Schriftgrößen-Menü (FAB) unter „Textdarstellung“.
 
 ## Änderungen in V7_1k64z (gegenüber V7_1k64x)
 
