@@ -1,8 +1,12 @@
-# Spieleliste – Build V7_1k64w
+# Spieleliste – Build V7_1k64x
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k64x (gegenüber V7_1k64w)
+
+- Tuning (Header-Hide): Die Ausblend-Progression startet nun etwas früher (ease-out auf dem Scroll-Progress). Dadurch ist die Topbar beim Fokus-Scroll auf Karte 2 bereits stärker eingeklappt und richtet sich konsistent zu tieferen Karten aus.
 
 ## Änderungen in V7_1k64w (gegenüber V7_1k64u)
 

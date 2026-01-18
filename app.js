@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64w").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k64x").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -26,6 +26,12 @@ console.log("Build loader ready");
   let hdrCollapseDist = 0;
   let hdrRAF = 0;
   let hdrCollapsed = false;
+
+  // Header easing:
+  // Begin the collapse a bit earlier (useful for focus-scroll to card 2), while
+  // keeping the overall collapse distance unchanged. We do this by applying a
+  // gentle ease-out curve to the raw scroll progress.
+  const HDR_EASE_GAMMA = 1.7;
 
   // Auto-scroll lock: prevents the header controller from fighting with programmatic
   // focus scrolling (which would otherwise cause flicker). While locked, we keep the
@@ -119,8 +125,12 @@ console.log("Build loader ready");
 
     // Map scroll distance to progress (slow glide):
     // progress reaches 1 only after hdrCollapseDist pixels.
+    // Apply a gentle ease-out so the bar starts collapsing a bit earlier,
+    // which avoids the "card 2" focus-scroll state looking different than
+    // deeper cards.
     if(!hdrCollapseDist) updateHeaderMetrics();
-    const p = clamp01(y / Math.max(1, hdrCollapseDist));
+    const raw = clamp01(y / Math.max(1, hdrCollapseDist));
+    const p = 1 - Math.pow(1 - raw, HDR_EASE_GAMMA);
     applyHeaderProgress(p);
   }
 
