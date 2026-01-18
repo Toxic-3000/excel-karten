@@ -1,10 +1,10 @@
-# Spieleliste – Build V7_1k65c
+# Spieleliste – Build V7_1k65d
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k65c (gegenüber V7_1k64z)
+## Änderungen in V7_1k65d (gegenüber V7_1k64z)
 
 - **Lesemodus (An/Aus) im Textgrößenmenü** statt Normal/Kompakt.
   - **Default: Aus** (entspricht exakt dem Zustand aus Build V7_1k64z).

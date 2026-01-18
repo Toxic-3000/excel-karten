@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65c").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65d").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -471,7 +471,10 @@ function onScrollHeader(){
   // Wenn AN: Lesestile nur auf geoeffnete <details.d> in/nahe Viewport (IntersectionObserver),
   // damit Scroll (Topbar) stabil bleibt.
   const READ_MODE_KEY = "spieleliste_readMode";
-  const READ_MODE_MARGIN = 350; // px prefetch around viewport
+  // Apply reading styles lazily for OFFSCREEN opened accordions to avoid scroll jank.
+  // We prefetch mainly BELOW the viewport (so layout changes don't shift the current scroll position).
+  const READ_MODE_MARGIN_BELOW = 900; // px prefetch BELOW viewport
+  const READ_MODE_MARGIN_ABOVE = 120; // px small buffer ABOVE viewport
 
   function getReadModeOn(){
     const v = (localStorage.getItem(READ_MODE_KEY) || "").trim().toLowerCase();
@@ -486,7 +489,7 @@ function onScrollHeader(){
     try{
       const r = elm.getBoundingClientRect();
       const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-      return (r.bottom >= -READ_MODE_MARGIN) && (r.top <= (vh + READ_MODE_MARGIN));
+      return (r.bottom >= -READ_MODE_MARGIN_ABOVE) && (r.top <= (vh + READ_MODE_MARGIN_BELOW));
     }catch(_){
       return true;
     }
@@ -501,13 +504,18 @@ function onScrollHeader(){
         if (!det || det.tagName !== 'DETAILS') continue;
         // Only card accordions (not menu/help details)
         if (!det.classList || !det.classList.contains('d')) continue;
-        const active = !!_readModeOn && !!det.open && !!e.isIntersecting;
-        det.classList.toggle('is-reading', active);
+        if (!_readModeOn) continue;
+        if (!det.open) continue;
+        // Apply once when near viewport, then stop observing to avoid repeated relayout.
+        if (e.isIntersecting){
+          if (!det.classList.contains('is-reading')) det.classList.add('is-reading');
+          try{ _readObs.unobserve(det); }catch(_){/* ignore */}
+        }
       }
     }, {
       root: null,
-      rootMargin: `${READ_MODE_MARGIN}px 0px ${READ_MODE_MARGIN}px 0px`,
-      threshold: 0.01,
+      rootMargin: `${READ_MODE_MARGIN_ABOVE}px 0px ${READ_MODE_MARGIN_BELOW}px 0px`,
+      threshold: 0.0,
     });
   }
 
@@ -527,12 +535,17 @@ function onScrollHeader(){
     if (!det || det.tagName !== 'DETAILS') return;
     if (!det.classList?.contains('d')) return;
     if (!_readModeOn) return;
+    if (!det.open) return;
+    // Immediate: if it's already near the viewport, apply right away.
+    if (_nearViewport(det)){
+      try{ det.classList.add('is-reading'); }catch(_){/* ignore */}
+      return;
+    }
+    // Otherwise, observe until it becomes near-viewport, then apply once.
     ensureReadObserver();
     if (_readObs){
       try{ _readObs.observe(det); }catch(_){/* ignore */}
     }
-    // Immediate: avoid visible "pop" on open in the viewport
-    try{ det.classList.toggle('is-reading', !!det.open && _nearViewport(det)); }catch(_){/* ignore */}
   }
 
   function unobserveDetails(det){
@@ -959,6 +972,10 @@ function closeFabText(){
         if (group === "uiScale"){
           currentScalePreset = key;
           applyScale(currentScalePreset);
+          return;
+        }
+        if (group === "readMode"){
+          setReadMode(key === "on");
           return;
         }
         if (group === "quickSortField"){
