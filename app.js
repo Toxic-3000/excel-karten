@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65b").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65c").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -436,37 +436,6 @@ function onScrollHeader(){
     return UI_SCALES[(idx + 1) % UI_SCALES.length].id;
   }
 
-  // --- UI: Textdarstellung (Normal / Kompakt) ---
-  // Reine Dichte-/Lesefluss-Option: keine Schriftgrößenänderung, keine Inhalte ein-/ausblenden.
-  const TEXT_DENSITY_KEY = "spieleliste_textDensity";
-  const TEXT_DENSITIES = [
-    { id: "normal",  label: "Normal" },
-    { id: "compact", label: "Kompakt" },
-  ];
-
-  function getTextDensity(){
-    const saved = String(localStorage.getItem(TEXT_DENSITY_KEY) || "").trim().toLowerCase();
-    if (TEXT_DENSITIES.some(x => x.id === saved)) return saved;
-    return "normal";
-  }
-
-  function applyTextDensity(mode){
-    const m = TEXT_DENSITIES.some(x => x.id === mode) ? mode : "normal";
-    try{ document.documentElement.dataset.density = m; }catch(_){/* ignore */}
-    try{ localStorage.setItem(TEXT_DENSITY_KEY, m); }catch(_){/* ignore */}
-    currentTextDensity = m;
-    try{ updateFabTextDensityUI(); }catch(_){/* ignore */}
-    // Density affects wrapping/spacing -> remeasure header + toolbar compactness.
-    try{ queueToolbarCompactness(); }catch(_){/* ignore */}
-    try{
-      requestAnimationFrame(() => {
-        try{ updateHeaderMetrics(); }catch(_){/* ignore */}
-        try{ queueHeaderVisibilityUpdate(); }catch(_){/* ignore */}
-        try{ window.dispatchEvent(new Event('resize')); }catch(_){/* ignore */}
-      });
-    }catch(_){/* ignore */}
-  }
-
   // --- UI: Adaptive toolbar compaction timer ---
   // NOTE: Must be initialized BEFORE applyScale() runs during startup.
   // applyScale() calls queueToolbarCompactness(), which touches this timer.
@@ -474,9 +443,6 @@ function onScrollHeader(){
 
   let currentScalePreset = getScalePreset();
   applyScale(currentScalePreset);
-
-  let currentTextDensity = getTextDensity();
-  applyTextDensity(currentTextDensity);
 
   // Startup safety net:
   // On some mobile browsers, the sticky header's final size (fonts + visual viewport)
@@ -499,19 +465,142 @@ function onScrollHeader(){
     try{ setTimeout(remeasure, 220); }catch(_){/* ignore */}
   })();
 
+
+  // --- UI: Lesemodus (nur Akkordeon-Inhalte) ---
+  // Ziel: Default AUS = exakt wie Build 64z.
+  // Wenn AN: Lesestile nur auf geoeffnete <details.d> in/nahe Viewport (IntersectionObserver),
+  // damit Scroll (Topbar) stabil bleibt.
+  const READ_MODE_KEY = "spieleliste_readMode";
+  const READ_MODE_MARGIN = 350; // px prefetch around viewport
+
+  function getReadModeOn(){
+    const v = (localStorage.getItem(READ_MODE_KEY) || "").trim().toLowerCase();
+    return v === "on" || v === "1" || v === "true";
+  }
+
+  let _readModeOn = getReadModeOn();
+  let _readObs = null;
+  let _readObsWired = false;
+
+  function _nearViewport(elm){
+    try{
+      const r = elm.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+      return (r.bottom >= -READ_MODE_MARGIN) && (r.top <= (vh + READ_MODE_MARGIN));
+    }catch(_){
+      return true;
+    }
+  }
+
+  function ensureReadObserver(){
+    if (_readObs) return;
+    if (!('IntersectionObserver' in window)) return; // graceful fallback
+    _readObs = new IntersectionObserver((entries) => {
+      for (const e of entries){
+        const det = e.target;
+        if (!det || det.tagName !== 'DETAILS') continue;
+        // Only card accordions (not menu/help details)
+        if (!det.classList || !det.classList.contains('d')) continue;
+        const active = !!_readModeOn && !!det.open && !!e.isIntersecting;
+        det.classList.toggle('is-reading', active);
+      }
+    }, {
+      root: null,
+      rootMargin: `${READ_MODE_MARGIN}px 0px ${READ_MODE_MARGIN}px 0px`,
+      threshold: 0.01,
+    });
+  }
+
+  function teardownReadObserver(){
+    try{ _readObs?.disconnect?.(); }catch(_){/* ignore */}
+    _readObs = null;
+    try{
+      if (el.cards){
+        for (const det of el.cards.querySelectorAll('details.d.is-reading')){
+          det.classList.remove('is-reading');
+        }
+      }
+    }catch(_){/* ignore */}
+  }
+
+  function observeDetails(det){
+    if (!det || det.tagName !== 'DETAILS') return;
+    if (!det.classList?.contains('d')) return;
+    if (!_readModeOn) return;
+    ensureReadObserver();
+    if (_readObs){
+      try{ _readObs.observe(det); }catch(_){/* ignore */}
+    }
+    // Immediate: avoid visible "pop" on open in the viewport
+    try{ det.classList.toggle('is-reading', !!det.open && _nearViewport(det)); }catch(_){/* ignore */}
+  }
+
+  function unobserveDetails(det){
+    if (!det || det.tagName !== 'DETAILS') return;
+    if (!det.classList?.contains('d')) return;
+    try{ _readObs?.unobserve?.(det); }catch(_){/* ignore */}
+    try{ det.classList.remove('is-reading'); }catch(_){/* ignore */}
+  }
+
+  function refreshReadModeObserved(){
+    if (!_readModeOn) {
+      teardownReadObserver();
+      return;
+    }
+    // Recreate observer after big DOM swaps (render replaces cards)
+    teardownReadObserver();
+    ensureReadObserver();
+    if (!el.cards) return;
+    try{
+      for (const det of el.cards.querySelectorAll('details.d[open]')){
+        observeDetails(det);
+      }
+    }catch(_){/* ignore */}
+  }
+
+  function updateFabReadModeUI(){
+    if (!el.fabTextDensityRow) return;
+    for (const b of el.fabTextDensityRow.querySelectorAll('.chip')){
+      const k = (b.getAttribute('data-key') || '').trim();
+      const on = (k === 'on');
+      const pressed = (_readModeOn && on) || (!_readModeOn && k === 'off');
+      b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    }
+  }
+
+  function setReadMode(on, {persist=true}={}){
+    _readModeOn = !!on;
+    try{
+      if (persist) localStorage.setItem(READ_MODE_KEY, _readModeOn ? 'on' : 'off');
+    }catch(_){/* ignore */}
+    try{
+      if (_readModeOn) document.documentElement.dataset.reading = '1';
+      else delete document.documentElement.dataset.reading;
+    }catch(_){/* ignore */}
+    updateFabReadModeUI();
+    refreshReadModeObserved();
+  }
+
+  function wireReadModeRow(){
+    if (_readObsWired) return;
+    if (!el.fabTextDensityRow) return;
+    _readObsWired = true;
+    el.fabTextDensityRow.addEventListener('click', (ev) => {
+      const btn = ev.target?.closest?.('.chip');
+      if (!btn) return;
+      const k = (btn.getAttribute('data-key') || '').trim();
+      if (k === 'on') setReadMode(true);
+      else if (k === 'off') setReadMode(false);
+    });
+    updateFabReadModeUI();
+  }
+
   // No more header button: quick access lives in the FAB panel.
 
   function updateFabScaleUI(){
     if (!el.fabScaleRow) return;
     for (const b of el.fabScaleRow.querySelectorAll(".chip")){
       b.setAttribute("aria-pressed", b.getAttribute("data-key") === currentScalePreset ? "true" : "false");
-    }
-  }
-
-  function updateFabTextDensityUI(){
-    if (!el.fabTextDensityRow) return;
-    for (const b of el.fabTextDensityRow.querySelectorAll('.chip')){
-      b.setAttribute('aria-pressed', b.getAttribute('data-key') === currentTextDensity ? 'true' : 'false');
     }
   }
 
@@ -743,10 +832,10 @@ function closeFabText(){
       el.fabScaleRow.innerHTML = UI_SCALES.map(s => chipHtml("uiScale", s.id, s.label, s.id === currentScalePreset)).join("");
     }
 
-    // Build text density chips (Normal/Kompakt)
-    if (el.fabTextDensityRow){
-      el.fabTextDensityRow.innerHTML = TEXT_DENSITIES.map(d => chipHtml("textDensity", d.id, d.label, d.id === currentTextDensity)).join("");
-    }
+    // Wire Lesemodus toggle row (static buttons in HTML)
+    try{ wireReadModeRow(); }catch(_){/* ignore */}
+    // Apply persisted Lesemodus state (default AUS)
+    try{ setReadMode(_readModeOn, {persist:false}); }catch(_){/* ignore */}
 
     // Build quick sort direction chips
     if (el.fabSortDirRow){
@@ -870,10 +959,6 @@ function closeFabText(){
         if (group === "uiScale"){
           currentScalePreset = key;
           applyScale(currentScalePreset);
-          return;
-        }
-        if (group === "textDensity"){
-          applyTextDensity(String(key || 'normal'));
           return;
         }
         if (group === "quickSortField"){
@@ -4057,6 +4142,9 @@ function classifyAvailability(av){
     // Sync summary labels once after render; subsequent updates are handled via a single delegated listener.
     syncDetailsSummaryLabels(el.cards);
 
+    // Lesemodus: nach DOM-Swap offene Akkordeons erneut anbinden
+    try{ if (_readModeOn) refreshReadModeObserved(); }catch(_){/* ignore */}
+
 
     // Apply card-mode openness to newly rendered cards
     try{ syncCardStates(); }catch(_){/* ignore */}
@@ -4090,6 +4178,18 @@ function classifyAvailability(av){
       if (!label) return;
       const base = label.getAttribute("data-label") || "";
       label.textContent = det.open ? (base + " verbergen") : (base + " anzeigen");
+
+      // Lesemodus: nur offene Details im (nahe) Viewport beobachten
+      try{
+        if (det.classList && det.classList.contains('d')){
+          if (_readModeOn){
+            if (det.open) observeDetails(det);
+            else unobserveDetails(det);
+          }else{
+            det.classList.remove('is-reading');
+          }
+        }
+      }catch(_){/* ignore */}
 
       // Optional: apply/remove search term highlights in large text blocks (lazy, on open).
       try{ syncHighlightsForDetails(det); }catch(_){/* ignore */}

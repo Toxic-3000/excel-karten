@@ -1,19 +1,15 @@
-# Spieleliste – Build V7_1k65b
+# Spieleliste – Build V7_1k65c
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
 
-## Änderungen in V7_1k65b (gegenüber V7_1k64z)
+## Änderungen in V7_1k65c (gegenüber V7_1k64z)
 
-- Textdarstellung (Normal/Kompakt) umgesetzt (rein Layout/Dichte, keine Schriftgrößenänderung):
-  - Zeilenhöhen, Abstände, Lesebreite (ch) und Badge-/Karten-Gaps werden über Tokens gesteuert.
-  - Umschaltung im Schriftgrößen-Menü (FAB) unter „Textdarstellung“.
-  - Feintuning Lesebreite: Normal/Kompakt sind auf breiteren Viewports stärker gebändigt (mehr Luft links/rechts).
-    - Default: Normal 64ch, Kompakt 74ch
-    - Ab 800px: Normal 58ch, Kompakt 68ch
-    - Ab 1200px: Normal 54ch, Kompakt 64ch
-
+- **Lesemodus (An/Aus) im Textgrößenmenü** statt Normal/Kompakt.
+  - **Default: Aus** (entspricht exakt dem Zustand aus Build V7_1k64z).
+  - **An:** wirkt auf alle **Akkordeon-Inhalte** (Beschreibung/Store/Trophäen/Humorstatistik/Eastereggs): angenehmere Lesebreite (mehr Rand links/rechts, saubere Fluchtlinie) + etwas ruhigere Zeilenhöhe.
+  - **Performance:** Styles werden nur für **geöffnete** Akkordeons **im/nahe Viewport** aktiviert (IntersectionObserver), damit man keinen „alles wird umformatiert“-Moment sieht.
 
 ## Änderungen in V7_1k64z (gegenüber V7_1k64x)
 
