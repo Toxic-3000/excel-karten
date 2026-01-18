@@ -11,7 +11,7 @@ console.log("Build loader ready");
    - Store Link: Linktext + echte URL aus Excel (Hyperlink) */
 (() => {
   "use strict";
-  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65d").trim();
+  const BUILD = (document.querySelector('meta[name="app-build"]')?.getAttribute("content") || "V7_1k65e").trim();
 
   // Header behavior (scroll-progressive):
   // The topbar should *glide out with the content* instead of switching at a hard threshold.
@@ -4140,11 +4140,11 @@ function classifyAvailability(av){
           </div>
 
           <div class="detailsWrap">
-            ${detailsBlock("desc", "Beschreibung", descBody)}
-            ${detailsBlock("store", "Store", storeBody)}
-            ${detailsBlock("trophy", "Trophäen", trophyBody)}
-            ${detailsBlock("humor", "Humorstatistik", humorBody)}
-            ${detailsBlock("easter", "Eastereggs", easterBody)}
+            ${detailsBlock("desc", "Beschreibung", descBody, "prose")}
+            ${detailsBlock("store", "Store", storeBody, "kv")}
+            ${detailsBlock("trophy", "Trophäen", trophyBody, "kv")}
+            ${detailsBlock("humor", "Humorstatistik", humorBody, "kv")}
+            ${detailsBlock("easter", "Eastereggs", easterBody, "prose")}
           </div>
         </article>`;
     }).join("");
@@ -4458,11 +4458,12 @@ function applyHighlights(root, terms) {
     }
   }
 
-  function detailsBlock(key, label, bodyHtml){
+  function detailsBlock(key, label, bodyHtml, kind){
     const safeLabel = esc(label);
     const safeKey = String(key || "").toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    const k = (kind === "kv") ? "rm-kv" : "rm-prose";
     return `
-      <details class="d d-${safeKey}">
+      <details class="d d-${safeKey} ${k}">
         <summary>
           <span data-label="${safeLabel}">${safeLabel} anzeigen</span>
           <span class="chev">▾</span>

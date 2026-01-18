@@ -1309,24 +1309,49 @@ summary::-webkit-details-marker{display:none}
 .detailsBody{padding: calc(12px * var(--uiScale)) calc(12px * var(--uiScale)) calc(14px * var(--uiScale)); line-height:1.55}
 
 /* --- Lesemodus (nur Akkordeon-Inhalte in Karten) ---
-   Default AUS = unveraendert.
-   Aktiv nur fuer geoeffnete <details.d> im/nahe Viewport (JS: .is-reading). */
-html[data-reading="1"] details.d.is-reading .detailsBody{
-  line-height: 1.62;
-}
-html[data-reading="1"] details.d.is-reading .detailsInner{
-  /* Komfortable Lesebreite + saubere Fluchtlinie */
-  max-width: 60ch;
+   Default AUS = unveraendert (Build 64z Verhalten).
+   Aktiv nur fuer geoeffnete <details.d> im/nahe Viewport (JS: .is-reading).
+
+   Wichtig: Fliesstext (Beschreibung/Eastereggs) bekommt eine echte Lesesaeule.
+   Key/Value-Boxen (Store/Humor/Trophaeen) bekommen nur mehr Innenrand und
+   eine sanftere Zeilenhoehe, damit Layout/Spalten stabil bleiben. */
+
+/* Grund-Rhythmus */
+html[data-reading="1"] details.d.is-reading.rm-prose .detailsBody{ line-height: 1.62; }
+html[data-reading="1"] details.d.is-reading.rm-kv    .detailsBody{ line-height: 1.58; }
+
+/* Fliesstext: Silbentrennung immer, Lesesaeule erst ab "breiter genug" */
+html[data-reading="1"] details.d.is-reading.rm-prose .detailsInner{
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  /* angenehme Silbentrennung, ohne harte Wortbrueche */
   hyphens: auto;
   overflow-wrap: break-word;
   word-break: normal;
 }
-html[data-reading="1"] details.d.is-reading .detailsInner p + p{
-  margin-top: 0.75em;
+
+/* Absatzabstand nur bei Fliesstext */
+html[data-reading="1"] details.d.is-reading.rm-prose .detailsInner p + p{ margin-top: 0.75em; }
+
+/* Lesesaeule (auch Phone-Landscape + Tablet-Portrait) */
+@media (min-width: 700px) and (orientation: landscape), (min-width: 768px){
+  html[data-reading="1"] details.d.is-reading.rm-prose .detailsInner{
+    max-width: 56ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Key/Value: mehr Luft links/rechts, ohne Spalten zu zerbrechen */
+  html[data-reading="1"] details.d.is-reading.rm-kv .detailsBody{
+    padding-left: calc(16px * var(--uiScale));
+    padding-right: calc(16px * var(--uiScale));
+  }
+}
+
+/* Desktop darf minimal weiter werden, damit es nicht zu schmal wirkt */
+@media (min-width: 1100px){
+  html[data-reading="1"] details.d.is-reading.rm-prose .detailsInner{ max-width: 60ch; }
+  html[data-reading="1"] details.d.is-reading.rm-kv .detailsBody{
+    padding-left: calc(18px * var(--uiScale));
+    padding-right: calc(18px * var(--uiScale));
+  }
 }
 .pre{white-space:pre-wrap}
 .hl{

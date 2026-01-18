@@ -1,8 +1,15 @@
-# Spieleliste – Build V7_1k65d
+# Spieleliste – Build V7_1k65e
 
 Patch: Suchsprache A–C (Filter + Markierungen + Suchhilfe).
 
 Patch A–C: Suchsprache (Trefferlogik + Markierungen + Hilfe)
+
+## Änderungen in V7_1k65e (gegenüber V7_1k65d)
+
+- **Lesemodus verfeinert nach Inhaltstyp**
+  - **Beschreibung + Eastereggs (Fließtext):** echte **Lesesäule** (ab Phone-Landscape/Tablet-Portrait), Silbentrennung + Absatzabstand.
+  - **Store + Humorstatistik + Trophäen (Key/Value):** keine harte Max-Width (damit Layout/Spalten stabil bleiben), stattdessen **mehr Innenrand** + **sanftere Zeilenhöhe**.
+  - Ergebnis: spürbarer Effekt auch in **Phone Landscape** und **Tablet Portrait**, ohne dass KV-Boxen „zerbrechen“.
 
 ## Änderungen in V7_1k65d (gegenüber V7_1k64z)
 
